@@ -1,7 +1,9 @@
 # Навыки, лежащие в проекте
 
-Перенесены из LifeCommit 03.10.2026 как есть: здесь тоже будут мини-апп
-Telegram (веб: React + Vite внутри WebView) и позже мобильное приложение.
+Перенесены 03.10.2026: здесь тоже будут мини-апп Telegram (веб: React + Vite
+внутри WebView) и позже мобильное приложение. Всё веб- и Telegram-ское — из
+LifeCommit как есть, `animate-expo` и `react-native-skills` под мобилку — из
+audioguide.
 
 **Навык — справочник, а не начальник.** Его текст попадает в контекст вместе с
 задачей, и указания внутри исполняются как советы. Когда у проекта появятся
@@ -19,6 +21,8 @@ Telegram (веб: React + Vite внутри WebView) и позже мобиль�
 | `ui-ux-pro-max`                | проверочные списки: доступность, цели нажатия, формы                  |
 | `mobile-native`                | чтобы веб в WebView ощущался нативным: 100vh, safe area, зум полей, подсветка нажатия |
 | `animate`                      | построить анимацию с нуля (веб)                                       |
+| `animate-expo`                 | то же для мобильного приложения: Reanimated, Gesture Handler, Expo Router, хаптика |
+| `react-native-skills`          | производительность React Native и Expo: списки, анимации, жесты, навигация, состояние |
 | `review-animations`            | разбор конкретной анимации                                            |
 | `improve-animations`           | аудит движения по всему коду, план правок                             |
 | `find-animation-opportunities` | где анимации не хватает                                               |
@@ -36,9 +40,6 @@ Telegram (веб: React + Vite внутри WebView) и позже мобиль�
 
 ## Чего здесь нет
 
-- **Навыков под нативное мобильное приложение.** `animate-expo` и
-  `react-native-skills` были в audioguide, в LifeCommit их не брали. Подтянуть,
-  когда дойдёт до мобилки и станет ясен стек.
 - **Своего ревью и проверок LifeCommit** — агенты `lc-*`, команды `/lc-review`,
   `/lc-explore`, `/click-path-audit`, хуки `block-no-verify` и `protect-gates`.
   Они написаны под его код (Worker, Supabase, e2e, хук pre-push); здесь их
@@ -88,6 +89,12 @@ Telegram (веб: React + Vite внутри WebView) и позже мобиль�
   сюда не взят: он пересекается с `impeccable`. Без него навык работает в
   режиме «дали маршруты» — сам решает, какие пробы гонять; ссылки на схему
   находок `ui-design` просто пропускаются.
+- **Мобильные навыки предполагают React Native + Expo.** Выберем другой стек
+  мобилки — `animate-expo` и `react-native-skills` убрать.
+- **`react-native-skills` в audioguide был подогнан под тот проект**: два
+  правила (`ui-expo-image`, `list-performance-virtualize`) там удалили как
+  дубли его `CLAUDE.md`. Здесь они возвращены из первоисточника, а раздел
+  «С оглядкой» в `SKILL.md` переписан без ссылок на код аудиогида.
 - **`better-*` написаны под английский текст.** Кириллица, «ёлочки» и
   неразрывные пробелы там не разобраны.
 - **Палитры и пары шрифтов `ui-ux-pro-max` кириллицу не учитывают.** Для
@@ -103,7 +110,8 @@ Telegram (веб: React + Vite внутри WebView) и позже мобиль�
 
 | Папка                                                                                                                                                             | Источник                                                | Лицензия   |
 | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- | ---------- |
-| `emil-design-eng`, `animate`, `review-animations`, `improve-animations`, `find-animation-opportunities`, `apple-design`, `animation-vocabulary`, `prototype`, `mobile-native` | github.com/emilkowalski/skills                          | MIT        |
+| `emil-design-eng`, `animate`, `animate-expo`, `review-animations`, `improve-animations`, `find-animation-opportunities`, `apple-design`, `animation-vocabulary`, `prototype`, `mobile-native` | github.com/emilkowalski/skills                          | MIT        |
+| `react-native-skills`                                                                                                                                             | github.com/vercel-labs/agent-skills (через audioguide)  | MIT        |
 | `impeccable`                                                                                                                                                      | github.com/pbakaus/impeccable, `npx impeccable install` | Apache 2.0 |
 | `ui-ux-pro-max`                                                                                                                                                   | github.com/nextlevelbuilder/ui-ux-pro-max-skill         | MIT        |
 | `better-*`, `interface-review`, `break`, `variant`, `explain-interface`                                                                                            | github.com/jakubkrehel/skills                           | MIT        |
@@ -111,4 +119,5 @@ Telegram (веб: React + Vite внутри WebView) и позже мобиль�
 | `telegram-mini-app`                                                                                                                                               | свой; часть правил — по мотивам victorzhuk/skills (Apache 2.0) и yaniv-golan (MIT), подмена — по шаблону tma.js (MIT) | —          |
 | `grilling`, `grill-me`                                                                                                                                            | свои                                                    | —          |
 
-Тексты лицензий MIT — в `LICENSES/`.
+Тексты лицензий MIT — в `LICENSES/`; у `react-native-skills` лицензия указана
+в шапке его `SKILL.md`.
