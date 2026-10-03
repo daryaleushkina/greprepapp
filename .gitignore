@@ -1,0 +1,8 @@
+# Бинарник impeccable: 12 МБ и под одну платформу, лаунчер скачает сам
+.claude/skills/impeccable/scripts/bin/
+
+# Личные настройки Claude Code (сюда же impeccable кладёт свой хук)
+.claude/settings.local.json
+.impeccable/config.local.json
+
+.DS_Store
