@@ -37,6 +37,7 @@ if (!process.argv.includes('--texts')) {
     url: `${APP_URL}/bot/webhook`,
     secret_token: SECRET,
     allowed_updates: ['message', 'my_chat_member', 'callback_query'],
+    // Каждый запуск выбрасывает накопившиеся у Telegram обновления — так в LifeCommit; не гонять при живых людях без нужды.
     drop_pending_updates: true,
   });
   await call('setChatMenuButton', {
