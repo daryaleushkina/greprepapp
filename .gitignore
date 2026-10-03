@@ -5,4 +5,28 @@
 .claude/settings.local.json
 .impeccable/config.local.json
 
+# Секреты
+.env
+.env.*
+!.env.example
+.dev.vars*
+
+# Зависимости и сборка
+node_modules/
+dist/
+.wrangler/
+.supabase/
+
+# Тесты: результаты, отчёты, покрытие (эталоны снимков e2e/__screens__ коммитим)
+test-results/
+playwright-report/
+coverage/
+coverage-e2e/
+coverage-e2e-raw/
+.vitest/
+screenshots/
+
+# Черновые проверки агентов gp-explorer и gp-click-path: падающие сценарии, снимки, вывод прогонов
+e2e/_explore/
+
 .DS_Store
