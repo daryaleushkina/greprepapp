@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Шаг — Главная</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,400&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1E2230}a:hover{color:#565C6B}
+button{font:inherit;cursor:pointer}
+button,a{-webkit-tap-highlight-color:transparent;transition:transform 160ms cubic-bezier(0.23,1,0.32,1)}
+button:active,a:active{transform:scale(0.98)}
+:focus-visible{outline:3px solid #1E2230;outline-offset:3px}
+::selection{background:#ECE8FF;color:#1E2230}
+@media (prefers-reduced-motion: reduce){button,a{transition:none}button:active,a:active{transform:none}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; overflow: hidden; position: relative; box-sizing: border-box; font-family: 'Nunito', sans-serif; color: #1E2230; background: #F5F7FB; display: flex; flex-direction: column">
+
+  <header style="flex: none; height: 52px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 0 6px; background: #F5F7FB">
+    <div style="display: flex; justify-content: flex-start">
+      <button type="button" style="height: 44px; padding: 0 10px; border: 0; border-radius: 12px; background: transparent; color: #1E2230; font-size: 17px; font-weight: 600">Закрыть</button>
+    </div>
+    <div style="font-size: 17px; line-height: 22px; font-weight: 800; letter-spacing: -0.01em">Шаг</div>
+    <div style="display: flex; justify-content: flex-end">
+      <button type="button" aria-label="Меню" style="width: 44px; height: 44px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; justify-content: center">
+        <span style="width: 32px; height: 32px; border-radius: 50%; background: #E8EBF2; display: flex; align-items: center; justify-content: center">
+          <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><circle cx="3.5" cy="9" r="1.6" fill="#1E2230"></circle><circle cx="9" cy="9" r="1.6" fill="#1E2230"></circle><circle cx="14.5" cy="9" r="1.6" fill="#1E2230"></circle></svg>
+        </span>
+      </button>
+    </div>
+  </header>
+
+  <main style="flex: 1; min-height: 0; overflow: hidden; padding: 6px 16px 0; display: flex; flex-direction: column; gap: 20px">
+
+    <div style="display: flex; flex-direction: column; gap: 2px">
+      <h1 style="margin: 0; font-size: 34px; line-height: 38px; font-weight: 800; letter-spacing: -0.025em">Сегодня</h1>
+      <p style="margin: 0; font-size: 16px; line-height: 22px; font-weight: 600; color: #565C6B">понедельник, 5 октября · 3 шага</p>
+    </div>
+
+    <ol aria-label="План на сегодня" style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px">
+
+      <!-- Шаг 1 — текущий: единственная заливная кнопка экрана -->
+      <li style="position: relative; display: grid; grid-template-columns: 48px 1fr; column-gap: 10px; align-items: start">
+        <span aria-hidden="true" style="position: absolute; left: 23px; top: 32px; bottom: -12px; width: 2px; background: #D9DDE6"></span>
+        <span aria-hidden="true" style="position: relative; z-index: 1; margin-top: 8px; width: 48px; height: 48px; border-radius: 50%; background: #5B4BC4; color: #FFFFFF; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 5px #ECE8FF, 0 0 0 9px #F5F7FB">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 6.5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-6.5l-4.5 3.5v-3.5a2 2 0 0 1-2-2z"></path><path d="M8.5 9h7"></path><path d="M8.5 12.5h4.5"></path></svg>
+        </span>
+        <section aria-label="Продолжить тренировку" style="background: #FFFFFF; border-radius: 24px; padding: 18px 18px 8px; box-shadow: 0 1px 2px rgba(30, 34, 48, 0.05), 0 12px 28px -8px rgba(30, 34, 48, 0.16)">
+          <h2 style="margin: 0; font-size: 21px; line-height: 26px; font-weight: 800; letter-spacing: -0.01em">Продолжить тренировку</h2>
+          <p style="margin: 4px 0 0; font-size: 15px; line-height: 20px; font-weight: 700; color: #5B4BC4">Verbal · Text Completion</p>
+          <div style="margin-top: 14px; display: flex; align-items: center; gap: 10px">
+            <span role="img" aria-label="Пройдено 3 вопроса, сейчас вопрос 4 из 10" style="display: flex; align-items: center; gap: 5px">
+              <span style="width: 9px; height: 9px; border-radius: 50%; background: #5B4BC4"></span>
+              <span style="width: 9px; height: 9px; border-radius: 50%; background: #5B4BC4"></span>
+              <span style="width: 9px; height: 9px; border-radius: 50%; background: #5B4BC4"></span>
+              <span style="width: 13px; height: 13px; box-sizing: border-box; border-radius: 50%; background: #FFFFFF; border: 3px solid #5B4BC4"></span>
+              <span style="width: 9px; height: 9px; border-radius: 50%; background: #D9DDE6"></span>
+              <span style="width: 9px; height: 9px; border-radius: 50%; background: #D9DDE6"></span>
+              <span style="width: 9px; height: 9px; border-radius: 50%; background: #D9DDE6"></span>
+              <span style="width: 9px; height: 9px; border-radius: 50%; background: #D9DDE6"></span>
+              <span style="width: 9px; height: 9px; border-radius: 50%; background: #D9DDE6"></span>
+              <span style="width: 9px; height: 9px; border-radius: 50%; background: #D9DDE6"></span>
+            </span>
+            <span style="margin-left: auto; font-size: 15px; line-height: 20px; font-weight: 700; color: #565C6B; font-variant-numeric: tabular-nums; white-space: nowrap">вопрос 4 из 10</span>
+          </div>
+          <button type="button" style="margin: 16px -10px 0; width: calc(100% + 20px); height: 52px; border: 0; border-radius: 16px; background: #1E2230; color: #FFFFFF; font-size: 17px; font-weight: 800; letter-spacing: 0.005em">Продолжить</button>
+        </section>
+      </li>
+
+      <!-- Шаг 2 — что повторить -->
+      <li style="position: relative; display: grid; grid-template-columns: 48px 1fr; column-gap: 10px; align-items: start">
+        <span aria-hidden="true" style="position: absolute; left: 23px; top: 30px; bottom: -12px; width: 2px; background: #D9DDE6"></span>
+        <span aria-hidden="true" style="position: relative; z-index: 1; justify-self: center; margin-top: 10px; width: 40px; height: 40px; border-radius: 50%; background: #E8EBF2; color: #1E2230; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 4px #F5F7FB">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 11.5a7.5 7.5 0 0 1 13-5l2 2"></path><path d="M19.5 4v4.5H15"></path><path d="M19.5 12.5a7.5 7.5 0 0 1-13 5l-2-2"></path><path d="M4.5 20v-4.5H9"></path></svg>
+        </span>
+        <section aria-label="Что повторить" style="background: #FFFFFF; border-radius: 22px; padding: 16px 16px 4px; box-shadow: 0 1px 2px rgba(30, 34, 48, 0.04), 0 4px 14px -4px rgba(30, 34, 48, 0.08)">
+          <h2 style="margin: 0; font-size: 18px; line-height: 24px; font-weight: 800">Что повторить</h2>
+          <ul style="list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px">
+            <li style="display: grid; grid-template-columns: 10px 1fr; column-gap: 10px; align-items: start">
+              <span aria-hidden="true" style="margin-top: 7px; width: 10px; height: 10px; border-radius: 50%; background: #1C7A5E"></span>
+              <span>
+                <span style="display: block; font-size: 16px; line-height: 22px; font-weight: 700">Проценты и доли</span>
+                <span style="display: block; font-size: 14px; line-height: 18px; font-weight: 600; color: #565C6B"><span style="color: #1C7A5E; font-weight: 800">Quant</span> · 6 ошибок</span>
+              </span>
+            </li>
+            <li style="display: grid; grid-template-columns: 10px 1fr; column-gap: 10px; align-items: start">
+              <span aria-hidden="true" style="margin-top: 7px; width: 10px; height: 10px; border-radius: 50%; background: #5B4BC4"></span>
+              <span>
+                <span style="display: block; font-size: 16px; line-height: 22px; font-weight: 700">Слова-сигналы контраста</span>
+                <span style="display: block; font-size: 14px; line-height: 18px; font-weight: 600; color: #565C6B"><span style="color: #5B4BC4; font-weight: 800">Verbal</span> · 3 ошибки</span>
+              </span>
+            </li>
+          </ul>
+          <a href="#" style="margin: 10px -16px 0; min-height: 48px; padding: 0 16px; border-top: 1px solid #EEF0F4; display: flex; align-items: center; gap: 6px; text-decoration: none; color: #1E2230; font-size: 15px; line-height: 20px; font-weight: 800">
+            <span style="flex: 1">Тренировка по ним · 8 вопросов</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 6l6 6-6 6"></path></svg>
+          </a>
+        </section>
+      </li>
+
+      <!-- Шаг 3 — слова; после него план на сегодня кончается: линия становится пунктиром -->
+      <li style="position: relative; display: grid; grid-template-columns: 48px 1fr; column-gap: 10px; align-items: start">
+        <span aria-hidden="true" style="position: absolute; left: 23px; top: 30px; bottom: -12px; width: 2px; background-image: linear-gradient(#D9DDE6 55%, transparent 55%); background-size: 2px 8px"></span>
+        <span aria-hidden="true" style="position: relative; z-index: 1; justify-self: center; margin-top: 10px; width: 40px; height: 40px; border-radius: 50%; background: #FFE4EB; color: #B23A62; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 4px #F5F7FB">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="7.5" width="12" height="13" rx="2.5"></rect><path d="M8.5 4.5h9a2.5 2.5 0 0 1 2.5 2.5v10"></path></svg>
+        </span>
+        <a href="#" style="display: flex; align-items: center; gap: 10px; background: #FFFFFF; border-radius: 22px; padding: 14px 16px; text-decoration: none; color: #1E2230; box-shadow: 0 1px 2px rgba(30, 34, 48, 0.04), 0 4px 14px -4px rgba(30, 34, 48, 0.08)">
+          <span style="flex: 1">
+            <span style="display: block; font-size: 18px; line-height: 24px; font-weight: 800">Слова</span>
+            <span style="display: block; font-size: 15px; line-height: 20px; font-weight: 600; color: #565C6B; font-variant-numeric: tabular-nums">12 слов к повторению · ~5 мин</span>
+          </span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 6l6 6-6 6"></path></svg>
+        </a>
+      </li>
+
+      <!-- Дальше — по желанию: без плашек, узлы контуром -->
+      <li style="position: relative; display: grid; grid-template-columns: 48px 1fr; column-gap: 10px; align-items: start">
+        <span aria-hidden="true" style="position: absolute; left: 23px; top: 24px; bottom: -12px; width: 2px; background-image: linear-gradient(#D9DDE6 55%, transparent 55%); background-size: 2px 8px"></span>
+        <span aria-hidden="true" style="position: relative; z-index: 1; justify-self: center; margin-top: 6px; width: 36px; height: 36px; box-sizing: border-box; border-radius: 50%; background: #FFFFFF; border: 1.5px solid #D9DDE6; color: #5B4BC4; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 4px #F5F7FB">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 6.5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-6.5l-4.5 3.5v-3.5a2 2 0 0 1-2-2z"></path><path d="M8.5 9h7"></path><path d="M8.5 12.5h4.5"></path></svg>
+        </span>
+        <div style="display: flex; align-items: flex-start; gap: 8px; padding-top: 4px">
+          <a href="#" style="flex: 1; min-height: 44px; display: block; text-decoration: none; color: #1E2230">
+            <span style="display: block; font-size: 17px; line-height: 22px; font-weight: 800">Новая тренировка</span>
+            <span style="display: block; font-size: 15px; line-height: 20px; font-weight: 600; color: #565C6B">Verbal · Text Completion · 10 вопросов · Практика</span>
+          </a>
+          <a href="#" style="flex: none; min-height: 44px; padding: 0 2px; font-size: 15px; line-height: 22px; font-weight: 800; color: #1E2230; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; text-decoration-color: #C3C8D2">Изменить</a>
+        </div>
+      </li>
+
+      <li style="position: relative; display: grid; grid-template-columns: 48px 1fr; column-gap: 10px; align-items: start">
+        <span aria-hidden="true" style="position: relative; z-index: 1; justify-self: center; margin-top: 6px; width: 36px; height: 36px; box-sizing: border-box; border-radius: 50%; background: #FFFFFF; border: 1.5px solid #D9DDE6; color: #1E2230; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 4px #F5F7FB">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 20.5v-16"></path><path d="M6 4.5h11l-2.5 4 2.5 4H6"></path></svg>
+        </span>
+        <a href="#" style="min-height: 44px; display: block; padding-top: 4px; text-decoration: none; color: #1E2230">
+          <span style="display: block; font-size: 17px; line-height: 22px; font-weight: 800">Пробный экзамен</span>
+          <span style="display: block; font-size: 15px; line-height: 20px; font-weight: 600; color: #565C6B">Полный — 1 ч 58 мин, или одна секция</span>
+        </a>
+      </li>
+
+    </ol>
+  </main>
+
+  <nav aria-label="Разделы приложения" style="flex: none; height: 80px; box-sizing: border-box; padding: 6px 8px 16px; background: #FFFFFF; box-shadow: 0 -1px 0 #E6E9EF; display: grid; grid-template-columns: repeat(4, 1fr)">
+    <a href="#" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; text-decoration: none; color: #1E2230">
+      <span style="width: 56px; height: 32px; border-radius: 16px; background: #E8EBF2; display: flex; align-items: center; justify-content: center">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 10.5L12 4.5l7.5 6V19a1.5 1.5 0 0 1-1.5 1.5h-3.5V15h-5v5.5H6A1.5 1.5 0 0 1 4.5 19z"></path></svg>
+      </span>
+      <span style="font-size: 12px; line-height: 16px; font-weight: 800">Главная</span>
+    </a>
+    <a href="#" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; text-decoration: none; color: #565C6B">
+      <span style="width: 56px; height: 32px; display: flex; align-items: center; justify-content: center">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 7l1.75 1.75L9.5 5.5"></path><path d="M12.5 7.5h7"></path><path d="M4.5 15l1.75 1.75L9.5 13.5"></path><path d="M12.5 15.5h7"></path></svg>
+      </span>
+      <span style="font-size: 12px; line-height: 16px; font-weight: 700">Тренировки</span>
+    </a>
+    <a href="#" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; text-decoration: none; color: #565C6B">
+      <span style="width: 56px; height: 32px; display: flex; align-items: center; justify-content: center">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="7.5" width="12" height="13" rx="2.5"></rect><path d="M8.5 4.5h9a2.5 2.5 0 0 1 2.5 2.5v10"></path></svg>
+      </span>
+      <span style="font-size: 12px; line-height: 16px; font-weight: 700">Слова</span>
+    </a>
+    <a href="#" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; text-decoration: none; color: #565C6B">
+      <span style="width: 56px; height: 32px; display: flex; align-items: center; justify-content: center">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5h4.5V15H13v-4.5h4.5V6H20"></path></svg>
+      </span>
+      <span style="font-size: 12px; line-height: 16px; font-weight: 700">Прогресс</span>
+    </a>
+  </nav>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Маршрут — Слабые места</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#121417}a:hover{color:#4A4F57}
+button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform 140ms cubic-bezier(0.23,1,0.32,1)}
+button:active,a:active{transform:scale(0.98)}
+:focus-visible{outline:2px solid #121417;outline-offset:2px}
+::selection{background:#121417;color:#FFFFFF}
+@media (prefers-reduced-motion: reduce){button{transition:none}button:active,a:active{transform:none}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; overflow: hidden; position: relative; box-sizing: border-box; font-family: 'Onest', sans-serif; color: #121417; background: #FFFFFF; display: flex; flex-direction: column">
+
+  <header style="flex: none; height: 52px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 0 6px 0 4px; background: #FFFFFF">
+    <div style="display: flex; justify-content: flex-start">
+      <button type="button" style="height: 44px; padding: 0 12px; border: 0; background: transparent; color: #121417; font-size: 17px; font-weight: 500">Закрыть</button>
+    </div>
+    <div style="font-size: 17px; line-height: 22px; font-weight: 600; letter-spacing: -0.01em">Маршрут</div>
+    <div style="display: flex; justify-content: flex-end">
+      <button type="button" aria-label="Меню" style="width: 44px; height: 44px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; justify-content: center">
+        <span style="width: 32px; height: 32px; border-radius: 50%; background: #F3F4F6; display: flex; align-items: center; justify-content: center">
+          <svg width="16" height="4" viewBox="0 0 16 4" aria-hidden="true"><circle cx="2" cy="2" r="1.75" fill="#121417"></circle><circle cx="8" cy="2" r="1.75" fill="#121417"></circle><circle cx="14" cy="2" r="1.75" fill="#121417"></circle></svg>
+        </span>
+      </button>
+    </div>
+  </header>
+
+  <main style="flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; padding: 2px 16px 0">
+
+    <div style="flex: none; display: flex; flex-direction: column; gap: 4px">
+      <h1 style="margin: 0; font-size: 28px; line-height: 32px; font-weight: 700; letter-spacing: -0.02em">Слабые места</h1>
+      <p style="margin: 0; font-size: 15px; line-height: 20px; color: #4A4F57; font-variant-numeric: tabular-nums">по всем тренировкам · 214 ответов</p>
+    </div>
+
+    <!-- Фильтр — он же легенда линий: V — Verbal, Q — Quant -->
+    <div role="radiogroup" aria-label="Раздел" style="flex: none; margin-top: 16px; display: grid; grid-template-columns: 0.8fr 1fr 1fr; gap: 6px">
+      <button type="button" role="radio" aria-checked="true" style="height: 44px; padding: 0 6px; border: 2px solid #121417; border-radius: 10px; background: #FFFFFF; color: #121417; font-size: 15px; font-weight: 700">Все</button>
+      <button type="button" role="radio" aria-checked="false" style="height: 44px; padding: 0 6px; border: 2px solid transparent; border-radius: 10px; background: #F3F4F6; color: #121417; font-size: 15px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px">
+        <span aria-hidden="true" style="flex: none; width: 24px; height: 24px; border-radius: 50%; background: #0A6CB4; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700">V</span>Verbal
+      </button>
+      <button type="button" role="radio" aria-checked="false" style="height: 44px; padding: 0 6px; border: 2px solid transparent; border-radius: 10px; background: #F3F4F6; color: #121417; font-size: 15px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px">
+        <span aria-hidden="true" style="flex: none; width: 24px; height: 24px; border-radius: 50%; background: #0E7C3E; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700">Q</span>Quant
+      </button>
+    </div>
+
+    <!-- Темы по доле ошибок: каждая — станция на своей линии; где стоит станция, такова доля ошибок -->
+    <ul style="flex: none; list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column">
+
+      <li style="border-bottom: 1px solid #E2E4E8">
+        <a href="#" aria-label="Проценты и доли, Quant — 6 ошибок из 11. Тренировка по теме" style="display: flex; flex-direction: column; gap: 8px; padding: 12px 0; color: #121417; text-decoration: none">
+          <span style="display: flex; align-items: flex-start; gap: 10px">
+            <span aria-hidden="true" style="flex: none; width: 24px; height: 24px; border-radius: 50%; background: #0E7C3E; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700">Q</span>
+            <span style="flex: 1; min-width: 0; padding-top: 1px; font-size: 16px; line-height: 22px; font-weight: 600">Проценты и доли</span>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" style="flex: none; margin-top: 2px"><path d="M3.5 10h12.5M11 5l5 5-5 5" stroke="#121417" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          </span>
+          <span style="display: flex; align-items: center; gap: 12px; padding-left: 34px">
+            <span aria-hidden="true" style="position: relative; flex: 1; height: 14px">
+              <span style="position: absolute; left: 0; right: 0; top: 4px; height: 6px; border-radius: 3px; background: #B7D8C5"></span>
+              <span style="position: absolute; left: 0; top: 4px; width: 55%; height: 6px; border-radius: 3px; background: #0E7C3E"></span>
+              <span style="position: absolute; left: calc(55% - 7px); top: 0; width: 14px; height: 14px; box-sizing: border-box; border-radius: 50%; background: #FFFFFF; border: 3px solid #0E7C3E"></span>
+            </span>
+            <span style="flex: none; width: 116px; text-align: right; font-size: 15px; line-height: 20px; font-weight: 600; font-variant-numeric: tabular-nums">6 ошибок из 11</span>
+          </span>
+        </a>
+      </li>
+
+      <li style="border-bottom: 1px solid #E2E4E8">
+        <a href="#" aria-label="Вероятность, Quant — 4 ошибки из 9. Тренировка по теме" style="display: flex; flex-direction: column; gap: 8px; padding: 12px 0; color: #121417; text-decoration: none">
+          <span style="display: flex; align-items: flex-start; gap: 10px">
+            <span aria-hidden="true" style="flex: none; width: 24px; height: 24px; border-radius: 50%; background: #0E7C3E; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700">Q</span>
+            <span style="flex: 1; min-width: 0; padding-top: 1px; font-size: 16px; line-height: 22px; font-weight: 600">Вероятность</span>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" style="flex: none; margin-top: 2px"><path d="M3.5 10h12.5M11 5l5 5-5 5" stroke="#121417" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          </span>
+          <span style="display: flex; align-items: center; gap: 12px; padding-left: 34px">
+            <span aria-hidden="true" style="position: relative; flex: 1; height: 14px">
+              <span style="position: absolute; left: 0; right: 0; top: 4px; height: 6px; border-radius: 3px; background: #B7D8C5"></span>
+              <span style="position: absolute; left: 0; top: 4px; width: 44%; height: 6px; border-radius: 3px; background: #0E7C3E"></span>
+              <span style="position: absolute; left: calc(44% - 7px); top: 0; width: 14px; height: 14px; box-sizing: border-box; border-radius: 50%; background: #FFFFFF; border: 3px solid #0E7C3E"></span>
+            </span>
+            <span style="flex: none; width: 116px; text-align: right; font-size: 15px; line-height: 20px; font-weight: 600; font-variant-numeric: tabular-nums">4 из 9</span>
+          </span>
+        </a>
+      </li>
+
+      <li style="border-bottom: 1px solid #E2E4E8">
+        <a href="#" aria-label="Sentence Equivalence: близкие синонимы, Verbal — 5 ошибок из 12. Тренировка по теме" style="display: flex; flex-direction: column; gap: 8px; padding: 12px 0; color: #121417; text-decoration: none">
+          <span style="display: flex; align-items: flex-start; gap: 10px">
+            <span aria-hidden="true" style="flex: none; width: 24px; height: 24px; border-radius: 50%; background: #0A6CB4; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700">V</span>
+            <span style="flex: 1; min-width: 0; padding-top: 1px; font-size: 16px; line-height: 22px; font-weight: 600">Sentence Equivalence: близкие синонимы</span>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" style="flex: none; margin-top: 2px"><path d="M3.5 10h12.5M11 5l5 5-5 5" stroke="#121417" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          </span>
+          <span style="display: flex; align-items: center; gap: 12px; padding-left: 34px">
+            <span aria-hidden="true" style="position: relative; flex: 1; height: 14px">
+              <span style="position: absolute; left: 0; right: 0; top: 4px; height: 6px; border-radius: 3px; background: #B6D3E8"></span>
+              <span style="position: absolute; left: 0; top: 4px; width: 42%; height: 6px; border-radius: 3px; background: #0A6CB4"></span>
+              <span style="position: absolute; left: calc(42% - 7px); top: 0; width: 14px; height: 14px; box-sizing: border-box; border-radius: 50%; background: #FFFFFF; border: 3px solid #0A6CB4"></span>
+            </span>
+            <span style="flex: none; width: 116px; text-align: right; font-size: 15px; line-height: 20px; font-weight: 600; font-variant-numeric: tabular-nums">5 из 12</span>
+          </span>
+        </a>
+      </li>
+
+      <li style="border-bottom: 1px solid #E2E4E8">
+        <a href="#" aria-label="Text Completion: слова-сигналы контраста, Verbal — 3 ошибки из 10. Тренировка по теме" style="display: flex; flex-direction: column; gap: 8px; padding: 12px 0; color: #121417; text-decoration: none">
+          <span style="display: flex; align-items: flex-start; gap: 10px">
+            <span aria-hidden="true" style="flex: none; width: 24px; height: 24px; border-radius: 50%; background: #0A6CB4; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700">V</span>
+            <span style="flex: 1; min-width: 0; padding-top: 1px; font-size: 16px; line-height: 22px; font-weight: 600">Text Completion: слова-сигналы контраста</span>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" style="flex: none; margin-top: 2px"><path d="M3.5 10h12.5M11 5l5 5-5 5" stroke="#121417" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          </span>
+          <span style="display: flex; align-items: center; gap: 12px; padding-left: 34px">
+            <span aria-hidden="true" style="position: relative; flex: 1; height: 14px">
+              <span style="position: absolute; left: 0; right: 0; top: 4px; height: 6px; border-radius: 3px; background: #B6D3E8"></span>
+              <span style="position: absolute; left: 0; top: 4px; width: 30%; height: 6px; border-radius: 3px; background: #0A6CB4"></span>
+              <span style="position: absolute; left: calc(30% - 7px); top: 0; width: 14px; height: 14px; box-sizing: border-box; border-radius: 50%; background: #FFFFFF; border: 3px solid #0A6CB4"></span>
+            </span>
+            <span style="flex: none; width: 116px; text-align: right; font-size: 15px; line-height: 20px; font-weight: 600; font-variant-numeric: tabular-nums">3 из 10</span>
+          </span>
+        </a>
+      </li>
+
+      <li style="border-bottom: 1px solid #E2E4E8">
+        <a href="#" aria-label="Координатная геометрия, Quant — 2 ошибки из 8. Тренировка по теме" style="display: flex; flex-direction: column; gap: 8px; padding: 12px 0; color: #121417; text-decoration: none">
+          <span style="display: flex; align-items: flex-start; gap: 10px">
+            <span aria-hidden="true" style="flex: none; width: 24px; height: 24px; border-radius: 50%; background: #0E7C3E; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700">Q</span>
+            <span style="flex: 1; min-width: 0; padding-top: 1px; font-size: 16px; line-height: 22px; font-weight: 600">Координатная геометрия</span>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" style="flex: none; margin-top: 2px"><path d="M3.5 10h12.5M11 5l5 5-5 5" stroke="#121417" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          </span>
+          <span style="display: flex; align-items: center; gap: 12px; padding-left: 34px">
+            <span aria-hidden="true" style="position: relative; flex: 1; height: 14px">
+              <span style="position: absolute; left: 0; right: 0; top: 4px; height: 6px; border-radius: 3px; background: #B7D8C5"></span>
+              <span style="position: absolute; left: 0; top: 4px; width: 25%; height: 6px; border-radius: 3px; background: #0E7C3E"></span>
+              <span style="position: absolute; left: calc(25% - 7px); top: 0; width: 14px; height: 14px; box-sizing: border-box; border-radius: 50%; background: #FFFFFF; border: 3px solid #0E7C3E"></span>
+            </span>
+            <span style="flex: none; width: 116px; text-align: right; font-size: 15px; line-height: 20px; font-weight: 600; font-variant-numeric: tabular-nums">2 из 8</span>
+          </span>
+        </a>
+      </li>
+
+    </ul>
+
+    <button type="button" style="flex: none; margin-top: 20px; height: 50px; width: 100%; border: 0; border-radius: 10px; background: #121417; color: #FFFFFF; font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; display: flex; align-items: center; justify-content: center; gap: 8px">
+      Повторить мои ошибки · 23 задания
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4.5 12h14.5M13 6l6 6-6 6" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+    </button>
+
+  </main>
+
+  <nav aria-label="Разделы" style="flex: none; display: grid; grid-template-columns: repeat(4, 1fr); padding: 0 8px 16px; border-top: 1px solid #E2E4E8; background: #FFFFFF">
+    <a href="#" style="height: 64px; display: flex; flex-direction: column; align-items: center; gap: 4px; color: #4A4F57; text-decoration: none">
+      <span aria-hidden="true" style="width: 32px; height: 3px; margin-bottom: 5px"></span>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 10.2 12 4l8 6.2V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z" stroke="#4A4F57" stroke-width="2" stroke-linejoin="round"></path></svg>
+      <span style="font-size: 11px; line-height: 14px; font-weight: 500">Главная</span>
+    </a>
+    <a href="#" style="height: 64px; display: flex; flex-direction: column; align-items: center; gap: 4px; color: #4A4F57; text-decoration: none">
+      <span aria-hidden="true" style="width: 32px; height: 3px; margin-bottom: 5px"></span>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="6" cy="18" r="2.5" stroke="#4A4F57" stroke-width="2"></circle><circle cx="18" cy="6" r="2.5" stroke="#4A4F57" stroke-width="2"></circle><path d="M8.5 18H16a3 3 0 0 0 0-6H8a3 3 0 0 1 0-6h7.5" stroke="#4A4F57" stroke-width="2" stroke-linecap="round"></path></svg>
+      <span style="font-size: 11px; line-height: 14px; font-weight: 500">Тренировки</span>
+    </a>
+    <a href="#" style="height: 64px; display: flex; flex-direction: column; align-items: center; gap: 4px; color: #4A4F57; text-decoration: none">
+      <span aria-hidden="true" style="width: 32px; height: 3px; margin-bottom: 5px"></span>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5.5 18.5V5A1.5 1.5 0 0 1 7 3.5h11.5V17H7a1.5 1.5 0 0 0-1.5 1.5Zm0 0A1.5 1.5 0 0 0 7 20h11.5" stroke="#4A4F57" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      <span style="font-size: 11px; line-height: 14px; font-weight: 500">Слова</span>
+    </a>
+    <a href="#" aria-current="page" style="height: 64px; display: flex; flex-direction: column; align-items: center; gap: 4px; color: #121417; text-decoration: none">
+      <span aria-hidden="true" style="width: 32px; height: 3px; margin-bottom: 5px; border-radius: 0 0 3px 3px; background: #121417"></span>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 20v-6M12 20V9M19 20V4" stroke="#121417" stroke-width="2" stroke-linecap="round"></path></svg>
+      <span style="font-size: 11px; line-height: 14px; font-weight: 600">Прогресс</span>
+    </a>
+  </nav>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

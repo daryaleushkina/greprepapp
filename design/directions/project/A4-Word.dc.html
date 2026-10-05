@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Маршрут — Слово</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#121417}a:hover{color:#4A4F57}
+button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform 140ms cubic-bezier(0.23,1,0.32,1)}
+button:active{transform:scale(0.97)}
+:focus-visible{outline:2px solid #121417;outline-offset:2px}
+::selection{background:#121417;color:#FFFFFF}
+@media (prefers-reduced-motion: reduce){button{transition:none}button:active{transform:none}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; overflow: hidden; position: relative; box-sizing: border-box; font-family: 'Onest', sans-serif; color: #121417; background: #FFFFFF; display: flex; flex-direction: column">
+
+  <header style="flex: none; height: 52px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 0 6px 0 4px; background: #FFFFFF">
+    <div style="display: flex; justify-content: flex-start">
+      <button type="button" style="height: 44px; padding: 0 12px 0 4px; border: 0; background: transparent; color: #121417; font-size: 17px; font-weight: 500; display: flex; align-items: center; gap: 2px">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M14.5 5.5 8 12l6.5 6.5" stroke="#121417" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        Назад
+      </button>
+    </div>
+    <div style="font-size: 17px; line-height: 22px; font-weight: 600; letter-spacing: -0.01em">Маршрут</div>
+    <div style="display: flex; justify-content: flex-end">
+      <button type="button" aria-label="Меню" style="width: 44px; height: 44px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; justify-content: center">
+        <span style="width: 32px; height: 32px; border-radius: 50%; background: #F3F4F6; display: flex; align-items: center; justify-content: center">
+          <svg width="16" height="4" viewBox="0 0 16 4" aria-hidden="true"><circle cx="2" cy="2" r="1.75" fill="#121417"></circle><circle cx="8" cy="2" r="1.75" fill="#121417"></circle><circle cx="14" cy="2" r="1.75" fill="#121417"></circle></svg>
+        </span>
+      </button>
+    </div>
+  </header>
+
+  <main style="flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; padding: 6px 16px 0">
+
+    <!-- Линия сессии слов: 12 станций, ты на третьей -->
+    <div style="flex: none; display: flex; flex-direction: column; gap: 8px">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 15px; line-height: 20px; font-weight: 600">
+          <span aria-hidden="true" style="flex: none; width: 22px; height: 22px; border-radius: 50%; background: #E26A12; color: #121417; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; letter-spacing: -0.02em">Сл</span>
+          Слова
+        </div>
+        <div style="font-size: 15px; line-height: 20px; font-weight: 600; font-variant-numeric: tabular-nums">3 из 12</div>
+      </div>
+      <div role="img" aria-label="Слово 3 из 12" style="position: relative; height: 22px; display: flex; align-items: center; justify-content: space-between">
+        <span style="position: absolute; left: 11px; right: 11px; top: 8px; height: 6px; border-radius: 3px; background: #E26A12"></span>
+        <span style="position: relative; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center"><span style="width: 14px; height: 14px; border-radius: 50%; background: #E26A12; box-shadow: 0 0 0 2px #FFFFFF"></span></span>
+        <span style="position: relative; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center"><span style="width: 14px; height: 14px; border-radius: 50%; background: #E26A12; box-shadow: 0 0 0 2px #FFFFFF"></span></span>
+        <span style="position: relative; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center"><span style="width: 22px; height: 22px; box-sizing: border-box; border-radius: 50%; background: #FFFFFF; border: 5px solid #E26A12; box-shadow: 0 0 0 2px #FFFFFF; display: flex; align-items: center; justify-content: center"><span style="width: 6px; height: 6px; border-radius: 50%; background: #E26A12"></span></span></span>
+        <span style="position: relative; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center"><span style="width: 14px; height: 14px; box-sizing: border-box; border-radius: 50%; background: #FFFFFF; border: 3px solid #E26A12"></span></span>
+        <span style="position: relative; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center"><span style="width: 14px; height: 14px; box-sizing: border-box; border-radius: 50%; background: #FFFFFF; border: 3px solid #E26A12"></span></span>
+        <span style="position: relative; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center"><span style="width: 14px; height: 14px; box-sizing: border-box; border-radius: 50%; background: #FFFFFF; border: 3px solid #E26A12"></span></span>
+        <span style="position: relative; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center"><span style="width: 14px; height: 14px; box-sizing: border-box; border-radius: 50%; background: #FFFFFF; border: 3px solid #E26A12"></span></span>
+        <span style="position: relative; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center"><span style="width: 14px; height: 14px; box-sizing: border-box; border-radius: 50%; background: #FFFFFF; border: 3px solid #E26A12"></span></span>
+        <span style="position: relative; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center"><span style="width: 14px; height: 14px; box-sizing: border-box; border-radius: 50%; background: #FFFFFF; border: 3px solid #E26A12"></span></span>
+        <span style="position: relative; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center"><span style="width: 14px; height: 14px; box-sizing: border-box; border-radius: 50%; background: #FFFFFF; border: 3px solid #E26A12"></span></span>
+        <span style="position: relative; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center"><span style="width: 14px; height: 14px; box-sizing: border-box; border-radius: 50%; background: #FFFFFF; border: 3px solid #E26A12"></span></span>
+        <span style="position: relative; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center"><span style="width: 18px; height: 18px; box-sizing: border-box; border-radius: 50%; background: #FFFFFF; border: 4px solid #121417"></span></span>
+      </div>
+    </div>
+
+    <p style="flex: none; margin: 14px 0 0; display: flex; align-items: flex-start; gap: 8px; font-size: 15px; line-height: 22px; font-weight: 600">
+      <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true" style="flex: none"><circle cx="11" cy="11" r="11" fill="#121417"></circle><path d="M6.5 11.5l3 3 6-7" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      <span>Верно. <span style="font-weight: 500; color: #4A4F57">Следующее повторение — через 4 дня</span></span>
+    </p>
+
+    <div style="flex: none; margin-top: 12px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px">
+      <div style="min-width: 0; display: flex; flex-direction: column; gap: 4px">
+        <h1 lang="en" style="margin: 0; font-size: 34px; line-height: 38px; font-weight: 700; letter-spacing: -0.02em">equivocal</h1>
+        <div style="display: flex; align-items: center; gap: 10px; font-size: 16px; line-height: 22px; color: #4A4F57">
+          <span lang="en">[ɪˈkwɪvək(ə)l]</span>
+          <span lang="en" style="padding: 0 7px; border-radius: 6px; background: #F3F4F6; font-size: 14px; line-height: 22px; font-weight: 500; color: #4A4F57">adj.</span>
+        </div>
+      </div>
+      <button type="button" aria-label="Послушать" style="flex: none; margin-top: 2px; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: #F3F4F6; display: flex; align-items: center; justify-content: center">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" stroke="#121417" stroke-width="2" stroke-linejoin="round"></path><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" stroke="#121417" stroke-width="2" stroke-linecap="round"></path></svg>
+      </button>
+    </div>
+
+    <ol style="flex: none; list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-direction: column; gap: 12px">
+      <li style="display: flex; align-items: flex-start; gap: 12px">
+        <span style="flex: none; width: 24px; height: 24px; box-sizing: border-box; border-radius: 50%; border: 2px solid #121417; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700">1</span>
+        <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+          <p lang="en" style="margin: 0; font-size: 16px; line-height: 22px">ambiguous or evasive, open to more than one interpretation</p>
+          <p style="margin: 0; font-size: 16px; line-height: 22px; font-weight: 600">— двусмысленный, уклончивый</p>
+          <div style="margin-top: 6px; padding-left: 12px; border-left: 1px solid #C5C9CF; display: flex; flex-direction: column; gap: 2px">
+            <p lang="en" style="margin: 0; font-size: 15px; line-height: 21px">The minister’s <b style="font-weight: 700">equivocal</b> answer satisfied no one.</p>
+            <p style="margin: 0; font-size: 15px; line-height: 21px; color: #4A4F57">— Двусмысленный ответ министра никого не устроил.</p>
+          </div>
+        </div>
+      </li>
+      <li style="display: flex; align-items: flex-start; gap: 12px">
+        <span style="flex: none; width: 24px; height: 24px; box-sizing: border-box; border-radius: 50%; border: 2px solid #121417; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700">2</span>
+        <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+          <p lang="en" style="margin: 0; font-size: 16px; line-height: 22px">uncertain, inconclusive</p>
+          <p style="margin: 0; font-size: 16px; line-height: 22px; font-weight: 600">— неопределённый, неоднозначный <span style="font-weight: 400; color: #4A4F57">(о результатах)</span></p>
+          <div style="margin-top: 6px; padding-left: 12px; border-left: 1px solid #C5C9CF; display: flex; flex-direction: column; gap: 2px">
+            <p lang="en" style="margin: 0; font-size: 15px; line-height: 21px">The results of the trial were <b style="font-weight: 700">equivocal</b>.</p>
+            <p style="margin: 0; font-size: 15px; line-height: 21px; color: #4A4F57">— Результаты испытания оказались неоднозначными.</p>
+          </div>
+        </div>
+      </li>
+    </ol>
+
+    <dl style="flex: none; margin: 14px 0 0; display: grid; grid-template-columns: 92px 1fr; border-top: 1px solid #E2E4E8">
+      <dt style="padding: 8px 0; border-bottom: 1px solid #E2E4E8; font-size: 14px; line-height: 21px; font-weight: 600; color: #4A4F57">Синонимы</dt>
+      <dd lang="en" style="margin: 0; padding: 8px 0; border-bottom: 1px solid #E2E4E8; font-size: 16px; line-height: 21px">ambiguous, evasive, noncommittal</dd>
+      <dt style="padding: 8px 0; border-bottom: 1px solid #E2E4E8; font-size: 14px; line-height: 21px; font-weight: 600; color: #4A4F57">Антонимы</dt>
+      <dd lang="en" style="margin: 0; padding: 8px 0; border-bottom: 1px solid #E2E4E8; font-size: 16px; line-height: 21px">unequivocal, clear-cut, categorical</dd>
+    </dl>
+
+    <!-- Линия памяти: четыре станции до «выучено» -->
+    <section aria-labelledby="a4-memory" style="flex: none; margin-top: 14px; display: flex; flex-direction: column; gap: 4px">
+      <div id="a4-memory" style="font-size: 14px; line-height: 20px; font-weight: 600; font-variant-numeric: tabular-nums">Этап памяти 2 из 4</div>
+      <div role="img" aria-label="Пройдено 2 этапа из 4; следующий — через 4 дня; после четвёртого — выучено" style="position: relative; height: 22px; display: grid; grid-template-columns: repeat(4, 1fr); align-items: center; justify-items: center">
+        <span style="position: absolute; left: 12.5%; right: 12.5%; top: 8px; height: 6px; background: #E26A12"></span>
+        <span style="position: relative; width: 14px; height: 14px; border-radius: 50%; background: #E26A12; box-shadow: 0 0 0 2px #FFFFFF"></span>
+        <span style="position: relative; width: 22px; height: 22px; box-sizing: border-box; border-radius: 50%; background: #FFFFFF; border: 5px solid #E26A12; box-shadow: 0 0 0 2px #FFFFFF; display: flex; align-items: center; justify-content: center"><span style="width: 6px; height: 6px; border-radius: 50%; background: #E26A12"></span></span>
+        <span style="position: relative; width: 14px; height: 14px; box-sizing: border-box; border-radius: 50%; background: #FFFFFF; border: 3px solid #E26A12"></span>
+        <span style="position: relative; width: 18px; height: 18px; box-sizing: border-box; border-radius: 50%; background: #FFFFFF; border: 4px solid #121417"></span>
+      </div>
+      <div aria-hidden="true" style="display: grid; grid-template-columns: repeat(4, 1fr); text-align: center; font-size: 13px; line-height: 16px; font-weight: 500; color: #4A4F57">
+        <span>этап 1</span>
+        <span style="color: #121417; font-weight: 600">сегодня</span>
+        <span>через 4 дня</span>
+        <span style="color: #121417; font-weight: 600">выучено</span>
+      </div>
+      <p style="margin: 2px 0 0; font-size: 13px; line-height: 18px; color: #4A4F57">Выучено — когда ответите верно 4 раза подряд с перерывами</p>
+    </section>
+
+  </main>
+
+  <div style="flex: none; padding: 12px 16px 20px; border-top: 1px solid #E2E4E8; background: #FFFFFF">
+    <button type="button" style="height: 50px; width: 100%; border: 0; border-radius: 10px; background: #121417; color: #FFFFFF; font-size: 17px; font-weight: 600">Следующее слово</button>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

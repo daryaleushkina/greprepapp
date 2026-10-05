@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Ключ — Главная</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&amp;family=PT+Mono&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#161616}a:hover{color:#0F6B58}
+button{font:inherit;cursor:pointer}
+a:focus-visible,button:focus-visible{outline:2px solid #13806A;outline-offset:2px}
+a:active,button:active{opacity:.84}
+::selection{background:#CFE8E1;color:#161616}
+@media (prefers-reduced-motion: reduce){*{transition:none !important;animation:none !important}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; overflow: hidden; position: relative; box-sizing: border-box; font-family: 'Golos Text', sans-serif; color: #161616; background: #FFFFFF; display: flex; flex-direction: column">
+
+  <!-- Шапка Telegram -->
+  <header style="height: 52px; flex-shrink: 0; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 0 4px; background: #FFFFFF">
+    <button type="button" style="justify-self: start; height: 44px; padding: 0 12px; border: 0; background: transparent; color: #161616; font-size: 17px; line-height: 1">Закрыть</button>
+    <div style="display: flex; align-items: center; gap: 8px; font-size: 17px; line-height: 1; font-weight: 600">
+      <span aria-hidden="true" style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 50%; border: 1.5px solid #13806A; display: flex; align-items: center; justify-content: center"><span style="width: 8px; height: 8px; border-radius: 50%; background: #161616"></span></span>
+      Ключ
+    </div>
+    <button type="button" aria-label="Меню" style="justify-self: end; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; justify-content: center">
+      <span style="width: 32px; height: 32px; border-radius: 50%; background: #F0F2F1; display: flex; align-items: center; justify-content: center">
+        <svg width="18" height="4" viewBox="0 0 18 4" aria-hidden="true"><circle cx="2" cy="2" r="1.75" fill="#161616"/><circle cx="9" cy="2" r="1.75" fill="#161616"/><circle cx="16" cy="2" r="1.75" fill="#161616"/></svg>
+      </span>
+    </button>
+  </header>
+
+  <!-- Область бланка -->
+  <main style="flex: 1; min-height: 0; position: relative; overflow: hidden; display: flex; flex-direction: column; padding: 24px 36px 0 20px">
+    <!-- метки бланка по верхним углам -->
+    <span aria-hidden="true" style="position: absolute; left: 6px; top: 8px; width: 10px; height: 10px; background: #161616"></span>
+    <span aria-hidden="true" style="position: absolute; right: 10px; top: 8px; width: 10px; height: 10px; background: #161616"></span>
+
+    <!-- Заголовок дня: дата вписана в клетки, как на бланке -->
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px">
+      <h1 style="margin: 0; font-size: 28px; line-height: 34px; font-weight: 700; letter-spacing: -0.02em">Сегодня</h1>
+      <time datetime="2026-10-05" aria-label="5 октября" style="display: flex; align-items: flex-end; gap: 4px; font-family: 'PT Mono', monospace; font-size: 16px; line-height: 1; color: #161616">
+        <span style="display: flex">
+          <span style="width: 20px; height: 26px; box-sizing: border-box; border: 1px solid #13806A; display: flex; align-items: center; justify-content: center">0</span>
+          <span style="width: 20px; height: 26px; box-sizing: border-box; border: 1px solid #13806A; border-left: 0; display: flex; align-items: center; justify-content: center">5</span>
+        </span>
+        <span aria-hidden="true" style="width: 3px; height: 3px; margin-bottom: 4px; background: #13806A"></span>
+        <span style="display: flex">
+          <span style="width: 20px; height: 26px; box-sizing: border-box; border: 1px solid #13806A; display: flex; align-items: center; justify-content: center">1</span>
+          <span style="width: 20px; height: 26px; box-sizing: border-box; border: 1px solid #13806A; border-left: 0; display: flex; align-items: center; justify-content: center">0</span>
+        </span>
+      </time>
+    </div>
+
+    <!-- Главное действие: продолжить начатое -->
+    <section aria-label="Продолжить тренировку" style="position: relative; margin-top: 18px; border: 1px solid #13806A; padding: 12px 14px 14px; display: flex; flex-direction: column">
+      <span style="font-size: 12px; line-height: 16px; font-weight: 500; letter-spacing: 0.01em; color: #13806A">Продолжить тренировку</span>
+      <span style="margin-top: 8px; font-size: 20px; line-height: 26px; font-weight: 600; letter-spacing: -0.01em">Verbal · Text Completion</span>
+      <span style="margin-top: 2px; font-size: 15px; line-height: 22px; color: #4B5563">вопрос <span style="font-family: 'PT Mono', monospace; color: #161616">4</span> из <span style="font-family: 'PT Mono', monospace; color: #161616">10</span></span>
+      <button type="button" style="margin-top: 14px; height: 48px; border: 0; border-radius: 6px; background: #161616; color: #FFFFFF; font-size: 17px; font-weight: 600">Продолжить</button>
+
+      <!-- тайминг-метки на полях = прогресс этой тренировки: 3 отвечено (2-й неверно), 4-й — текущий -->
+      <div aria-hidden="true" style="position: absolute; right: -29px; top: 14px; display: flex; flex-direction: column; align-items: flex-end; gap: 7px">
+        <span style="display: block; width: 14px; height: 4px; background: #161616"></span>
+        <span style="display: flex; align-items: center; gap: 5px; height: 4px"><svg width="7" height="7" viewBox="0 0 7 7" fill="none"><path d="M1 1l5 5M6 1 1 6" stroke="#C23B14" stroke-width="1.5" stroke-linecap="round"/></svg><span style="display: block; width: 14px; height: 4px; background: #C23B14"></span></span>
+        <span style="display: block; width: 14px; height: 4px; background: #161616"></span>
+        <span style="display: block; width: 14px; height: 4px; box-sizing: border-box; border: 1px solid #161616; outline: 1.5px solid #161616; outline-offset: 1.5px"></span>
+        <span style="display: block; width: 14px; height: 4px; box-sizing: border-box; border: 1px solid #161616"></span>
+        <span style="display: block; width: 14px; height: 4px; box-sizing: border-box; border: 1px solid #161616"></span>
+        <span style="display: block; width: 14px; height: 4px; box-sizing: border-box; border: 1px solid #161616"></span>
+        <span style="display: block; width: 14px; height: 4px; box-sizing: border-box; border: 1px solid #161616"></span>
+        <span style="display: block; width: 14px; height: 4px; box-sizing: border-box; border: 1px solid #161616"></span>
+        <span style="display: block; width: 14px; height: 4px; box-sizing: border-box; border: 1px solid #161616"></span>
+      </div>
+    </section>
+
+    <!-- Остальное — одна форма с общими линейками, а не стопка карточек -->
+    <div style="margin-top: 16px; border: 1px solid #13806A; display: flex; flex-direction: column">
+
+      <a href="#" style="display: flex; flex-direction: column; padding: 12px 14px 14px; text-decoration: none; color: #161616">
+        <span style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px">
+          <span style="font-size: 12px; line-height: 16px; font-weight: 500; letter-spacing: 0.01em; color: #13806A">Новая тренировка</span>
+          <span style="font-size: 14px; line-height: 16px; font-weight: 500; color: #161616; text-decoration: underline; text-decoration-color: #13806A; text-decoration-thickness: 1px; text-underline-offset: 3px">Изменить</span>
+        </span>
+        <span style="margin-top: 6px; font-size: 16px; line-height: 23px; font-weight: 500">Verbal · Text Completion · <span style="font-family: 'PT Mono', monospace">10</span> вопросов · Практика</span>
+      </a>
+
+      <div style="border-top: 1px solid #13806A; padding: 12px 14px 14px; display: flex; flex-direction: column">
+        <span style="font-size: 12px; line-height: 16px; font-weight: 500; letter-spacing: 0.01em; color: #13806A">Что повторить</span>
+        <ul style="list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column">
+          <li style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 4px 0; font-size: 16px; line-height: 23px">Проценты и доли <span style="flex-shrink: 0; font-size: 14px; color: #4B5563"><span style="font-family: 'PT Mono', monospace; font-size: 15px; color: #161616">6</span> ошибок</span></li>
+          <li style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 4px 0; font-size: 16px; line-height: 23px">Слова-сигналы контраста <span style="flex-shrink: 0; font-size: 14px; color: #4B5563"><span style="font-family: 'PT Mono', monospace; font-size: 15px; color: #161616">3</span> ошибки</span></li>
+        </ul>
+        <button type="button" style="margin-top: 10px; height: 44px; border: 1px solid #161616; border-radius: 6px; background: #FFFFFF; color: #161616; font-size: 15px; font-weight: 600">Тренировка по ним · <span style="font-family: 'PT Mono', monospace; font-weight: 400">8</span> вопросов</button>
+      </div>
+
+      <a href="#" style="border-top: 1px solid #13806A; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 10px 14px 14px; text-decoration: none; color: #161616">
+        <span style="display: flex; flex-direction: column">
+          <span style="font-size: 12px; line-height: 16px; font-weight: 500; letter-spacing: 0.01em; color: #13806A">Слова</span>
+          <span style="margin-top: 6px; font-size: 16px; line-height: 23px"><span style="font-family: 'PT Mono', monospace">12</span> слов к повторению · <span style="font-family: 'PT Mono', monospace">~5</span> мин</span>
+        </span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#13806A" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 6 15.5 12l-6 6"/></svg>
+      </a>
+
+      <a href="#" style="border-top: 1px solid #13806A; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 10px 14px 14px; text-decoration: none; color: #161616">
+        <span style="display: flex; flex-direction: column">
+          <span style="font-size: 12px; line-height: 16px; font-weight: 500; letter-spacing: 0.01em; color: #13806A">Пробный экзамен</span>
+          <span style="margin-top: 6px; font-size: 16px; line-height: 23px">Полный — <span style="font-family: 'PT Mono', monospace">1</span> ч <span style="font-family: 'PT Mono', monospace">58</span> мин, или одна секция</span>
+        </span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#13806A" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 6 15.5 12l-6 6"/></svg>
+      </a>
+
+    </div>
+  </main>
+
+  <!-- Панель вкладок: активная отмечена тайминг-меткой на линейке -->
+  <nav aria-label="Разделы" style="flex-shrink: 0; height: 80px; box-sizing: border-box; padding: 0 8px 16px; display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid #13806A; background: #FFFFFF">
+    <a href="#" aria-current="page" style="position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #161616; font-size: 11px; line-height: 14px; font-weight: 600">
+      <span aria-hidden="true" style="position: absolute; top: -1px; left: 50%; width: 14px; height: 4px; margin-left: -7px; background: #161616"></span>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 10.5 12 4.5l7.5 6V19a1 1 0 0 1-1 1H15v-5.5H9V20H5.5a1 1 0 0 1-1-1z"/></svg>
+      Главная
+    </a>
+    <a href="#" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #4B5563; font-size: 11px; line-height: 14px; font-weight: 500">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6.5" cy="6.5" r="2.25"/><path d="M11.5 6.5H20"/><circle cx="6.5" cy="12" r="2.25"/><path d="M11.5 12H20"/><circle cx="6.5" cy="17.5" r="2.25"/><path d="M11.5 17.5H20"/></svg>
+      Тренировки
+    </a>
+    <a href="#" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #4B5563; font-size: 11px; line-height: 14px; font-weight: 500">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6.5C9.8 5 7 4.5 4 5v13.5c3-.5 5.8 0 8 1.5 2.2-1.5 5-2 8-1.5V5c-3-.5-5.8 0-8 1.5z"/><path d="M12 6.5V20"/></svg>
+      Слова
+    </a>
+    <a href="#" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #4B5563; font-size: 11px; line-height: 14px; font-weight: 500">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4.5v15h16"/><path d="M8.5 16v-4M12.5 16V8.5M16.5 16v-6"/></svg>
+      Прогресс
+    </a>
+  </nav>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

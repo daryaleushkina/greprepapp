@@ -24,6 +24,9 @@
 | `.oxlintrc.json`                       | линтер гейта: правила хуков React, висящие промисы                  |
 | `.mcp.json`                            | MCP `chrome-devtools` и `lazyweb` (описаны в README скиллов)        |
 | `tools/dev/backlog.{sh,py}`            | сборка `docs/BACKLOG.md` из открытых Issues                         |
+| `docs/RESEARCH.md`                     | исследование: формат GRE, конкуренты, награды дизайна, правила для СДВГ, ограничения Telegram |
+| `design/directions/`                   | копия холста с шестью направлениями дизайна; как продолжить — `README.md` там |
+| `tools/design/lint-dc.py`              | проверка экранов холста (`.dc.html`) без рендера: теги, `data-props`, символы вместо иконок |
 
 Тесты хуков (`.claude/hooks/*.test.ts`, `scripts/hooks/git-hooks.test.ts`)
 написаны под vitest, который приедет с каркасом. До него — так (64 теста,
@@ -49,6 +52,12 @@ r=$PWD && d=$(mktemp -d) && cd "$d" && echo '{"type":"module"}' > package.json \
   `git push --delete`. Ветки удаляются на сайте.
 - **В облаке нет `gh`.** Задачи — через GitHub MCP, зеркало — подать их JSON в
   `tools/dev/backlog.py` (как — в шапке файла).
+- **Холст дизайна живёт на claude.ai**, копия в `design/directions/` может
+  отстать: Даша правит прямо на холсте. Перед правкой файлов — прочитать
+  артефакт и сверить; публиковать — в тот же адрес, не новым артефактом.
+- **Генератор направлений `impeccable` (`concept-seed`) в облаке без сети:**
+  до `impeccable.style` прокси не пускает, бросок выходит без вариантов со
+  стороны — направления только из своего списка.
 - **Хук детектора `impeccable` в git не ездит** (`.claude/settings.local.json`):
   на Маке включить один раз — `/impeccable hooks on`.
 - **Принудительный push в `main` из облака блокирует авто-режим Claude Code.**
