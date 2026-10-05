@@ -19,7 +19,3 @@ tools/dev/backlog.sh           # пересобрать это зеркало
 ## Ждёт Дарью — сам сделать не могу
 
 - [#1](https://github.com/daryaleushkina/greprepapp/issues/1) telegram-mini-app: найти недостающие файлы скилла
-
-## Дизайн
-
-- [#2](https://github.com/daryaleushkina/greprepapp/issues/2) Цвета мини-аппа: тема Telegram или свои hex
