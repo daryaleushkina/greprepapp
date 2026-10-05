@@ -1,0 +1,425 @@
+{
+ "schemaVersion": 2,
+ "generatedAt": "2026-10-05T16:46:34+00:00",
+ "title": "Design System: GrePrepApp — «Шаги»",
+ "extensions": {
+  "colorMeta": {
+   "accent": {
+    "role": "primary",
+    "displayName": "Графит",
+    "canonical": "#1B1E28",
+    "tonalRamp": [
+     "#1F222E",
+     "#33394C",
+     "#48506B",
+     "#5C6789",
+     "#7680A3",
+     "#A4ABC1",
+     "#D1D5E0",
+     "#F0F1F5"
+    ]
+   },
+   "verbal": {
+    "role": "secondary",
+    "displayName": "Фиолетовый Verbal",
+    "canonical": "#5B4BC4",
+    "tonalRamp": [
+     "#18133A",
+     "#281F60",
+     "#382C86",
+     "#4839AD",
+     "#6252C6",
+     "#968CD9",
+     "#CBC5EC",
+     "#EEECF9"
+    ]
+   },
+   "quant": {
+    "role": "secondary",
+    "displayName": "Зелёный Quant",
+    "canonical": "#11735F",
+    "tonalRamp": [
+     "#0A4337",
+     "#106F5C",
+     "#179C80",
+     "#1EC8A5",
+     "#37E1BF",
+     "#7AEBD4",
+     "#BCF5EA",
+     "#E9FCF8"
+    ]
+   },
+   "words": {
+    "role": "secondary",
+    "displayName": "Малиновый «Слова»",
+    "canonical": "#B0436A",
+    "tonalRamp": [
+     "#371521",
+     "#5C2338",
+     "#81314E",
+     "#A63F64",
+     "#C0597E",
+     "#D590A9",
+     "#EAC8D4",
+     "#F8EDF1"
+    ]
+   },
+   "essay": {
+    "role": "secondary",
+    "displayName": "Охра «Эссе»",
+    "canonical": "#9A5B00",
+    "tonalRamp": [
+     "#4C2D00",
+     "#804B00",
+     "#B26900",
+     "#E68800",
+     "#FFA11A",
+     "#FFC066",
+     "#FFE0B2",
+     "#FFF5E5"
+    ]
+   },
+   "wrong": {
+    "role": "tertiary",
+    "displayName": "Оранжевый «неверно»",
+    "canonical": "#BE400C",
+    "tonalRamp": [
+     "#481805",
+     "#782808",
+     "#A8390B",
+     "#D8490E",
+     "#F16227",
+     "#F6966F",
+     "#FACBB7",
+     "#FDEEE7"
+    ]
+   },
+   "bg": {
+    "role": "neutral",
+    "displayName": "Холодный фон",
+    "canonical": "#F5F6F9",
+    "tonalRamp": [
+     "#1D2130",
+     "#303850",
+     "#434E70",
+     "#56648F",
+     "#707EA9",
+     "#9FA9C6",
+     "#CFD4E2",
+     "#EFF1F5"
+    ]
+   },
+   "surface": {
+    "role": "neutral",
+    "displayName": "Поверхность",
+    "canonical": "#FFFFFF",
+    "tonalRamp": [
+     "#262626",
+     "#404040",
+     "#595959",
+     "#737373",
+     "#8C8C8C",
+     "#B2B2B2",
+     "#D9D9D9",
+     "#F2F2F2"
+    ]
+   },
+   "text": {
+    "role": "neutral",
+    "displayName": "Основной текст",
+    "canonical": "#1B1E28",
+    "tonalRamp": [
+     "#1F222E",
+     "#33394C",
+     "#48506B",
+     "#5C6789",
+     "#7680A3",
+     "#A4ABC1",
+     "#D1D5E0",
+     "#F0F1F5"
+    ]
+   },
+   "text-secondary": {
+    "role": "neutral",
+    "displayName": "Вторичный текст",
+    "canonical": "#5A6070",
+    "tonalRamp": [
+     "#22242A",
+     "#393D47",
+     "#505563",
+     "#666D7F",
+     "#808799",
+     "#AAAFBB",
+     "#D5D7DD",
+     "#F1F2F4"
+    ]
+   }
+  },
+  "typographyMeta": {
+   "display": {
+    "displayName": "Display",
+    "purpose": "Крупные числа итогов — «7 из 10»; 56/60, широко 72/76."
+   },
+   "score": {
+    "displayName": "Score",
+    "purpose": "Балл пробника; 48/52."
+   },
+   "headword": {
+    "displayName": "Headword",
+    "purpose": "Слово на карточке слова; 36/42, широко 48/54."
+   },
+   "title-1": {
+    "displayName": "Title 1",
+    "purpose": "Заголовок экрана-раздела; 32/38, широко 40/46."
+   },
+   "title-2": {
+    "displayName": "Title 2",
+    "purpose": "Заголовок вложенного экрана и итогов; 28/34, широко 36/42."
+   },
+   "title-3": {
+    "displayName": "Title 3",
+    "purpose": "Текущий шаг, карточки; 19/24, широко 21/28."
+   },
+   "timer": {
+    "displayName": "Timer",
+    "purpose": "Время пробника и режима «Проверка»; 22/26, tabular-nums."
+   },
+   "prompt": {
+    "displayName": "Prompt",
+    "purpose": "Текст задания, до ~70 знаков в строке; 18/27, широко 20/31."
+   },
+   "headline": {
+    "displayName": "Headline",
+    "purpose": "Строки списков и названия шагов; 18/24, 600."
+   },
+   "body": {
+    "displayName": "Body",
+    "purpose": "Обычный текст; 17/22."
+   },
+   "body-long": {
+    "displayName": "Body long",
+    "purpose": "Разбор и теория; 17/24."
+   },
+   "callout": {
+    "displayName": "Callout",
+    "purpose": "Названия тем, кнопки; 16/21, 500."
+   },
+   "subhead": {
+    "displayName": "Subhead",
+    "purpose": "Подписи, время шага, вторичный текст; 15/20."
+   },
+   "footnote": {
+    "displayName": "Footnote",
+    "purpose": "Сноски; 14/18, 500."
+   },
+   "caption": {
+    "displayName": "Caption",
+    "purpose": "Дисклеймер, мелкие пометки; 13/18."
+   },
+   "key": {
+    "displayName": "Key",
+    "purpose": "Подсказки клавиш на компьютере; 12/15."
+   },
+   "tab-label": {
+    "displayName": "Tab label",
+    "purpose": "Подписи вкладок; 11/13."
+   }
+  },
+  "glass": {
+   "light": {
+    "background": "linear-gradient(180deg,rgba(255,255,255,.80),rgba(255,255,255,.54))",
+    "backgroundStrong": "linear-gradient(180deg,rgba(255,255,255,.90),rgba(255,255,255,.70))",
+    "backdropFilter": "blur(16px) saturate(180%)",
+    "edge": "1px solid rgba(0,0,0,.06)",
+    "rim": "inset 0 1px 0 rgba(255,255,255,.6)"
+   },
+   "dark": {
+    "background": "linear-gradient(180deg,rgba(64,66,80,.62),rgba(32,34,44,.50))",
+    "backgroundStrong": "linear-gradient(180deg,rgba(48,50,62,.82),rgba(30,32,42,.72))",
+    "backdropFilter": "blur(16px) saturate(180%)",
+    "edge": "1px solid rgba(0,0,0,.35)",
+    "rim": "inset 0 1px 0 rgba(255,255,255,.12)"
+   },
+   "reducedTransparency": "плотная поверхность surface, без backdrop-filter",
+   "glow": {
+    "light": "radial-gradient(120% 52% at 50% -10%, rgba(91,75,196,.22) 0%, rgba(91,75,196,.07) 48%, transparent 74%)",
+    "dark": "radial-gradient(120% 52% at 50% -10%, rgba(130,110,255,.30) 0%, rgba(130,110,255,.08) 48%, transparent 74%)",
+    "note": "свет сверху — цвет раздела экрана, не больше 22 % (тёмная — 30 %)"
+   }
+  },
+  "shadows": [
+   {
+    "name": "glass-light",
+    "value": "inset 0 1px 0 rgba(255,255,255,.6), 0 10px 30px -10px rgba(30,30,60,.22)",
+    "purpose": "Стеклянный слой: шапка, вкладки, текущий шаг, шторки."
+   },
+   {
+    "name": "glass-dark",
+    "value": "inset 0 1px 0 rgba(255,255,255,.12), 0 10px 30px -10px rgba(0,0,0,.6)",
+    "purpose": "То же в тёмной теме."
+   },
+   {
+    "name": "segment-selected",
+    "value": "0 1px 3px rgba(0,0,0,.12)",
+    "purpose": "Выбранный вариант переключателя."
+   }
+  ],
+  "motion": [
+   {
+    "name": "press",
+    "value": "transform 160ms cubic-bezier(0.23,1,0.32,1); :active scale(0.98)",
+    "purpose": "Отклик на нажатие (--motion-duration-press, --motion-press-scale); при уменьшенной анимации — без масштаба."
+   },
+   {
+    "name": "reveal",
+    "value": "240ms cubic-bezier(0.23,1,0.32,1)",
+    "purpose": "Появление разбора и шторок (--motion-duration-reveal, --motion-easing-out)."
+   }
+  ],
+  "breakpoints": [
+   {
+    "name": "wide",
+    "value": "900px",
+    "purpose": "--layout-breakpoint-wide: шире — боковая панель слева и крупные роли текста, уже — панель строкой сверху."
+   }
+  ],
+  "platforms": {
+   "telegram": "шапка — стеклянные круги 44 px (--size-header-button); главное действие сессии — MainButton 50 px (--size-main-button), радиус 12, системный шрифт",
+   "web": "боковая стеклянная панель, режим фокуса в сессиях, подсказки клавиш",
+   "ios": "системные вкладки и кнопки iOS 26 (Liquid Glass) в наших цветах; содержимое — по системе",
+   "android": "Material 3 в наших цветах; содержимое — по системе"
+  }
+ },
+ "components": [
+  {
+   "name": "Главная кнопка",
+   "kind": "button",
+   "refersTo": "button-main",
+   "description": "Одна на экран, главное действие.",
+   "html": "<button class=\"ds-btn-primary\">Продолжить · вопрос 4 из 10</button>",
+   "css": ".ds-btn-primary{height:48px;padding:0 24px;border:0;border-radius:24px;background:#1B1E28;color:#FFFFFF;font:600 16px/20px Onest,system-ui,sans-serif;transition:transform 160ms cubic-bezier(0.23,1,0.32,1)}.ds-btn-primary:hover{background:#2A2E3B}.ds-btn-primary:active{transform:scale(0.98)}.ds-btn-primary:focus-visible{outline:2px solid #5B4BC4;outline-offset:2px}"
+  },
+  {
+   "name": "Второстепенная кнопка",
+   "kind": "button",
+   "refersTo": "button-secondary",
+   "description": "«Пропустить», «Готово».",
+   "html": "<button class=\"ds-btn-secondary\">Пропустить</button>",
+   "css": ".ds-btn-secondary{height:48px;padding:0 20px;border:0;border-radius:24px;background:#FFFFFF;color:#1B1E28;box-shadow:inset 0 0 0 1px rgba(27,30,40,.12);font:500 16px/20px Onest,system-ui,sans-serif;transition:transform 160ms cubic-bezier(0.23,1,0.32,1)}.ds-btn-secondary:hover{background:#F5F6F9}.ds-btn-secondary:active{transform:scale(0.98)}.ds-btn-secondary:focus-visible{outline:2px solid #5B4BC4;outline-offset:2px}"
+  },
+  {
+   "name": "Переключатель из двух",
+   "kind": "custom",
+   "refersTo": "",
+   "description": "Настройки: всегда два варианта.",
+   "html": "<span class=\"ds-seg\"><button class=\"ds-seg-on\">Русский</button><button class=\"ds-seg-off\">English</button></span>",
+   "css": ".ds-seg{display:inline-flex;gap:2px;padding:3px;border-radius:20px;background:rgba(27,30,40,.06)}.ds-seg button{height:34px;padding:0 12px;border:0;border-radius:17px;font:500 15px/20px Onest,system-ui,sans-serif}.ds-seg-on{background:#FFFFFF;color:#1B1E28;box-shadow:0 1px 3px rgba(0,0,0,.12)}.ds-seg-off{background:transparent;color:#5A6070}.ds-seg-off:hover{color:#1B1E28}"
+  },
+  {
+   "name": "Поле числа",
+   "kind": "input",
+   "refersTo": "",
+   "description": "Любое количество вопросов вместо 5/10/20.",
+   "html": "<input class=\"ds-num\" type=\"number\" inputmode=\"numeric\" value=\"10\" aria-label=\"Вопросов\">",
+   "css": ".ds-num{width:72px;height:40px;border:0;border-radius:20px;background:rgba(27,30,40,.06);color:#1B1E28;text-align:center;font:600 17px/22px Onest,system-ui,sans-serif;font-variant-numeric:tabular-nums}.ds-num:focus-visible{outline:2px solid #5B4BC4;outline-offset:2px}"
+  },
+  {
+   "name": "Капсула вкладок",
+   "kind": "nav",
+   "refersTo": "tab-bar",
+   "description": "Только на экранах-разделах телефона.",
+   "html": "<nav class=\"ds-tabs\"><a class=\"ds-tab ds-tab-on\">Сегодня</a><a class=\"ds-tab\">Слова</a><a class=\"ds-tab\">Экзамен</a><a class=\"ds-tab\">Прогресс</a></nav>",
+   "css": ".ds-tabs{display:grid;grid-template-columns:repeat(4,1fr);width:340px;height:64px;box-sizing:border-box;padding:4px;border-radius:32px;background:linear-gradient(180deg,rgba(255,255,255,.80),rgba(255,255,255,.54));backdrop-filter:blur(16px) saturate(180%);border:1px solid rgba(0,0,0,.06);box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 10px 30px -10px rgba(30,30,60,.22)}.ds-tab{display:flex;align-items:center;justify-content:center;border-radius:28px;color:#5A6070;font:500 11px/13px Onest,system-ui,sans-serif;text-decoration:none}.ds-tab-on{background:rgba(27,30,40,.07);color:#1B1E28;font-weight:600}.ds-tab:hover{color:#1B1E28}"
+  },
+  {
+   "name": "Текущий шаг ленты",
+   "kind": "card",
+   "refersTo": "card",
+   "description": "Единственная стеклянная карточка экрана.",
+   "html": "<section class=\"ds-step\"><h3>Продолжить тренировку</h3><p>Verbal · Text Completion · ~7 мин</p></section>",
+   "css": ".ds-step{max-width:320px;padding:18px;border-radius:26px;background:linear-gradient(180deg,rgba(255,255,255,.90),rgba(255,255,255,.70));backdrop-filter:blur(16px) saturate(180%);border:1px solid rgba(0,0,0,.06);box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 10px 30px -10px rgba(30,30,60,.22);font-family:Onest,system-ui,sans-serif}.ds-step h3{margin:0;font:600 19px/24px Onest,system-ui,sans-serif;color:#1B1E28}.ds-step p{margin:4px 0 0;font:500 15px/20px Onest,system-ui,sans-serif;color:#5B4BC4}"
+  },
+  {
+   "name": "Вход через Telegram",
+   "kind": "button",
+   "refersTo": "",
+   "description": "Официальная кнопка Telegram, не стилизуется.",
+   "html": "<button class=\"ds-tg\">Войти через Telegram</button>",
+   "css": ".ds-tg{height:44px;padding:0 28px;border:0;border-radius:22px;background:#119AF5;color:#FFFFFF;font:600 16px/20px -apple-system,system-ui,Roboto,Arial,sans-serif}.ds-tg:hover{background:#1090E5}.ds-tg:focus-visible{outline:2px solid #5B4BC4;outline-offset:2px}"
+  }
+ ],
+ "narrative": {
+  "northStar": "Спокойная лента",
+  "overview": "День подготовки — лента из трёх-четырёх шагов с видимым концом. В фокусе всегда один шаг: он освещён, остальное — тихие строки на фоне. Внутри шага — одна задача на экран и одна главная кнопка в одном месте. Стекло — слой управления; текст задания и разбор лежат на плотном. Система одна для мини-аппа, сайта и приложений на Swift и Kotlin, у каждой платформы — свои родные элементы управления.",
+  "keyCharacteristics": [
+   "Лента шагов с видимым концом — главный узнаваемый приём.",
+   "Одно освещённое место на экране; всё прочее — тихо.",
+   "Стекло только у управления и текущего шага; задание — на плотном.",
+   "Светлая и тёмная тема на одних и тех же ролях цвета.",
+   "Ошибка — спокойно: оранжевый и значок, без красной заливки."
+  ],
+  "rules": [
+   {
+    "name": "Правило метки",
+    "body": "Цвет раздела — это метка: узел, короткая подпись, отметка верного ответа и свет сверху (не больше 22 % непрозрачности). Большими заливками цвета разделов не красим.",
+    "section": "colors"
+   },
+   {
+    "name": "Правило двух цветов ошибки",
+    "body": "Верно — цвет раздела и галочка; неверно — --color-wrong (оранжевый) и крестик. Красного в интерфейсе нет.",
+    "section": "colors"
+   },
+   {
+    "name": "Правило официальных кнопок",
+    "body": "Кнопки входа Telegram, Apple и Google — их официального вида и цвета; свои стили к ним не применяем.",
+    "section": "colors"
+   },
+   {
+    "name": "Правило без рубрик",
+    "body": "Подписи-рубрики, которые и так понятны, не пишем. Слово на экране обязано помогать действию.",
+    "section": "typography"
+   },
+   {
+    "name": "Правило ёлочек",
+    "body": "Русский текст — только «ёлочки»; английский — “…”.",
+    "section": "typography"
+   },
+   {
+    "name": "Правило одной задачи",
+    "body": "Экран сессии — одна задача и одна главная кнопка в одном месте; конец сессии виден.",
+    "section": "layout"
+   },
+   {
+    "name": "Правило ширины по делу",
+    "body": "Две колонки на компьютере — только когда это помогает задаче.",
+    "section": "layout"
+   },
+   {
+    "name": "Правило освещённого шага",
+    "body": "Стеклянная карточка на экране одна — текущий шаг или главное действие.",
+    "section": "elevation"
+   },
+   {
+    "name": "Правило стекла для управления",
+    "body": "Стекло — шапка, вкладки, переключатели, чипы, шторки и текущий шаг; задание и разбор — на плотном; не больше 3–4 стеклянных слоёв.",
+    "section": "elevation"
+   }
+  ],
+  "dos": [
+   "Do показывать конец: «4 из 10», «На сегодня всё.», карта пяти частей пробника на старте и между секциями.",
+   "Do держать одну главную кнопку на экране в одном и том же месте.",
+   "Do раскрывать разбор в два уровня: вердикт и одна фраза → «Почему не …?», плюс RU/EN.",
+   "Do брать цвета, размеры и шрифты только из токенов (--color-*, --space-*, --radius-*, --font-*).",
+   "Do проверять контраст текста на стекле по худшему фону под ним (≥ 4,5 : 1)."
+  ],
+  "donts": [
+   "Don't добавлять серии, очки, лиги, значки, красные счётчики и маскотов на экраны заданий.",
+   "Don't писать подписи-рубрики и ставить стрелки у простых ссылок.",
+   "Don't показывать этапы памяти и расписание повторений слов.",
+   "Don't использовать в русском тексте кавычки-«лапки» — только «ёлочки».",
+   "Don't заливать большие области цветом раздела и делать карточками всё подряд — карточка одна.",
+   "Don't рисовать свои версии кнопок входа Telegram, Apple и Google.",
+   "Don't прятать таймер пробника — он виден всегда."
+  ]
+ }
+}
