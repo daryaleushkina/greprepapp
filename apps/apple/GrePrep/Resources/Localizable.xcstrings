@@ -1,0 +1,708 @@
+{
+  "sourceLanguage": "ru",
+  "strings": {
+    "%lld мин": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld min"
+          }
+        }
+      }
+    },
+    "%lld минут": {
+      "localizations": {
+        "ru": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld минута"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld минуты"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld минут"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld минуты"
+                }
+              }
+            }
+          }
+        },
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld minute"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld minutes"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld шагов": {
+      "localizations": {
+        "ru": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld шаг"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld шага"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld шагов"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld шага"
+                }
+              }
+            }
+          }
+        },
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld step"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld steps"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Quant": {
+      "shouldTranslate": false
+    },
+    "Verbal": {
+      "shouldTranslate": false
+    },
+    "~%lld мин": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "~%lld min"
+          }
+        }
+      }
+    },
+    "Версия %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version %@"
+          }
+        }
+      }
+    },
+    "Войти": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in"
+          }
+        }
+      }
+    },
+    "Войти с аккаунтом Google": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in with Google"
+          }
+        }
+      }
+    },
+    "Войти через Telegram": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Log in with Telegram"
+          }
+        }
+      }
+    },
+    "Восемь шагов": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eight steps"
+          }
+        }
+      }
+    },
+    "Вход закончился — войдите снова.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You were signed out — please sign in again."
+          }
+        }
+      }
+    },
+    "Вход через Google ещё не подключён — он появится до беты.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign-in with Google isn’t connected yet — it will be before the beta."
+          }
+        }
+      }
+    },
+    "Вход через Telegram ещё не подключён — он появится до беты.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Log-in with Telegram isn’t connected yet — it will be before the beta."
+          }
+        }
+      }
+    },
+    "Выйти": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign out"
+          }
+        }
+      }
+    },
+    "Два шага": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Two steps"
+          }
+        }
+      }
+    },
+    "Для разработки — вход подменой": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Development only — fake sign-in"
+          }
+        }
+      }
+    },
+    "Завтра здесь будет новый план.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tomorrow there will be a new plan here."
+          }
+        }
+      }
+    },
+    "Загружаем план на сегодня": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading today’s plan"
+          }
+        }
+      }
+    },
+    "Здесь будет словарь: слова на сегодня, повторение и поиск.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The dictionary will live here: today’s words, review and search."
+          }
+        }
+      }
+    },
+    "Здесь будут пробный экзамен как настоящий GRE и эссе с оценкой.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Practice tests just like the real GRE and scored essays will live here."
+          }
+        }
+      }
+    },
+    "Здесь начнётся шаг. Тренировки и слова появятся в следующих частях.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The step will start here. Practice and words arrive in the next parts."
+          }
+        }
+      }
+    },
+    "Здесь появятся темы, где больше всего ошибок, — по порядку, с чего начать.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Topics with the most mistakes will appear here — in order, starting with the first to work on."
+          }
+        }
+      }
+    },
+    "Имя тестового пользователя": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test user name"
+          }
+        }
+      }
+    },
+    "Мы уже знаем об ошибке. Попробуйте ещё раз чуть позже.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We already know about the error. Please try again a bit later."
+          }
+        }
+      }
+    },
+    "На сегодня всё": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That’s all for today"
+          }
+        }
+      }
+    },
+    "На сегодня всё.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That’s all for today."
+          }
+        }
+      }
+    },
+    "Настройки": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
+          }
+        }
+      }
+    },
+    "Начать": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start"
+          }
+        }
+      }
+    },
+    "Начать шаг": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start the step"
+          }
+        }
+      }
+    },
+    "Не получилось войти. Попробуйте ещё раз.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t sign in. Please try again."
+          }
+        }
+      }
+    },
+    "Не получилось загрузить план": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t load the plan"
+          }
+        }
+      }
+    },
+    "Не получилось обновить план — покажем свежий, как только сервер ответит.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t update the plan — we’ll show a fresh one as soon as the server responds."
+          }
+        }
+      }
+    },
+    "Нет сети": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No connection"
+          }
+        }
+      }
+    },
+    "Нет сети — войти получится, когда она появится.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No connection — you can sign in once it’s back."
+          }
+        }
+      }
+    },
+    "Нет сети — план обновится сам, когда она появится.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No connection — the plan will update by itself once it’s back."
+          }
+        }
+      }
+    },
+    "Один шаг": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One step"
+          }
+        }
+      }
+    },
+    "План на сегодня": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today’s plan"
+          }
+        }
+      }
+    },
+    "План на сегодня загрузится, когда появится сеть.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today’s plan will load once you’re back online."
+          }
+        }
+      }
+    },
+    "Повторить": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try again"
+          }
+        }
+      }
+    },
+    "Подготовка к GRE® с разбором каждой ошибки — по-русски и по-английски.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GRE® prep that explains every mistake — in Russian and in English."
+          }
+        }
+      }
+    },
+    "Прогресс": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Progress"
+          }
+        }
+      }
+    },
+    "Продолжая, вы принимаете условия и политику конфиденциальности.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "By continuing, you accept the terms and the privacy policy."
+          }
+        }
+      }
+    },
+    "Пять шагов": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Five steps"
+          }
+        }
+      }
+    },
+    "Сегодня": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today"
+          }
+        }
+      }
+    },
+    "Сейчас: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Now: %@"
+          }
+        }
+      }
+    },
+    "Семь шагов": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seven steps"
+          }
+        }
+      }
+    },
+    "Скоро": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coming soon"
+          }
+        }
+      }
+    },
+    "Слишком много попыток подряд — подождите минуту.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Too many attempts in a row — please wait a minute."
+          }
+        }
+      }
+    },
+    "Слова": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Words"
+          }
+        }
+      }
+    },
+    "Тренировок ещё не было": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No practice yet"
+          }
+        }
+      }
+    },
+    "Три шага": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Three steps"
+          }
+        }
+      }
+    },
+    "Четыре шага": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Four steps"
+          }
+        }
+      }
+    },
+    "Чтобы начать, нужна сеть. Когда она появится, всё заработает.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You need a connection to start. Once it’s back, everything will work."
+          }
+        }
+      }
+    },
+    "Шесть шагов": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Six steps"
+          }
+        }
+      }
+    },
+    "Экзамен": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exam"
+          }
+        }
+      }
+    },
+    "Эссе": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Essay"
+          }
+        }
+      }
+    },
+    "Этот способ входа ещё не подключён.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This sign-in method isn’t connected yet."
+          }
+        }
+      }
+    },
+    "около %lld минут": {
+      "localizations": {
+        "ru": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "около %lld минуты"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "около %lld минут"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "около %lld минут"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "около %lld минуты"
+                }
+              }
+            }
+          }
+        },
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "about %lld minute"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "about %lld minutes"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

@@ -1,8 +1,9 @@
 # GrePrepApp — как всё устроено
 
-Идёт каркас (`docs/ROADMAP.md` §2): договор API и сервер на Go готовы, дальше
-веб, админка, Swift, Kotlin, CI и сервер. Стек и решения — `PRODUCT.md`,
-«Stack», и ROADMAP §2. Правила работы — `CLAUDE.md`.
+Идёт каркас (`docs/ROADMAP.md` §2): договор API, сервер на Go и приложение
+Apple (iPhone, iPad, Mac) готовы, дальше веб, админка, Kotlin, CI и сервер.
+Стек и решения — `PRODUCT.md`, «Stack», и ROADMAP §2. Правила работы —
+`CLAUDE.md`.
 
 ## Что лежит в репозитории
 
@@ -17,10 +18,11 @@
 | `.claude/hooks/block-no-verify.mjs`    | Claude не обходит git-хуки (`--no-verify`, подмена `core.hooksPath`) |
 | `.claude/hooks/protect-gates.mjs`      | правка git-хуков, CI и снижение порога покрытия — только с согласия Даши |
 | `.claude/settings.json`                | хуки Claude и запреты: деплой руками, чтение `.env`, `core.hooksPath`; пересъёмка эталонов снимков — с вопросом |
-| `scripts/hooks/`                       | `commit-msg` (автор и подписи ИИ), `pre-push` (гейт на уходящем в `main` коммите), `gate` (сами проверки — общие для хука и Actions, там же порог покрытия) |
+| `scripts/hooks/`                       | `commit-msg` (автор и подписи ИИ), `pre-push` (гейт на уходящем в `main` коммите), `gate` (сами проверки — общие для хука и Actions, там же порог покрытия), `gate-apple` (часть гейта для приложения Apple) |
 | `api/openapi.yaml`                     | договор API — источник правды для сервера и всех клиентов |
 | `server/`                              | бэкенд на Go: `cmd/greprep` (запуск, миграции), `internal/*` (ниже, «Бэкенд») |
 | `compose.yaml`                         | локальный Postgres 18 на порту 55432 |
+| `apps/apple/`                          | приложение на SwiftUI для iPhone, iPad и Mac (ниже, «Приложение Apple») |
 | `.github/workflows/deploy.yml`         | гейт и деплой для пушей из облака; выключен до переменной `DEPLOY_ENABLED=true`; пока в виде LifeCommit (pnpm, wrangler) — под Go переписывает каркас |
 | `scripts/setup-bot.mjs`, `set-bot-avatar.mjs` | настройка бота Telegram; имя и тексты не заданы (`TEXTS`)    |
 | `.oxlintrc.json`                       | линтер гейта: правила хуков React, висящие промисы                  |
@@ -100,6 +102,63 @@ sh ../scripts/hooks/gate                          # всё, что провер�
 - **Тесты:** интеграционные поднимают тот же сервер, что в бою (`app.Handler`), против настоящего
   Postgres; у каждого теста своя база. Нет `TEST_DATABASE_URL` — тест падает, а не пропускается.
 
+## Приложение Apple
+
+Одно приложение на SwiftUI для iPhone, iPad и Mac (`apps/apple`): iOS 18 и macOS 15, Swift 6 со строгой
+проверкой гонок, предупреждение — ошибка. Поставить один раз: Xcode 27 и `brew install xcodegen`.
+
+```bash
+cd apps/apple
+sh scripts/generate-project.sh        # GrePrep.xcodeproj из project.yml (в git его нет) + версии пакетов
+open GrePrep.xcodeproj                # схема GrePrep — iPhone и iPad, GrePrepMac — тесты на Mac
+sh scripts/run-sim.sh iphone          # собрать и запустить на своём симуляторе (iphone | ipad | iphone-ios18)
+sh scripts/generate-api.sh            # после правки api/openapi.yaml: клиент в Packages/GPAPI, закоммитить
+sh scripts/generate-project.sh --update   # обновить версии пакетов (Package.resolved)
+sh ../../scripts/hooks/gate-apple     # всё, что проверит pre-push
+```
+
+В отладочной сборке сервер — `127.0.0.1:8090` (бэкенд выше, «Бэкенд»), вход — подменой: поле «Для
+разработки» на экране входа. Кнопки Telegram, Apple и Google официального вида; Telegram и Google
+честно отвечают «ещё не подключён», пока нет аккаунтов у провайдеров (#5, #6), «Вход с Apple» без
+аккаунта разработчика система не пускает.
+
+| Путь | Что |
+| --- | --- |
+| `project.yml` | проект XcodeGen: цели, схемы, подпись, адрес сервера по сборке |
+| `Package.resolved` | закреплённые версии пакетов; `generate-project.sh` кладёт их в проект |
+| `Packages/GPAPI` | клиент договора: `Generated` — генератор Apple (руками не править), `Support` — сборка клиента и токен в заголовке |
+| `GrePrep/App` | запуск, корень состояния (`AppModel`: вошёл или нет), настройки сборки |
+| `GrePrep/Core` | запросы (`API`, ошибки — `APIFailure`), токен (`TokenStore`), кэш плана, сеть, вход через окно браузера (PKCE) |
+| `GrePrep/Features` | экраны: вход, «Сегодня», вкладки и заглушки разделов, настройки |
+| `GrePrep/Design` | роли текста и стекло поверх токенов, разделы и их цвета, знак, логотипы входа |
+| `GrePrepTests` | Swift Testing: подменный сервер (`StubServer`, URLProtocol), модели, вход, хранилища, снимки экранов |
+| `GrePrepUITests` | XCUITest: вход, перезапуск, выход, без сети — против настоящего сервера |
+
+- **Токены дизайна** не копируются: проект берёт `design/tokens/generated/apple` как есть. Цвета — `Color(.text)`,
+  размеры — `GPSpace`, `GPSize`, `GPLayout`, текст — `.gpText(GPType.body)` (Onest, растёт с Dynamic Type).
+- **Клиент читает ответ терпимо:** незнакомое поле пропускается. Сервер обновляется раньше приложения, а
+  установленные версии силой не обновить; новое значение enum так не пропустить (#4).
+- **Без сети** «Сегодня» показывает прошлый план и строку «Нет сети», сеть вернулась — обновляется сам; шаг без
+  сети не начать — под ним объяснение (решение Даши 06.10.2026). План лежит в Application Support.
+- **Токен** — Keychain, только это устройство. Mac-сборку без аккаунта разработчика в Keychain не пускают
+  (−34018), поэтому до аккаунта отладочная сборка для Mac хранит токен файлом (`FileTokenStore`, 0600);
+  релиз — всегда Keychain.
+- **Mac:** отладочная сборка — без песочницы (тесты пишут эталоны в репозиторий), релизная — в песочнице.
+- **Заголовки экранов и вкладки — системные** (SF): навигация SwiftUI на iOS 26 не берёт шрифт из
+  `UINavigationBar.appearance()`, а одинаковый вид на iOS 18 и 26 важнее. Содержимое — Onest.
+
+**Тесты.** Юнит-тесты и снимки — `GrePrepTests` (на iPhone, iPad и Mac), сценарии — `GrePrepUITests`
+(iPhone). Сценарии берут адрес сервера из `GP_UI_SERVER` (в xcodebuild — `TEST_RUNNER_GP_UI_SERVER`),
+гейт поднимает свой сервер на 8091 со своей базой `greprep_apple_ui`. Каждый сценарий — новый пользователь
+и чистое устройство (аргумент запуска `-GPResetState`, только отладка).
+
+- **Снимки:** каждое устройство снимается на своём симуляторе («GrePrep iPhone», «GrePrep iPad» — создаёт
+  `scripts/simulator.sh`), Mac — без окна, поэтому только широкие экраны. Стекло в снимках выключено
+  (`glassEnabled`): оно преломляет то, что под ним, и кадр каждый раз чуть другой. Записать недостающие —
+  прогнать тесты (запишутся и упадут один раз); гейт не записывает (`SNAPSHOT_TESTING_RECORD=never`).
+- **Логотипы Telegram и Google** — фигуры SwiftUI из `scripts/logos/*.svg` (`scripts/svg2swift.py`):
+  SVG из каталога система растрирует то чётко, то мыльно, и снимки расходились.
+
 ## Токены дизайна
 
 ```bash
@@ -149,6 +208,19 @@ pnpm --dir design/tokens test    # контраст WCAG AA пар «текст 
 
 Собраны 03.10.2026 из их `HANDOFF` — то, что касается платформы и
 инструментов и укусит и здесь. Числа и версии сверять с конфигами каркаса.
+
+### Xcode и симуляторы
+
+- **xcodebuild зависает после упавшего теста**, если собирает диагностику (Xcode 27): прогон кончился, а
+  процесс ждёт вечно. Всегда `-collect-test-diagnostics never`; в гейте ещё и потолок по времени.
+- **Каталог цветов Apple читает число без точки как 0–255:** `"alpha": "1"` — это 1/255, цвет почти
+  невидим. Генератор токенов пишет `1.0000`, тест — `design/tokens/test/xcassets.test.mjs`.
+- **`URL.path()` возвращает путь с процент-кодированием:** «Application Support» становится
+  «Application%20Support», и `FileManager` файл «не находит». Для `FileManager` — `path(percentEncoded: false)`.
+- **XcodeGen задаёт хост юнит-тестов путём iOS** — на Mac нужен `TEST_HOST[sdk=macosx*]` с `Contents/MacOS`.
+- **Кнопка Apple на Mac** в обёртке SwiftUI держит свой размер — там своя обёртка над
+  `ASAuthorizationAppleIDButton` с `sizeThatFits`.
+- **Симулятор «Hearway…» — соседнего проекта**, его не трогать: у GrePrep свои симуляторы.
 
 ### Машина и аккаунты
 

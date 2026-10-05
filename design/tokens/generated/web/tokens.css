@@ -71,11 +71,15 @@
   --size-step-node: 28px;
   --size-step-node-current: 36px;
   --size-step-line: 1.5px;
+  --size-step-ring: 5px;
+  --size-step-end: 9px;
   --size-tab-bar-height: 64px;
   --size-tab-bar-width: 340px;
   --size-tab-bar-bottom: 22px;
   --size-header-button: 44px;
   --size-fade: 28px;
+  --size-brand-mark: 64px;
+  --size-brand-glyph: 30px;
   --layout-gutter: 20px;
   --layout-gutter-bar: 16px;
   --layout-top-inset: 72px;
@@ -83,6 +87,8 @@
   --layout-sidebar-max: 280px;
   --layout-content-max: 720px;
   --layout-breakpoint-wide: 900px;
+  --layout-auth-column-max: 420px;
+  --layout-tagline-max: 320px;
   --glass-blur: 16px;
   --glass-saturate: 1.8;
   --motion-duration-press: 160ms;

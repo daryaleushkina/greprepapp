@@ -201,6 +201,10 @@ object GpSize {
     val stepNodeCurrent = 36.dp
     /** Нить ленты шагов */
     val stepLine = 1.5.dp
+    /** Кольцо текущего узла ленты (цвет раздела *-tint) */
+    val stepRing = 5.dp
+    /** Точка конца ленты: «На сегодня всё.» */
+    val stepEnd = 9.dp
     val tabBarHeight = 64.dp
     val tabBarWidth = 340.dp
     val tabBarBottom = 22.dp
@@ -208,6 +212,10 @@ object GpSize {
     val headerButton = 44.dp
     /** Растушёвка над нижней панелью */
     val fade = 28.dp
+    /** Стеклянная плитка знака на экране входа */
+    val brandMark = 64.dp
+    /** Знак-лента внутри плитки */
+    val brandGlyph = 30.dp
 }
 
 /** Раскладка. breakpointWide — граница компактной и широкой раскладки. */
@@ -224,6 +232,10 @@ object GpLayout {
     val contentMax = 720.dp
     /** С этой ширины — боковая панель и крупная типографика */
     val breakpointWide = 900.dp
+    /** Колонка экрана входа на широком экране (iPad, Mac, сайт) */
+    val authColumnMax = 420.dp
+    /** Строка о продукте под именем на экране входа */
+    val taglineMax = 320.dp
 }
 
 /** Роли текста; family — Onest из ресурсов приложения. sp растут с системным масштабом шрифта. */

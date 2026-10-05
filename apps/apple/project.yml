@@ -1,0 +1,167 @@
+# Проект Xcode для iPhone, iPad и Mac собирается из этого файла (XcodeGen): `xcodegen generate` в apps/apple.
+# Сам GrePrep.xcodeproj в git не лежит — его правки в одном файле на тысячи строк не читаются в ревью и
+# конфликтуют при слиянии. Как запускать — docs/HANDOFF.md, «Приложение Apple».
+name: GrePrep
+
+options:
+  bundleIdPrefix: dev.greprepapp
+  deploymentTarget:
+    iOS: "18.0"
+    macOS: "15.0"
+  developmentLanguage: ru
+  createIntermediateGroups: true
+  groupSortPosition: top
+
+settings:
+  base:
+    # Рабочие идентификаторы до бренда: фиксируются только перед публикацией в магазинах
+    # (решение Даши 05.10.2026, PRODUCT.md, «Открыто»). Меняются здесь и больше нигде.
+    PRODUCT_BUNDLE_IDENTIFIER: dev.greprepapp.app
+    GP_DISPLAY_NAME: GrePrepApp
+    MARKETING_VERSION: 0.1.0
+    CURRENT_PROJECT_VERSION: 1
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    SWIFT_APPROACHABLE_CONCURRENCY: YES
+    # Предупреждение — это ошибка: то же, что `go vet` и golangci-lint у бэкенда.
+    SWIFT_TREAT_WARNINGS_AS_ERRORS: YES
+    GCC_TREAT_WARNINGS_AS_ERRORS: YES
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    DEAD_CODE_STRIPPING: YES
+    LOCALIZATION_PREFERS_STRING_CATALOGS: YES
+    SWIFT_EMIT_LOC_STRINGS: YES
+    ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: YES
+    # Аккаунта Apple Developer пока нет (решение Даши 06.10.2026): сборка подписывается для запуска на этом
+    # Маке и в симуляторе («-» — подпись без сертификата). Появится аккаунт — DEVELOPMENT_TEAM и
+    # CODE_SIGN_STYLE: Automatic. Подпись повторена у каждой цели: XcodeGen ставит целям свою по умолчанию.
+    CODE_SIGN_STYLE: Manual
+    DEVELOPMENT_TEAM: ""
+
+packages:
+  GPAPI:
+    path: Packages/GPAPI
+  SnapshotTesting:
+    url: https://github.com/pointfreeco/swift-snapshot-testing
+    exactVersion: 1.19.6
+
+targets:
+  GrePrep:
+    type: application
+    supportedDestinations: [iOS, macOS]
+    sources:
+      - path: GrePrep
+      # Токены дизайна — один источник для всех платформ (design/tokens), сюда не копируются.
+      - path: ../../design/tokens/generated/apple/GPTokens.swift
+        group: GrePrep/Design/Generated
+      - path: ../../design/tokens/generated/apple/GPColors.xcassets
+        group: GrePrep/Design/Generated
+    dependencies:
+      - package: GPAPI
+    entitlements:
+      path: GrePrep/GrePrep.entitlements
+      properties:
+        # Mac: песочница App Store и выход в сеть. «Вход с Apple» (com.apple.developer.applesignin) —
+        # когда появится аккаунт: без профиля подписи macOS не запустит приложение с этим правом.
+        com.apple.security.app-sandbox: true
+        com.apple.security.network.client: true
+    settings:
+      base:
+        CODE_SIGN_IDENTITY: "-"
+        INFOPLIST_FILE: GrePrep/Info.plist
+        # Отладочная сборка для Mac — без песочницы: тесты в приложении-хосте пишут и читают эталоны снимков
+        # в репозитории, а песочница туда не пускает. Релиз (и всё, что уйдёт людям) — в песочнице.
+        CODE_SIGN_ENTITLEMENTS[config=Debug][sdk=macosx*]: GrePrep/GrePrep-Debug.entitlements
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: $(GP_DISPLAY_NAME)
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.education
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: >-
+          UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown
+          UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
+        TARGETED_DEVICE_FAMILY: "1,2"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: accent
+        ENABLE_PREVIEWS: YES
+      configs:
+        # Отладка — локальный сервер (docs/HANDOFF.md, «Бэкенд»). Сценарии UI подменяют адрес через
+        # окружение запуска, только в отладочной сборке (AppConfig).
+        Debug:
+          GP_API_BASE_URL: http://127.0.0.1:8090
+        # Боевого сервера ещё нет (ROADMAP §2, «сервер, стенд…»). Домен .invalid не существует по RFC 2606: сборка
+        # честно скажет «нет связи», а не уйдёт на чужой адрес. Заменить, когда будет сервер.
+        Release:
+          GP_API_BASE_URL: https://api.greprepapp.invalid
+
+  GrePrepTests:
+    type: bundle.unit-test
+    supportedDestinations: [iOS, macOS]
+    sources:
+      - path: GrePrepTests
+        excludes:
+          - "**/__Snapshots__/**"
+    dependencies:
+      - target: GrePrep
+      - package: SnapshotTesting
+        product: SnapshotTesting
+    settings:
+      base:
+        CODE_SIGN_IDENTITY: "-"
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: dev.greprepapp.app.tests
+        # XcodeGen задаёт хост тестов путём iOS; на Mac исполняемый файл лежит внутри Contents/MacOS.
+        TEST_HOST[sdk=macosx*]: $(BUILT_PRODUCTS_DIR)/GrePrep.app/Contents/MacOS/GrePrep
+
+  GrePrepUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: GrePrepUITests
+    dependencies:
+      - target: GrePrep
+    settings:
+      base:
+        CODE_SIGN_IDENTITY: "-"
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: dev.greprepapp.app.uitests
+        TEST_TARGET_NAME: GrePrep
+
+schemes:
+  GrePrep:
+    build:
+      targets:
+        GrePrep: all
+        GrePrepTests: [test]
+        GrePrepUITests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      # Тесты видят приложение по-русски, как основная аудитория; английский проверяется отдельными тестами.
+      language: ru
+      region: RU
+      gatherCoverageData: true
+      coverageTargets:
+        - GrePrep
+      targets:
+        - name: GrePrepTests
+          parallelizable: false
+        - name: GrePrepUITests
+          parallelizable: false
+    archive:
+      config: Release
+
+  # Mac: те же юнит-тесты и снимки, без сценариев UI — XCUITest здесь только для iPhone.
+  GrePrepMac:
+    build:
+      targets:
+        GrePrep: all
+        GrePrepTests: [test]
+    test:
+      config: Debug
+      language: ru
+      region: RU
+      targets:
+        - name: GrePrepTests
+          parallelizable: false

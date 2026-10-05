@@ -61,6 +61,10 @@ public enum GPSize {
     public static let stepNodeCurrent: CGFloat = 36
     /// Нить ленты шагов
     public static let stepLine: CGFloat = 1.5
+    /// Кольцо текущего узла ленты (цвет раздела *-tint)
+    public static let stepRing: CGFloat = 5
+    /// Точка конца ленты: «На сегодня всё.»
+    public static let stepEnd: CGFloat = 9
     public static let tabBarHeight: CGFloat = 64
     public static let tabBarWidth: CGFloat = 340
     public static let tabBarBottom: CGFloat = 22
@@ -68,6 +72,10 @@ public enum GPSize {
     public static let headerButton: CGFloat = 44
     /// Растушёвка над нижней панелью
     public static let fade: CGFloat = 28
+    /// Стеклянная плитка знака на экране входа
+    public static let brandMark: CGFloat = 64
+    /// Знак-лента внутри плитки
+    public static let brandGlyph: CGFloat = 30
 }
 
 /// Раскладка, pt. breakpointWide — граница компактной и широкой раскладки.
@@ -84,6 +92,10 @@ public enum GPLayout {
     public static let contentMax: CGFloat = 720
     /// С этой ширины — боковая панель и крупная типографика
     public static let breakpointWide: CGFloat = 900
+    /// Колонка экрана входа на широком экране (iPad, Mac, сайт)
+    public static let authColumnMax: CGFloat = 420
+    /// Строка о продукте под именем на экране входа
+    public static let taglineMax: CGFloat = 320
 }
 
 /// Роль текста: размер и межстрочный — pt, трекинг — доля размера (em), relativeTo — с каким стилем Dynamic Type растёт.

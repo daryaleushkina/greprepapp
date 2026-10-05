@@ -1,0 +1,7 @@
+# Настройки генератора Apple (swift-openapi-generator). Сервер не нужен: он на Go (ogen).
+generate:
+  - types
+  - client
+# public — клиент лежит в отдельном пакете, приложение импортирует его.
+accessModifier: public
+namingStrategy: idiomatic

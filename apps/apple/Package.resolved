@@ -1,0 +1,78 @@
+{
+  "originHash" : "e6f027e1447ca98a9a888eb24cc310d75256ef6d1c1d165ca2abaa7177ffd63a",
+  "pins" : [
+    {
+      "identity" : "swift-collections",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-collections",
+      "state" : {
+        "revision" : "98ef3c98609a1e31b7e157b5b619579001a789d6",
+        "version" : "1.7.1"
+      }
+    },
+    {
+      "identity" : "swift-custom-dump",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/swift-custom-dump",
+      "state" : {
+        "revision" : "4fb9e7cbb4b8f5a7354005db39447f570d6b3e19",
+        "version" : "1.7.3"
+      }
+    },
+    {
+      "identity" : "swift-http-types",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-http-types",
+      "state" : {
+        "revision" : "bff4b6903cdc99dda49649dd52f46c11cfd3ed50",
+        "version" : "1.8.0"
+      }
+    },
+    {
+      "identity" : "swift-issue-reporting",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/swift-issue-reporting",
+      "state" : {
+        "revision" : "75b000cea2ca6d7527a57e1b9cc0bdf21a9abe9f",
+        "version" : "2.1.1"
+      }
+    },
+    {
+      "identity" : "swift-openapi-runtime",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-openapi-runtime",
+      "state" : {
+        "revision" : "62595194f7d5951ef32129b15c0790ef24886867",
+        "version" : "1.12.2"
+      }
+    },
+    {
+      "identity" : "swift-openapi-urlsession",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-openapi-urlsession",
+      "state" : {
+        "revision" : "77effea09e780f6f3f119ffb8150ff25e31c78b1",
+        "version" : "1.3.2"
+      }
+    },
+    {
+      "identity" : "swift-snapshot-testing",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/swift-snapshot-testing",
+      "state" : {
+        "revision" : "28e5de025e3fd98991791bfbf83023ab3708da03",
+        "version" : "1.19.6"
+      }
+    },
+    {
+      "identity" : "swift-syntax",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swiftlang/swift-syntax",
+      "state" : {
+        "revision" : "050f1a346fbbac0ca2cfb15a95274f7bd1cf0ccf",
+        "version" : "604.0.0"
+      }
+    }
+  ],
+  "version" : 3
+}

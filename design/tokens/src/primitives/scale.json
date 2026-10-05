@@ -221,6 +221,20 @@
       },
       "$description": "Нить ленты шагов"
     },
+    "step-ring": {
+      "$value": {
+        "value": 5,
+        "unit": "px"
+      },
+      "$description": "Кольцо текущего узла ленты (цвет раздела *-tint)"
+    },
+    "step-end": {
+      "$value": {
+        "value": 9,
+        "unit": "px"
+      },
+      "$description": "Точка конца ленты: «На сегодня всё.»"
+    },
     "tab-bar-height": {
       "$value": {
         "value": 64,
@@ -252,6 +266,20 @@
         "unit": "px"
       },
       "$description": "Растушёвка над нижней панелью"
+    },
+    "brand-mark": {
+      "$value": {
+        "value": 64,
+        "unit": "px"
+      },
+      "$description": "Стеклянная плитка знака на экране входа"
+    },
+    "brand-glyph": {
+      "$value": {
+        "value": 30,
+        "unit": "px"
+      },
+      "$description": "Знак-лента внутри плитки"
     }
   },
   "layout": {
@@ -302,6 +330,20 @@
         "unit": "px"
       },
       "$description": "С этой ширины — боковая панель и крупная типографика"
+    },
+    "auth-column-max": {
+      "$value": {
+        "value": 420,
+        "unit": "px"
+      },
+      "$description": "Колонка экрана входа на широком экране (iPad, Mac, сайт)"
+    },
+    "tagline-max": {
+      "$value": {
+        "value": 320,
+        "unit": "px"
+      },
+      "$description": "Строка о продукте под именем на экране входа"
     }
   },
   "glass": {

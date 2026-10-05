@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Остальные ключи Xcode генерирует из настроек сборки (project.yml, INFOPLIST_KEY_*). Здесь — только свои. -->
+<plist version="1.0">
+<dict>
+	<key>GPAPIBaseURL</key>
+	<string>$(GP_API_BASE_URL)</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<!-- http только до своего Мака (локальный сервер в отладке); весь остальной трафик — https. -->
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
+</dict>
+</plist>

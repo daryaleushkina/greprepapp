@@ -1,0 +1,11 @@
+# Проект Xcode собирается из project.yml (xcodegen generate)
+GrePrep.xcodeproj/
+# Сборка и пакеты SwiftPM
+.build/
+build/
+DerivedData/
+*.xcresult
+# Снимки, не совпавшие с эталоном, — swift-snapshot-testing кладёт их рядом для сравнения
+**/__Snapshots__/**/*.failure.png
+# Покрытие от запуска отладочной сборки вне Xcode
+*.profraw

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Отладочная сборка для Mac — без песочницы, чтобы тесты читали и писали эталоны снимков (project.yml).
+     Релизная сборка подписывается GrePrep.entitlements — с песочницей. -->
+<plist version="1.0">
+<dict/>
+</plist>

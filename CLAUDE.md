@@ -117,13 +117,15 @@
 - Гейт перед продом: фронт — typecheck → `pnpm lint` (oxlint: правила хуков
   React, висящие промисы) → тесты и порог покрытия; бэкенд — `go vet` →
   `golangci-lint` (в том числе непроверенные ошибки) → `go test -race` и порог
+  покрытия; приложение Apple — клиент API свежий → `swift format` → релизная
+  сборка iOS и Mac → юнит-тесты, снимки и сценарии на симуляторах и Mac и порог
   покрытия; затем e2e (iPhone/WebKit и Android/Chromium, светлая и тёмная) →
-  сборка → деплой на сервер. Пуш в `main` с Мака проверяет хук
-  `scripts/hooks/pre-push`, пуш из облака — GitHub Actions
-  (`.github/workflows/deploy.yml`). Сейчас оба ещё в виде LifeCommit (pnpm,
-  wrangler): под Go и свой сервер их переделывает каркас; до того хук
-  пропускает пуш без `package.json`, а задача Actions выключена до переменной
-  `DEPLOY_ENABLED=true`. Красное —
+  сборка → деплой на сервер. Часть Apple идёт, когда в пуше задеты приложение,
+  договор, токены, сервер или сам гейт (решение Даши 06.10.2026). Пуш в `main`
+  с Мака проверяет хук `scripts/hooks/pre-push` (уже под Go и Apple), пуш из
+  облака — GitHub Actions (`.github/workflows/deploy.yml`, ещё в виде LifeCommit;
+  переделывает CI-часть каркаса, ROADMAP §2; до того задача выключена до переменной
+  `DEPLOY_ENABLED=true`). Красное —
   чинить, а не обходить `--no-verify` (хук `block-no-verify` не даст). Порог не
   опускать; подняли покрытие — поднять и порог. Правка хуков, CI и порога —
   только с согласия Даши (хук `protect-gates` спросит её).
@@ -233,7 +235,15 @@
 ## Приложения на Swift и Kotlin
 
 Решение Даши 05.10.2026: в первой версии вместе с вебом — Swift (SwiftUI) для
-iPhone, iPad и Mac и Kotlin (Jetpack Compose) для Android. Правила —
-производительность, тесты, проверка на симуляторе и эмуляторе — решаются вместе
-с каркасом. Скиллы `animate-expo` и `react-native-skills` писались под React
-Native и основой не служат.
+iPhone, iPad и Mac и Kotlin (Jetpack Compose) для Android. Скиллы
+`animate-expo` и `react-native-skills` писались под React Native и основой не
+служат.
+
+- **Swift:** видимая фича — сценарий в `apps/apple/GrePrepUITests` (через
+  интерфейс, против локального сервера) и снимки экрана в
+  `GrePrepTests/Snapshots` — iPhone и iPad в обеих темах, широкие экраны и на
+  Mac; логика — Swift Testing рядом, сеть — через подменный сервер
+  (`StubServer`), без пауз (`eventually`). Новый экран проверяется глазами на
+  своих симуляторах, включая iOS 18 (`scripts/run-sim.sh`). Как устроено —
+  `docs/HANDOFF.md`, «Приложение Apple».
+- **Kotlin:** правила — вместе с его каркасом.

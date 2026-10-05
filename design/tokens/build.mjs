@@ -133,11 +133,14 @@ const camel = (parts) => parts.join('-').split('-').map((p, i) => (i ? p[0].toUp
 const swiftName = (parts) => { const n = camel(parts); return /^\d/.test(n) ? 's' + n : n; };
 
 // Каталог цветов: у каждого цвета два внешних вида, систему переключает сама ОС.
+// Компонент — всегда с десятичной точкой: число без неё Xcode читает как целое 0–255, и «1» становится 1/255
+// (непрозрачный цвет почти исчезает). Тест — test/xcassets.test.mjs.
 function emitColorAssets({ themed }) {
   const files = { 'GPColors.xcassets/Contents.json': { info: { author: 'xcode', version: 1 } } };
+  const unit = (n) => n.toFixed(4);
   const comp = (c) => {
     const [r, g, b] = c.components;
-    return { 'color-space': 'srgb', components: { red: fmt(r), green: fmt(g), blue: fmt(b), alpha: fmt(alphaOf(c)) } };
+    return { 'color-space': 'srgb', components: { red: unit(r), green: unit(g), blue: unit(b), alpha: unit(alphaOf(c)) } };
   };
   const dark = new Map(themed.dark.map((t) => [t.path.join('.'), t]));
   for (const t of themed.light.filter((t) => t.$type === 'color')) {

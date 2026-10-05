@@ -19,3 +19,14 @@ tools/dev/backlog.sh           # пересобрать это зеркало
 ## Ждёт Дарью — сам сделать не могу
 
 - [#1](https://github.com/daryaleushkina/greprepapp/issues/1) telegram-mini-app: найти недостающие файлы скилла
+- [#5](https://github.com/daryaleushkina/greprepapp/issues/5) Вход через Google в приложении Apple: где менять код на id_token
+- [#6](https://github.com/daryaleushkina/greprepapp/issues/6) Аккаунт Apple Developer: подключить к приложению
+- [#7](https://github.com/daryaleushkina/greprepapp/issues/7) Экран входа: ссылки на условия и политику конфиденциальности
+
+## Инфраструктура
+
+- [#4](https://github.com/daryaleushkina/greprepapp/issues/4) Договор API: новое значение enum в ответе ломает уже установленные приложения
+
+## Без метки
+
+- [#8](https://github.com/daryaleushkina/greprepapp/issues/8) Язык приложения и язык плана с сервера могут разойтись
