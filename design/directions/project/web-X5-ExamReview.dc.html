@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Practice test — Review · desktop</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+/* Токены «Шагов»: светлая и тёмная тема. В компонентах — только var(--…) */
+.s{
+--bg:#F5F6F9;--surface:#FFFFFF;--text:#1B1E28;--text-2:#5A6070;--line:rgba(27,30,40,.12);--fill:rgba(27,30,40,.06);
+--accent:#1B1E28;--on-accent:#FFFFFF;--wrong:#C2410C;--wrong-tint:rgba(194,65,12,.10);
+--verbal:#5B4BC4;--verbal-tint:rgba(91,75,196,.12);--quant:#11735F;--quant-tint:rgba(17,115,95,.12);
+--words:#B4446C;--words-tint:rgba(180,68,108,.12);--essay:#9A5B00;--essay-tint:rgba(154,91,0,.12);--exam:#1B1E28;
+--glow:rgba(91,75,196,.22);--glow-2:rgba(91,75,196,.07);
+--glass:linear-gradient(180deg,rgba(255,255,255,.80),rgba(255,255,255,.54));--glass-strong:linear-gradient(180deg,rgba(255,255,255,.90),rgba(255,255,255,.70));--glass-edge:rgba(0,0,0,.06);--glass-rim:rgba(255,255,255,.6);
+--glass-shadow:0 10px 30px -10px rgba(30,30,60,.22);--tab-sel:rgba(27,30,40,.07);--focus:#5B4BC4;
+}
+.s.dark{
+--bg:#0E0F14;--surface:#1A1C23;--text:#F2F3F7;--text-2:#A3A8B5;--line:rgba(255,255,255,.12);--fill:rgba(255,255,255,.08);
+--accent:#F2F3F7;--on-accent:#111318;--wrong:#FF8A4C;--wrong-tint:rgba(255,138,76,.14);
+--verbal:#A898FF;--verbal-tint:rgba(168,152,255,.16);--quant:#4FC4A7;--quant-tint:rgba(79,196,167,.16);
+--words:#F28AB0;--words-tint:rgba(242,138,176,.16);--essay:#F0B45A;--essay-tint:rgba(240,180,90,.16);--exam:#F2F3F7;
+--glow:rgba(130,110,255,.30);--glow-2:rgba(130,110,255,.08);
+--glass:linear-gradient(180deg,rgba(64,66,80,.62),rgba(32,34,44,.50));--glass-strong:linear-gradient(180deg,rgba(48,50,62,.82),rgba(30,32,42,.72));--glass-edge:rgba(0,0,0,.35);--glass-rim:rgba(255,255,255,.12);
+--glass-shadow:0 10px 30px -10px rgba(0,0,0,.6);--tab-sel:rgba(255,255,255,.10);--focus:#A898FF;
+}
+a{color:var(--text)}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+button,a{-webkit-tap-highlight-color:transparent;transition:transform 160ms cubic-bezier(0.23,1,0.32,1)}
+button:active,a:active{transform:scale(0.98)}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+::selection{background:var(--verbal-tint)}
+@media (prefers-reduced-motion: reduce){button,a{transition:none}button:active,a:active{transform:none}}
+@media (prefers-reduced-transparency: reduce){.glass{background:var(--surface)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}}
+.kbd{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;box-sizing:border-box;border-radius:6px;border:1px solid var(--line);background:var(--surface);font-size:12px;line-height:1;font-weight:500;color:var(--text-2);font-variant-numeric:tabular-nums}
+@media (hover:hover) and (pointer:fine){.nav-item:hover{background:var(--fill)}.row-link:hover{background:var(--fill)}}
+input[type=radio]{appearance:none;-webkit-appearance:none}
+input[type=radio]:checked{border-color:var(--accent)!important;background:var(--accent)!important;box-shadow:inset 0 0 0 4px var(--surface)}
+label:has(input:checked){box-shadow:inset 0 0 0 1.5px var(--accent)!important}
+textarea{resize:none}
+textarea:focus{outline:none;box-shadow:0 0 0 2px var(--focus)}
+</style>
+</helmet>
+<!-- Обзор вопросов секции: сетка 6 × 2, отмеченные — закладкой; время на виду -->
+<div class="s {{themeClass}}" style="min-height: 100vh; box-sizing: border-box; font-family: 'Onest', system-ui, sans-serif; color: var(--text); background: radial-gradient(70% 55% at 55% -15%, var(--glow) 0%, var(--glow-2) 50%, transparent 78%), var(--bg); display: flex; flex-direction: column; --glow: rgba(27,30,40,.09); --glow-2: rgba(27,30,40,.03);">
+
+  <!-- Режим фокуса: тонкая полоса сверху, без боковой панели -->
+  <header lang="en" style="flex: none; min-height: 64px; box-sizing: border-box; padding: 10px clamp(16px, 4vw, 48px); display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px">
+    <div style="flex: 1 1 200px; min-width: 0; display: flex; align-items: center; gap: 14px"><button type="button" class="glass" aria-label="Exit section" style="flex: none; width: 44px; height: 44px; box-sizing: border-box; padding: 0; border-radius: 50%; color: var(--text); text-decoration: none; background: var(--glass); -webkit-backdrop-filter: blur(16px) saturate(180%); backdrop-filter: blur(16px) saturate(180%); border: 1px solid var(--glass-edge); box-shadow: inset 0 1px 0 var(--glass-rim), var(--glass-shadow); display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 6l-6 6 6 6"></path></svg></button><span style="font-size: 17px; line-height: 22px; font-weight: 600">Review · Quant 1</span></div>
+    <div style="flex: 0 1 auto; display: flex; justify-content: center"><span role="timer" aria-label="Time remaining 13 minutes 58 seconds" style="font-size: 24px; line-height: 28px; font-weight: 600; font-variant-numeric: tabular-nums">13:58</span></div>
+    <div style="flex: 1 1 200px; min-width: 0; display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 8px"><a href="web-X4-ExamQuestion.dc.html" style="height: 48px; padding: 0 24px; border: 0; border-radius: 24px; background: var(--accent); color: var(--on-accent); text-decoration: none; font-size: 16px; line-height: 20px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; font-variant-numeric: tabular-nums">Return to Question 7</a></div>
+  </header>
+
+  <main lang="en" style="flex: 1; box-sizing: border-box; padding: 28px clamp(16px, 4vw, 48px) 56px; display: flex; justify-content: center">
+    <div style="width: 100%; max-width: 980px; display: flex; flex-direction: column">
+
+      <p style="margin: 0; font-size: 17px; line-height: 24px; color: var(--text-2); font-variant-numeric: tabular-nums">6 answered · 6 not answered · 2 marked</p>
+
+      <div style="margin-top: 24px; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(132px, 100%), 1fr)); gap: 14px">
+        <button type="button" aria-label="Question 1: Answered" style="position: relative; height: 92px; box-sizing: border-box; border: 1px solid var(--line); border-radius: 20px; background: var(--surface);  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px">
+          
+          <span style="font-size: 24px; line-height: 28px; font-weight: 600; font-variant-numeric: tabular-nums">1</span>
+          <span style="font-size: 13px; line-height: 16px; color: var(--text-2)">answered</span>
+        </button>
+        <button type="button" aria-label="Question 2: Answered" style="position: relative; height: 92px; box-sizing: border-box; border: 1px solid var(--line); border-radius: 20px; background: var(--surface);  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px">
+          
+          <span style="font-size: 24px; line-height: 28px; font-weight: 600; font-variant-numeric: tabular-nums">2</span>
+          <span style="font-size: 13px; line-height: 16px; color: var(--text-2)">answered</span>
+        </button>
+        <button type="button" aria-label="Question 3: Not answered, marked" style="position: relative; height: 92px; box-sizing: border-box; border: 1.5px dashed var(--line); border-radius: 20px; background: transparent;  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px">
+          <span style="position: absolute; top: 9px; right: 10px; color: var(--text)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4.5h10v15.5l-5-3.5-5 3.5z"></path></svg></span>
+          <span style="font-size: 24px; line-height: 28px; font-weight: 600; font-variant-numeric: tabular-nums">3</span>
+          <span style="font-size: 13px; line-height: 16px; color: var(--text-2)">not answered</span>
+        </button>
+        <button type="button" aria-label="Question 4: Answered" style="position: relative; height: 92px; box-sizing: border-box; border: 1px solid var(--line); border-radius: 20px; background: var(--surface);  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px">
+          
+          <span style="font-size: 24px; line-height: 28px; font-weight: 600; font-variant-numeric: tabular-nums">4</span>
+          <span style="font-size: 13px; line-height: 16px; color: var(--text-2)">answered</span>
+        </button>
+        <button type="button" aria-label="Question 5: Answered" style="position: relative; height: 92px; box-sizing: border-box; border: 1px solid var(--line); border-radius: 20px; background: var(--surface);  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px">
+          
+          <span style="font-size: 24px; line-height: 28px; font-weight: 600; font-variant-numeric: tabular-nums">5</span>
+          <span style="font-size: 13px; line-height: 16px; color: var(--text-2)">answered</span>
+        </button>
+        <button type="button" aria-label="Question 6: Answered, marked" style="position: relative; height: 92px; box-sizing: border-box; border: 1px solid var(--line); border-radius: 20px; background: var(--surface);  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px">
+          <span style="position: absolute; top: 9px; right: 10px; color: var(--text)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4.5h10v15.5l-5-3.5-5 3.5z"></path></svg></span>
+          <span style="font-size: 24px; line-height: 28px; font-weight: 600; font-variant-numeric: tabular-nums">6</span>
+          <span style="font-size: 13px; line-height: 16px; color: var(--text-2)">answered</span>
+        </button>
+        <button type="button" aria-label="Question 7: Answered, current" style="position: relative; height: 92px; box-sizing: border-box; border: 1px solid var(--line); border-radius: 20px; background: var(--surface); box-shadow: 0 0 0 2px var(--accent); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px">
+          
+          <span style="font-size: 24px; line-height: 28px; font-weight: 600; font-variant-numeric: tabular-nums">7</span>
+          <span style="font-size: 13px; line-height: 16px; color: var(--text-2)">answered</span>
+        </button>
+        <button type="button" aria-label="Question 8: Not answered" style="position: relative; height: 92px; box-sizing: border-box; border: 1.5px dashed var(--line); border-radius: 20px; background: transparent;  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px">
+          
+          <span style="font-size: 24px; line-height: 28px; font-weight: 600; font-variant-numeric: tabular-nums">8</span>
+          <span style="font-size: 13px; line-height: 16px; color: var(--text-2)">not answered</span>
+        </button>
+        <button type="button" aria-label="Question 9: Not answered" style="position: relative; height: 92px; box-sizing: border-box; border: 1.5px dashed var(--line); border-radius: 20px; background: transparent;  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px">
+          
+          <span style="font-size: 24px; line-height: 28px; font-weight: 600; font-variant-numeric: tabular-nums">9</span>
+          <span style="font-size: 13px; line-height: 16px; color: var(--text-2)">not answered</span>
+        </button>
+        <button type="button" aria-label="Question 10: Not answered" style="position: relative; height: 92px; box-sizing: border-box; border: 1.5px dashed var(--line); border-radius: 20px; background: transparent;  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px">
+          
+          <span style="font-size: 24px; line-height: 28px; font-weight: 600; font-variant-numeric: tabular-nums">10</span>
+          <span style="font-size: 13px; line-height: 16px; color: var(--text-2)">not answered</span>
+        </button>
+        <button type="button" aria-label="Question 11: Not answered" style="position: relative; height: 92px; box-sizing: border-box; border: 1.5px dashed var(--line); border-radius: 20px; background: transparent;  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px">
+          
+          <span style="font-size: 24px; line-height: 28px; font-weight: 600; font-variant-numeric: tabular-nums">11</span>
+          <span style="font-size: 13px; line-height: 16px; color: var(--text-2)">not answered</span>
+        </button>
+        <button type="button" aria-label="Question 12: Not answered" style="position: relative; height: 92px; box-sizing: border-box; border: 1.5px dashed var(--line); border-radius: 20px; background: transparent;  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px">
+          
+          <span style="font-size: 24px; line-height: 28px; font-weight: 600; font-variant-numeric: tabular-nums">12</span>
+          <span style="font-size: 13px; line-height: 16px; color: var(--text-2)">not answered</span>
+        </button>
+      </div>
+
+      <div aria-hidden="true" style="margin-top: 22px; display: flex; flex-wrap: wrap; gap: 10px 22px; font-size: 15px; line-height: 20px; color: var(--text-2)">
+        <span style="display: inline-flex; align-items: center; gap: 8px"><span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 5px; background: var(--surface); border: 1px solid var(--line)"></span>Answered</span>
+        <span style="display: inline-flex; align-items: center; gap: 8px"><span style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 5px; border: 1.5px dashed var(--line)"></span>Not answered</span>
+        <span style="display: inline-flex; align-items: center; gap: 8px; color: var(--text)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4.5h10v15.5l-5-3.5-5 3.5z"></path></svg><span style="color: var(--text-2)">Marked</span></span>
+      </div>
+    </div>
+  </main>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+const dark = this.props.dark ?? false;
+return { themeClass: dark ? 'dark' : '' };
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Нет связи — компьютер</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+/* Токены «Шагов»: светлая и тёмная тема. В компонентах — только var(--…) */
+.s{
+--bg:#F5F6F9;--surface:#FFFFFF;--text:#1B1E28;--text-2:#5A6070;--line:rgba(27,30,40,.12);--fill:rgba(27,30,40,.06);
+--accent:#1B1E28;--on-accent:#FFFFFF;--wrong:#C2410C;--wrong-tint:rgba(194,65,12,.10);
+--verbal:#5B4BC4;--verbal-tint:rgba(91,75,196,.12);--quant:#11735F;--quant-tint:rgba(17,115,95,.12);
+--words:#B4446C;--words-tint:rgba(180,68,108,.12);--essay:#9A5B00;--essay-tint:rgba(154,91,0,.12);--exam:#1B1E28;
+--glow:rgba(91,75,196,.22);--glow-2:rgba(91,75,196,.07);
+--glass:linear-gradient(180deg,rgba(255,255,255,.80),rgba(255,255,255,.54));--glass-strong:linear-gradient(180deg,rgba(255,255,255,.90),rgba(255,255,255,.70));--glass-edge:rgba(0,0,0,.06);--glass-rim:rgba(255,255,255,.6);
+--glass-shadow:0 10px 30px -10px rgba(30,30,60,.22);--tab-sel:rgba(27,30,40,.07);--focus:#5B4BC4;
+}
+.s.dark{
+--bg:#0E0F14;--surface:#1A1C23;--text:#F2F3F7;--text-2:#A3A8B5;--line:rgba(255,255,255,.12);--fill:rgba(255,255,255,.08);
+--accent:#F2F3F7;--on-accent:#111318;--wrong:#FF8A4C;--wrong-tint:rgba(255,138,76,.14);
+--verbal:#A898FF;--verbal-tint:rgba(168,152,255,.16);--quant:#4FC4A7;--quant-tint:rgba(79,196,167,.16);
+--words:#F28AB0;--words-tint:rgba(242,138,176,.16);--essay:#F0B45A;--essay-tint:rgba(240,180,90,.16);--exam:#F2F3F7;
+--glow:rgba(130,110,255,.30);--glow-2:rgba(130,110,255,.08);
+--glass:linear-gradient(180deg,rgba(64,66,80,.62),rgba(32,34,44,.50));--glass-strong:linear-gradient(180deg,rgba(48,50,62,.82),rgba(30,32,42,.72));--glass-edge:rgba(0,0,0,.35);--glass-rim:rgba(255,255,255,.12);
+--glass-shadow:0 10px 30px -10px rgba(0,0,0,.6);--tab-sel:rgba(255,255,255,.10);--focus:#A898FF;
+}
+a{color:var(--text)}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+button,a{-webkit-tap-highlight-color:transparent;transition:transform 160ms cubic-bezier(0.23,1,0.32,1)}
+button:active,a:active{transform:scale(0.98)}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+::selection{background:var(--verbal-tint)}
+@media (prefers-reduced-motion: reduce){button,a{transition:none}button:active,a:active{transform:none}}
+@media (prefers-reduced-transparency: reduce){.glass{background:var(--surface)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}}
+.kbd{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;box-sizing:border-box;border-radius:6px;border:1px solid var(--line);background:var(--surface);font-size:12px;line-height:1;font-weight:500;color:var(--text-2);font-variant-numeric:tabular-nums}
+@media (hover:hover) and (pointer:fine){.nav-item:hover{background:var(--fill)}.row-link:hover{background:var(--fill)}}
+</style>
+</helmet>
+<!-- Режим фокуса: без боковой панели; нет связи — тихая плашка, вопрос работает, ответы копятся -->
+<div class="s {{themeClass}}" style="min-height: 100vh; box-sizing: border-box; font-family: 'Onest', system-ui, sans-serif; color: var(--text); background: radial-gradient(70% 50% at 50% -15%, var(--glow) 0%, var(--glow-2) 50%, transparent 78%), var(--bg); display: flex; flex-direction: column">
+
+  <!-- Тонкая полоса сессии: назад, прогресс, «Сообщить об ошибке» -->
+  <header style="flex: none; min-height: 64px; box-sizing: border-box; padding: 10px clamp(16px, 3vw, 32px); display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px">
+    <a href="web-T1-Today.dc.html" class="glass" aria-label="Назад" style="flex: none; width: 44px; height: 44px; box-sizing: border-box; border-radius: 50%; background: var(--glass); -webkit-backdrop-filter: blur(16px) saturate(180%); backdrop-filter: blur(16px) saturate(180%); border: 1px solid var(--glass-edge); box-shadow: inset 0 1px 0 var(--glass-rim), var(--glass-shadow); color: var(--text); display: flex; align-items: center; justify-content: center">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5.5L8 12l6.5 6.5"></path></svg>
+    </a>
+    <div style="flex: 1 1 auto; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 14px">
+      <span role="img" aria-label="Вопрос 4 из 10" style="display: flex; align-items: center; gap: 8px">
+        <span style="width: 9px; height: 9px; border-radius: 50%; background: var(--verbal)"></span>
+        <span style="width: 9px; height: 9px; border-radius: 50%; background: var(--verbal)"></span>
+        <span style="width: 9px; height: 9px; border-radius: 50%; background: var(--verbal)"></span>
+        <span style="width: 13px; height: 13px; box-sizing: border-box; border-radius: 50%; border: 2.5px solid var(--verbal)"></span>
+        <span style="width: 9px; height: 9px; border-radius: 50%; background: var(--fill)"></span>
+        <span style="width: 9px; height: 9px; border-radius: 50%; background: var(--fill)"></span>
+        <span style="width: 9px; height: 9px; border-radius: 50%; background: var(--fill)"></span>
+        <span style="width: 9px; height: 9px; border-radius: 50%; background: var(--fill)"></span>
+        <span style="width: 9px; height: 9px; border-radius: 50%; background: var(--fill)"></span>
+        <span style="width: 9px; height: 9px; border-radius: 50%; background: var(--fill)"></span>
+      </span>
+      <span style="flex: none; font-size: 15px; line-height: 20px; font-weight: 500; font-variant-numeric: tabular-nums">4 из 10</span>
+    </div>
+    <a href="#" style="flex: none; min-height: 44px; display: inline-flex; align-items: center; font-size: 14px; color: var(--text-2); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px; text-decoration-color: var(--line)">Сообщить об ошибке</a>
+  </header>
+
+  <main style="flex: 1; box-sizing: border-box; padding: 16px clamp(16px, 4vw, 48px) 48px; display: flex; justify-content: center">
+    <div style="width: 100%; max-width: 720px; display: flex; flex-direction: column">
+
+      <p role="status" class="glass" style="align-self: center; margin: 0; padding: 10px 18px; border-radius: 22px; display: flex; align-items: center; gap: 10px; font-size: 15px; line-height: 20px; font-weight: 500; background: var(--glass-strong); -webkit-backdrop-filter: blur(16px) saturate(180%); backdrop-filter: blur(16px) saturate(180%); border: 1px solid var(--glass-edge); box-shadow: inset 0 1px 0 var(--glass-rim), var(--glass-shadow)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; color: var(--text-2)"><path d="M3 3l18 18"></path><path d="M8.5 16.2a5 5 0 0 1 7 0"></path><path d="M5 12.7a10 10 0 0 1 4.1-2.4"></path><path d="M14.6 10.3A10 10 0 0 1 19 12.7"></path><path d="M2 9.2a15 15 0 0 1 4.3-2.7"></path><path d="M11.3 5.5A15 15 0 0 1 22 9.2"></path><circle cx="12" cy="19.5" r=".9" fill="currentColor"></circle></svg>
+        <span>Нет связи — ответы сохраняются и отправятся сами</span>
+      </p>
+
+      <section aria-label="Вопрос 4" style="margin-top: 24px; padding: 28px 28px 30px; border-radius: 26px; background: var(--surface); border: 1px solid var(--line)">
+        <p lang="en" style="margin: 0; font-size: 14px; line-height: 18px; font-weight: 500; color: var(--verbal)">Text Completion</p>
+        <p lang="en" style="margin: 10px 0 0; font-size: 20px; line-height: 31px">Although the committee’s report was praised for its thoroughness, critics noted that its conclusions were oddly <span role="img" aria-label="пропуск" style="display: inline-block; width: 80px; border-bottom: 1.5px solid currentColor"></span>, hedging on nearly every recommendation it made.</p>
+      </section>
+
+      <div role="radiogroup" aria-label="Варианты ответа" style="margin-top: 16px; display: flex; flex-direction: column; gap: 8px">
+        <button type="button" role="radio" aria-checked="false" style="min-height: 56px; box-sizing: border-box; padding: 0 18px; border-radius: 18px; border: 1px solid var(--line); background: var(--surface); display: flex; align-items: center; gap: 14px; text-align: left"><span aria-hidden="true" style="flex: none; width: 22px; height: 22px; box-sizing: border-box; border-radius: 50%; border: 1.5px solid var(--line)"></span><span class="kbd" aria-hidden="true">A</span><span lang="en" style="font-size: 17px; line-height: 22px">equivocal</span></button>
+        <button type="button" role="radio" aria-checked="false" style="min-height: 56px; box-sizing: border-box; padding: 0 18px; border-radius: 18px; border: 1px solid var(--line); background: var(--surface); display: flex; align-items: center; gap: 14px; text-align: left"><span aria-hidden="true" style="flex: none; width: 22px; height: 22px; box-sizing: border-box; border-radius: 50%; border: 1.5px solid var(--line)"></span><span class="kbd" aria-hidden="true">B</span><span lang="en" style="font-size: 17px; line-height: 22px">incisive</span></button>
+        <button type="button" role="radio" aria-checked="true" style="min-height: 56px; box-sizing: border-box; padding: 0 18px; border-radius: 18px; border: 2px solid var(--verbal); background: var(--verbal-tint); display: flex; align-items: center; gap: 14px; text-align: left"><span aria-hidden="true" style="flex: none; width: 22px; height: 22px; box-sizing: border-box; border-radius: 50%; border: 6px solid var(--verbal); background: var(--surface)"></span><span class="kbd" aria-hidden="true">C</span><span lang="en" style="font-size: 17px; line-height: 22px; font-weight: 500">exhaustive</span></button>
+        <button type="button" role="radio" aria-checked="false" style="min-height: 56px; box-sizing: border-box; padding: 0 18px; border-radius: 18px; border: 1px solid var(--line); background: var(--surface); display: flex; align-items: center; gap: 14px; text-align: left"><span aria-hidden="true" style="flex: none; width: 22px; height: 22px; box-sizing: border-box; border-radius: 50%; border: 1.5px solid var(--line)"></span><span class="kbd" aria-hidden="true">D</span><span lang="en" style="font-size: 17px; line-height: 22px">dogmatic</span></button>
+        <button type="button" role="radio" aria-checked="false" style="min-height: 56px; box-sizing: border-box; padding: 0 18px; border-radius: 18px; border: 1px solid var(--line); background: var(--surface); display: flex; align-items: center; gap: 14px; text-align: left"><span aria-hidden="true" style="flex: none; width: 22px; height: 22px; box-sizing: border-box; border-radius: 50%; border: 1.5px solid var(--line)"></span><span class="kbd" aria-hidden="true">E</span><span lang="en" style="font-size: 17px; line-height: 22px">lucid</span></button>
+      </div>
+
+      <!-- Действия справа внизу; подсказки клавиш — одной тихой строкой -->
+      <div style="margin-top: 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 12px 16px">
+        <p style="flex: 1 1 220px; margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; line-height: 22px; color: var(--text-2)"><span class="kbd">A</span>–<span class="kbd">E</span> выбрать · <span class="kbd">Enter</span> проверить</p>
+        <button type="button" style="height: 48px; padding: 0 24px; border-radius: 24px; border: 1px solid var(--line); background: var(--surface); font-size: 16px; font-weight: 600">Пропустить</button>
+        <button type="button" style="height: 48px; padding: 0 32px; border-radius: 24px; border: 0; background: var(--accent); color: var(--on-accent); font-size: 16px; font-weight: 600">Проверить</button>
+      </div>
+    </div>
+  </main>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+const dark = this.props.dark ?? false;
+return { themeClass: dark ? 'dark' : '' };
+}
+}
+</script>
+</body>
+</html>

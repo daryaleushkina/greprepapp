@@ -4,551 +4,993 @@
  "boards": {
   "D1-Home.dc.html": {
    "h": 844,
+   "page": "directions",
    "title": "Г · Telegram 3.0 — Главная",
    "w": 390,
    "x": 0,
-   "y": 2600,
-   "page": "directions"
+   "y": 2600
   },
   "D2-Builder.dc.html": {
    "h": 844,
+   "page": "directions",
    "title": "Г · Telegram 3.0 — Конструктор",
    "w": 390,
    "x": 470,
-   "y": 2600,
-   "page": "directions"
+   "y": 2600
   },
   "D3-Question.dc.html": {
    "h": 844,
    "is_interactive": true,
+   "page": "directions",
    "title": "Г · Telegram 3.0 — Вопрос и разбор",
    "w": 390,
    "x": 940,
-   "y": 2600,
-   "page": "directions"
+   "y": 2600
   },
   "D4-Word.dc.html": {
    "h": 844,
+   "page": "directions",
    "title": "Г · Telegram 3.0 — Слово",
    "w": 390,
    "x": 1410,
-   "y": 2600,
-   "page": "directions"
+   "y": 2600
   },
   "D5-Exam.dc.html": {
    "h": 844,
+   "page": "directions",
    "title": "Г · Telegram 3.0 — Пробный экзамен",
    "w": 390,
    "x": 1880,
-   "y": 2600,
-   "page": "directions"
+   "y": 2600
   },
   "D6-Weak.dc.html": {
    "h": 844,
+   "page": "directions",
    "title": "Г · Telegram 3.0 — Слабые места",
    "w": 390,
    "x": 2350,
-   "y": 2600,
-   "page": "directions"
+   "y": 2600
   },
   "F1-Home.dc.html": {
    "h": 844,
+   "page": "directions",
    "title": "Е · Шаги 3.0 — Главная",
    "w": 390,
    "x": 0,
-   "y": 3824,
-   "page": "directions"
+   "y": 3824
   },
   "F2-Builder.dc.html": {
    "h": 844,
+   "page": "directions",
    "title": "Е · Шаги 3.0 — Конструктор",
    "w": 390,
    "x": 470,
-   "y": 3824,
-   "page": "directions"
+   "y": 3824
   },
   "F3-Question.dc.html": {
    "h": 844,
    "is_interactive": true,
+   "page": "directions",
    "title": "Е · Шаги 3.0 — Вопрос и разбор",
    "w": 390,
    "x": 940,
-   "y": 3824,
-   "page": "directions"
+   "y": 3824
   },
   "F4-Word.dc.html": {
    "h": 844,
+   "page": "directions",
    "title": "Е · Шаги 3.0 — Слово",
    "w": 390,
    "x": 1410,
-   "y": 3824,
-   "page": "directions"
+   "y": 3824
   },
   "F5-Exam.dc.html": {
    "h": 844,
+   "page": "directions",
    "title": "Е · Шаги 3.0 — Пробный экзамен",
    "w": 390,
    "x": 1880,
-   "y": 3824,
-   "page": "directions"
+   "y": 3824
   },
   "F6-Weak.dc.html": {
    "h": 844,
+   "page": "directions",
    "title": "Е · Шаги 3.0 — Слабые места",
    "w": 390,
    "x": 2350,
-   "y": 3824,
-   "page": "directions"
+   "y": 3824
+  },
+  "G1-Progress.dc.html": {
+   "h": 844,
+   "is_interactive": true,
+   "page": "screens",
+   "title": "Прогресс",
+   "w": 390,
+   "x": 0,
+   "y": 6420
+  },
+  "G2-Settings.dc.html": {
+   "h": 844,
+   "page": "screens",
+   "title": "Настройки",
+   "w": 390,
+   "x": 470,
+   "y": 6420
+  },
+  "G3-Paywall.dc.html": {
+   "h": 844,
+   "page": "screens",
+   "title": "Оформить подписку",
+   "w": 390,
+   "x": 940,
+   "y": 6420
+  },
+  "G4-Subscription.dc.html": {
+   "h": 844,
+   "page": "screens",
+   "title": "Подписка",
+   "w": 390,
+   "x": 1410,
+   "y": 6420
+  },
+  "G5-AccessEnded.dc.html": {
+   "h": 844,
+   "page": "screens",
+   "title": "Подписка закончилась",
+   "w": 390,
+   "x": 1880,
+   "y": 6420
+  },
+  "G6-ProgressEmpty.dc.html": {
+   "h": 844,
+   "is_interactive": true,
+   "page": "screens",
+   "title": "Прогресс — пусто",
+   "w": 390,
+   "x": 2350,
+   "y": 6420
   },
   "H1-Home.dc.html": {
    "h": 844,
+   "page": "directions",
    "title": "З · Колода 2.0 — Главная",
    "w": 390,
    "x": 0,
-   "y": 5048,
-   "page": "directions"
+   "y": 5048
   },
   "H2-Builder.dc.html": {
    "h": 844,
+   "page": "directions",
    "title": "З · Колода 2.0 — Конструктор",
    "w": 390,
    "x": 470,
-   "y": 5048,
-   "page": "directions"
+   "y": 5048
   },
   "H3-Question.dc.html": {
    "h": 844,
    "is_interactive": true,
+   "page": "directions",
    "title": "З · Колода 2.0 — Вопрос и разбор",
    "w": 390,
    "x": 940,
-   "y": 5048,
-   "page": "directions"
+   "y": 5048
   },
   "H4-Word.dc.html": {
    "h": 844,
+   "page": "directions",
    "title": "З · Колода 2.0 — Слово",
    "w": 390,
    "x": 1410,
-   "y": 5048,
-   "page": "directions"
+   "y": 5048
   },
   "H5-Exam.dc.html": {
    "h": 844,
+   "page": "directions",
    "title": "З · Колода 2.0 — Пробный экзамен",
    "w": 390,
    "x": 1880,
-   "y": 5048,
-   "page": "directions"
+   "y": 5048
   },
   "H6-Weak.dc.html": {
    "h": 844,
+   "page": "directions",
    "title": "З · Колода 2.0 — Слабые места",
    "w": 390,
    "x": 2350,
-   "y": 5048,
-   "page": "directions"
+   "y": 5048
   },
   "Main.dc.html": {
    "h": 2200,
+   "page": "directions",
    "title": "Что берём из исследования",
    "w": 1280,
    "x": 0,
-   "y": 0,
-   "page": "directions"
-  },
-  "T1-Today.dc.html": {
-   "x": 0,
-   "y": 300,
-   "w": 390,
-   "h": 844,
-   "title": "Сегодня — в процессе",
-   "page": "screens",
-   "is_interactive": true
-  },
-  "T2-TodayFirst.dc.html": {
-   "x": 470,
-   "y": 300,
-   "w": 390,
-   "h": 844,
-   "title": "Сегодня — первый запуск",
-   "page": "screens",
-   "is_interactive": true
-  },
-  "T3-TodayDone.dc.html": {
-   "x": 940,
-   "y": 300,
-   "w": 390,
-   "h": 844,
-   "title": "Сегодня — всё сделано",
-   "page": "screens",
-   "is_interactive": true
-  },
-  "T4-SignIn.dc.html": {
-   "x": 1410,
-   "y": 300,
-   "w": 390,
-   "h": 844,
-   "title": "Вход",
-   "page": "screens"
-  },
-  "T5-Loading.dc.html": {
-   "x": 1880,
-   "y": 300,
-   "w": 390,
-   "h": 844,
-   "title": "Сегодня — загрузка",
-   "page": "screens"
-  },
-  "T6-Offline.dc.html": {
-   "x": 2350,
-   "y": 300,
-   "w": 390,
-   "h": 844,
-   "title": "Вопрос — нет связи",
-   "page": "screens"
+   "y": 0
   },
   "R1-Builder.dc.html": {
-   "x": 0,
-   "y": 1524,
-   "w": 390,
    "h": 844,
-   "title": "Новая тренировка",
-   "page": "screens"
-  },
-  "R2-BuilderTopics.dc.html": {
-   "x": 470,
-   "y": 1524,
-   "w": 390,
-   "h": 844,
-   "title": "Темы и сложность",
-   "page": "screens"
-  },
-  "R3-QuestionTC.dc.html": {
-   "x": 940,
-   "y": 1524,
-   "w": 390,
-   "h": 844,
-   "title": "Text Completion — до проверки",
-   "page": "screens"
-  },
-  "R4-QuestionTCWrong.dc.html": {
-   "x": 1410,
-   "y": 1524,
-   "w": 390,
-   "h": 844,
-   "title": "Text Completion — неверно, разбор",
    "page": "screens",
-   "is_interactive": true
-  },
-  "R5-QuestionTC3.dc.html": {
-   "x": 1880,
-   "y": 1524,
+   "title": "Новая тренировка",
    "w": 390,
-   "h": 844,
-   "title": "Text Completion — три пропуска",
-   "page": "screens"
-  },
-  "R6-QuestionSE.dc.html": {
-   "x": 2350,
-   "y": 1524,
-   "w": 390,
-   "h": 844,
-   "title": "Sentence Equivalence — верно",
-   "page": "screens"
-  },
-  "R7-QuestionRC.dc.html": {
-   "x": 2820,
-   "y": 1524,
-   "w": 390,
-   "h": 844,
-   "title": "Reading Comprehension",
-   "page": "screens"
-  },
-  "R8-QuestionRCSelect.dc.html": {
-   "x": 3290,
-   "y": 1524,
-   "w": 390,
-   "h": 844,
-   "title": "Reading Comprehension — выбрать предложение",
-   "page": "screens"
-  },
-  "R9-QuestionQC.dc.html": {
-   "x": 3760,
-   "y": 1524,
-   "w": 390,
-   "h": 844,
-   "title": "Quantitative Comparison",
-   "page": "screens"
+   "x": 0,
+   "y": 1524
   },
   "R10-QuestionMulti.dc.html": {
-   "x": 0,
-   "y": 2748,
-   "w": 390,
    "h": 844,
+   "page": "screens",
    "title": "Quant — выбрать все подходящие",
-   "page": "screens"
+   "w": 390,
+   "x": 0,
+   "y": 2748
   },
   "R11-QuestionNumeric.dc.html": {
-   "x": 470,
-   "y": 2748,
-   "w": 390,
    "h": 844,
+   "page": "screens",
    "title": "Quant — ввод ответа",
-   "page": "screens"
+   "w": 390,
+   "x": 470,
+   "y": 2748
   },
   "R12-QuestionData.dc.html": {
-   "x": 940,
-   "y": 2748,
-   "w": 390,
    "h": 844,
+   "page": "screens",
    "title": "Quant — график",
-   "page": "screens"
+   "w": 390,
+   "x": 940,
+   "y": 2748
   },
   "R13-Calculator.dc.html": {
-   "x": 1410,
-   "y": 2748,
-   "w": 390,
    "h": 844,
+   "page": "screens",
    "title": "Quant — калькулятор",
-   "page": "screens"
+   "w": 390,
+   "x": 1410,
+   "y": 2748
   },
   "R14-QuestionTimed.dc.html": {
-   "x": 1880,
-   "y": 2748,
-   "w": 390,
    "h": 844,
+   "page": "screens",
    "title": "Проверка — вопрос с таймером",
-   "page": "screens"
+   "w": 390,
+   "x": 1880,
+   "y": 2748
   },
   "R15-Summary.dc.html": {
-   "x": 2350,
-   "y": 2748,
-   "w": 390,
    "h": 844,
+   "page": "screens",
    "title": "Итог тренировки",
-   "page": "screens"
+   "w": 390,
+   "x": 2350,
+   "y": 2748
   },
   "R16-Review.dc.html": {
-   "x": 2820,
-   "y": 2748,
-   "w": 390,
    "h": 844,
+   "page": "screens",
    "title": "Разбор проверки",
-   "page": "screens"
+   "w": 390,
+   "x": 2820,
+   "y": 2748
   },
   "R17-Report.dc.html": {
-   "x": 3290,
-   "y": 2748,
-   "w": 390,
    "h": 844,
+   "page": "screens",
    "title": "Сообщить об ошибке",
-   "page": "screens"
+   "w": 390,
+   "x": 3290,
+   "y": 2748
   },
   "R18-Theory.dc.html": {
-   "x": 3760,
-   "y": 2748,
-   "w": 390,
    "h": 844,
-   "title": "Теория — слова-сигналы контраста",
+   "is_interactive": true,
    "page": "screens",
-   "is_interactive": true
+   "title": "Теория — слова-сигналы контраста",
+   "w": 390,
+   "x": 3760,
+   "y": 2748
+  },
+  "R2-BuilderTopics.dc.html": {
+   "h": 844,
+   "page": "screens",
+   "title": "Темы и сложность",
+   "w": 390,
+   "x": 470,
+   "y": 1524
+  },
+  "R3-QuestionTC.dc.html": {
+   "h": 844,
+   "page": "screens",
+   "title": "Text Completion — до проверки",
+   "w": 390,
+   "x": 940,
+   "y": 1524
+  },
+  "R4-QuestionTCWrong.dc.html": {
+   "h": 844,
+   "is_interactive": true,
+   "page": "screens",
+   "title": "Text Completion — неверно, разбор",
+   "w": 390,
+   "x": 1410,
+   "y": 1524
+  },
+  "R5-QuestionTC3.dc.html": {
+   "h": 844,
+   "page": "screens",
+   "title": "Text Completion — три пропуска",
+   "w": 390,
+   "x": 1880,
+   "y": 1524
+  },
+  "R6-QuestionSE.dc.html": {
+   "h": 844,
+   "page": "screens",
+   "title": "Sentence Equivalence — верно",
+   "w": 390,
+   "x": 2350,
+   "y": 1524
+  },
+  "R7-QuestionRC.dc.html": {
+   "h": 844,
+   "page": "screens",
+   "title": "Reading Comprehension",
+   "w": 390,
+   "x": 2820,
+   "y": 1524
+  },
+  "R8-QuestionRCSelect.dc.html": {
+   "h": 844,
+   "page": "screens",
+   "title": "Reading Comprehension — выбрать предложение",
+   "w": 390,
+   "x": 3290,
+   "y": 1524
+  },
+  "R9-QuestionQC.dc.html": {
+   "h": 844,
+   "page": "screens",
+   "title": "Quantitative Comparison",
+   "w": 390,
+   "x": 3760,
+   "y": 1524
+  },
+  "T1-Today.dc.html": {
+   "h": 844,
+   "is_interactive": true,
+   "page": "screens",
+   "title": "Сегодня — в процессе",
+   "w": 390,
+   "x": 0,
+   "y": 300
+  },
+  "T2-TodayFirst.dc.html": {
+   "h": 844,
+   "is_interactive": true,
+   "page": "screens",
+   "title": "Сегодня — первый запуск",
+   "w": 390,
+   "x": 470,
+   "y": 300
+  },
+  "T3-TodayDone.dc.html": {
+   "h": 844,
+   "is_interactive": true,
+   "page": "screens",
+   "title": "Сегодня — всё сделано",
+   "w": 390,
+   "x": 940,
+   "y": 300
+  },
+  "T4-SignIn.dc.html": {
+   "h": 844,
+   "page": "screens",
+   "title": "Вход",
+   "w": 390,
+   "x": 1410,
+   "y": 300
+  },
+  "T5-Loading.dc.html": {
+   "h": 844,
+   "page": "screens",
+   "title": "Сегодня — загрузка",
+   "w": 390,
+   "x": 1880,
+   "y": 300
+  },
+  "T6-Offline.dc.html": {
+   "h": 844,
+   "page": "screens",
+   "title": "Вопрос — нет связи",
+   "w": 390,
+   "x": 2350,
+   "y": 300
   },
   "W1-Words.dc.html": {
-   "x": 0,
-   "y": 3972,
-   "w": 390,
    "h": 844,
-   "title": "Слова",
+   "is_interactive": true,
    "page": "screens",
-   "is_interactive": true
+   "title": "Слова",
+   "w": 390,
+   "x": 0,
+   "y": 3972
   },
   "W2-Search.dc.html": {
-   "x": 470,
-   "y": 3972,
-   "w": 390,
    "h": 844,
-   "title": "Слова — поиск",
+   "is_interactive": true,
    "page": "screens",
-   "is_interactive": true
+   "title": "Слова — поиск",
+   "w": 390,
+   "x": 470,
+   "y": 3972
   },
   "W3-PickTranslation.dc.html": {
-   "x": 940,
-   "y": 3972,
-   "w": 390,
    "h": 844,
+   "page": "screens",
    "title": "Слова — выбрать перевод",
-   "page": "screens"
+   "w": 390,
+   "x": 940,
+   "y": 3972
   },
   "W4-PickDefinition.dc.html": {
-   "x": 1410,
-   "y": 3972,
-   "w": 390,
    "h": 844,
+   "page": "screens",
    "title": "Слова — выбрать определение",
-   "page": "screens"
+   "w": 390,
+   "x": 1410,
+   "y": 3972
   },
   "W5-FillSentence.dc.html": {
-   "x": 1880,
-   "y": 3972,
-   "w": 390,
    "h": 844,
+   "page": "screens",
    "title": "Слова — вставить в предложение",
-   "page": "screens"
+   "w": 390,
+   "x": 1880,
+   "y": 3972
   },
   "W6-Synonym.dc.html": {
-   "x": 2350,
-   "y": 3972,
-   "w": 390,
    "h": 844,
+   "page": "screens",
    "title": "Слова — синоним",
-   "page": "screens"
+   "w": 390,
+   "x": 2350,
+   "y": 3972
   },
   "W7-WordCard.dc.html": {
-   "x": 2820,
-   "y": 3972,
-   "w": 390,
    "h": 844,
+   "page": "screens",
    "title": "Слова — карточка слова",
-   "page": "screens"
+   "w": 390,
+   "x": 2820,
+   "y": 3972
   },
   "W8-WordsDone.dc.html": {
-   "x": 3290,
-   "y": 3972,
-   "w": 390,
    "h": 844,
+   "page": "screens",
    "title": "Слова — итог",
-   "page": "screens"
+   "w": 390,
+   "x": 3290,
+   "y": 3972
   },
   "X1-Exam.dc.html": {
-   "x": 0,
-   "y": 5196,
-   "w": 390,
    "h": 844,
-   "title": "Экзамен",
+   "is_interactive": true,
    "page": "screens",
-   "is_interactive": true
-  },
-  "X2-ExamStart.dc.html": {
-   "x": 470,
-   "y": 5196,
+   "title": "Экзамен",
    "w": 390,
-   "h": 844,
-   "title": "Practice test — start",
-   "page": "screens"
-  },
-  "X3-ExamEssay.dc.html": {
-   "x": 940,
-   "y": 5196,
-   "w": 390,
-   "h": 844,
-   "title": "Practice test — Essay",
-   "page": "screens"
-  },
-  "X4-ExamQuestion.dc.html": {
-   "x": 1410,
-   "y": 5196,
-   "w": 390,
-   "h": 844,
-   "title": "Practice test — Quant question",
-   "page": "screens"
-  },
-  "X5-ExamReview.dc.html": {
-   "x": 1880,
-   "y": 5196,
-   "w": 390,
-   "h": 844,
-   "title": "Practice test — Review",
-   "page": "screens"
-  },
-  "X6-ExamBetween.dc.html": {
-   "x": 2350,
-   "y": 5196,
-   "w": 390,
-   "h": 844,
-   "title": "Practice test — between sections",
-   "page": "screens"
-  },
-  "X7-ExamResults.dc.html": {
-   "x": 2820,
-   "y": 5196,
-   "w": 390,
-   "h": 844,
-   "title": "Пробник — результаты",
-   "page": "screens"
-  },
-  "X8-EssayTopics.dc.html": {
-   "x": 3290,
-   "y": 5196,
-   "w": 390,
-   "h": 844,
-   "title": "Эссе — тема",
-   "page": "screens"
-  },
-  "X9-EssayWrite.dc.html": {
-   "x": 3760,
-   "y": 5196,
-   "w": 390,
-   "h": 844,
-   "title": "Эссе — письмо",
-   "page": "screens"
+   "x": 0,
+   "y": 5196
   },
   "X10-EssayScore.dc.html": {
-   "x": 4230,
-   "y": 5196,
-   "w": 390,
    "h": 844,
-   "title": "Эссе — оценка",
-   "page": "screens"
-  },
-  "G1-Progress.dc.html": {
-   "x": 0,
-   "y": 6420,
-   "w": 390,
-   "h": 844,
-   "title": "Прогресс",
    "page": "screens",
+   "title": "Эссе — оценка",
+   "w": 390,
+   "x": 4230,
+   "y": 5196
+  },
+  "X2-ExamStart.dc.html": {
+   "h": 844,
+   "page": "screens",
+   "title": "Practice test — start",
+   "w": 390,
+   "x": 470,
+   "y": 5196
+  },
+  "X3-ExamEssay.dc.html": {
+   "h": 844,
+   "page": "screens",
+   "title": "Practice test — Essay",
+   "w": 390,
+   "x": 940,
+   "y": 5196
+  },
+  "X4-ExamQuestion.dc.html": {
+   "h": 844,
+   "page": "screens",
+   "title": "Practice test — Quant question",
+   "w": 390,
+   "x": 1410,
+   "y": 5196
+  },
+  "X5-ExamReview.dc.html": {
+   "h": 844,
+   "page": "screens",
+   "title": "Practice test — Review",
+   "w": 390,
+   "x": 1880,
+   "y": 5196
+  },
+  "X6-ExamBetween.dc.html": {
+   "h": 844,
+   "page": "screens",
+   "title": "Practice test — between sections",
+   "w": 390,
+   "x": 2350,
+   "y": 5196
+  },
+  "X7-ExamResults.dc.html": {
+   "h": 844,
+   "page": "screens",
+   "title": "Пробник — результаты",
+   "w": 390,
+   "x": 2820,
+   "y": 5196
+  },
+  "X8-EssayTopics.dc.html": {
+   "h": 844,
+   "page": "screens",
+   "title": "Эссе — тема",
+   "w": 390,
+   "x": 3290,
+   "y": 5196
+  },
+  "X9-EssayWrite.dc.html": {
+   "h": 844,
+   "page": "screens",
+   "title": "Эссе — письмо",
+   "w": 390,
+   "x": 3760,
+   "y": 5196
+  },
+  "web-T1-Today.dc.html": {
+   "x": 0,
+   "y": 300,
+   "w": 1440,
+   "h": 900,
+   "title": "Сегодня — компьютер",
+   "page": "desktop",
+   "expand": "fill",
    "is_interactive": true
   },
-  "G2-Settings.dc.html": {
-   "x": 470,
-   "y": 6420,
-   "w": 390,
-   "h": 844,
-   "title": "Настройки",
-   "page": "screens"
+  "web-T2-TodayFirst.dc.html": {
+   "x": 1520,
+   "y": 300,
+   "w": 1440,
+   "h": 900,
+   "title": "Сегодня — первый раз, компьютер",
+   "page": "desktop",
+   "expand": "fill",
+   "is_interactive": true
   },
-  "G3-Paywall.dc.html": {
-   "x": 940,
-   "y": 6420,
-   "w": 390,
-   "h": 844,
-   "title": "Оформить подписку",
-   "page": "screens"
+  "web-T3-TodayDone.dc.html": {
+   "x": 3040,
+   "y": 300,
+   "w": 1440,
+   "h": 900,
+   "title": "Сегодня — всё сделано, компьютер",
+   "page": "desktop",
+   "expand": "fill",
+   "is_interactive": true
   },
-  "G4-Subscription.dc.html": {
-   "x": 1410,
-   "y": 6420,
-   "w": 390,
-   "h": 844,
-   "title": "Подписка",
-   "page": "screens"
+  "web-T4-SignIn.dc.html": {
+   "x": 4560,
+   "y": 300,
+   "w": 1440,
+   "h": 900,
+   "title": "Вход — компьютер",
+   "page": "desktop",
+   "expand": "fill"
   },
-  "G5-AccessEnded.dc.html": {
-   "x": 1880,
-   "y": 6420,
-   "w": 390,
-   "h": 844,
-   "title": "Подписка закончилась",
-   "page": "screens"
+  "web-T5-Loading.dc.html": {
+   "x": 6080,
+   "y": 300,
+   "w": 1440,
+   "h": 900,
+   "title": "Сегодня — загрузка, компьютер",
+   "page": "desktop",
+   "expand": "fill"
   },
-  "G6-ProgressEmpty.dc.html": {
-   "x": 2350,
-   "y": 6420,
-   "w": 390,
-   "h": 844,
-   "title": "Прогресс — пусто",
-   "page": "screens",
+  "web-T6-Offline.dc.html": {
+   "x": 7600,
+   "y": 300,
+   "w": 1440,
+   "h": 900,
+   "title": "Нет связи — компьютер",
+   "page": "desktop",
+   "expand": "fill"
+  },
+  "web-R1-Builder.dc.html": {
+   "x": 0,
+   "y": 1600,
+   "w": 1440,
+   "h": 900,
+   "title": "Новая тренировка — компьютер",
+   "page": "desktop",
+   "expand": "fill"
+  },
+  "web-R2-BuilderTopics.dc.html": {
+   "x": 1520,
+   "y": 1600,
+   "w": 1440,
+   "h": 900,
+   "title": "Темы и сложность — компьютер",
+   "page": "desktop",
+   "expand": "fill"
+  },
+  "web-R3-QuestionTC.dc.html": {
+   "x": 3040,
+   "y": 1600,
+   "w": 1440,
+   "h": 900,
+   "title": "Text Completion — компьютер",
+   "page": "desktop",
+   "expand": "fill"
+  },
+  "web-R4-QuestionTCWrong.dc.html": {
+   "x": 4560,
+   "y": 1600,
+   "w": 1440,
+   "h": 900,
+   "title": "Text Completion, разбор — компьютер",
+   "page": "desktop",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "web-R5-QuestionTC3.dc.html": {
+   "x": 6080,
+   "y": 1600,
+   "w": 1440,
+   "h": 900,
+   "title": "Text Completion, три пропуска — компьютер",
+   "page": "desktop",
+   "expand": "fill"
+  },
+  "web-R6-QuestionSE.dc.html": {
+   "x": 7600,
+   "y": 1600,
+   "w": 1440,
+   "h": 900,
+   "title": "Sentence Equivalence — компьютер",
+   "page": "desktop",
+   "expand": "fill"
+  },
+  "web-R7-QuestionRC.dc.html": {
+   "x": 9120,
+   "y": 1600,
+   "w": 1440,
+   "h": 900,
+   "title": "Reading Comprehension — компьютер",
+   "page": "desktop",
+   "expand": "fill"
+  },
+  "web-R8-QuestionRCSelect.dc.html": {
+   "x": 10640,
+   "y": 1600,
+   "w": 1440,
+   "h": 900,
+   "title": "Reading Comprehension, выбор предложения — компьютер",
+   "page": "desktop",
+   "expand": "fill"
+  },
+  "web-R9-QuestionQC.dc.html": {
+   "x": 12160,
+   "y": 1600,
+   "w": 1440,
+   "h": 900,
+   "title": "Quantitative Comparison — компьютер",
+   "page": "desktop",
+   "expand": "fill"
+  },
+  "web-R10-QuestionMulti.dc.html": {
+   "x": 0,
+   "y": 2900,
+   "w": 1440,
+   "h": 900,
+   "title": "Вопрос Quant: несколько ответов — компьютер",
+   "page": "desktop",
+   "expand": "fill"
+  },
+  "web-R11-QuestionNumeric.dc.html": {
+   "x": 1520,
+   "y": 2900,
+   "w": 1440,
+   "h": 900,
+   "title": "Вопрос Quant: ввод числа — компьютер",
+   "page": "desktop",
+   "expand": "fill"
+  },
+  "web-R12-QuestionData.dc.html": {
+   "x": 3040,
+   "y": 2900,
+   "w": 1440,
+   "h": 900,
+   "title": "Вопрос Quant: график — компьютер",
+   "page": "desktop",
+   "expand": "fill"
+  },
+  "web-R13-Calculator.dc.html": {
+   "x": 4560,
+   "y": 2900,
+   "w": 1440,
+   "h": 900,
+   "title": "Калькулятор поверх вопроса — компьютер",
+   "page": "desktop",
+   "expand": "fill"
+  },
+  "web-R14-QuestionTimed.dc.html": {
+   "x": 6080,
+   "y": 2900,
+   "w": 1440,
+   "h": 900,
+   "title": "Режим «Проверка»: вопрос с таймером — компьютер",
+   "page": "desktop",
+   "expand": "fill"
+  },
+  "web-R15-Summary.dc.html": {
+   "x": 7600,
+   "y": 2900,
+   "w": 1440,
+   "h": 900,
+   "title": "Итог тренировки — компьютер",
+   "page": "desktop",
+   "expand": "fill"
+  },
+  "web-R16-Review.dc.html": {
+   "x": 9120,
+   "y": 2900,
+   "w": 1440,
+   "h": 984,
+   "title": "Разбор после «Проверки» — компьютер",
+   "page": "desktop",
+   "expand": "fill"
+  },
+  "web-R17-Report.dc.html": {
+   "x": 10640,
+   "y": 2900,
+   "w": 1440,
+   "h": 900,
+   "title": "Сообщить об ошибке — компьютер",
+   "page": "desktop",
+   "expand": "fill"
+  },
+  "web-R18-Theory.dc.html": {
+   "x": 12160,
+   "y": 2900,
+   "w": 1440,
+   "h": 1239,
+   "title": "Теория: слова-сигналы контраста — компьютер",
+   "page": "desktop",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "web-W1-Words.dc.html": {
+   "x": 0,
+   "y": 4539,
+   "w": 1440,
+   "h": 900,
+   "title": "Слова — компьютер",
+   "page": "desktop",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "web-W2-Search.dc.html": {
+   "x": 1520,
+   "y": 4539,
+   "w": 1440,
+   "h": 900,
+   "title": "Поиск слова — компьютер",
+   "page": "desktop",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "web-W3-PickTranslation.dc.html": {
+   "x": 3040,
+   "y": 4539,
+   "w": 1440,
+   "h": 900,
+   "title": "Слова — выбрать перевод — компьютер",
+   "page": "desktop",
+   "expand": "fill"
+  },
+  "web-W4-PickDefinition.dc.html": {
+   "x": 4560,
+   "y": 4539,
+   "w": 1440,
+   "h": 900,
+   "title": "Слова — выбрать определение — компьютер",
+   "page": "desktop",
+   "expand": "fill"
+  },
+  "web-W5-FillSentence.dc.html": {
+   "x": 6080,
+   "y": 4539,
+   "w": 1440,
+   "h": 900,
+   "title": "Слова — вставить в предложение — компьютер",
+   "page": "desktop",
+   "expand": "fill"
+  },
+  "web-W6-Synonym.dc.html": {
+   "x": 7600,
+   "y": 4539,
+   "w": 1440,
+   "h": 900,
+   "title": "Слова — подобрать синоним — компьютер",
+   "page": "desktop",
+   "expand": "fill"
+  },
+  "web-W7-WordCard.dc.html": {
+   "x": 9120,
+   "y": 4539,
+   "w": 1440,
+   "h": 900,
+   "title": "Слова — карточка слова — компьютер",
+   "page": "desktop",
+   "expand": "fill"
+  },
+  "web-W8-WordsDone.dc.html": {
+   "x": 10640,
+   "y": 4539,
+   "w": 1440,
+   "h": 900,
+   "title": "Слова — итог — компьютер",
+   "page": "desktop",
+   "expand": "fill"
+  },
+  "web-X1-Exam.dc.html": {
+   "x": 0,
+   "y": 5839,
+   "w": 1440,
+   "h": 900,
+   "title": "Экзамен — компьютер",
+   "page": "desktop",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "web-X2-ExamStart.dc.html": {
+   "x": 1520,
+   "y": 5839,
+   "w": 1440,
+   "h": 900,
+   "title": "Practice test — start · desktop",
+   "page": "desktop",
+   "expand": "fill"
+  },
+  "web-X3-ExamEssay.dc.html": {
+   "x": 3040,
+   "y": 5839,
+   "w": 1440,
+   "h": 900,
+   "title": "Practice test — Essay · desktop",
+   "page": "desktop",
+   "expand": "fill"
+  },
+  "web-X4-ExamQuestion.dc.html": {
+   "x": 4560,
+   "y": 5839,
+   "w": 1440,
+   "h": 900,
+   "title": "Practice test — Quant question · desktop",
+   "page": "desktop",
+   "expand": "fill"
+  },
+  "web-X5-ExamReview.dc.html": {
+   "x": 6080,
+   "y": 5839,
+   "w": 1440,
+   "h": 900,
+   "title": "Practice test — Review · desktop",
+   "page": "desktop",
+   "expand": "fill"
+  },
+  "web-X6-ExamBetween.dc.html": {
+   "x": 7600,
+   "y": 5839,
+   "w": 1440,
+   "h": 900,
+   "title": "Practice test — between sections · desktop",
+   "page": "desktop",
+   "expand": "fill"
+  },
+  "web-X7-ExamResults.dc.html": {
+   "x": 9120,
+   "y": 5839,
+   "w": 1440,
+   "h": 900,
+   "title": "Пробник — результаты · компьютер",
+   "page": "desktop",
+   "expand": "fill"
+  },
+  "web-X8-EssayTopics.dc.html": {
+   "x": 10640,
+   "y": 5839,
+   "w": 1440,
+   "h": 900,
+   "title": "Эссе — тема · компьютер",
+   "page": "desktop",
+   "expand": "fill"
+  },
+  "web-X9-EssayWrite.dc.html": {
+   "x": 12160,
+   "y": 5839,
+   "w": 1440,
+   "h": 900,
+   "title": "Эссе — письмо · компьютер",
+   "page": "desktop",
+   "expand": "fill"
+  },
+  "web-X10-EssayScore.dc.html": {
+   "x": 13680,
+   "y": 5839,
+   "w": 1440,
+   "h": 900,
+   "title": "Эссе — оценка · компьютер",
+   "page": "desktop",
+   "expand": "fill"
+  },
+  "web-G1-Progress.dc.html": {
+   "x": 0,
+   "y": 7139,
+   "w": 1440,
+   "h": 900,
+   "title": "Прогресс — компьютер",
+   "page": "desktop",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "web-G2-Settings.dc.html": {
+   "x": 1520,
+   "y": 7139,
+   "w": 1440,
+   "h": 900,
+   "title": "Настройки — компьютер",
+   "page": "desktop",
+   "expand": "fill"
+  },
+  "web-G3-Paywall.dc.html": {
+   "x": 3040,
+   "y": 7139,
+   "w": 1440,
+   "h": 900,
+   "title": "Оформить подписку — компьютер",
+   "page": "desktop",
+   "expand": "fill"
+  },
+  "web-G4-Subscription.dc.html": {
+   "x": 4560,
+   "y": 7139,
+   "w": 1440,
+   "h": 900,
+   "title": "Подписка — компьютер",
+   "page": "desktop",
+   "expand": "fill"
+  },
+  "web-G5-AccessEnded.dc.html": {
+   "x": 6080,
+   "y": 7139,
+   "w": 1440,
+   "h": 900,
+   "title": "Подписка закончилась — компьютер",
+   "page": "desktop",
+   "expand": "fill"
+  },
+  "web-G6-ProgressEmpty.dc.html": {
+   "x": 7600,
+   "y": 7139,
+   "w": 1440,
+   "h": 900,
+   "title": "Прогресс — пусто, компьютер",
+   "page": "desktop",
+   "expand": "fill",
    "is_interactive": true
   }
  },
@@ -558,116 +1000,178 @@
  },
  "designSystems": [],
  "launch": {
-  "view": "canvas",
-  "page": "screens"
+  "page": "screens",
+  "view": "canvas"
  },
  "notes": {
+  "howto4": {
+   "fill": "gray",
+   "page": "screens",
+   "text": "Шаги — все экраны телефона\n\nВ каждом ряду — раздел приложения. Тёмная тема — переключатель «dark» в Tweaks у любого экрана.\n\nНа экранах с вкладками работает Play: вкладки и главные кнопки переходят между экранами. «Вопрос — неверный ответ» переключает RU/EN и раскрывает «Почему».\n\nЗадания и слова — наши примеры, не настоящий контент. Цена и имя — плейсхолдеры.",
+   "w": 480,
+   "x": 2900,
+   "y": 300
+  },
   "sD": {
    "fill": "teal",
+   "page": "directions",
    "text": "Что изменилось\n\nTelegram 2026 — на «жидком стекле», поэтому стекло здесь родное: шапка — два стеклянных круга без полосы, RU/EN, переключатели и инструменты экзамена — стеклянные капсулы. Сверху — мягкий фиолетовый свет.\n\nСписки как в iOS 26: крупные скругления, больше воздуха, заголовки обычными буквами.\n\nУбрано: этапы памяти, 5/10/20 (вместо них поле числа), стрелки у ссылок, повтор «4 из 10» на главной.\n\nРиск: круги в шапке Telegram рисует при запуске из меню вложений; при запуске кнопкой меню шапка может остаться обычной полосой — проверить на телефоне.",
    "w": 440,
    "x": 2820,
-   "y": 2600,
-   "page": "directions"
+   "y": 2600
   },
   "sF": {
    "fill": "orange",
+   "page": "directions",
    "text": "Что изменилось\n\nСверху — мягкий свет цвета раздела; текущий шаг — одна стеклянная карточка, остальные шаги — строки на фоне. Линия ленты тоньше, узлы меньше, шрифт легче.\n\nСсылки под лентой — сразу под «На сегодня всё», без стрелок; «дыры» больше нет.\n\nУбрано: четыре шага памяти на слове, 5/10/20 (поле числа), повтор номера вопроса.\n\nРиск: на белом фоне стекло еле заметно — переключатели могут читаться как обычные серые кнопки.",
    "w": 440,
    "x": 2820,
-   "y": 3824,
-   "page": "directions"
+   "y": 3824
   },
   "sH": {
    "fill": "purple",
+   "page": "directions",
    "text": "Что изменилось\n\nКолода стала стеклянной: верхняя карточка — матовое стекло почти белое, края карточек под ней — прозрачнее, тяжёлых теней нет. Фон светлый, сверху — свет цвета раздела.\n\nВ вопросе после ответа на карточке остаются только верный и ваш вариант, остальные — одной тихой строкой.\n\nУбрано: «размер колоды» и стопки 5/10/20 — вместо них поле «Карточек», этапы памяти, стрелки у ссылок.\n\nРиск: стекло читается только по краям и свету сверху; на слабом свете колода похожа на обычные белые карточки.",
    "w": 440,
    "x": 2820,
-   "y": 5048,
-   "page": "directions"
+   "y": 5048
   },
   "tD": {
    "kind": "title1",
    "maxW": 2740,
+   "page": "directions",
    "text": "Г · Telegram 3.0 — Telegram 2026: стекло из коробки",
    "w": 240,
    "x": 0,
-   "y": 2350,
-   "page": "directions"
+   "y": 2350
   },
   "tF": {
    "kind": "title1",
    "maxW": 2740,
+   "page": "directions",
    "text": "Е · Шаги 3.0 — лёгкая лента на сегодня",
    "w": 240,
    "x": 0,
-   "y": 3574,
-   "page": "directions"
+   "y": 3574
   },
   "tH": {
    "kind": "title1",
    "maxW": 2740,
+   "page": "directions",
    "text": "З · Колода 2.0 — стеклянная колода",
    "w": 240,
    "x": 0,
-   "y": 4798,
-   "page": "directions"
+   "y": 4798
+  },
+  "t_G": {
+   "kind": "title1",
+   "maxW": 4100,
+   "page": "screens",
+   "text": "Прогресс, настройки, подписка",
+   "w": 240,
+   "x": 0,
+   "y": 6170
+  },
+  "t_R1": {
+   "kind": "title1",
+   "maxW": 4100,
+   "page": "screens",
+   "text": "Тренировка — конструктор и вопросы Verbal",
+   "w": 240,
+   "x": 0,
+   "y": 1274
+  },
+  "t_R2": {
+   "kind": "title1",
+   "maxW": 4100,
+   "page": "screens",
+   "text": "Тренировка — Quant, проверка, итог, теория",
+   "w": 240,
+   "x": 0,
+   "y": 2498
   },
   "t_T": {
+   "kind": "title1",
+   "maxW": 4100,
+   "page": "screens",
+   "text": "Общее — сегодня, вход, загрузка, нет связи",
+   "w": 240,
+   "x": 0,
+   "y": 50
+  },
+  "t_W": {
+   "kind": "title1",
+   "maxW": 4100,
+   "page": "screens",
+   "text": "Слова",
+   "w": 240,
+   "x": 0,
+   "y": 3722
+  },
+  "t_X": {
+   "kind": "title1",
+   "maxW": 4100,
+   "page": "screens",
+   "text": "Экзамен и эссе",
+   "w": 240,
+   "x": 0,
+   "y": 4946
+  },
+  "d_T": {
    "x": 0,
    "y": 50,
    "kind": "title1",
-   "maxW": 4100,
-   "text": "Общее — сегодня, вход, загрузка, нет связи",
-   "page": "screens"
+   "maxW": 13000,
+   "text": "Компьютер — общее",
+   "page": "desktop"
   },
-  "t_R1": {
+  "d_R1": {
    "x": 0,
-   "y": 1274,
+   "y": 1350,
    "kind": "title1",
-   "maxW": 4100,
-   "text": "Тренировка — конструктор и вопросы Verbal",
-   "page": "screens"
+   "maxW": 13000,
+   "text": "Компьютер — тренировка: конструктор и Verbal",
+   "page": "desktop"
   },
-  "t_R2": {
+  "d_R2": {
    "x": 0,
-   "y": 2498,
+   "y": 2650,
    "kind": "title1",
-   "maxW": 4100,
-   "text": "Тренировка — Quant, проверка, итог, теория",
-   "page": "screens"
+   "maxW": 13000,
+   "text": "Компьютер — тренировка: Quant, проверка, итог, теория",
+   "page": "desktop"
   },
-  "t_W": {
+  "d_W": {
    "x": 0,
-   "y": 3722,
+   "y": 4289,
    "kind": "title1",
-   "maxW": 4100,
-   "text": "Слова",
-   "page": "screens"
+   "maxW": 13000,
+   "text": "Компьютер — слова",
+   "page": "desktop"
   },
-  "t_X": {
+  "d_X": {
    "x": 0,
-   "y": 4946,
+   "y": 5589,
    "kind": "title1",
-   "maxW": 4100,
-   "text": "Экзамен и эссе",
-   "page": "screens"
+   "maxW": 13000,
+   "text": "Компьютер — экзамен и эссе",
+   "page": "desktop"
   },
-  "t_G": {
+  "d_G": {
    "x": 0,
-   "y": 6170,
+   "y": 6889,
    "kind": "title1",
-   "maxW": 4100,
-   "text": "Прогресс, настройки, подписка",
-   "page": "screens"
+   "maxW": 13000,
+   "text": "Компьютер — прогресс, настройки, подписка",
+   "page": "desktop"
   },
-  "howto4": {
-   "x": 2900,
+  "howto5": {
+   "x": 9200,
    "y": 300,
-   "w": 480,
+   "w": 520,
    "fill": "gray",
-   "page": "screens",
-   "text": "Шаги — все экраны телефона\n\nВ каждом ряду — раздел приложения. Тёмная тема — переключатель «dark» в Tweaks у любого экрана.\n\nНа экранах с вкладками работает Play: вкладки и главные кнопки переходят между экранами. «Вопрос — неверный ответ» переключает RU/EN и раскрывает «Почему».\n\nЗадания и слова — наши примеры, не настоящий контент. Цена и имя — плейсхолдеры."
+   "page": "desktop",
+   "text": "Шаги — компьютер (сайт)\n\nТе же 48 экранов, что на телефоне, в раскладке для широкого окна. Разделы — со стеклянной боковой панелью; тренировка, слова и экзамен — в режиме фокуса, без панели.\n\nКаждая рамка — страница: в полноэкранном просмотре подстраивается под ширину окна, на узком окне колонки встают друг под друга. Тёмная тема — «dark» в Tweaks."
   }
  },
  "order": [
@@ -737,12 +1241,64 @@
   "G3-Paywall.dc.html",
   "G4-Subscription.dc.html",
   "G5-AccessEnded.dc.html",
-  "G6-ProgressEmpty.dc.html"
+  "G6-ProgressEmpty.dc.html",
+  "web-T1-Today.dc.html",
+  "web-T2-TodayFirst.dc.html",
+  "web-T3-TodayDone.dc.html",
+  "web-T4-SignIn.dc.html",
+  "web-T5-Loading.dc.html",
+  "web-T6-Offline.dc.html",
+  "web-R1-Builder.dc.html",
+  "web-R2-BuilderTopics.dc.html",
+  "web-R3-QuestionTC.dc.html",
+  "web-R4-QuestionTCWrong.dc.html",
+  "web-R5-QuestionTC3.dc.html",
+  "web-R6-QuestionSE.dc.html",
+  "web-R7-QuestionRC.dc.html",
+  "web-R8-QuestionRCSelect.dc.html",
+  "web-R9-QuestionQC.dc.html",
+  "web-R10-QuestionMulti.dc.html",
+  "web-R11-QuestionNumeric.dc.html",
+  "web-R12-QuestionData.dc.html",
+  "web-R13-Calculator.dc.html",
+  "web-R14-QuestionTimed.dc.html",
+  "web-R15-Summary.dc.html",
+  "web-R16-Review.dc.html",
+  "web-R17-Report.dc.html",
+  "web-R18-Theory.dc.html",
+  "web-W1-Words.dc.html",
+  "web-W2-Search.dc.html",
+  "web-W3-PickTranslation.dc.html",
+  "web-W4-PickDefinition.dc.html",
+  "web-W5-FillSentence.dc.html",
+  "web-W6-Synonym.dc.html",
+  "web-W7-WordCard.dc.html",
+  "web-W8-WordsDone.dc.html",
+  "web-X1-Exam.dc.html",
+  "web-X2-ExamStart.dc.html",
+  "web-X3-ExamEssay.dc.html",
+  "web-X4-ExamQuestion.dc.html",
+  "web-X5-ExamReview.dc.html",
+  "web-X6-ExamBetween.dc.html",
+  "web-X7-ExamResults.dc.html",
+  "web-X8-EssayTopics.dc.html",
+  "web-X9-EssayWrite.dc.html",
+  "web-X10-EssayScore.dc.html",
+  "web-G1-Progress.dc.html",
+  "web-G2-Settings.dc.html",
+  "web-G3-Paywall.dc.html",
+  "web-G4-Subscription.dc.html",
+  "web-G5-AccessEnded.dc.html",
+  "web-G6-ProgressEmpty.dc.html"
  ],
  "pages": [
   {
    "id": "screens",
    "name": "Шаги — все экраны"
+  },
+  {
+   "id": "desktop",
+   "name": "Шаги — компьютер"
   },
   {
    "id": "directions",

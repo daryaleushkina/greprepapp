@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Теория: слова-сигналы контраста — компьютер</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+/* Токены «Шагов»: светлая и тёмная тема. В компонентах — только var(--…) */
+.s{
+--bg:#F5F6F9;--surface:#FFFFFF;--text:#1B1E28;--text-2:#5A6070;--line:rgba(27,30,40,.12);--fill:rgba(27,30,40,.06);
+--accent:#1B1E28;--on-accent:#FFFFFF;--wrong:#C2410C;--wrong-tint:rgba(194,65,12,.10);
+--verbal:#5B4BC4;--verbal-tint:rgba(91,75,196,.12);--quant:#11735F;--quant-tint:rgba(17,115,95,.12);
+--words:#B4446C;--words-tint:rgba(180,68,108,.12);--essay:#9A5B00;--essay-tint:rgba(154,91,0,.12);--exam:#1B1E28;
+--glow:rgba(91,75,196,.22);--glow-2:rgba(91,75,196,.07);
+--glass:linear-gradient(180deg,rgba(255,255,255,.80),rgba(255,255,255,.54));--glass-strong:linear-gradient(180deg,rgba(255,255,255,.90),rgba(255,255,255,.70));--glass-edge:rgba(0,0,0,.06);--glass-rim:rgba(255,255,255,.6);
+--glass-shadow:0 10px 30px -10px rgba(30,30,60,.22);--tab-sel:rgba(27,30,40,.07);--focus:#5B4BC4;
+}
+.s.dark{
+--bg:#0E0F14;--surface:#1A1C23;--text:#F2F3F7;--text-2:#A3A8B5;--line:rgba(255,255,255,.12);--fill:rgba(255,255,255,.08);
+--accent:#F2F3F7;--on-accent:#111318;--wrong:#FF8A4C;--wrong-tint:rgba(255,138,76,.14);
+--verbal:#A898FF;--verbal-tint:rgba(168,152,255,.16);--quant:#4FC4A7;--quant-tint:rgba(79,196,167,.16);
+--words:#F28AB0;--words-tint:rgba(242,138,176,.16);--essay:#F0B45A;--essay-tint:rgba(240,180,90,.16);--exam:#F2F3F7;
+--glow:rgba(130,110,255,.30);--glow-2:rgba(130,110,255,.08);
+--glass:linear-gradient(180deg,rgba(64,66,80,.62),rgba(32,34,44,.50));--glass-strong:linear-gradient(180deg,rgba(48,50,62,.82),rgba(30,32,42,.72));--glass-edge:rgba(0,0,0,.35);--glass-rim:rgba(255,255,255,.12);
+--glass-shadow:0 10px 30px -10px rgba(0,0,0,.6);--tab-sel:rgba(255,255,255,.10);--focus:#A898FF;
+}
+a{color:var(--text)}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+button,a{-webkit-tap-highlight-color:transparent;transition:transform 160ms cubic-bezier(0.23,1,0.32,1)}
+button:active,a:active{transform:scale(0.98)}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+::selection{background:var(--verbal-tint)}
+@media (prefers-reduced-motion: reduce){button,a{transition:none}button:active,a:active{transform:none}}
+@media (prefers-reduced-transparency: reduce){.glass{background:var(--surface)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}}
+.kbd{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;box-sizing:border-box;border-radius:6px;border:1px solid var(--line);background:var(--surface);font-size:12px;line-height:1;font-weight:500;color:var(--text-2);font-variant-numeric:tabular-nums}
+@media (hover:hover) and (pointer:fine){.nav-item:hover{background:var(--fill)}.row-link:hover{background:var(--fill)}}
+</style>
+</helmet>
+<!-- Теория темы: суть, как решать, ловушки, два примера; RU/EN переключает объяснение -->
+<div class="s {{themeClass}}" style="min-height: 100vh; box-sizing: border-box; position: relative; font-family: 'Onest', system-ui, sans-serif; color: var(--text); background: radial-gradient(70% 55% at 50% -15%, var(--glow) 0%, var(--glow-2) 50%, transparent 78%), var(--bg); display: flex; flex-direction: column">
+  <!-- Режим фокуса: тонкая полоса вместо боковой панели -->
+  <header style="flex: none; height: 64px; box-sizing: border-box; padding: 0 clamp(12px, 3vw, 32px); display: flex; align-items: center; justify-content: space-between; gap: 12px">
+    <a href="web-R15-Summary.dc.html" class="glass" aria-label="Назад" style="flex: none; width: 44px; height: 44px; box-sizing: border-box; border-radius: 50%; background: var(--glass); -webkit-backdrop-filter: blur(16px) saturate(180%); backdrop-filter: blur(16px) saturate(180%); border: 1px solid var(--glass-edge); box-shadow: inset 0 1px 0 var(--glass-rim), var(--glass-shadow); color: var(--text); text-decoration: none; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5.5L8 12l6.5 6.5"></path></svg></a>
+    <div role="group" aria-label="Язык объяснения" class="glass" style="height: 40px; box-sizing: border-box; padding: 3px; border-radius: 20px; background: var(--glass); -webkit-backdrop-filter: blur(16px) saturate(180%); backdrop-filter: blur(16px) saturate(180%); border: 1px solid var(--glass-edge); box-shadow: inset 0 1px 0 var(--glass-rim), var(--glass-shadow); display: flex; gap: 2px"><button type="button" aria-pressed="{{ruPressed}}" onClick="{{setRu}}" style="height: 34px; min-width: 52px; padding: 0 12px; border-radius: 17px; border: 0; font-size: 14px; line-height: 18px; {{ruStyle}}">RU</button><button type="button" aria-pressed="{{enPressed}}" onClick="{{setEn}}" style="height: 34px; min-width: 52px; padding: 0 12px; border-radius: 17px; border: 0; font-size: 14px; line-height: 18px; {{enStyle}}">EN</button></div>
+    <span aria-hidden="true" style="flex: none; width: 44px"></span>
+  </header>
+  <main style="flex: 1; box-sizing: border-box; padding: 24px clamp(16px, 4vw, 48px) 56px; display: flex; justify-content: center">
+    <div style="width: 100%; max-width: 680px; display: flex; flex-direction: column">
+      <p style="margin: 0; font-size: 15px; line-height: 20px; color: var(--text-2)"><span lang="en">Verbal · Text Completion</span> · <sc-if value="{{isRu}}" hint-placeholder-val="{{ true }}"><span>3 мин</span></sc-if><sc-if value="{{isEn}}" hint-placeholder-val="{{ false }}"><span lang="en">3 min</span></sc-if></p>
+      <h1 style="margin: 8px 0 0; font-size: 36px; line-height: 42px; font-weight: 600; letter-spacing: -0.025em"><sc-if value="{{isRu}}" hint-placeholder-val="{{ true }}"><span>Слова-сигналы контраста</span></sc-if><sc-if value="{{isEn}}" hint-placeholder-val="{{ false }}"><span lang="en">Contrast signal words</span></sc-if></h1>
+      <p style="margin: 16px 0 0; font-size: 18px; line-height: 28px"><sc-if value="{{isRu}}" hint-placeholder-val="{{ true }}"><span>Слова <i lang="en">although, but, yet, despite, however, while</i> показывают: вторая часть фразы спорит с первой. Значит, пропуск по смыслу противоположен тому, что сказано рядом.</span></sc-if><sc-if value="{{isEn}}" hint-placeholder-val="{{ false }}"><span lang="en">Words like <i>although, but, yet, despite, however</i> and <i>while</i> tell you the second part of the sentence pushes against the first. So the blank means roughly the opposite of what is said next to it.</span></sc-if></p>
+      <h2 style="margin: 36px 0 14px; font-size: 21px; line-height: 28px; font-weight: 600"><sc-if value="{{isRu}}" hint-placeholder-val="{{ true }}"><span>Как решать</span></sc-if><sc-if value="{{isEn}}" hint-placeholder-val="{{ false }}"><span lang="en">How to solve</span></sc-if></h2>
+      <ol style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px">
+        <li style="position: relative; display: grid; grid-template-columns: 30px minmax(0, 1fr); column-gap: 14px; align-items: start">
+          <span aria-hidden="true" style="position: absolute; left: 14.25px; top: 32px; bottom: -14px; width: 1.5px; background: var(--line)"></span>
+          <span aria-hidden="true" style="position: relative; width: 30px; height: 30px; box-sizing: border-box; border-radius: 50%; border: 1.5px solid var(--verbal); color: var(--verbal); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; background: var(--surface)">1</span>
+          <p style="margin: 3px 0 0; font-size: 17px; line-height: 26px"><sc-if value="{{isRu}}" hint-placeholder-val="{{ true }}"><span>Найдите слово-сигнал.</span></sc-if><sc-if value="{{isEn}}" hint-placeholder-val="{{ false }}"><span lang="en">Find the signal word.</span></sc-if></p>
+        </li>
+        <li style="position: relative; display: grid; grid-template-columns: 30px minmax(0, 1fr); column-gap: 14px; align-items: start">
+          <span aria-hidden="true" style="position: absolute; left: 14.25px; top: 32px; bottom: -14px; width: 1.5px; background: var(--line)"></span>
+          <span aria-hidden="true" style="position: relative; width: 30px; height: 30px; box-sizing: border-box; border-radius: 50%; border: 1.5px solid var(--verbal); color: var(--verbal); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; background: var(--surface)">2</span>
+          <p style="margin: 3px 0 0; font-size: 17px; line-height: 26px"><sc-if value="{{isRu}}" hint-placeholder-val="{{ true }}"><span>Скажите своими словами, что утверждает другая половина фразы.</span></sc-if><sc-if value="{{isEn}}" hint-placeholder-val="{{ false }}"><span lang="en">Say in your own words what the other half of the sentence claims.</span></sc-if></p>
+        </li>
+        <li style="position: relative; display: grid; grid-template-columns: 30px minmax(0, 1fr); column-gap: 14px; align-items: start">
+          
+          <span aria-hidden="true" style="position: relative; width: 30px; height: 30px; box-sizing: border-box; border-radius: 50%; border: 1.5px solid var(--verbal); color: var(--verbal); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; background: var(--surface)">3</span>
+          <p style="margin: 3px 0 0; font-size: 17px; line-height: 26px"><sc-if value="{{isRu}}" hint-placeholder-val="{{ true }}"><span>Подставьте противоположное по смыслу — и только потом смотрите варианты.</span></sc-if><sc-if value="{{isEn}}" hint-placeholder-val="{{ false }}"><span lang="en">Predict the opposite meaning — only then look at the options.</span></sc-if></p>
+        </li>
+      </ol>
+      <h2 style="margin: 36px 0 14px; font-size: 21px; line-height: 28px; font-weight: 600"><sc-if value="{{isRu}}" hint-placeholder-val="{{ true }}"><span>Ловушки</span></sc-if><sc-if value="{{isEn}}" hint-placeholder-val="{{ false }}"><span lang="en">Traps</span></sc-if></h2>
+      <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px">
+        <li style="display: flex; align-items: flex-start; gap: 12px"><span style="flex: none; margin-top: 4px; color: var(--wrong); display: flex"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4l9 16H3z"></path><path d="M12 10v4"></path><path d="M12 17h.01"></path></svg></span><p style="margin: 0; font-size: 17px; line-height: 26px"><sc-if value="{{isRu}}" hint-placeholder-val="{{ true }}"><span>Слово, похожее на соседнее (рядом <i lang="en">thoroughness</i>, в вариантах <i lang="en">exhaustive</i>), — это повтор, а не контраст.</span></sc-if><sc-if value="{{isEn}}" hint-placeholder-val="{{ false }}"><span lang="en">A word that echoes its neighbour (<i>thoroughness</i> in the sentence, <i>exhaustive</i> in the options) is a repeat, not a contrast.</span></sc-if></p></li>
+        <li style="display: flex; align-items: flex-start; gap: 12px"><span style="flex: none; margin-top: 4px; color: var(--wrong); display: flex"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4l9 16H3z"></path><path d="M12 10v4"></path><path d="M12 17h.01"></path></svg></span><p style="margin: 0; font-size: 17px; line-height: 26px"><sc-if value="{{isRu}}" hint-placeholder-val="{{ true }}"><span>Сигнал может стоять в начале фразы, далеко от пропуска, — ищите его во всём предложении.</span></sc-if><sc-if value="{{isEn}}" hint-placeholder-val="{{ false }}"><span lang="en">The signal may sit at the start of the sentence, far from the blank — scan the whole sentence.</span></sc-if></p></li>
+      </ul>
+      <h2 style="margin: 36px 0 0; font-size: 21px; line-height: 28px; font-weight: 600"><sc-if value="{{isRu}}" hint-placeholder-val="{{ true }}"><span>Примеры</span></sc-if><sc-if value="{{isEn}}" hint-placeholder-val="{{ false }}"><span lang="en">Examples</span></sc-if></h2>
+      <article style="margin-top: 14px; border-radius: 28px; padding: 24px 28px 28px; background: var(--surface); border: 1px solid var(--line)">
+        <p lang="en" style="margin: 0; font-size: 17px; line-height: 26px">Although the critic admired the film’s ambition, she found its plot <span role="img" aria-label="пропуск" style="display: inline-block; width: 64px; border-bottom: 1.5px solid var(--text)"></span>.</p>
+        <p style="margin: 12px 0 0; font-size: 16px; line-height: 24px; font-weight: 600"><sc-if value="{{isRu}}" hint-placeholder-val="{{ true }}"><span><span lang="en">convoluted</span> — запутанный</span></sc-if><sc-if value="{{isEn}}" hint-placeholder-val="{{ false }}"><span lang="en">convoluted — complicated and hard to follow</span></sc-if></p>
+        <p style="margin: 6px 0 0; font-size: 16px; line-height: 24px; color: var(--text-2)"><sc-if value="{{isRu}}" hint-placeholder-val="{{ true }}"><span>Восхищение замыслом — плюс, а <i lang="en">although</i> требует минуса: сюжет запутанный.</span></sc-if><sc-if value="{{isEn}}" hint-placeholder-val="{{ false }}"><span lang="en">Admiration is positive, and <i>although</i> calls for a negative: the plot is convoluted.</span></sc-if></p>
+      </article>
+      <article style="margin-top: 14px; border-radius: 28px; padding: 24px 28px 28px; background: var(--surface); border: 1px solid var(--line)">
+        <p lang="en" style="margin: 0; font-size: 17px; line-height: 26px">The senator, usually <span role="img" aria-label="пропуск" style="display: inline-block; width: 64px; border-bottom: 1.5px solid var(--text)"></span>, surprised everyone with a long, passionate speech.</p>
+        <p style="margin: 12px 0 0; font-size: 16px; line-height: 24px; font-weight: 600"><sc-if value="{{isRu}}" hint-placeholder-val="{{ true }}"><span><span lang="en">reticent</span> — сдержанный, немногословный</span></sc-if><sc-if value="{{isEn}}" hint-placeholder-val="{{ false }}"><span lang="en">reticent — not revealing thoughts readily</span></sc-if></p>
+        <p style="margin: 6px 0 0; font-size: 16px; line-height: 24px; color: var(--text-2)"><sc-if value="{{isRu}}" hint-placeholder-val="{{ true }}"><span>Сигналы здесь — <i lang="en">usually</i> и <i lang="en">surprised</i>: обычно он молчалив, поэтому длинная речь удивила.</span></sc-if><sc-if value="{{isEn}}" hint-placeholder-val="{{ false }}"><span lang="en">The signals are <i>usually</i> and <i>surprised</i>: he is normally quiet, so a long speech surprised everyone.</span></sc-if></p>
+      </article>
+      <!-- Действия — справа внизу; подсказки клавиш — одной тихой строкой -->
+      <div style="margin-top: 28px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 16px">
+        <p style="margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; line-height: 18px; color: var(--text-2)"><span class="kbd">Enter</span> начать тренировку</p>
+        <div style="display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px"><button type="button" style="height: 48px; box-sizing: border-box; padding: 0 22px; border-radius: 24px; font-size: 16px; line-height: 20px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; font-variant-numeric: tabular-nums; text-decoration: none; border: 0; background: var(--accent); color: var(--on-accent)">Тренировка по теме · 8 вопросов</button></div>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":1560}}'>
+class Component extends DCLogic {
+renderVals() {
+const dark = this.props.dark ?? false;
+const s = this.state || {};
+const lang = s.lang || 'ru';
+const on = 'background: var(--surface); box-shadow: 0 1px 3px var(--line); font-weight: 600; color: var(--text);';
+const off = 'background: transparent; box-shadow: none; font-weight: 500; color: var(--text-2);';
+return {
+themeClass: dark ? 'dark' : '',
+isRu: lang === 'ru', isEn: lang === 'en',
+ruPressed: lang === 'ru' ? 'true' : 'false', enPressed: lang === 'en' ? 'true' : 'false',
+ruStyle: lang === 'ru' ? on : off, enStyle: lang === 'en' ? on : off,
+setRu: () => this.setState({ lang: 'ru' }), setEn: () => this.setState({ lang: 'en' })
+};
+}
+}
+</script>
+</body>
+</html>
