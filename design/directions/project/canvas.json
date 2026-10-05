@@ -833,7 +833,7 @@
    "h": 900,
    "is_interactive": true,
    "page": "desktop",
-   "title": "Слова — вариант A, «Недавние» строкой",
+   "title": "Слова — компьютер",
    "w": 1440,
    "x": 0,
    "y": 4539
@@ -992,26 +992,6 @@
    "w": 1440,
    "x": 12160,
    "y": 5839
-  },
-  "web-W1b-Words.dc.html": {
-   "x": 12360,
-   "y": 4539,
-   "w": 1440,
-   "h": 900,
-   "title": "Вариант B — «Недавние» в две колонки",
-   "page": "desktop",
-   "expand": "fill",
-   "is_interactive": true
-  },
-  "web-W1c-Words.dc.html": {
-   "x": 13880,
-   "y": 4539,
-   "w": 1440,
-   "h": 900,
-   "title": "Вариант C — «Недавние» карточками",
-   "page": "desktop",
-   "expand": "fill",
-   "is_interactive": true
   }
  },
  "createdOnFiles": {
@@ -1198,15 +1178,6 @@
    "w": 240,
    "x": 0,
    "y": 4946
-  },
-  "recentVariants": {
-   "x": 12360,
-   "y": 4359,
-   "w": 1440,
-   "fill": "gray",
-   "page": "desktop",
-   "maxH": 150,
-   "text": "Варианты блока «Недавние» (вкладка «Слова»): A — слово и перевод рядом в одну строку (основная рамка «Слова» в ряду слева), B — две колонки, слово над переводом, C — небольшие карточки. Выберите один — остальные уберу."
   }
  },
  "order": [
@@ -1324,9 +1295,7 @@
   "web-G3-Paywall.dc.html",
   "web-G4-Subscription.dc.html",
   "web-G5-AccessEnded.dc.html",
-  "web-G6-ProgressEmpty.dc.html",
-  "web-W1b-Words.dc.html",
-  "web-W1c-Words.dc.html"
+  "web-G6-ProgressEmpty.dc.html"
  ],
  "pages": [
   {
