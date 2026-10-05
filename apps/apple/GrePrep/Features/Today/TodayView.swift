@@ -6,9 +6,16 @@ struct TodayView: View {
     @Environment(\.scenePhase) private var scenePhase
     let model: TodayModel
     /// Снимки экранов выключают запрос при появлении: иначе кадр ловит его на полпути.
-    var refreshesOnAppear = true
+    let refreshesOnAppear: Bool
     @State private var path: [TodayPlan.Step] = []
     @State private var blockedStepID: TodayPlan.Step.ID?
+
+    /// blockedStepID — шаг, у которого уже показано «нужна сеть» (для снимков экрана).
+    init(model: TodayModel, refreshesOnAppear: Bool = true, blockedStepID: TodayPlan.Step.ID? = nil) {
+        self.model = model
+        self.refreshesOnAppear = refreshesOnAppear
+        _blockedStepID = State(initialValue: blockedStepID)
+    }
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -22,15 +29,12 @@ struct TodayView: View {
             if refreshesOnAppear { await model.refresh() }
         }
         .onChange(of: app.network.isOnline) { _, online in
-            guard online else { return }
-            blockedStepID = nil
-            if model.needsRefresh {
-                Task { await model.refresh() }
-            }
+            if online { blockedStepID = nil }
+            Task { await model.networkChanged(online: online) }
         }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
-                Task { await model.refresh() }
+                Task { await model.refreshIfStale() }
             }
         }
     }

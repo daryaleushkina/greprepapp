@@ -43,7 +43,7 @@ struct ScreenSnapshotTests {
         assertScreens(view, named: "signin")
     }
 
-    @Test("вход закончился")
+    @Test("вход закончился", .enabled { await ScreenSnapshotTests.isPhone() })
     func signInExpired() {
         let app = AppModel(
             config: server.config(), tokens: MemoryTokenStore(), cache: temporaryCache(), network: NetworkMonitor(),
@@ -57,10 +57,13 @@ struct ScreenSnapshotTests {
         let app = try signedInApp(cached: nil, today: .json(200, Fixture.todayJSON))
         let model = try #require(app.today)
         await model.refresh()
-        assertScreens(MainView(today: model, refreshesOnAppear: false).environment(app), named: "today")
+        assertScreens(
+            MainView(today: model, refreshesOnAppear: false).environment(app), named: "today",
+            // Панель вкладок — системное стекло, каждый кадр чуть другой; ленту строго проверяют снимки TodayView.
+            precision: 0.995)
     }
 
-    @Test("«Сегодня» — всё сделано")
+    @Test("«Сегодня» — всё сделано", .enabled { await ScreenSnapshotTests.isPhone() })
     func todayComplete() async throws {
         let json = String(data: try JSONEncoder().encode(Self.completeDTO), encoding: .utf8)!
         let app = try signedInApp(cached: nil, today: .json(200, json))
@@ -71,7 +74,7 @@ struct ScreenSnapshotTests {
             devices: [.phone])
     }
 
-    @Test("«Сегодня» — нет сети, прошлый план")
+    @Test("«Сегодня» — нет сети, прошлый план", .enabled { await ScreenSnapshotTests.isPhone() })
     func todayOfflineStale() async throws {
         let app = try signedInApp(cached: Fixture.todayDTO, today: .failure(.notConnectedToInternet))
         let model = try #require(app.today)
@@ -82,7 +85,7 @@ struct ScreenSnapshotTests {
             devices: [.phone])
     }
 
-    @Test("«Сегодня» — нет сети и плана нет")
+    @Test("«Сегодня» — нет сети и плана нет", .enabled { await ScreenSnapshotTests.isPhone() })
     func todayOfflineEmpty() async throws {
         let app = try signedInApp(cached: nil, today: .failure(.notConnectedToInternet))
         let model = try #require(app.today)
@@ -92,19 +95,20 @@ struct ScreenSnapshotTests {
             devices: [.phone])
     }
 
-    @Test("«Сегодня» — загрузка")
+    @Test("«Сегодня» — загрузка", .enabled { await ScreenSnapshotTests.isPhone() })
     func todayLoading() throws {
         let app = try signedInApp(cached: nil, today: .json(200, Fixture.todayJSON))
         let model = try #require(app.today)
         assertScreens(
             TodayView(model: model, refreshesOnAppear: false).environment(app), named: "today-loading",
-            devices: [.phone])
+            devices: [.phone],
+            // Крутилка крутится: кадр каждый раз чуть другой — допуск шире, проверяется раскладка.
+            precision: 0.995)
     }
 
     #if os(iOS)
-        @Test("«Сегодня» — крупный текст: ничего не обрезано")
+        @Test("«Сегодня» — крупный текст: ничего не обрезано", .enabled { await ScreenSnapshotTests.isPhone() })
         func todayLargeText() async throws {
-            guard UIDevice.current.userInterfaceIdiom == .phone else { return }
             let app = try signedInApp(cached: nil, today: .json(200, Fixture.todayJSON))
             let model = try #require(app.today)
             await model.refresh()
@@ -122,11 +126,116 @@ struct ScreenSnapshotTests {
         }
     #endif
 
+    @Test("«Сегодня» — не получилось обновить, прошлый план", .enabled { await ScreenSnapshotTests.isPhone() })
+    func todayFailedStale() async throws {
+        let app = try signedInApp(cached: Fixture.todayDTO, today: .json(500, Fixture.error("internal")))
+        let model = try #require(app.today)
+        await model.refresh()
+        assertScreens(
+            TodayView(model: model, refreshesOnAppear: false).environment(app), named: "today-failed-stale",
+            devices: [.phone], themes: [.light])
+    }
+
+    @Test("«Сегодня» — не получилось загрузить", .enabled { await ScreenSnapshotTests.isPhone() })
+    func todayFailedEmpty() async throws {
+        let app = try signedInApp(cached: nil, today: .json(500, Fixture.error("internal")))
+        let model = try #require(app.today)
+        await model.refresh()
+        assertScreens(
+            TodayView(model: model, refreshesOnAppear: false).environment(app), named: "today-failed-empty",
+            devices: [.phone], themes: [.light])
+    }
+
+    @Test("«Сегодня» — без сети шаг не начать: объяснение у шага", .enabled { await ScreenSnapshotTests.isPhone() })
+    func todayNeedsNetwork() async throws {
+        let app = try signedInApp(cached: Fixture.todayDTO, today: .failure(.notConnectedToInternet))
+        let model = try #require(app.today)
+        await model.refresh()
+        assertScreens(
+            TodayView(model: model, refreshesOnAppear: false, blockedStepID: "words").environment(app),
+            named: "today-needs-network", devices: [.phone])
+    }
+
+    #if os(iOS)
+        @Test(
+            "«Сегодня» — восемь шагов (предел договора) крупным текстом",
+            .enabled { await ScreenSnapshotTests.isPhone() })
+        func todayEightStepsLargeText() async throws {
+            let sections = ["verbal", "quant", "words", "essay", "verbal", "quant", "words", "essay"]
+            let steps = sections.enumerated().map { i, section in
+                #"{"id":"s\#(i)","section":"\#(section)","title":"Шаг \#(i + 1): длинное название шага","minutes":\#(5 + i),"state":"\#(i == 0 ? "current" : "next")"}"#
+            }
+            let json = #"{"date":"2026-10-06","steps":["# + steps.joined(separator: ",") + "]}"
+            let app = try signedInApp(cached: nil, today: .json(200, json))
+            let model = try #require(app.today)
+            await model.refresh()
+            let view = TodayView(model: model, refreshesOnAppear: false).environment(app)
+                .environment(\.glassEnabled, false)
+            assertSnapshot(
+                of: view,
+                as: .image(
+                    drawHierarchyInKeyWindow: true, precision: Self.precision, perceptualPrecision: Self.perceptual,
+                    layout: .device(config: Self.phone),
+                    traits: UITraitCollection(preferredContentSizeCategory: .accessibilityLarge)
+                ),
+                named: "today-eight-steps-large-text"
+            )
+        }
+    #endif
+
+    @Test("вход — сообщение под кнопками", .enabled { await ScreenSnapshotTests.isPhone() })
+    func signInMessage() async {
+        let app = AppModel(
+            config: server.config(), tokens: MemoryTokenStore(), cache: temporaryCache(), network: NetworkMonitor(),
+            session: server.session)
+        let model = SignInModel(app: app)
+        await model.signInWithWeb(.telegram) { url, _ in url }
+        assertScreens(
+            SignInView(model: model, reason: nil, showsDevelopmentSignIn: false).environment(app),
+            named: "signin-message", devices: [.phone], themes: [.light])
+    }
+
+    @Test("«Прогресс» — пока тренировок нет", .enabled { await ScreenSnapshotTests.isPhone() })
+    func progress() {
+        let app = AppModel(
+            config: server.config(), tokens: MemoryTokenStore("t"), cache: temporaryCache(), network: NetworkMonitor(),
+            session: server.session)
+        assertScreens(ProgressTabView().environment(app), named: "progress", devices: [.phone])
+    }
+
+    @Test("настройки", .enabled { await ScreenSnapshotTests.isPhone() })
+    func settings() {
+        let app = AppModel(
+            config: server.config(), tokens: MemoryTokenStore("t"), cache: temporaryCache(), network: NetworkMonitor(),
+            session: server.session)
+        assertScreens(NavigationStack { SettingsView() }.environment(app), named: "settings", devices: [.phone])
+    }
+
+    @Test("раздел, которого ещё нет", .enabled { await ScreenSnapshotTests.isPhone() })
+    func sectionPlaceholder() {
+        assertScreens(
+            SectionPlaceholderView(
+                title: "Слова", message: "Здесь будет словарь: слова на сегодня, повторение и поиск."),
+            named: "placeholder", devices: [.phone], themes: [.light])
+    }
+
     // MARK: - Устройства
 
     enum Device { case phone, pad }
+    enum Theme { case light, dark }
 
-    static let precision: Float = 0.995
+    /// Тесты только для телефона на iPad и Mac пропускаются явно (в отчёте — «пропущен», а не пустой «прошёл»).
+    nonisolated static func isPhone() async -> Bool {
+        #if os(iOS)
+            await MainActor.run { UIDevice.current.userInterfaceIdiom == .phone }
+        #else
+            false
+        #endif
+    }
+
+    /// Стекло в снимках выключено, кадр детерминирован: допуск — доли пикселей сглаживания, а не пропавший значок
+    /// или цифра (0,5 % пропускали и то и другое).
+    static let precision: Float = 0.9999
     static let perceptual: Float = 0.98
 
     #if os(iOS)
@@ -159,6 +268,8 @@ struct ScreenSnapshotTests {
         _ screen: some View,
         named name: String,
         devices: [Device] = [.phone, .pad],
+        themes: [Theme] = [.light, .dark],
+        precision: Float = ScreenSnapshotTests.precision,
         fileID: StaticString = #fileID,
         file: StaticString = #filePath,
         testName: String = #function,
@@ -170,13 +281,13 @@ struct ScreenSnapshotTests {
             let current: Device = UIDevice.current.userInterfaceIdiom == .pad ? .pad : .phone
             for device in devices where device == current {
                 let config = device == .phone ? Self.phone : Self.pad
-                for style in [UIUserInterfaceStyle.light, .dark] {
+                for style in themes.map({ $0 == .dark ? UIUserInterfaceStyle.dark : .light }) {
                     assertSnapshot(
                         of: view,
                         as: .image(
                             // Через окно симулятора: стекло iOS 26 и материалы вне окна не рисуются.
                             drawHierarchyInKeyWindow: true,
-                            precision: Self.precision, perceptualPrecision: Self.perceptual,
+                            precision: precision, perceptualPrecision: Self.perceptual,
                             layout: .device(config: config),
                             traits: UITraitCollection(userInterfaceStyle: style)
                         ),
@@ -189,7 +300,7 @@ struct ScreenSnapshotTests {
             // Mac снимается без окна (боковую панель и заголовок рисует окно), поэтому — только экраны, где
             // важна широкая раскладка, те же, что на iPad.
             guard devices.contains(.pad) else { return }
-            for dark in [false, true] {
+            for dark in themes.map({ $0 == .dark }) {
                 let controller = NSHostingController(rootView: view)
                 controller.view.frame = CGRect(x: 0, y: 0, width: 1100, height: 760)
                 controller.view.appearance = NSAppearance(named: dark ? .darkAqua : .aqua)

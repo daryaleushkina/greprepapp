@@ -77,7 +77,7 @@ private struct StepRow: View {
                 .foregroundStyle(step.section.color)
                 .frame(width: GPSize.stepNode, height: GPSize.stepNode)
                 .background(Color(.surface), in: Circle())
-                .overlay(Circle().strokeBorder(Color(.line), lineWidth: 1))
+                .overlay(Circle().strokeBorder(Color(.line), lineWidth: GPSize.hairline))
                 .padding(.top, nodeTop)
                 .accessibilityHidden(true)
         case .done:

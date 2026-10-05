@@ -120,9 +120,12 @@ struct KeychainTokenStore: TokenStore {
         func save(_ token: String) throws {
             try FileManager.default.createDirectory(
                 at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
-            try Data(token.utf8).write(to: fileURL, options: .atomic)
-            try FileManager.default.setAttributes(
-                [.posixPermissions: 0o600], ofItemAtPath: fileURL.path(percentEncoded: false))
+            // Права 0600 — с момента создания файла, а не после записи.
+            let path = fileURL.path(percentEncoded: false)
+            guard
+                FileManager.default.createFile(
+                    atPath: path, contents: Data(token.utf8), attributes: [.posixPermissions: 0o600])
+            else { throw CocoaError(.fileWriteUnknown) }
         }
 
         func clear() throws {
@@ -131,6 +134,43 @@ struct KeychainTokenStore: TokenStore {
         }
     }
 #endif
+
+/// Токен в памяти поверх постоянного хранилища: первое чтение — из него, дальше — из памяти; запись и стирание —
+/// сразу в оба. Сбой чтения не запоминается: следующее чтение снова пойдёт в хранилище.
+final class CachedTokenStore: TokenStore, @unchecked Sendable {
+    // @unchecked: всё изменяемое — под замком.
+    private let base: any TokenStore
+    private let lock = NSLock()
+    private var cached: String??
+
+    init(_ base: any TokenStore) {
+        self.base = base
+    }
+
+    func token() throws -> String? {
+        try lock.withLock {
+            if let cached { return cached }
+            let value = try base.token()
+            cached = .some(value)
+            return value
+        }
+    }
+
+    func save(_ token: String) throws {
+        try lock.withLock {
+            try base.save(token)
+            cached = .some(token)
+        }
+    }
+
+    func clear() throws {
+        try lock.withLock {
+            // В памяти — «вышел» сразу, даже если хранилище не стёрлось: экран уже показывает вход.
+            cached = .some(nil)
+            try base.clear()
+        }
+    }
+}
 
 /// Токен в памяти — для тестов и превью.
 final class MemoryTokenStore: TokenStore, @unchecked Sendable {
@@ -152,5 +192,19 @@ final class MemoryTokenStore: TokenStore, @unchecked Sendable {
 
     func clear() throws {
         lock.withLock { value = nil }
+    }
+}
+
+/// Keychain на iPhone переживает удаление приложения, а настройки (UserDefaults) — нет. Без этой проверки
+/// приложение, поставленное заново (общий iPad, продажа телефона), сразу вошло бы в аккаунт прошлого владельца.
+enum FreshInstall {
+    static let markerKey = "dev.greprepapp.installed"
+
+    static func forgetPreviousSession(tokens: any TokenStore, defaults: UserDefaults = .standard) {
+        guard !defaults.bool(forKey: markerKey) else { return }
+        // Необязательный фон: токена прошлой установки может и не быть; не стёрся — первый же запрос ответит 401,
+        // если сессия уже закрыта.
+        _ = try? tokens.clear()
+        defaults.set(true, forKey: markerKey)
     }
 }

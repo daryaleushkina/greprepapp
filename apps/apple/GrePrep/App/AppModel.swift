@@ -25,6 +25,7 @@ final class AppModel {
     @ObservationIgnored private let tokens: any TokenStore
     @ObservationIgnored private let cache: TodayCache
     @ObservationIgnored private let makeAPI: @Sendable (_ token: String) -> API
+    @ObservationIgnored private var tokenReadFailed = false
 
     init(
         config: AppConfig,
@@ -33,6 +34,8 @@ final class AppModel {
         network: NetworkMonitor,
         session: URLSession = API.session
     ) {
+        // Токен — в памяти поверх Keychain: запросов много, а каждое чтение Keychain — обращение к системе.
+        let tokens = CachedTokenStore(tokens)
         self.config = config
         self.tokens = tokens
         self.cache = cache
@@ -41,24 +44,27 @@ final class AppModel {
         makeAPI = { token in API(config: config, session: session, tokens: MemoryTokenStore(token)) }
         phase = .signedOut(nil)
 
-        // Вход живёт в Keychain: открыл приложение — сразу «Сегодня», без ожидания сети. Протух — первый же
-        // запрос ответит 401 и вернёт на вход (handleUnauthorized).
+        restoreSession()
+    }
+
+    /// Вход живёт в Keychain: открыл приложение — сразу «Сегодня», без ожидания сети. Протух — первый же
+    /// запрос ответит 401 и вернёт на вход (handleUnauthorized).
+    private func restoreSession() {
         do {
-            if try tokens.token() != nil {
+            tokenReadFailed = false
+            if let token = try tokens.token(), !token.isEmpty {
                 becomeSignedIn()
             }
         } catch {
+            tokenReadFailed = true
             report("keychain read failed: \(error)", route: "launch")
         }
     }
 
     static func live() -> AppModel {
-        AppModel(
-            config: .load(),
-            tokens: KeychainTokenStore.live(),
-            cache: .live(),
-            network: .live()
-        )
+        let tokens = KeychainTokenStore.live()
+        FreshInstall.forgetPreviousSession(tokens: tokens)
+        return AppModel(config: .load(), tokens: tokens, cache: .live(), network: .live())
     }
 
     #if DEBUG
@@ -66,21 +72,32 @@ final class AppModel {
         static func resetLocalState() {
             // Необязательный фон: стереть то, чего может и не быть.
             _ = try? KeychainTokenStore.live().clear()
-            TodayCache.live().clear()
+            _ = try? TodayCache.live().clear()
         }
     #endif
 
     /// Вход прошёл: токен — в Keychain, данные прошлого человека — прочь.
     func didSignIn(_ signedIn: SignedIn) throws {
         try tokens.save(signedIn.token)
-        cache.clear()
+        do {
+            try cache.clear()
+        } catch {
+            let error = error as NSError
+            report("today cache clear failed: \(error.domain) \(error.code)", route: "sign-in")
+        }
         becomeSignedIn()
     }
 
     /// Выход: на устройстве — сразу и до конца (токен, план), на сервере — следом, без ожидания. Не дошло до
     /// сервера (нет сети) — токена на устройстве уже нет, а сессия на сервере истечёт сама.
     func signOut() {
-        let token = try? tokens.token()
+        let token: String?
+        do {
+            token = try tokens.token()
+        } catch {
+            token = nil
+            report("keychain read failed on sign-out: \(error)", route: "sign-out")
+        }
         forgetSession(reason: nil)
         if let token {
             let api = makeAPI(token)
@@ -89,6 +106,13 @@ final class AppModel {
                 _ = try? await api.signOut()
             }
         }
+    }
+
+    /// Keychain не ответил при запуске (например, iOS запустила приложение заранее, до первой разблокировки):
+    /// когда его откроют, вход читается ещё раз, а не теряется до перезапуска.
+    func retrySessionIfNeeded() {
+        guard tokenReadFailed, phase == .signedOut(nil) else { return }
+        restoreSession()
     }
 
     /// Сервер ответил 401: сессии больше нет (истекла или вышли на другом устройстве).
@@ -103,6 +127,7 @@ final class AppModel {
     }
 
     private func becomeSignedIn() {
+        today?.retire()
         today = TodayModel(
             api: api,
             cache: cache,
@@ -113,12 +138,21 @@ final class AppModel {
     }
 
     private func forgetSession(reason: SignOutReason?) {
+        today?.retire()
         do {
             try tokens.clear()
         } catch {
             report("keychain clear failed: \(error)", route: "sign-out")
+            // Не стёрлось — затереть пустым: пустой токен — это «не вошёл» (restoreSession), и вход не вернётся
+            // при следующем запуске. Не вышло и это — отчёт уже ушёл, больше сделать нечего.
+            _ = try? tokens.save("")
         }
-        cache.clear()
+        do {
+            try cache.clear()
+        } catch {
+            let error = error as NSError
+            report("today cache clear failed: \(error.domain) \(error.code)", route: "sign-out")
+        }
         today = nil
         phase = .signedOut(reason)
     }

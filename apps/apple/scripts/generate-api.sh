@@ -18,3 +18,9 @@ swift run --quiet --package-path "$here/Tools" swift-openapi-generator generate 
   --config "$here/Packages/GPAPI/openapi-generator-config.yaml" \
   --output-directory "$out" \
   "$spec" >/dev/null
+# Строгий разбор мог вернуться, если в договоре появится другая запись `additionalProperties: false`
+# (например, в одну строку с другими ключами) — тогда sed выше её не уберёт.
+if grep -rq ensureNoAdditionalProperties "$out"; then
+  echo "generate-api: клиент снова строгий к лишним полям — поправить sed выше под новую запись договора" >&2
+  exit 1
+fi

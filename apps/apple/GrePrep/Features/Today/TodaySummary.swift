@@ -4,6 +4,8 @@ import Foundation
 /// шагах слово читается быстрее цифры; минуты — числом, с русскими падежами из каталога строк.
 enum TodaySummary {
     static func string(for plan: TodayPlan, locale: Locale = .current) -> String {
+        // Договор допускает пустой план; «0 шагов · около 0 минут» — бессмыслица.
+        if plan.steps.isEmpty { return localized("На сегодня шагов нет", locale) }
         let count = stepCount(plan.steps.count, locale: locale)
         let minutes: LocalizedStringResource =
             plan.isComplete

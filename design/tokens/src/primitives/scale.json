@@ -280,6 +280,13 @@
         "unit": "px"
       },
       "$description": "Знак-лента внутри плитки"
+    },
+    "hairline": {
+      "$value": {
+        "value": 1,
+        "unit": "px"
+      },
+      "$description": "Тонкая рамка: край стекла, контур узла ленты, рамка кнопки Google"
     }
   },
   "layout": {

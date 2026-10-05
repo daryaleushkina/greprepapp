@@ -11,9 +11,14 @@ struct SignInView: View {
     @State private var model: SignInModel
 
     init(app: AppModel, reason: AppModel.SignOutReason?, showsDevelopmentSignIn: Bool = AppConfig.devSignInAvailable) {
+        self.init(model: SignInModel(app: app), reason: reason, showsDevelopmentSignIn: showsDevelopmentSignIn)
+    }
+
+    /// С готовой моделью — для снимков экрана с сообщением под кнопками.
+    init(model: SignInModel, reason: AppModel.SignOutReason?, showsDevelopmentSignIn: Bool) {
         self.reason = reason
         self.showsDevelopmentSignIn = showsDevelopmentSignIn
-        _model = State(initialValue: SignInModel(app: app))
+        _model = State(initialValue: model)
     }
 
     var body: some View {
@@ -49,10 +54,12 @@ private struct SignInContent: View {
                     }
                     legal
                         .padding(.top, GPSpace.s20)
-                    if showsDevelopmentSignIn {
-                        DevelopmentSignInForm(model: model)
-                            .padding(.top, GPSpace.s24)
-                    }
+                    #if DEBUG
+                        if showsDevelopmentSignIn {
+                            DevelopmentSignInForm(model: model)
+                                .padding(.top, GPSpace.s24)
+                        }
+                    #endif
                 }
                 .frame(maxWidth: GPLayout.authColumnMax)
                 .padding(.horizontal, GPSpace.s24)
@@ -116,17 +123,11 @@ private struct SignInContent: View {
         .fixedSize(horizontal: false, vertical: true)
     }
 
-    /// Системное окно входа. Адрес возврата https — через связанный домен, иначе — своя схема.
+    /// Системное окно входа (адрес возврата — WebSignIn.callback).
     private func authenticate(_ url: URL, _ redirect: URL) async throws -> URL {
-        let callback: ASWebAuthenticationSession.Callback
-        if redirect.scheme == "https", let host = redirect.host() {
-            callback = .https(host: host, path: redirect.path(percentEncoded: false))
-        } else {
-            callback = .customScheme(redirect.scheme ?? "")
-        }
-        return try await webAuthenticationSession.authenticate(
-            using: url, callback: callback, preferredBrowserSession: .ephemeral, additionalHeaderFields: [:]
-        )
+        try await webAuthenticationSession.authenticate(
+            using: url, callback: WebSignIn.callback(for: redirect), preferredBrowserSession: .ephemeral,
+            additionalHeaderFields: [:])
     }
 }
 
@@ -136,16 +137,23 @@ private struct SignInMessageText: View {
     var body: some View {
         text
             .gpText(GPType.subhead)
-            .foregroundStyle(Color(.wrong))
+            // «Ещё не подключён» — сведение, а не сбой: без цвета ошибки.
+            .foregroundStyle(isFailure ? Color(.wrong) : Color(.textSecondary))
             .frame(maxWidth: .infinity, alignment: .leading)
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityIdentifier("signin.message")
+    }
+
+    private var isFailure: Bool {
+        if case .notConnectedYet = message { return false }
+        return true
     }
 
     private var text: Text {
         switch message {
         case .notConnectedYet(.telegram): Text("Вход через Telegram ещё не подключён — он появится до беты.")
         case .notConnectedYet(.google): Text("Вход через Google ещё не подключён — он появится до беты.")
+        case .notConnectedYet(.apple): Text("Вход с Apple ещё не подключён — он появится до беты.")
         case .notConnectedYet: Text("Этот способ входа ещё не подключён.")
         case .offline: Text("Нет сети — войти получится, когда она появится.")
         case .tooManyAttempts: Text("Слишком много попыток подряд — подождите минуту.")
@@ -154,42 +162,44 @@ private struct SignInMessageText: View {
     }
 }
 
-/// Вход подменой (`/api/auth/dev`): локально и в сценариях UI. В релизную сборку не попадает.
-private struct DevelopmentSignInForm: View {
-    let model: SignInModel
-    @State private var name = ""
+#if DEBUG
+    /// Вход подменой (`/api/auth/dev`): локально и в сценариях UI. В релизной сборке этого кода нет (#if DEBUG).
+    private struct DevelopmentSignInForm: View {
+        let model: SignInModel
+        @State private var name = ""
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: GPSpace.s8) {
-            Text("Для разработки — вход подменой")
-                .gpText(GPType.footnote)
-                .foregroundStyle(Color(.textSecondary))
-            HStack(spacing: GPSpace.s8) {
-                TextField(text: $name) { Text("Имя тестового пользователя") }
-                    .textFieldStyle(.roundedBorder)
-                    .autocorrectionDisabled()
-                    #if os(iOS)
-                        .textInputAutocapitalization(.never)
-                    #endif
-                    .onSubmit(submit)
-                    .accessibilityIdentifier("signin.dev.name")
-                Button(action: submit) {
-                    if model.busy == .development {
-                        ProgressView()
-                    } else {
-                        Text("Войти")
+        var body: some View {
+            VStack(alignment: .leading, spacing: GPSpace.s8) {
+                Text("Для разработки — вход подменой")
+                    .gpText(GPType.footnote)
+                    .foregroundStyle(Color(.textSecondary))
+                HStack(spacing: GPSpace.s8) {
+                    TextField(text: $name) { Text("Имя тестового пользователя") }
+                        .textFieldStyle(.roundedBorder)
+                        .autocorrectionDisabled()
+                        #if os(iOS)
+                            .textInputAutocapitalization(.never)
+                        #endif
+                        .onSubmit(submit)
+                        .accessibilityIdentifier("signin.dev.name")
+                    Button(action: submit) {
+                        if model.busy == .development {
+                            ProgressView()
+                        } else {
+                            Text("Войти")
+                        }
                     }
+                    .buttonStyle(.bordered)
+                    .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty || model.busy != nil)
+                    .accessibilityIdentifier("signin.dev.submit")
                 }
-                .buttonStyle(.bordered)
-                .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty || model.busy != nil)
-                .accessibilityIdentifier("signin.dev.submit")
             }
+            .padding(GPSpace.s12)
+            .background(Color(.fill), in: RoundedRectangle(cornerRadius: GPRadius.md, style: .continuous))
         }
-        .padding(GPSpace.s12)
-        .background(Color(.fill), in: RoundedRectangle(cornerRadius: GPRadius.md, style: .continuous))
-    }
 
-    private func submit() {
-        Task { await model.signInForDevelopment(name: name) }
+        private func submit() {
+            Task { await model.signInForDevelopment(name: name) }
+        }
     }
-}
+#endif

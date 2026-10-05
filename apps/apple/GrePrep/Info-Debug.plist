@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<!-- Остальные ключи Xcode генерирует из настроек сборки (project.yml, INFOPLIST_KEY_*). Здесь — только свои.
-     Отладочная сборка берёт Info-Debug.plist: там ещё разрешён http до своего Мака. -->
+<!-- Отладочная сборка (project.yml). Отличие от Info.plist — http до своего Мака: локальный сервер. -->
 <plist version="1.0">
 <dict>
 	<key>GPAPIBaseURL</key>
 	<string>$(GP_API_BASE_URL)</string>
 	<key>GPAppleSignInEnabled</key>
 	<string>$(GP_APPLE_SIGN_IN)</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 </dict>
 </plist>

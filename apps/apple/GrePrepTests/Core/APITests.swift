@@ -56,6 +56,35 @@ struct APITests {
         await #expect(throws: APIFailure.offline) { try await api().today() }
     }
 
+    @Test(
+        "прокси ответил вместо сервера (502/503/504 без тела) — сервер недоступен, а не наша ошибка",
+        arguments: [502, 503, 504])
+    func proxyUnavailable(status: Int) async throws {
+        server.on("GET /api/today", .status(status))
+        await #expect(throws: APIFailure.offline) { try await api().today() }
+    }
+
+    @Test("чужой ответ не по договору — unexpected с HTTP-статусом для журнала")
+    func foreignResponseKeepsStatus() async throws {
+        server.on("GET /api/today", .status(418))
+        await #expect {
+            try await api().today()
+        } throws: { error in
+            guard case let .unexpected(message) = error as? APIFailure else { return false }
+            return message.contains("HTTP 418")
+        }
+    }
+
+    @Test("длинный отчёт режется по кодовым точкам, как считает сервер, а не по графемам")
+    func reportTruncatesByUnicodeScalars() async throws {
+        server.on("POST /api/client-errors", .status(204))
+        // Флаг — одна графема из двух кодовых точек: 1500 флагов = 3000 точек.
+        await api().reportClientError(message: String(repeating: "🇷🇺", count: 1500), route: "today", requestID: nil)
+        let body = try #require(server.requests("POST /api/client-errors").first).json()
+        let message = try #require(body["message"] as? String)
+        #expect(message.unicodeScalars.count <= 2000)
+    }
+
     @Test("ответ не по договору — unexpected, а не пустой успех")
     func malformedBody() async throws {
         server.on("GET /api/today", .json(200, #"{"date":"2026-10-06"}"#))

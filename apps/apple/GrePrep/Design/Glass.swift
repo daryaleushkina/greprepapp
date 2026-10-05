@@ -13,7 +13,7 @@ struct GlassSurface<S: Shape>: ViewModifier {
         } else {
             content
                 .background(.regularMaterial, in: shape)
-                .overlay(shape.stroke(Color(.glassEdge), lineWidth: 1))
+                .overlay(shape.stroke(Color(.glassEdge), lineWidth: GPSize.hairline))
         }
     }
 }
@@ -44,8 +44,9 @@ struct PressScaleStyle: ButtonStyle {
 /// Главная кнопка внутри экрана: капсула цвета accent (DESIGN.md, «Primary»).
 struct PrimaryCapsuleStyle: ButtonStyle {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Environment(\.isEnabled) private var isEnabled
 
+    // Своего «выключенного» вида нет: в каркасе кнопка выключается только на время запроса и тогда показывает
+    // крутилку (TodayUnavailableView).
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .gpText(GPType.callout)
@@ -54,7 +55,6 @@ struct PrimaryCapsuleStyle: ButtonStyle {
             .frame(maxWidth: .infinity, minHeight: GPSize.button)
             .padding(.horizontal, GPSpace.s24)
             .background(Color(.accent), in: Capsule())
-            .opacity(isEnabled ? 1 : 0.5)
             .contentShape(Capsule())
             .scaleEffect(configuration.isPressed && !reduceMotion ? GPMotion.pressScale : 1)
             .animation(GPMotion.easeOut(duration: GPMotion.press), value: configuration.isPressed)

@@ -16,11 +16,13 @@ struct TodayCache: Sendable {
     /// Прошлый план. Испорченный файл (обновление формата, сбой записи) — не ошибка для человека: план
     /// просто загрузится заново, а файл удаляется.
     func load() -> TodayDTO? {
+        // Необязательный фон: нет файла или не читается — план просто загрузится с сервера.
         guard let data = try? Data(contentsOf: fileURL) else { return nil }
         do {
             return try JSONDecoder().decode(TodayDTO.self, from: data)
         } catch {
-            clear()
+            // Испорченный файл не нужен; не удалился — следующий load снова его отбросит.
+            _ = try? clear()
             return nil
         }
     }
@@ -36,9 +38,13 @@ struct TodayCache: Sendable {
         #endif
     }
 
-    /// Выход и чужой аккаунт: план прошлого человека не должен мелькнуть следующему.
-    func clear() {
-        // Необязательный фон: файла может не быть — это и есть цель.
-        _ = try? FileManager.default.removeItem(at: fileURL)
+    /// Выход и чужой аккаунт: план прошлого человека не должен мелькнуть следующему. «Файла нет» — это и есть
+    /// цель; любой другой сбой — наружу, чтобы о нём узнали.
+    func clear() throws {
+        do {
+            try FileManager.default.removeItem(at: fileURL)
+        } catch CocoaError.fileNoSuchFile {
+            return
+        }
     }
 }

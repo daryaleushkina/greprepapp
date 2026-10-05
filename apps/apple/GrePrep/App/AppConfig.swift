@@ -7,6 +7,8 @@ struct AppConfig: Sendable {
     let appVersion: String
     /// Telegram и Google — системное окно браузера (OIDC с PKCE). Пусто — аккаунтов у провайдера ещё нет.
     let webProviders: [WebProvider: WebProviderConfig]
+    /// «Вход с Apple» работает только в сборке, подписанной аккаунтом разработчика с этим правом (#6).
+    let appleSignInEnabled: Bool
 
     /// Вид клиента для сервера: тот же enum, что в договоре (ClientKind), без зависимости от GPAPI.
     enum ClientKindValue: String, Sendable { case ios, macos }
@@ -41,7 +43,9 @@ struct AppConfig: Sendable {
                 providers[provider] = config
             }
         }
-        return AppConfig(apiBaseURL: base, clientKind: kind, appVersion: "\(short) (\(build))", webProviders: providers)
+        return AppConfig(
+            apiBaseURL: base, clientKind: kind, appVersion: "\(short) (\(build))", webProviders: providers,
+            appleSignInEnabled: (info["GPAppleSignInEnabled"] as? String) == "YES")
     }
 
     /// Вход подменой (`/api/auth/dev`) — только в отладочной сборке; в бою сервер отвечает на этот путь 404.

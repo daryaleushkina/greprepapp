@@ -1,5 +1,6 @@
 import Foundation
 import GPAPI
+import OSLog
 
 typealias TodayDTO = Components.Schemas.Today
 typealias UserDTO = Components.Schemas.User
@@ -41,19 +42,23 @@ struct API: Sendable {
 
     // MARK: - Вход
 
-    func signInForDevelopment(name: String) async throws(APIFailure) -> SignedIn {
-        let output = try await call {
-            try await client.signInForDevelopment(
-                body: .json(.init(name: name, transport: .bearer, clientKind: clientKind)))
+    #if DEBUG
+        /// Вход подменой (`/api/auth/dev`) — только отладочная сборка: в релизе этого кода нет, а сервер в бою
+        /// отвечает на путь 404.
+        func signInForDevelopment(name: String) async throws(APIFailure) -> SignedIn {
+            let output = try await call {
+                try await client.signInForDevelopment(
+                    body: .json(.init(name: name, transport: .bearer, clientKind: clientKind)))
+            }
+            switch output {
+            case let .ok(ok):
+                guard case let .json(session) = ok.body else { throw .unexpected("dev sign-in: unexpected body") }
+                return try signedIn(session)
+            case let .default(status, error):
+                throw failure(status, error)
+            }
         }
-        switch output {
-        case let .ok(ok):
-            guard case let .json(session) = ok.body else { throw .unexpected("dev sign-in: unexpected body") }
-            return try signedIn(session)
-        case let .default(status, error):
-            throw failure(status, error)
-        }
-    }
+    #endif
 
     func signInWithIdToken(
         provider: Components.Schemas.IdentityProvider,
@@ -123,15 +128,28 @@ struct API: Sendable {
     /// на экране; не дошёл — значит, нет сети, и сообщить всё равно некуда.
     func reportClientError(message: String, route: String, requestID: String?) async {
         let body = Components.Schemas.ClientError(
-            message: String(message.prefix(2000)),
-            route: String(route.prefix(512)),
-            requestId: requestID.map { String($0.prefix(64)) },
+            message: Self.prefix(message, 2000),
+            route: Self.prefix(route, 512),
+            requestId: requestID.map { Self.prefix($0, 64) },
             clientKind: clientKind,
             appVersion: appVersion,
             occurredAt: Date()
         )
-        // Необязательный фон: результат не нужен (см. комментарий к методу).
-        _ = try? await client.reportClientError(body: .json(body))
+        do {
+            if case .noContent = try await client.reportClientError(body: .json(body)) { return }
+            Self.log.error("client error report rejected by server")
+        } catch {
+            // Без сети отчёт не дойдёт — это ожидаемо; в системный журнал, чтобы сломанный канал было видно.
+            Self.log.error("client error report failed: \(String(describing: error), privacy: .public)")
+        }
+    }
+
+    private static let log = Logger(subsystem: "dev.greprepapp.app", category: "client-errors")
+
+    /// Обрезка по кодовым точкам: сервер (ogen) считает длину строки так, а не по графемам — иначе флаг или
+    /// эмодзи из нескольких точек сделали бы отчёт длиннее предела, и сервер отклонил бы его.
+    static func prefix(_ text: String, _ limit: Int) -> String {
+        String(String.UnicodeScalarView(text.unicodeScalars.prefix(limit)))
     }
 
     // MARK: - Разбор

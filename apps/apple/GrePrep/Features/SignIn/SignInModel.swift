@@ -33,16 +33,18 @@ final class SignInModel {
 
     // MARK: - Подмена (только отладка)
 
-    func signInForDevelopment(name: String) async {
-        let name = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !name.isEmpty, begin(.development) else { return }
-        defer { busy = nil }
-        do {
-            try finish(await app.api.signInForDevelopment(name: name))
-        } catch {
-            fail(error)
+    #if DEBUG
+        func signInForDevelopment(name: String) async {
+            let name = name.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !name.isEmpty, begin(.development) else { return }
+            defer { busy = nil }
+            do {
+                try finish(await app.api.signInForDevelopment(name: name))
+            } catch {
+                fail(error)
+            }
         }
-    }
+    #endif
 
     // MARK: - Apple
 
@@ -62,33 +64,41 @@ final class SignInModel {
         case let .failure(error):
             // Человек сам закрыл окно Apple — это не ошибка.
             if (error as? ASAuthorizationError)?.code == .canceled { return }
+            // Без аккаунта разработчика у сборки нет права на вход с Apple, и система отказывает всегда:
+            // честно сказать «ещё не подключён» и не засорять журнал ошибок (#6).
+            guard app.config.appleSignInEnabled else {
+                message = .notConnectedYet(.apple)
+                return
+            }
             app.report("apple sign-in: \(error)", route: "sign-in")
             message = .failed
         case let .success(authorization):
-            guard
-                let credential = authorization.credential as? ASAuthorizationAppleIDCredential,
-                let tokenData = credential.identityToken,
-                let idToken = String(data: tokenData, encoding: .utf8),
-                let nonce
-            else {
-                app.report("apple sign-in: credential without identity token", route: "sign-in")
-                message = .failed
-                return
-            }
-            guard begin(.apple) else { return }
-            defer { busy = nil }
-            // Имя Apple отдаёт только при первом входе и только приложению — в id_token его нет.
-            let name = credential.fullName.map { PersonNameComponentsFormatter().string(from: $0) }?
-                .trimmingCharacters(in: .whitespacesAndNewlines)
-            do {
-                try finish(
-                    await app.api.signInWithIdToken(
-                        provider: .apple, idToken: idToken, nonce: nonce,
-                        displayName: name?.isEmpty == false ? name : nil
-                    ))
-            } catch {
-                fail(error)
-            }
+            let credential = authorization.credential as? ASAuthorizationAppleIDCredential
+            await signInWithApple(
+                identityToken: credential?.identityToken, fullName: credential?.fullName, nonce: nonce)
+        }
+    }
+
+    /// Ответ Apple: id_token и nonce, ушедший в Apple, — на сервер; имя — только при первом входе (в id_token его
+    /// нет). Без токена или nonce (повтор без запроса) — «не получилось».
+    func signInWithApple(identityToken: Data?, fullName: PersonNameComponents?, nonce: String?) async {
+        guard let identityToken, let idToken = String(data: identityToken, encoding: .utf8), let nonce else {
+            app.report("apple sign-in: credential without identity token or nonce", route: "sign-in")
+            message = .failed
+            return
+        }
+        guard begin(.apple) else { return }
+        defer { busy = nil }
+        let name = fullName.map { PersonNameComponentsFormatter().string(from: $0) }?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        do {
+            try finish(
+                await app.api.signInWithIdToken(
+                    provider: .apple, idToken: idToken, nonce: nonce,
+                    displayName: name?.isEmpty == false ? name : nil
+                ))
+        } catch {
+            fail(error)
         }
     }
 
@@ -112,8 +122,12 @@ final class SignInModel {
             let endpoint = try await WebSignIn.authorizationEndpoint(issuer: config.issuer, session: discoverySession)
             attempt = WebSignIn.makeAttempt(authorizationEndpoint: endpoint, config: config)
         } catch {
-            message = error == .offline ? .offline : .failed
-            if error != .offline { app.report("\(provider) discovery failed", route: "sign-in") }
+            if error == .offline {
+                message = .offline
+            } else {
+                message = .failed
+                app.report("\(provider) discovery failed: \(error)", route: "sign-in")
+            }
             return
         }
         let callback: URL
@@ -164,7 +178,7 @@ final class SignInModel {
         case let .server(_, code, _) where code == "too_many_requests":
             message = .tooManyAttempts
         default:
-            if failure.isReportable || error is TokenStoreError || error is WebSignIn.Failure {
+            if failure.isReportable {
                 app.report("sign-in: \(failure)", route: "sign-in", requestID: failure.requestID)
             }
             message = .failed

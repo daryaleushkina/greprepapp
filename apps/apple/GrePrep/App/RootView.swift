@@ -3,6 +3,7 @@ import SwiftUI
 /// Вошёл человек — разделы, нет — экран входа.
 struct RootView: View {
     @Environment(AppModel.self) private var app
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         Group {
@@ -16,5 +17,8 @@ struct RootView: View {
             }
         }
         .tint(Color(.accent))
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { app.retrySessionIfNeeded() }
+        }
     }
 }

@@ -29,6 +29,10 @@ final class TodayModel {
     /// Номер последнего запроса: ответы приходят не по порядку, и старый не должен затереть свежий
     /// (docs/HANDOFF.md, «Клиент»).
     @ObservationIgnored private var generation = 0
+    @ObservationIgnored private var isRetired = false
+    /// Когда план в последний раз пришёл с сервера.
+    @ObservationIgnored private var fetchedAt: Date?
+    static let freshFor: TimeInterval = 5 * 60
 
     init(
         api: API,
@@ -53,7 +57,33 @@ final class TodayModel {
         return false
     }
 
+    /// Возврат в приложение (и фокус окна на Mac) — частое событие: план перезапрашивается, только если он
+    /// старше пяти минут или его обновить не удалось. План дня меняется после тренировки, а не каждую минуту.
+    func refreshIfStale(now: Date = .now) async {
+        if let fetchedAt, staleReason == nil, now.timeIntervalSince(fetchedAt) < Self.freshFor { return }
+        await refresh(now: now)
+    }
+
+    /// Сеть вернулась — план, который не удалось обновить, обновляется сам (решение Даши 06.10.2026).
+    func networkChanged(online: Bool) async {
+        guard online, needsRefresh else { return }
+        await refresh()
+    }
+
+    /// Человек вышел: модель больше ничего не запрашивает, а ответы, которые ещё в пути, отбрасываются — иначе
+    /// поздний ответ вернул бы на устройство план вышедшего, а поздний 401 выкинул бы того, кто вошёл после.
+    func retire() {
+        isRetired = true
+        generation += 1
+        isRefreshing = false
+    }
+
     func refresh() async {
+        await refresh(now: .now)
+    }
+
+    private func refresh(now: Date) async {
+        guard !isRetired else { return }
         generation += 1
         let mine = generation
         isRefreshing = true
@@ -71,10 +101,13 @@ final class TodayModel {
         case let .success(dto):
             content = .plan(TodayPlan(dto))
             staleReason = nil
+            fetchedAt = now
             do {
                 try cache.save(dto)
             } catch {
-                report("today cache write failed: \(error)", nil)
+                // Только домен и код: в тексте ошибки — путь к файлу, а на Mac в нём имя учётной записи.
+                let error = error as NSError
+                report("today cache write failed: \(error.domain) \(error.code)", nil)
             }
         case let .failure(failure):
             handle(failure)
@@ -91,9 +124,8 @@ final class TodayModel {
         case .offline:
             show(.offline)
         case .server, .unexpected:
-            if failure.isReportable {
-                report("today: \(failure)", failure.requestID)
-            }
+            // Любой отказ сервера на план дня — наш баг (клиент и сервер разошлись), не только 5xx.
+            report("today: \(failure)", failure.requestID)
             show(.failed)
         }
     }

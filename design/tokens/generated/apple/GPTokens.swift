@@ -76,6 +76,8 @@ public enum GPSize {
     public static let brandMark: CGFloat = 64
     /// Знак-лента внутри плитки
     public static let brandGlyph: CGFloat = 30
+    /// Тонкая рамка: край стекла, контур узла ленты, рамка кнопки Google
+    public static let hairline: CGFloat = 1
 }
 
 /// Раскладка, pt. breakpointWide — граница компактной и широкой раскладки.

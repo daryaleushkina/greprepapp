@@ -68,6 +68,10 @@ targets:
       base:
         CODE_SIGN_IDENTITY: "-"
         INFOPLIST_FILE: GrePrep/Info.plist
+        INFOPLIST_FILE[config=Debug]: GrePrep/Info-Debug.plist
+        # «Вход с Apple» — только со сборкой, подписанной аккаунтом разработчика с этим правом (#6). До него кнопка
+        # честно отвечает «ещё не подключён».
+        GP_APPLE_SIGN_IN: "NO"
         # Отладочная сборка для Mac — без песочницы: тесты в приложении-хосте пишут и читают эталоны снимков
         # в репозитории, а песочница туда не пускает. Релиз (и всё, что уйдёт людям) — в песочнице.
         CODE_SIGN_ENTITLEMENTS[config=Debug][sdk=macosx*]: GrePrep/GrePrep-Debug.entitlements

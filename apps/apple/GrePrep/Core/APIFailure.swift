@@ -45,10 +45,23 @@ enum APIFailure: Error, Equatable, Sendable {
             return
         }
         if let url = underlying as? URLError {
-            self =
-                url.code == .cancelled
-                ? .cancelled
-                : (Self.offlineCodes.contains(url.code) ? .offline : .unexpected("URLError \(url.code.rawValue)"))
+            if url.code == .cancelled {
+                self = .cancelled
+            } else if Self.offlineCodes.contains(url.code) {
+                self = .offline
+            } else {
+                self = .unexpected("URLError \(url.code.rawValue)")
+            }
+            return
+        }
+        if let response = GPAPIClient.responseInfo(error) {
+            // Ответил не наш сервер, а прокси перед ним (выкладка, сервер лёг): это «сервер недоступен», а не ошибка
+            // приложения — тот же экран, что без сети, и повтор, когда он вернётся.
+            if Self.proxyUnavailable.contains(response.status) {
+                self = .offline
+            } else {
+                self = .unexpected("HTTP \(response.status) req=\(response.requestID ?? "-"): \(underlying)")
+            }
             return
         }
         self = .unexpected(String(describing: underlying))
@@ -63,11 +76,17 @@ enum APIFailure: Error, Equatable, Sendable {
         return .server(status: status, code: code ?? "http_\(status)", requestID: requestID)
     }
 
+    /// Статусы прокси (Caddy) перед сервером, когда сервер недоступен.
+    private static let proxyUnavailable: Set<Int> = [502, 503, 504]
+
     /// Когда отвечать «нет сети». Обрыв на середине ответа — тоже сюда: 200 с оборванным телом — это сбой
     /// сети, а не пустой успех (docs/HANDOFF.md, «Клиент»).
     private static let offlineCodes: Set<URLError.Code> = [
         .notConnectedToInternet, .networkConnectionLost, .cannotFindHost, .cannotConnectToHost,
         .dnsLookupFailed, .timedOut, .dataNotAllowed, .internationalRoamingOff, .callIsActive,
         .secureConnectionFailed, .cannotLoadFromNetwork,
+        // Сертификат не тот: подмена соединения по дороге (в России бывает) — для человека сервер недоступен.
+        .serverCertificateUntrusted, .serverCertificateHasBadDate, .serverCertificateHasUnknownRoot,
+        .serverCertificateNotYetValid,
     ]
 }

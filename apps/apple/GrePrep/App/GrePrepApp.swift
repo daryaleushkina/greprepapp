@@ -26,7 +26,10 @@ struct GrePrepApp: App {
             }
         }
         #if os(macOS)
-            .defaultSize(width: 1100, height: 760)
+            // Окно вмещает боковую панель и колонку содержимого с полями (DESIGN.md, «Раскладка»).
+            .defaultSize(
+                width: GPLayout.sidebarMax + GPLayout.contentMax + 2 * GPSpace.s48,
+                height: GPLayout.contentMax + GPSpace.s40)
         #endif
     }
 }

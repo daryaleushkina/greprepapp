@@ -1,3 +1,4 @@
+import AuthenticationServices
 import CryptoKit
 import Foundation
 
@@ -17,8 +18,8 @@ enum WebSignIn {
     enum Failure: Error, Equatable {
         /// В ответе провайдера нет кода, чужой state или ошибка от провайдера.
         case invalidCallback
-        /// Описание провайдера не получить или оно не по стандарту.
-        case discovery
+        /// Описание провайдера не получить или оно не по стандарту — с причиной для журнала.
+        case discovery(String)
         /// До провайдера не достучаться.
         case offline
     }
@@ -78,17 +79,27 @@ enum WebSignIn {
         let url = issuer.appending(path: ".well-known/openid-configuration")
         do {
             let (data, response) = try await session.data(from: url)
-            guard (response as? HTTPURLResponse)?.statusCode == 200 else { throw Failure.discovery }
+            let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+            guard status == 200 else { throw Failure.discovery("status \(status)") }
             let discovery = try JSONDecoder().decode(Discovery.self, from: data)
             guard let endpoint = URL(string: discovery.authorizationEndpoint), endpoint.scheme == "https" else {
-                throw Failure.discovery
+                throw Failure.discovery("authorization_endpoint is not https")
             }
             return endpoint
         } catch let failure as Failure {
             throw failure
         } catch {
-            throw APIFailure(error) == .offline ? .offline : .discovery
+            throw APIFailure(error) == .offline ? .offline : .discovery(String(describing: error))
         }
+    }
+
+    /// Как окно входа узнаёт возврат: https — по хосту и пути (связанный домен), иначе — по своей схеме.
+    static func callback(for redirect: URL) -> ASWebAuthenticationSession.Callback {
+        if redirect.scheme == "https", let host = redirect.host() {
+            let path = redirect.path(percentEncoded: false)
+            return .https(host: host, path: path.isEmpty ? "/" : path)
+        }
+        return .customScheme(redirect.scheme ?? "")
     }
 
     private static func base64URL(_ data: Data) -> String {

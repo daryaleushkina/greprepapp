@@ -66,8 +66,10 @@ final class StubServer: @unchecked Sendable {
         return URLSession(configuration: configuration)
     }()
 
-    func config(webProviders: [WebProvider: WebProviderConfig] = [:]) -> AppConfig {
-        AppConfig(apiBaseURL: baseURL, clientKind: .ios, appVersion: "0.1.0 (1)", webProviders: webProviders)
+    func config(webProviders: [WebProvider: WebProviderConfig] = [:], appleSignInEnabled: Bool = false) -> AppConfig {
+        AppConfig(
+            apiBaseURL: baseURL, clientKind: .ios, appVersion: "0.1.0 (1)", webProviders: webProviders,
+            appleSignInEnabled: appleSignInEnabled)
     }
 
     fileprivate func reply(to request: Request) -> Reply {
@@ -149,12 +151,14 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
         client?.urlProtocolDidFinishLoading(self)
     }
 
+    /// Тело запроса из потока: читать до конца (read → 0), а не пока «есть доступные байты» — у потока тела
+    /// URLSession их может ещё не быть в первый момент, и тело выходило пустым.
     private static func read(_ stream: InputStream) -> Data {
         stream.open()
         defer { stream.close() }
         var data = Data()
         var buffer = [UInt8](repeating: 0, count: 4096)
-        while stream.hasBytesAvailable {
+        while true {
             let n = stream.read(&buffer, maxLength: buffer.count)
             if n <= 0 { break }
             data.append(buffer, count: n)
@@ -188,6 +192,14 @@ enum Fixture {
     }
 
     static var plan: TodayPlan { TodayPlan(todayDTO) }
+
+    static var user: UserDTO {
+        try! JSONDecoder().decode(
+            UserDTO.self,
+            from: Data(
+                #"{"id":"8f0c6c1e-5a43-4c1a-9b7e-0c4b1f2d3e4f","name":"x","role":"user","locale":"ru","identities":[]}"#
+                    .utf8))
+    }
 }
 
 /// Кэш плана во временной папке: у каждого теста свой файл.

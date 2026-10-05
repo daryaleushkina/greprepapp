@@ -53,7 +53,7 @@ struct StorageTests {
         #expect(cache.load() == nil)
         try cache.save(Fixture.todayDTO)
         #expect(cache.load() == Fixture.todayDTO)
-        cache.clear()
+        try cache.clear()
         #expect(cache.load() == nil)
     }
 }
@@ -78,11 +78,34 @@ struct AppConfigTests {
     @Test("сборка: адрес сервера из Info.plist, подмена окружением — только в отладке")
     func load() {
         let config = AppConfig.load(environment: [:])
+        #if os(macOS)
+            #expect(config.clientKind == .macos)
+        #else
+            #expect(config.clientKind == .ios)
+        #endif
+        #expect(!config.appleSignInEnabled)
         #expect(config.apiBaseURL.absoluteString == "http://127.0.0.1:8090")
         #expect(config.webProviders.isEmpty)
         let overridden = AppConfig.load(environment: ["GP_API_BASE_URL": "http://127.0.0.1:8091"])
         #expect(overridden.apiBaseURL.absoluteString == "http://127.0.0.1:8091")
         #expect(AppConfig.devSignInAvailable)
         #expect(AppConfig.isRunningUnitTests)
+    }
+}
+
+@Suite("Каталог строк")
+struct LocalizationTests {
+    /// Каждая строка интерфейса переведена на английский: иначе человек с английским интерфейсом увидит русский.
+    @Test("у каждой строки есть английский")
+    func everyStringHasEnglish() throws {
+        let url = URL(filePath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+            .deletingLastPathComponent().appending(path: "GrePrep/Resources/Localizable.xcstrings")
+        let catalog = try #require(try JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any])
+        let strings = try #require(catalog["strings"] as? [String: [String: Any]])
+        #expect(!strings.isEmpty)
+        for (key, entry) in strings where entry["shouldTranslate"] as? Bool != false {
+            let localizations = entry["localizations"] as? [String: Any]
+            #expect(localizations?["en"] != nil, "нет английского: \(key)")
+        }
     }
 }

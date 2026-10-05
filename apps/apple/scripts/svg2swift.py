@@ -16,8 +16,16 @@ OUT = HERE / "GrePrep/Design/SignInLogos.swift"
 
 
 def tokens(d):
-    for m in re.finditer(r"[MmLlHhVvCcSsZz]|-?(?:\d+\.\d*|\.\d+|\d+)(?:e-?\d+)?", d):
-        yield m.group(0)
+    """Команды и числа; всё остальное (A, Q, T, неожиданные символы) — ошибка, а не молча кривая фигура."""
+    pos = 0
+    pattern = re.compile(r"\s*,?\s*([MmLlHhVvCcSsZz]|[-+]?(?:\d+\.\d*|\.\d+|\d+)(?:[eE][-+]?\d+)?)")
+    d = d.strip()
+    while pos < len(d):
+        m = pattern.match(d, pos)
+        if not m:
+            raise SystemExit(f"svg2swift: не разобрать путь с позиции {pos}: {d[pos:pos + 20]!r}")
+        yield m.group(1)
+        pos = m.end()
 
 
 def to_swift(d):

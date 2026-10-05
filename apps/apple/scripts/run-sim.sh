@@ -8,8 +8,15 @@ udid="$(sh scripts/simulator.sh "${1:-iphone}")"
 xcrun simctl boot "$udid" 2>/dev/null || true
 xcrun simctl bootstatus "$udid" -b >/dev/null
 sh scripts/generate-project.sh
-xcodebuild -quiet -project GrePrep.xcodeproj -scheme GrePrep -destination "id=$udid" -derivedDataPath build/dd build 2>&1 \
-  | grep -v UnusedImportAccess || true
+# Без пайпа: в sh нет pipefail, и упавшая сборка запустила бы на симуляторе прошлую.
+log="$(mktemp)"
+if ! xcodebuild -quiet -project GrePrep.xcodeproj -scheme GrePrep -destination "id=$udid" -derivedDataPath build/dd \
+  build >"$log" 2>&1; then
+  grep -v UnusedImportAccess "$log" >&2
+  rm -f "$log"
+  exit 1
+fi
+rm -f "$log"
 xcrun simctl install "$udid" build/dd/Build/Products/Debug-iphonesimulator/GrePrep.app
 xcrun simctl terminate "$udid" dev.greprepapp.app 2>/dev/null || true
 if [ -n "${GP_API_BASE_URL:-}" ]; then

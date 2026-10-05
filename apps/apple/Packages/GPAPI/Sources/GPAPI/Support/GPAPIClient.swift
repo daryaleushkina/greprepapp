@@ -22,6 +22,13 @@ public enum GPAPIClient {
     public static func underlyingError(_ error: any Error) -> any Error {
         (error as? ClientError)?.underlyingError ?? error
     }
+
+    /// HTTP-статус и id запроса, если ответ пришёл, но не по договору (прокси вместо сервера, чужое тело).
+    public static func responseInfo(_ error: any Error) -> (status: Int, requestID: String?)? {
+        guard let response = (error as? ClientError)?.response else { return nil }
+        let requestID = HTTPField.Name("X-Request-Id").flatMap { response.headerFields[$0] }
+        return (response.status.code, requestID)
+    }
 }
 
 /// Токен сессии в заголовке Authorization. Генератор Apple не читает securitySchemes договора, поэтому

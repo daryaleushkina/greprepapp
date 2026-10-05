@@ -15,8 +15,11 @@ enum Fonts {
             return
         }
         var error: Unmanaged<CFError>?
+        guard !CTFontManagerRegisterFontsForURL(url as CFURL, .process, &error), let error else { return }
+        let failure = error.takeRetainedValue()
         // Повторная регистрация (второе окно на Mac, хост тестов) отвечает «уже есть» — это не ошибка.
-        _ = CTFontManagerRegisterFontsForURL(url as CFURL, .process, &error)
+        guard CFErrorGetCode(failure) != CTFontManagerError.alreadyRegistered.rawValue else { return }
+        assertionFailure("Onest registration failed: \(failure)")
     }
 }
 

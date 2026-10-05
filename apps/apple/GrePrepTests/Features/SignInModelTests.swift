@@ -9,10 +9,13 @@ import Testing
 struct SignInModelTests {
     let server = StubServer()
 
-    func setUp(webProviders: [WebProvider: WebProviderConfig] = [:]) -> (SignInModel, AppModel, MemoryTokenStore) {
+    func setUp(
+        webProviders: [WebProvider: WebProviderConfig] = [:], appleSignInEnabled: Bool = false
+    ) -> (SignInModel, AppModel, MemoryTokenStore) {
         let tokens = MemoryTokenStore()
         let app = AppModel(
-            config: server.config(webProviders: webProviders), tokens: tokens, cache: temporaryCache(),
+            config: server.config(webProviders: webProviders, appleSignInEnabled: appleSignInEnabled), tokens: tokens,
+            cache: temporaryCache(),
             network: NetworkMonitor(), session: server.session
         )
         return (SignInModel(app: app, discoverySession: server.session), app, tokens)
@@ -103,12 +106,19 @@ struct SignInModelTests {
             return URL(string: "dev.greprepapp.app:/oauth?code=the-code&state=\(state)")!
         }
         let query = try #require(opened.flatMap { URLComponents(url: $0, resolvingAgainstBaseURL: false)?.queryItems })
-        #expect(query.first { $0.name == "code_challenge_method" }?.value == "S256")
-        #expect(query.first { $0.name == "client_id" }?.value == "client-1")
+        func item(_ name: String) -> String? { query.first { $0.name == name }?.value }
+        #expect(item("code_challenge_method") == "S256")
+        #expect(item("client_id") == "client-1")
         let body = try #require(server.requests("POST /api/auth/oidc/code").first).json()
         #expect(body["code"] as? String == "the-code")
         #expect(body["provider"] as? String == "telegram")
-        #expect((body["codeVerifier"] as? String)?.count == 43)
+        // Пары, которые сверят провайдер и сервер: verifier ↔ challenge, nonce окна ↔ nonce на сервер, один адрес
+        // возврата у окна, на сервере и в настройках.
+        let verifier = try #require(body["codeVerifier"] as? String)
+        #expect(WebSignIn.codeChallenge(for: verifier) == item("code_challenge"))
+        #expect(body["nonce"] as? String == item("nonce"))
+        #expect(body["redirectUri"] as? String == "dev.greprepapp.app:/oauth")
+        #expect(item("redirect_uri") == "dev.greprepapp.app:/oauth")
         #expect(app.phase == .signedIn)
         #expect(try tokens.token() == "t-tg")
     }
@@ -154,21 +164,96 @@ struct SignInModelTests {
         #expect(model.message == .failed)
         await model.signInWithWeb(.telegram, authenticate: never)
         #expect(model.message == .failed)
+        // В журнале — причина, а не просто «не получилось»: иначе сломанный вход у всех не разобрать.
+        await eventually { server.requests("POST /api/client-errors").count == 2 }
+        let messages = server.requests("POST /api/client-errors").compactMap { try? $0.json()["message"] as? String }
+        #expect(messages.contains { $0.contains("status 500") })
+        #expect(messages.contains { $0.contains("https") })
     }
 
-    @Test("Apple: человек закрыл окно — без сообщения; другая ошибка — «не получилось»")
+    @Test("Apple: человек закрыл окно — без сообщения; другая ошибка — «не получилось» и отчёт")
     func appleFailures() async {
         server.on("POST /api/client-errors", .status(204))
-        let (model, _, _) = setUp()
+        let (model, _, _) = setUp(appleSignInEnabled: true)
         await model.completeApple(.failure(ASAuthorizationError(.canceled)))
         #expect(model.message == nil)
         await model.completeApple(.failure(ASAuthorizationError(.failed)))
         #expect(model.message == .failed)
+        await eventually { !server.requests("POST /api/client-errors").isEmpty }
+    }
+
+    @Test("Apple: запрос просит имя и несёт одноразовый nonce")
+    func appleRequest() {
+        let (model, _, _) = setUp(appleSignInEnabled: true)
+        let first = ASAuthorizationAppleIDProvider().createRequest()
+        model.prepareAppleRequest(first)
+        let second = ASAuthorizationAppleIDProvider().createRequest()
+        model.prepareAppleRequest(second)
+        #expect(first.requestedScopes == [.fullName])
+        #expect((first.nonce ?? "").count >= 16)
+        #expect(first.nonce != second.nonce)
+    }
+
+    @Test("Apple: id_token и тот же nonce — на сервер, пустое имя не уходит")
+    func appleSuccess() async throws {
+        server.on("POST /api/auth/oidc", .json(200, Fixture.session(token: "t-apple")))
+        let (model, app, tokens) = setUp(appleSignInEnabled: true)
+        await model.signInWithApple(
+            identityToken: Data("jwt".utf8), fullName: PersonNameComponents(), nonce: "nonce-1234567890abcdef")
+        let body = try #require(server.requests("POST /api/auth/oidc").first).json()
+        #expect(body["idToken"] as? String == "jwt")
+        #expect(body["nonce"] as? String == "nonce-1234567890abcdef")
+        #expect(body["displayName"] == nil)
+        #expect(app.phase == .signedIn)
+        #expect(try tokens.token() == "t-apple")
+    }
+
+    @Test("Apple: ответ без id_token или без nonce — «не получилось», запроса нет")
+    func appleMissingToken() async {
+        server.on("POST /api/client-errors", .status(204))
+        let (model, _, _) = setUp(appleSignInEnabled: true)
+        await model.signInWithApple(identityToken: nil, fullName: nil, nonce: "nonce-1234567890abcdef")
+        #expect(model.message == .failed)
+        await model.signInWithApple(identityToken: Data("jwt".utf8), fullName: nil, nonce: nil)
+        #expect(model.message == .failed)
+        #expect(server.requests("POST /api/auth/oidc").isEmpty)
+    }
+
+    @Test("второе нажатие во время входа — один запрос")
+    func singleSignInAtATime() async {
+        let gate = StubServer.Gate()
+        server.on("POST /api/auth/dev", .gated(gate, 200, Fixture.session()))
+        let (model, _, _) = setUp()
+        let first = Task { await model.signInForDevelopment(name: "a") }
+        await eventually { model.busy == .development }
+        await model.signInForDevelopment(name: "b")
+        gate.open()
+        await first.value
+        #expect(server.requests("POST /api/auth/dev").count == 1)
+    }
+
+    @Test("Apple без аккаунта разработчика — честное «ещё не подключён», без отчёта об ошибке")
+    func appleNotConnectedYet() async {
+        let (model, _, _) = setUp(appleSignInEnabled: false)
+        await model.completeApple(.failure(ASAuthorizationError(.unknown)))
+        #expect(model.message == .notConnectedYet(.apple))
+        #expect(server.requests("POST /api/client-errors").isEmpty)
     }
 }
 
 @Suite("PKCE и адрес возврата")
 struct WebSignInTests {
+    @Test("окно входа узнаёт свой адрес возврата и не узнаёт чужой")
+    func callbackMatching() throws {
+        let scheme = WebSignIn.callback(for: URL(string: "dev.greprepapp.app:/oauth")!)
+        #expect(scheme.matchesURL(URL(string: "dev.greprepapp.app:/oauth?code=c&state=s")!))
+        #expect(!scheme.matchesURL(URL(string: "evil.app:/oauth?code=c")!))
+        let https = WebSignIn.callback(for: URL(string: "https://greprepapp.dev/auth/callback")!)
+        #expect(https.matchesURL(URL(string: "https://greprepapp.dev/auth/callback?code=c")!))
+        #expect(!https.matchesURL(URL(string: "https://evil.dev/auth/callback?code=c")!))
+        #expect(!https.matchesURL(URL(string: "https://greprepapp.dev/other?code=c")!))
+    }
+
     @Test("challenge S256 — пример из RFC 7636, приложение B")
     func rfcVector() {
         #expect(

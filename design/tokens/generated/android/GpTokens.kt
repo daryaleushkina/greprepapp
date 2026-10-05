@@ -216,6 +216,8 @@ object GpSize {
     val brandMark = 64.dp
     /** Знак-лента внутри плитки */
     val brandGlyph = 30.dp
+    /** Тонкая рамка: край стекла, контур узла ленты, рамка кнопки Google */
+    val hairline = 1.dp
 }
 
 /** Раскладка. breakpointWide — граница компактной и широкой раскладки. */

@@ -88,6 +88,8 @@ struct AppleSignInButton: View {
 
         func updateNSView(_ button: ASAuthorizationAppleIDButton, context: Context) {
             context.coordinator.model = model
+            // Кнопка AppKit не видит .disabled из SwiftUI — передать руками, иначе она жмётся во время другого входа.
+            button.isEnabled = context.environment.isEnabled
         }
 
         /// Своего размера кнопка не навязывает: берёт ширину колонки и высоту соседних кнопок входа.
@@ -110,6 +112,8 @@ struct AppleSignInButton: View {
         }
 
         @objc func start() {
+            // Один вход за раз (как у остальных кнопок — SignInModel.begin).
+            guard model.busy == nil else { return }
             let request = ASAuthorizationAppleIDProvider().createRequest()
             model.prepareAppleRequest(request)
             let controller = ASAuthorizationController(authorizationRequests: [request])
@@ -165,7 +169,7 @@ struct GoogleSignInButton: View {
             .frame(maxWidth: .infinity, minHeight: GPSize.buttonCompact)
             .padding(.horizontal, GPSpace.s12)
             .background(Color(.signInGoogleBg), in: Capsule())
-            .overlay(Capsule().strokeBorder(Color(.signInGoogleStroke), lineWidth: 1))
+            .overlay(Capsule().strokeBorder(Color(.signInGoogleStroke), lineWidth: GPSize.hairline))
             .contentShape(Capsule())
         }
         .buttonStyle(PressScaleStyle())
