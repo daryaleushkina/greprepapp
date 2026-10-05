@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<title>Почему — Слово</title>
+<title>Г · Telegram — Слово</title>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -10,112 +10,107 @@
 <helmet>
 <style>
 body{margin:0}
-a{color:#2481CC}a:hover{color:#2481CC}
+.tg{--tg-theme-bg-color:#FFFFFF;--tg-theme-secondary-bg-color:#F2F2F7;--tg-theme-section-bg-color:#FFFFFF;--tg-theme-text-color:#000000;--tg-theme-hint-color:#616166;--tg-theme-link-color:#2481CC;--tg-theme-section-separator-color:rgba(60,60,67,0.16);--tg-theme-section-header-text-color:#616166;--tg-theme-destructive-text-color:#D93A2F;--brand:#6E56CF;--on-brand:#FFFFFF;--brand-soft:rgba(110,86,207,0.10);--wrong:#C2410C;--fill:rgba(118,118,128,0.10);--track:rgba(118,118,128,0.18);--chev:#BDBDC2;--glow:rgba(239,95,0,0.12);--glow-2:rgba(239,95,0,0.04);--page-0:rgba(242,242,247,0);--glass-bg:rgba(255,255,255,0.62);--glass-edge:rgba(0,0,0,0.06);--glass-rim:rgba(255,255,255,0.55);--glass-shadow:0 8px 24px rgba(0,0,0,0.08);--glass-on:#FFFFFF;color-scheme:light}
+.tg.dark{--tg-theme-bg-color:#000000;--tg-theme-secondary-bg-color:#000000;--tg-theme-section-bg-color:#1C1C1E;--tg-theme-text-color:#FFFFFF;--tg-theme-hint-color:#98989F;--tg-theme-link-color:#3E88F7;--tg-theme-section-separator-color:rgba(84,84,88,0.55);--tg-theme-section-header-text-color:#8D8D93;--tg-theme-destructive-text-color:#FF6961;--brand:#9E8CFC;--on-brand:#14121F;--brand-soft:rgba(158,140,252,0.16);--wrong:#FF8A4C;--fill:rgba(118,118,128,0.24);--track:rgba(118,118,128,0.32);--chev:#5A5A5F;--glow:rgba(255,138,76,0.13);--glow-2:rgba(255,138,76,0.04);--page-0:rgba(0,0,0,0);--glass-bg:rgba(28,28,30,0.55);--glass-edge:rgba(0,0,0,0.35);--glass-rim:rgba(255,255,255,0.12);--glass-shadow:0 8px 24px rgba(0,0,0,0.40);--glass-on:rgba(255,255,255,0.18);color-scheme:dark}
+@media (prefers-reduced-transparency: reduce){.glass{background:var(--tg-theme-section-bg-color)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}}
+a{color:#6E56CF}a:hover{color:#5A44B8}
 button{font:inherit;cursor:pointer}
-a:active,button:active{opacity:.55}
-:focus-visible{outline:2px solid #2481CC;outline-offset:2px}
-::selection{background:rgba(36,129,204,.22)}
+button,a{-webkit-tap-highlight-color:transparent;transition:transform 160ms cubic-bezier(0.23,1,0.32,1)}
+button:active,a:active{transform:scale(0.97)}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+::selection{background:rgba(110,86,207,.22)}
+@media (prefers-reduced-motion: reduce){button,a{transition:none}button:active,a:active{transform:none}}
 </style>
 </helmet>
-<div style="width: 390px; height: 844px; overflow: hidden; position: relative; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif; color: #000000; background: #EFEFF4; display: flex; flex-direction: column; -webkit-font-smoothing: antialiased">
+<div class="tg {{themeClass}}" style="width: 390px; height: 844px; overflow: hidden; position: relative; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif; color: var(--tg-theme-text-color); background: radial-gradient(140% 52% at 50% -14%, var(--glow) 0%, var(--glow-2) 48%, transparent 76%), var(--tg-theme-secondary-bg-color); -webkit-font-smoothing: antialiased">
 
-  <header style="flex: none; height: 52px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 0 6px 0 4px; background: #EFEFF4">
-    <div style="display: flex; justify-content: flex-start">
-      <button type="button" style="height: 44px; padding: 0 8px 0 4px; border: 0; background: transparent; color: #2481CC; font-size: 17px; line-height: 22px; display: flex; align-items: center; gap: 5px">
-        <svg width="12" height="20" viewBox="0 0 12 20" fill="none" aria-hidden="true"><path d="M10 1.75 1.75 10 10 18.25" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-        Назад
-      </button>
-    </div>
-    <div style="font-size: 17px; line-height: 22px; font-weight: 600">Почему</div>
-    <div style="display: flex; justify-content: flex-end">
-      <button type="button" aria-label="Меню" style="width: 44px; height: 44px; padding: 0; border: 0; background: transparent; color: #2481CC; display: flex; align-items: center; justify-content: center">
-        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true"><circle cx="16" cy="16" r="14.125" stroke="currentColor" stroke-width="1.75"></circle><circle cx="10.5" cy="16" r="1.75" fill="currentColor"></circle><circle cx="16" cy="16" r="1.75" fill="currentColor"></circle><circle cx="21.5" cy="16" r="1.75" fill="currentColor"></circle></svg>
-      </button>
-    </div>
+  <header style="position: absolute; z-index: 3; top: 8px; left: 12px; right: 12px; display: flex; justify-content: space-between; pointer-events: none">
+    <button type="button" aria-label="Назад" class="glass" style="pointer-events: auto; width: 44px; height: 44px; padding: 0; border-radius: 50%; color: var(--tg-theme-text-color); display: flex; align-items: center; justify-content: center; background: var(--glass-bg); -webkit-backdrop-filter: blur(16px) saturate(180%); backdrop-filter: blur(16px) saturate(180%); border: 1px solid var(--glass-edge); box-shadow: inset 0 1px 0 var(--glass-rim), var(--glass-shadow)">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5.5 8 12l6.5 6.5"></path></svg>
+    </button>
+    <button type="button" aria-label="Меню" class="glass" style="pointer-events: auto; width: 44px; height: 44px; padding: 0; border-radius: 50%; color: var(--tg-theme-text-color); display: flex; align-items: center; justify-content: center; background: var(--glass-bg); -webkit-backdrop-filter: blur(16px) saturate(180%); backdrop-filter: blur(16px) saturate(180%); border: 1px solid var(--glass-edge); box-shadow: inset 0 1px 0 var(--glass-rim), var(--glass-shadow)">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5.5" cy="12" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="18.5" cy="12" r="1.8"></circle></svg>
+    </button>
   </header>
 
-  <main style="flex: 1; min-height: 0; overflow: hidden; padding: 0 16px; display: flex; flex-direction: column">
-
-    <div style="flex: none; margin-top: 8px; height: 24px; display: flex; align-items: center; gap: 14px">
-      <span style="flex: none; font-size: 15px; line-height: 20px; font-weight: 600; font-variant-numeric: tabular-nums">Слова · 3 из 12</span>
-      <div role="progressbar" aria-label="Слов пройдено" aria-valuemin="0" aria-valuemax="12" aria-valuenow="3" style="flex: 1; height: 4px; border-radius: 2px; background: rgba(118,118,128,0.2); display: flex">
-        <div style="width: 25%; height: 4px; border-radius: 2px; background: #2481CC"></div>
-      </div>
+  <!-- Где я в сессии слов — стеклянная плашка между кругами Telegram -->
+  <div role="progressbar" aria-label="Слово 3 из 12" aria-valuemin="0" aria-valuemax="12" aria-valuenow="3" class="glass" style="position: absolute; z-index: 3; top: 8px; left: 50%; transform: translateX(-50%); height: 44px; box-sizing: border-box; padding: 0 16px; border-radius: 22px; display: flex; align-items: center; gap: 10px; background: var(--glass-bg); -webkit-backdrop-filter: blur(16px) saturate(180%); backdrop-filter: blur(16px) saturate(180%); border: 1px solid var(--glass-edge); box-shadow: inset 0 1px 0 var(--glass-rim), var(--glass-shadow)">
+    <span style="flex: none; font-family: ui-rounded, 'SF Pro Rounded', -apple-system, system-ui, sans-serif; font-size: 15px; line-height: 20px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap">3 <span style="font-weight: 500; color: var(--tg-theme-hint-color)">из 12</span></span>
+    <div aria-hidden="true" style="display: flex; gap: 3px">
+      <span style="width: 8px; height: 4px; border-radius: 2px; background: #EF5F00"></span>
+      <span style="width: 8px; height: 4px; border-radius: 2px; background: #EF5F00"></span>
+      <span style="width: 8px; height: 4px; border-radius: 2px; background: #EF5F00"></span>
+      <span style="width: 8px; height: 4px; border-radius: 2px; background: var(--track)"></span>
+      <span style="width: 8px; height: 4px; border-radius: 2px; background: var(--track)"></span>
+      <span style="width: 8px; height: 4px; border-radius: 2px; background: var(--track)"></span>
+      <span style="width: 8px; height: 4px; border-radius: 2px; background: var(--track)"></span>
+      <span style="width: 8px; height: 4px; border-radius: 2px; background: var(--track)"></span>
+      <span style="width: 8px; height: 4px; border-radius: 2px; background: var(--track)"></span>
+      <span style="width: 8px; height: 4px; border-radius: 2px; background: var(--track)"></span>
+      <span style="width: 8px; height: 4px; border-radius: 2px; background: var(--track)"></span>
+      <span style="width: 8px; height: 4px; border-radius: 2px; background: var(--track)"></span>
     </div>
+  </div>
 
-    <div role="status" style="flex: none; margin-top: 14px; display: flex; align-items: center; gap: 10px">
-      <span style="flex: none; width: 24px; height: 24px; border-radius: 50%; background: #2481CC; display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="m3 7.25 2.75 2.75 5.25-5.5" stroke="#FFFFFF" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
-      <p style="flex: 1; min-width: 0; margin: 0; display: flex; flex-direction: column">
-        <span style="font-size: 17px; line-height: 22px; font-weight: 600">Верно.</span>
-        <span style="font-size: 15px; line-height: 20px">Следующее повторение — через 4 дня</span>
-      </p>
-    </div>
+  <main style="height: 844px; box-sizing: border-box; overflow: hidden; padding: 62px 16px 110px; display: flex; flex-direction: column">
 
-    <article aria-label="equivocal" style="flex: none; margin-top: 12px; background: #FFFFFF; border-radius: 10px; overflow: hidden">
-      <div style="display: flex; align-items: center; gap: 12px; padding: 14px 16px">
+    <!-- Только итог ответа; расписание повторений человеку не показываем -->
+    <p role="status" style="flex: none; margin: 4px 4px 0; display: flex; align-items: center; gap: 10px; font-size: 17px; line-height: 22px; font-weight: 600">
+      <span aria-hidden="true" style="flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--brand); color: var(--on-brand); display: flex; align-items: center; justify-content: center"><svg width="15" height="15" viewBox="0 0 14 14" fill="none"><path d="m3 7.25 2.75 2.75 5.25-5.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
+      Верно
+    </p>
+
+    <!-- Одна поверхность: слово, значения, синонимы — без лишних секций -->
+    <article aria-labelledby="d4-word" style="flex: none; margin-top: 16px; background: var(--tg-theme-section-bg-color); border-radius: 26px; overflow: hidden">
+      <div style="display: flex; align-items: center; gap: 12px; padding: 20px 20px 16px">
         <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
-          <h1 lang="en" style="margin: 0; font-size: 34px; line-height: 40px; font-weight: 700">equivocal</h1>
-          <p style="margin: 0; font-size: 17px; line-height: 22px; color: #6D6D72"><span lang="en">[ɪˈkwɪvək(ə)l]</span> · <i lang="en">adj.</i></p>
+          <h1 id="d4-word" lang="en" style="margin: 0; font-size: 36px; line-height: 42px; font-weight: 700; letter-spacing: -0.01em">equivocal</h1>
+          <p style="margin: 0; font-size: 17px; line-height: 22px; color: var(--tg-theme-hint-color)"><span lang="en">[ɪˈkwɪvək(ə)l]</span> · <i lang="en">adj.</i></p>
         </div>
-        <button type="button" aria-label="Послушать" style="flex: none; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: rgba(36,129,204,0.12); color: #2481CC; display: flex; align-items: center; justify-content: center">
+        <button type="button" aria-label="Послушать" style="flex: none; width: 48px; height: 48px; padding: 0; border: 0; border-radius: 50%; background: var(--brand-soft); color: var(--brand); display: flex; align-items: center; justify-content: center">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4.75 9.25h3l4.5-3.75v13l-4.5-3.75h-3a1 1 0 0 1-1-1v-3.5a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"></path><path d="M15.75 9.25a3.9 3.9 0 0 1 0 5.5M18.25 6.75a7.5 7.5 0 0 1 0 10.5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"></path></svg>
         </button>
       </div>
 
-      <div style="display: flex; gap: 10px; margin-left: 16px; padding: 10px 16px 12px 0; border-top: 0.5px solid #C8C7CC">
-        <span style="flex: none; width: 14px; font-size: 17px; line-height: 22px; font-weight: 600; color: #6D6D72">1</span>
-        <div style="flex: 1; min-width: 0">
-          <p lang="en" style="margin: 0; font-size: 17px; line-height: 22px">ambiguous or evasive, open to more than one interpretation</p>
-          <p style="margin: 2px 0 0; font-size: 17px; line-height: 22px; font-weight: 600">двусмысленный, уклончивый</p>
-          <p lang="en" style="margin: 6px 0 0; font-size: 15px; line-height: 20px; font-style: italic">The minister’s equivocal answer satisfied no one.</p>
-          <p style="margin: 0; font-size: 15px; line-height: 20px; color: #6D6D72">Двусмысленный ответ министра никого не устроил.</p>
-        </div>
-      </div>
-
-      <div style="display: flex; gap: 10px; margin-left: 16px; padding: 10px 16px 12px 0; border-top: 0.5px solid #C8C7CC">
-        <span style="flex: none; width: 14px; font-size: 17px; line-height: 22px; font-weight: 600; color: #6D6D72">2</span>
-        <div style="flex: 1; min-width: 0">
-          <p lang="en" style="margin: 0; font-size: 17px; line-height: 22px">uncertain, inconclusive</p>
-          <p style="margin: 2px 0 0; font-size: 17px; line-height: 22px"><span style="font-weight: 600">неопределённый, неоднозначный</span> <span style="color: #6D6D72">(о результатах)</span></p>
-          <p lang="en" style="margin: 6px 0 0; font-size: 15px; line-height: 20px; font-style: italic">The results of the trial were equivocal.</p>
-          <p style="margin: 0; font-size: 15px; line-height: 20px; color: #6D6D72">Результаты испытания оказались неоднозначными.</p>
-        </div>
-      </div>
+      <ol aria-label="Значения" style="list-style: none; margin: 0; padding: 0 0 0 20px; display: flex; flex-direction: column">
+        <li style="display: flex; gap: 12px; padding: 14px 20px 14px 0; border-top: 0.5px solid var(--tg-theme-section-separator-color)">
+          <span aria-hidden="true" style="flex: none; width: 14px; font-family: ui-rounded, 'SF Pro Rounded', -apple-system, system-ui, sans-serif; font-size: 17px; line-height: 22px; font-weight: 600; color: var(--brand)">1</span>
+          <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+            <p style="margin: 0; font-size: 17px; line-height: 22px; font-weight: 600">двусмысленный, уклончивый</p>
+            <p lang="en" style="margin: 0; font-size: 15px; line-height: 20px; color: var(--tg-theme-hint-color)">ambiguous or evasive, open to more than one interpretation</p>
+            <p style="margin: 6px 0 0; font-size: 15px; line-height: 21px"><i lang="en">The minister’s equivocal answer satisfied no one.</i> <span style="color: var(--tg-theme-hint-color)">Двусмысленный ответ министра никого не устроил.</span></p>
+          </div>
+        </li>
+        <li style="display: flex; gap: 12px; padding: 14px 20px 14px 0; border-top: 0.5px solid var(--tg-theme-section-separator-color)">
+          <span aria-hidden="true" style="flex: none; width: 14px; font-family: ui-rounded, 'SF Pro Rounded', -apple-system, system-ui, sans-serif; font-size: 17px; line-height: 22px; font-weight: 600; color: var(--brand)">2</span>
+          <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+            <p style="margin: 0; font-size: 17px; line-height: 22px"><span style="font-weight: 600">неопределённый, неоднозначный</span> <span style="color: var(--tg-theme-hint-color)">(о результатах)</span></p>
+            <p lang="en" style="margin: 0; font-size: 15px; line-height: 20px; color: var(--tg-theme-hint-color)">uncertain, inconclusive</p>
+            <p style="margin: 6px 0 0; font-size: 15px; line-height: 21px"><i lang="en">The results of the trial were equivocal.</i> <span style="color: var(--tg-theme-hint-color)">Результаты испытания оказались неоднозначными.</span></p>
+          </div>
+        </li>
+        <li style="display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 14px; row-gap: 6px; padding: 14px 20px 18px 0; border-top: 0.5px solid var(--tg-theme-section-separator-color); font-size: 15px; line-height: 21px">
+          <span style="color: var(--tg-theme-hint-color)">Синонимы</span>
+          <span lang="en">ambiguous, evasive, noncommittal</span>
+          <span style="color: var(--tg-theme-hint-color)">Антонимы</span>
+          <span lang="en">unequivocal, clear-cut, categorical</span>
+        </li>
+      </ol>
     </article>
-
-    <div style="flex: none; margin-top: 20px; background: #FFFFFF; border-radius: 10px; overflow: hidden; padding-left: 16px">
-      <div style="padding: 9px 16px 9px 0">
-        <p style="margin: 0; font-size: 13px; line-height: 16px; color: #6D6D72">Синонимы</p>
-        <p lang="en" style="margin: 2px 0 0; font-size: 17px; line-height: 22px">ambiguous, evasive, noncommittal</p>
-      </div>
-      <div style="padding: 9px 16px 9px 0; border-top: 0.5px solid #C8C7CC">
-        <p style="margin: 0; font-size: 13px; line-height: 16px; color: #6D6D72">Антонимы</p>
-        <p lang="en" style="margin: 2px 0 0; font-size: 17px; line-height: 22px">unequivocal, clear-cut, categorical</p>
-      </div>
-    </div>
-
-    <div style="flex: none; margin-top: 6px; padding: 0 16px; display: flex; align-items: flex-start; gap: 10px">
-      <div role="img" aria-label="Этап памяти 2 из 4" style="flex: none; margin-top: 7px; display: flex; gap: 3px">
-        <span style="width: 12px; height: 4px; border-radius: 2px; background: #2481CC"></span>
-        <span style="width: 12px; height: 4px; border-radius: 2px; background: #2481CC"></span>
-        <span style="width: 12px; height: 4px; border-radius: 2px; background: rgba(118,118,128,0.28)"></span>
-        <span style="width: 12px; height: 4px; border-radius: 2px; background: rgba(118,118,128,0.28)"></span>
-      </div>
-      <p style="flex: 1; min-width: 0; margin: 0; font-size: 13px; line-height: 18px; color: #6D6D72">Этап памяти 2 из 4. Выучено — когда ответите верно 4 раза подряд с перерывами.</p>
-    </div>
 
   </main>
 
-  <div style="flex: none; padding: 12px 16px 20px; background: #EFEFF4; border-top: 0.5px solid #C8C7CC">
-    <button type="button" style="display: block; width: 100%; height: 50px; border: 0; border-radius: 10px; background: #2481CC; color: #FFFFFF; font-size: 17px; line-height: 22px; font-weight: 600">Следующее слово</button>
+  <div style="position: absolute; z-index: 2; left: 0; right: 0; bottom: 0; padding: 28px 16px 24px; background: linear-gradient(to bottom, var(--page-0) 0, var(--tg-theme-secondary-bg-color) 28px)">
+    <button type="button" style="display: block; width: 100%; height: 50px; border: 0; border-radius: 12px; background: var(--brand); color: var(--on-brand); font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif; font-size: 17px; line-height: 22px; font-weight: 600">Следующее слово · 4 из 12</button>
   </div>
 
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
 class Component extends DCLogic {
 renderVals() {
-return {};
+const dark = this.props.dark ?? false;
+return { themeClass: dark ? 'dark' : '' };
 }
 }
 </script>

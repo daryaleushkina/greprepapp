@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>З · Колода — Конструктор</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#22337A}a:hover{color:#141A26}
+button,input{font:inherit}
+button{cursor:pointer}
+button,a{-webkit-tap-highlight-color:transparent;transition:transform 160ms cubic-bezier(0.23,1,0.32,1)}
+button:active,a:active{transform:scale(0.98)}
+:focus-visible{outline:3px solid #22337A;outline-offset:2px}
+::selection{background:#D6DDF5;color:#141A26}
+.deck-row{scrollbar-width:none}
+.deck-row::-webkit-scrollbar{display:none}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+@media (prefers-reduced-transparency: reduce){.glass{background:#FFFFFF!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}}
+@media (prefers-reduced-motion: reduce){button,a{transition:none}button:active,a:active{transform:none}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; overflow: hidden; position: relative; box-sizing: border-box; font-family: 'Golos Text', system-ui, sans-serif; color: #141A26; background: radial-gradient(130% 55% at 50% -8%, rgba(88, 101, 242, 0.18) 0%, rgba(88, 101, 242, 0.06) 45%, rgba(88, 101, 242, 0) 75%), #F5F6F8; display: flex; flex-direction: column">
+
+  <button type="button" class="glass" aria-label="Назад" style="position: absolute; z-index: 10; top: 8px; left: 12px; width: 44px; height: 44px; padding: 0; border: 1px solid rgba(0, 0, 0, 0.06); border-radius: 50%; background: rgba(255, 255, 255, 0.62); -webkit-backdrop-filter: blur(16px) saturate(180%); backdrop-filter: blur(16px) saturate(180%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 8px 24px rgba(0, 0, 0, 0.08); color: #141A26; display: flex; align-items: center; justify-content: center">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 6l-6 6 6 6"></path></svg>
+  </button>
+  <button type="button" class="glass" aria-label="Меню" style="position: absolute; z-index: 10; top: 8px; right: 12px; width: 44px; height: 44px; padding: 0; border: 1px solid rgba(0, 0, 0, 0.06); border-radius: 50%; background: rgba(255, 255, 255, 0.62); -webkit-backdrop-filter: blur(16px) saturate(180%); backdrop-filter: blur(16px) saturate(180%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 8px 24px rgba(0, 0, 0, 0.08); color: #141A26; display: flex; align-items: center; justify-content: center">
+    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.7" fill="currentColor"></circle><circle cx="12" cy="12" r="1.7" fill="currentColor"></circle><circle cx="18" cy="12" r="1.7" fill="currentColor"></circle></svg>
+  </button>
+
+  <main style="flex: 1; min-height: 0; overflow: hidden; padding: 64px 0 0; display: flex; flex-direction: column">
+
+    <h1 style="margin: 0 16px; font-size: 28px; line-height: 34px; font-weight: 600; letter-spacing: -0.02em">Новая тренировка</h1>
+
+    <h2 id="h2-ready" style="margin: 22px 16px 0; font-size: 15px; line-height: 20px; font-weight: 500; color: #56607A">Готовые колоды</h2>
+
+    <!-- Готовые колоды — лента вбок; одна уже выбрана. Высота по содержимому, чтобы текст не обрезался -->
+    <div class="deck-row" role="radiogroup" aria-labelledby="h2-ready" style="margin-top: 10px; display: flex; gap: 12px; overflow-x: auto; padding: 2px 16px 6px">
+
+      <button type="button" role="radio" aria-checked="true" style="flex: none; width: 158px; padding: 0; border: 0; background: transparent; display: flex; flex-direction: column; text-align: left; color: #141A26">
+        <span style="position: relative; z-index: 2; flex: 1; min-height: 116px; box-sizing: border-box; border-radius: 22px; padding: 14px 14px 14px 16px; background: rgba(255, 255, 255, 0.9); border: 1px solid rgba(20, 26, 40, 0.06); box-shadow: inset 0 0 0 2px #22337A, inset 0 1px 0 rgba(255, 255, 255, 0.9); display: flex; flex-direction: column; gap: 4px">
+          <span style="display: flex; align-items: flex-start; justify-content: space-between; gap: 8px">
+            <span style="font-size: 16px; line-height: 21px; font-weight: 600">Как в прошлый раз</span>
+            <span aria-hidden="true" style="flex: none; width: 22px; height: 22px; border-radius: 50%; background: #22337A; color: #FFFFFF; display: flex; align-items: center; justify-content: center">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 12.5l4 4 9-9"></path></svg>
+            </span>
+          </span>
+          <span lang="en" style="margin-top: auto; font-size: 14px; line-height: 19px; color: #56607A">Verbal · Text Completion</span>
+          <span style="font-size: 14px; line-height: 19px; color: #56607A">10 · Практика</span>
+        </span>
+        <span aria-hidden="true" style="position: relative; z-index: 1; margin: -12px 10px 0; height: 20px; border-radius: 16px; background: rgba(255, 255, 255, 0.55); border: 1px solid rgba(20, 26, 40, 0.05); box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.7)"></span>
+      </button>
+
+      <button type="button" role="radio" aria-checked="false" style="flex: none; width: 158px; padding: 0; border: 0; background: transparent; display: flex; flex-direction: column; text-align: left; color: #141A26">
+        <span style="position: relative; z-index: 2; flex: 1; min-height: 116px; box-sizing: border-box; border-radius: 22px; padding: 14px 16px; background: rgba(255, 255, 255, 0.72); border: 1px solid rgba(20, 26, 40, 0.06); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9); display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 16px; line-height: 21px; font-weight: 600">Мои ошибки</span>
+          <span style="margin-top: auto; font-size: 14px; line-height: 19px; color: #56607A">23 задания</span>
+        </span>
+        <span aria-hidden="true" style="position: relative; z-index: 1; margin: -12px 10px 0; height: 20px; border-radius: 16px; background: rgba(255, 255, 255, 0.5); border: 1px solid rgba(20, 26, 40, 0.05); box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.7)"></span>
+      </button>
+
+      <button type="button" role="radio" aria-checked="false" style="flex: none; width: 158px; padding: 0; border: 0; background: transparent; display: flex; flex-direction: column; text-align: left; color: #141A26">
+        <span style="position: relative; z-index: 2; flex: 1; min-height: 116px; box-sizing: border-box; border-radius: 22px; padding: 14px 16px; background: rgba(255, 255, 255, 0.72); border: 1px solid rgba(20, 26, 40, 0.06); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9); display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 16px; line-height: 21px; font-weight: 600">Проценты и доли</span>
+          <span style="margin-top: auto; font-size: 14px; line-height: 19px; color: #56607A">Слабая тема · 8</span>
+        </span>
+        <span aria-hidden="true" style="position: relative; z-index: 1; margin: -12px 10px 0; height: 20px; border-radius: 16px; background: rgba(255, 255, 255, 0.5); border: 1px solid rgba(20, 26, 40, 0.05); box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.7)"></span>
+      </button>
+
+      <button type="button" role="radio" aria-checked="false" style="flex: none; width: 158px; padding: 0; border: 0; background: transparent; display: flex; flex-direction: column; text-align: left; color: #141A26">
+        <span style="position: relative; z-index: 2; flex: 1; min-height: 116px; box-sizing: border-box; border-radius: 22px; padding: 14px 16px; background: rgba(255, 255, 255, 0.72); border: 1px solid rgba(20, 26, 40, 0.06); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9); display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 16px; line-height: 21px; font-weight: 600">Проверка на время</span>
+          <span lang="en" style="margin-top: auto; font-size: 14px; line-height: 19px; color: #56607A">Verbal · 12 · 18 мин</span>
+        </span>
+        <span aria-hidden="true" style="position: relative; z-index: 1; margin: -12px 10px 0; height: 20px; border-radius: 16px; background: rgba(255, 255, 255, 0.5); border: 1px solid rgba(20, 26, 40, 0.05); box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.7)"></span>
+      </button>
+
+    </div>
+
+    <h2 style="margin: 24px 16px 0; font-size: 15px; line-height: 20px; font-weight: 500; color: #56607A">Или соберите свою</h2>
+
+    <!-- Своя сборка: раздел, тип, число карточек полем, режим; тема и сложность свёрнуты -->
+    <section class="glass" aria-label="Своя колода" style="margin: 10px 16px 0; border-radius: 26px; padding: 12px 16px 4px; background: rgba(255, 255, 255, 0.9); -webkit-backdrop-filter: blur(24px) saturate(160%); backdrop-filter: blur(24px) saturate(160%); border: 1px solid rgba(20, 26, 40, 0.06); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 12px 32px -12px rgba(20, 26, 40, 0.10); display: flex; flex-direction: column">
+
+      <div role="radiogroup" aria-label="Раздел" style="height: 40px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px; padding: 3px; box-sizing: border-box; border-radius: 999px; background: rgba(20, 26, 40, 0.06)">
+        <button type="button" role="radio" aria-checked="true" lang="en" style="border: 0; border-radius: 999px; background: #FFFFFF; color: #141A26; font-size: 15px; font-weight: 600; box-shadow: 0 1px 2px rgba(20, 26, 40, 0.12), 0 2px 8px rgba(20, 26, 40, 0.06)">Verbal</button>
+        <button type="button" role="radio" aria-checked="false" lang="en" style="border: 0; border-radius: 999px; background: transparent; color: #3A4256; font-size: 15px; font-weight: 500">Quant</button>
+        <button type="button" role="radio" aria-checked="false" style="border: 0; border-radius: 999px; background: transparent; color: #3A4256; font-size: 15px; font-weight: 500">Эссе</button>
+      </div>
+
+      <button type="button" aria-haspopup="listbox" style="margin-top: 8px; min-height: 52px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; gap: 10px; text-align: left; color: #141A26">
+        <span style="flex: 1; font-size: 16px; line-height: 22px">Тип задания</span>
+        <span lang="en" style="font-size: 16px; line-height: 22px; color: #56607A">Text Completion</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7A8399" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9.5l5-5 5 5M7 14.5l5 5 5-5"></path></svg>
+      </button>
+
+      <!-- Число карточек — любое: нажал и ввёл -->
+      <div style="min-height: 52px; display: flex; align-items: center; gap: 10px; border-top: 0.5px solid rgba(20, 26, 40, 0.10)">
+        <label for="h2-count" style="flex: 1; font-size: 16px; line-height: 22px">Карточек</label>
+        <input id="h2-count" type="number" inputmode="numeric" min="1" max="200" value="10" style="flex: none; width: 72px; height: 40px; box-sizing: border-box; padding: 0; border: 0; border-radius: 999px; background: rgba(20, 26, 40, 0.06); color: #141A26; font-size: 17px; font-weight: 600; text-align: center; font-variant-numeric: tabular-nums; -moz-appearance: textfield; appearance: textfield">
+      </div>
+
+      <div style="padding: 8px 0 10px; display: flex; flex-direction: column; gap: 8px; border-top: 0.5px solid rgba(20, 26, 40, 0.10)">
+        <div role="radiogroup" aria-label="Режим" style="height: 40px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px; padding: 3px; box-sizing: border-box; border-radius: 999px; background: rgba(20, 26, 40, 0.06)">
+          <button type="button" role="radio" aria-checked="true" style="border: 0; border-radius: 999px; background: #FFFFFF; color: #141A26; font-size: 15px; font-weight: 600; box-shadow: 0 1px 2px rgba(20, 26, 40, 0.12), 0 2px 8px rgba(20, 26, 40, 0.06)">Практика</button>
+          <button type="button" role="radio" aria-checked="false" style="border: 0; border-radius: 999px; background: transparent; color: #3A4256; font-size: 15px; font-weight: 500">Проверка</button>
+        </div>
+        <p style="margin: 0 4px; font-size: 14px; line-height: 19px; color: #56607A">Разбор после каждого вопроса, без таймера</p>
+      </div>
+
+      <button type="button" aria-expanded="false" style="min-height: 48px; padding: 0; border: 0; border-top: 0.5px solid rgba(20, 26, 40, 0.10); background: transparent; display: flex; align-items: center; gap: 8px; text-align: left; color: #141A26">
+        <span style="flex: 1; font-size: 15px; line-height: 20px; color: #3A4256">Тема: все · сложность: любая</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7A8399" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9.5l6 6 6-6"></path></svg>
+      </button>
+
+    </section>
+
+  </main>
+
+  <div style="flex: none; position: relative; z-index: 5; padding: 8px 16px 24px; background: #F5F6F8">
+    <span aria-hidden="true" style="position: absolute; left: 0; right: 0; top: -28px; height: 28px; background: linear-gradient(rgba(245, 246, 248, 0), #F5F6F8); pointer-events: none"></span>
+    <button type="button" style="display: block; width: 100%; height: 50px; border: 0; border-radius: 12px; background: #22337A; color: #FFFFFF; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif; font-size: 17px; font-weight: 600">Начать · 10 карточек · ~12 мин</button>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

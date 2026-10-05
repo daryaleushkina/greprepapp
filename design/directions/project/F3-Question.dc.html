@@ -2,197 +2,144 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<title>Шаг — Вопрос и разбор</title>
+<title>Е · Шаги — Вопрос и разбор</title>
 <script src="./support.js"></script>
 </head>
 <body>
 <x-dc>
 <helmet>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,400&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&amp;display=swap">
 <style>
 body{margin:0}
-a{color:#1E2230}a:hover{color:#565C6B}
-button{font:inherit;cursor:pointer}
+a{color:#1B1E28}a:hover{color:#5A6070}
+button,input{font:inherit}
+button{cursor:pointer}
 button,a{-webkit-tap-highlight-color:transparent;transition:transform 160ms cubic-bezier(0.23,1,0.32,1)}
 button:active,a:active{transform:scale(0.98)}
-:focus-visible{outline:3px solid #1E2230;outline-offset:3px}
-::selection{background:#ECE8FF;color:#1E2230}
-@media (prefers-reduced-motion: reduce){button,a{transition:none}button:active,a:active{transform:none}}
+:focus-visible{outline:2px solid #5B4BC4;outline-offset:2px}
+::selection{background:#ECE9FB;color:#1B1E28}
+.f3-in{animation:f3-in 240ms cubic-bezier(0.23,1,0.32,1)}
+@keyframes f3-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){button,a{transition:none}button:active,a:active{transform:none}.f3-in{animation:none}}
+@media (prefers-reduced-transparency: reduce){.glass{background:#FFFFFF!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}}
 </style>
 </helmet>
-<div style="width: 390px; height: 844px; overflow: hidden; position: relative; box-sizing: border-box; font-family: 'Nunito', sans-serif; color: #1E2230; background: #F5F7FB; display: flex; flex-direction: column">
+<div style="width: 390px; height: 844px; overflow: hidden; position: relative; box-sizing: border-box; font-family: 'Onest', system-ui, sans-serif; color: #1B1E28; background: radial-gradient(130% 50% at 50% -12%, rgba(91, 75, 196, 0.13) 0%, rgba(91, 75, 196, 0.04) 45%, rgba(245, 246, 249, 0) 70%), #F5F6F9; display: flex; flex-direction: column">
 
-  <header style="flex: none; height: 52px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 0 6px; background: #F5F7FB">
-    <div style="display: flex; justify-content: flex-start">
-      <button type="button" style="height: 44px; padding: 0 10px 0 2px; border: 0; border-radius: 12px; background: transparent; color: #1E2230; font-size: 17px; font-weight: 600; display: flex; align-items: center; gap: 2px">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 6l-6 6 6 6"></path></svg>
-        Назад
-      </button>
-    </div>
-    <div style="font-size: 17px; line-height: 22px; font-weight: 800; letter-spacing: -0.01em">Шаг</div>
-    <div style="display: flex; justify-content: flex-end">
-      <button type="button" aria-label="Меню" style="width: 44px; height: 44px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; justify-content: center">
-        <span style="width: 32px; height: 32px; border-radius: 50%; background: #E8EBF2; display: flex; align-items: center; justify-content: center">
-          <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><circle cx="3.5" cy="9" r="1.6" fill="#1E2230"></circle><circle cx="9" cy="9" r="1.6" fill="#1E2230"></circle><circle cx="14.5" cy="9" r="1.6" fill="#1E2230"></circle></svg>
-        </span>
-      </button>
-    </div>
-  </header>
+  <button type="button" class="glass" aria-label="Назад" style="position: absolute; z-index: 5; top: 8px; left: 12px; width: 44px; height: 44px; box-sizing: border-box; padding: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.62); -webkit-backdrop-filter: blur(16px) saturate(180%); backdrop-filter: blur(16px) saturate(180%); border: 1px solid rgba(0, 0, 0, 0.06); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 8px 24px rgba(0, 0, 0, 0.08); color: #1B1E28; display: flex; align-items: center; justify-content: center">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5.5L8 12l6.5 6.5"></path></svg>
+  </button>
+  <button type="button" class="glass" aria-label="Меню" style="position: absolute; z-index: 5; top: 8px; right: 12px; width: 44px; height: 44px; box-sizing: border-box; padding: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.62); -webkit-backdrop-filter: blur(16px) saturate(180%); backdrop-filter: blur(16px) saturate(180%); border: 1px solid rgba(0, 0, 0, 0.06); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 8px 24px rgba(0, 0, 0, 0.08); color: #1B1E28; display: flex; align-items: center; justify-content: center">
+    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5.5" cy="12" r="1.7" fill="currentColor"></circle><circle cx="12" cy="12" r="1.7" fill="currentColor"></circle><circle cx="18.5" cy="12" r="1.7" fill="currentColor"></circle></svg>
+  </button>
 
-  <main style="flex: 1; min-height: 0; overflow: hidden; padding: 6px 16px 0; display: flex; flex-direction: column; gap: 14px">
+  <!-- Сессия: десять шагов между стеклянными кнопками шапки, конец виден -->
+  <div role="img" aria-label="Вопрос 4 из 10: первый верно, второй неверно, третий верно, четвёртый неверно" style="position: absolute; z-index: 4; top: 8px; left: 68px; right: 68px; height: 44px; display: flex; align-items: center; justify-content: center; gap: 10px">
+    <span style="display: flex; align-items: center; gap: 6px">
+      <span style="width: 8px; height: 8px; border-radius: 50%; background: #5B4BC4"></span>
+      <span style="width: 8px; height: 8px; border-radius: 50%; background: #C2410C"></span>
+      <span style="width: 8px; height: 8px; border-radius: 50%; background: #5B4BC4"></span>
+      <span style="width: 12px; height: 12px; box-sizing: border-box; border-radius: 50%; border: 2.5px solid #C2410C"></span>
+      <span style="width: 8px; height: 8px; border-radius: 50%; background: rgba(27, 30, 40, 0.14)"></span>
+      <span style="width: 8px; height: 8px; border-radius: 50%; background: rgba(27, 30, 40, 0.14)"></span>
+      <span style="width: 8px; height: 8px; border-radius: 50%; background: rgba(27, 30, 40, 0.14)"></span>
+      <span style="width: 8px; height: 8px; border-radius: 50%; background: rgba(27, 30, 40, 0.14)"></span>
+      <span style="width: 8px; height: 8px; border-radius: 50%; background: rgba(27, 30, 40, 0.14)"></span>
+      <span style="width: 8px; height: 8px; border-radius: 50%; background: rgba(27, 30, 40, 0.14)"></span>
+    </span>
+    <span style="font-size: 14px; line-height: 18px; font-weight: 600; font-variant-numeric: tabular-nums">4 из 10</span>
+  </div>
 
-    <!-- Сессия — 10 точек-шагов: видно, где конец -->
-    <div style="display: flex; align-items: center; gap: 12px">
-      <div role="img" aria-label="Вопрос 4 из 10. Вопрос 1 — верно, вопрос 2 — неверно, вопрос 3 — верно" style="flex: 1; position: relative; height: 28px; display: flex">
-        <span aria-hidden="true" style="position: absolute; left: 5%; right: 5%; top: 13px; height: 2px; border-radius: 1px; background: #D9DDE6"></span>
-        <span aria-hidden="true" style="position: absolute; left: 5%; width: 30%; top: 13px; height: 2px; border-radius: 1px; background: #5B4BC4"></span>
-        <span style="position: relative; flex: 1; display: flex; align-items: center; justify-content: center">
-          <span style="width: 20px; height: 20px; border-radius: 50%; background: #5B4BC4; color: #FFFFFF; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 3px #F5F7FB">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 12.5l4 4 9-9"></path></svg>
-          </span>
-        </span>
-        <span style="position: relative; flex: 1; display: flex; align-items: center; justify-content: center">
-          <span style="width: 20px; height: 20px; border-radius: 50%; background: #C62828; color: #FFFFFF; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 3px #F5F7FB">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7l10 10"></path><path d="M17 7L7 17"></path></svg>
-          </span>
-        </span>
-        <span style="position: relative; flex: 1; display: flex; align-items: center; justify-content: center">
-          <span style="width: 20px; height: 20px; border-radius: 50%; background: #5B4BC4; color: #FFFFFF; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 3px #F5F7FB">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 12.5l4 4 9-9"></path></svg>
-          </span>
-        </span>
-        <span style="position: relative; flex: 1; display: flex; align-items: center; justify-content: center">
-          <span style="width: 26px; height: 26px; box-sizing: border-box; border-radius: 50%; background: #FFFFFF; border: 3px solid #5B4BC4; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 3px #F5F7FB">
-            <span style="width: 8px; height: 8px; border-radius: 50%; background: #5B4BC4"></span>
-          </span>
-        </span>
-        <span style="position: relative; flex: 1; display: flex; align-items: center; justify-content: center"><span style="width: 10px; height: 10px; box-sizing: border-box; border-radius: 50%; background: #FFFFFF; border: 2px solid #C6CBD6"></span></span>
-        <span style="position: relative; flex: 1; display: flex; align-items: center; justify-content: center"><span style="width: 10px; height: 10px; box-sizing: border-box; border-radius: 50%; background: #FFFFFF; border: 2px solid #C6CBD6"></span></span>
-        <span style="position: relative; flex: 1; display: flex; align-items: center; justify-content: center"><span style="width: 10px; height: 10px; box-sizing: border-box; border-radius: 50%; background: #FFFFFF; border: 2px solid #C6CBD6"></span></span>
-        <span style="position: relative; flex: 1; display: flex; align-items: center; justify-content: center"><span style="width: 10px; height: 10px; box-sizing: border-box; border-radius: 50%; background: #FFFFFF; border: 2px solid #C6CBD6"></span></span>
-        <span style="position: relative; flex: 1; display: flex; align-items: center; justify-content: center"><span style="width: 10px; height: 10px; box-sizing: border-box; border-radius: 50%; background: #FFFFFF; border: 2px solid #C6CBD6"></span></span>
-        <span style="position: relative; flex: 1; display: flex; align-items: center; justify-content: center"><span style="width: 10px; height: 10px; box-sizing: border-box; border-radius: 50%; background: #FFFFFF; border: 2px solid #C6CBD6"></span></span>
-      </div>
-      <span style="flex: none; font-size: 16px; line-height: 22px; font-weight: 800; font-variant-numeric: tabular-nums">4 из 10</span>
+  <main style="flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; padding: 68px 20px 24px; display: flex; flex-direction: column">
+
+    <div style="flex: none; display: flex; align-items: center; justify-content: space-between; gap: 12px">
+      <span lang="en" style="font-size: 14px; line-height: 20px; font-weight: 500; color: #5B4BC4">Text Completion</span>
+      <a href="#" style="margin: -12px 0; min-height: 44px; display: inline-flex; align-items: center; font-size: 13px; line-height: 18px; color: #5A6070; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; text-decoration-color: rgba(27, 30, 40, 0.25)">Сообщить об ошибке</a>
     </div>
 
-    <div style="display: flex">
-      <span style="display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px 0 9px; border-radius: 15px; background: #ECE8FF; color: #5B4BC4; font-size: 14px; font-weight: 800">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 6.5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-6.5l-4.5 3.5v-3.5a2 2 0 0 1-2-2z"></path><path d="M8.5 9h7"></path><path d="M8.5 12.5h4.5"></path></svg>
-        Text Completion
-      </span>
-    </div>
+    <p lang="en" style="flex: none; margin: 8px 0 0; font-size: 18px; line-height: 26px">Although the committee’s report was praised for its thoroughness, critics noted that its conclusions were oddly <span role="img" aria-label="пропуск" style="display: inline-block; width: 64px; height: 18px; vertical-align: -3px; border-bottom: 1.5px solid #1B1E28"></span>, hedging on nearly every recommendation it made.</p>
 
-    <p lang="en" style="margin: 0; font-size: 17px; line-height: 26px; font-weight: 400; color: #1E2230">Although the committee’s report was praised for its thoroughness, critics noted that its conclusions were oddly <span role="img" aria-label="пропуск" style="display: inline-block; width: 64px; height: 18px; vertical-align: -3px; border-bottom: 2px solid #1E2230"></span>, hedging on nearly every recommendation it made.</p>
-
-    <!-- Варианты: после ответа не нажимаются; ваш и верный отмечены значком и словом -->
-    <ul aria-label="Варианты ответа" style="list-style: none; margin: 0; padding: 4px; background: #FFFFFF; border-radius: 20px; display: flex; flex-direction: column; gap: 2px; box-shadow: 0 1px 2px rgba(30, 34, 48, 0.04), 0 4px 14px -4px rgba(30, 34, 48, 0.08)">
-      <li style="min-height: 42px; border-radius: 16px; background: #ECE8FF; padding: 0 12px 0 7px; display: flex; align-items: center; gap: 12px">
-        <span style="flex: none; width: 28px; height: 28px; border-radius: 50%; background: #FFFFFF; color: #5B4BC4; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800">A</span>
-        <span lang="en" style="flex: 1; font-size: 17px; line-height: 22px; font-weight: 800">equivocal</span>
-        <span style="display: inline-flex; align-items: center; gap: 6px; color: #5B4BC4; font-size: 13px; line-height: 18px; font-weight: 800">
-          <span aria-hidden="true" style="width: 18px; height: 18px; border-radius: 50%; background: #5B4BC4; color: #FFFFFF; display: flex; align-items: center; justify-content: center">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 12.5l4 4 9-9"></path></svg>
-          </span>
-          Верный ответ
+    <!-- После ответа рядом только верный и ваш; остальные — одной тихой строкой -->
+    <ul aria-label="Варианты ответа" style="flex: none; list-style: none; margin: 18px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px">
+      <li style="min-height: 48px; box-sizing: border-box; border-radius: 16px; background: #EEEBFB; padding: 0 14px 0 10px; display: flex; align-items: center; gap: 10px">
+        <span style="flex: none; width: 28px; height: 28px; border-radius: 50%; background: #FFFFFF; color: #5B4BC4; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600">A</span>
+        <span lang="en" style="flex: 1; font-size: 17px; line-height: 22px; font-weight: 600">equivocal</span>
+        <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 14px; line-height: 18px; font-weight: 500; color: #4A3CA8">
+          верный
+          <span aria-hidden="true" style="width: 20px; height: 20px; border-radius: 50%; background: #5B4BC4; color: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 12.5l4 4 9-9"></path></svg></span>
         </span>
       </li>
-      <li style="min-height: 42px; border-radius: 16px; padding: 0 12px 0 7px; display: flex; align-items: center; gap: 12px">
-        <span style="flex: none; width: 28px; height: 28px; border-radius: 50%; background: #EEF0F4; color: #565C6B; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800">B</span>
-        <span lang="en" style="flex: 1; font-size: 17px; line-height: 22px; font-weight: 600; color: #565C6B">incisive</span>
-      </li>
-      <li style="min-height: 42px; border-radius: 16px; padding: 0 12px 0 7px; display: flex; align-items: center; gap: 12px">
-        <span style="flex: none; width: 28px; height: 28px; border-radius: 50%; background: #C62828; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800">C</span>
-        <span lang="en" style="flex: 1; font-size: 17px; line-height: 22px; font-weight: 800">exhaustive</span>
-        <span style="display: inline-flex; align-items: center; gap: 6px; color: #C62828; font-size: 13px; line-height: 18px; font-weight: 800">
-          <span aria-hidden="true" style="width: 18px; height: 18px; border-radius: 50%; background: #C62828; color: #FFFFFF; display: flex; align-items: center; justify-content: center">
-            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7l10 10"></path><path d="M17 7L7 17"></path></svg>
-          </span>
-          Ваш ответ
+      <li style="min-height: 48px; box-sizing: border-box; border-radius: 16px; background: #FFFFFF; box-shadow: inset 0 0 0 1.5px #C2410C; padding: 0 14px 0 10px; display: flex; align-items: center; gap: 10px">
+        <span style="flex: none; width: 28px; height: 28px; border-radius: 50%; background: #F5F6F9; color: #5A6070; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600">C</span>
+        <span lang="en" style="flex: 1; font-size: 17px; line-height: 22px">exhaustive</span>
+        <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 14px; line-height: 18px; font-weight: 500; color: #A8380A">
+          ваш ответ
+          <span aria-hidden="true" style="width: 20px; height: 20px; border-radius: 50%; background: #C2410C; color: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4.2" stroke-linecap="round"><path d="M7 7l10 10"></path><path d="M17 7L7 17"></path></svg></span>
         </span>
       </li>
-      <li style="min-height: 42px; border-radius: 16px; padding: 0 12px 0 7px; display: flex; align-items: center; gap: 12px">
-        <span style="flex: none; width: 28px; height: 28px; border-radius: 50%; background: #EEF0F4; color: #565C6B; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800">D</span>
-        <span lang="en" style="flex: 1; font-size: 17px; line-height: 22px; font-weight: 600; color: #565C6B">dogmatic</span>
-      </li>
-      <li style="min-height: 42px; border-radius: 16px; padding: 0 12px 0 7px; display: flex; align-items: center; gap: 12px">
-        <span style="flex: none; width: 28px; height: 28px; border-radius: 50%; background: #EEF0F4; color: #565C6B; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800">E</span>
-        <span lang="en" style="flex: 1; font-size: 17px; line-height: 22px; font-weight: 600; color: #565C6B">lucid</span>
+      <li aria-label="Остальные варианты" style="min-height: 28px; padding: 0 14px; display: flex; align-items: center; gap: 16px; font-size: 15px; line-height: 20px; color: #5A6070">
+        <span>B <span lang="en">incisive</span></span>
+        <span>D <span lang="en">dogmatic</span></span>
+        <span>E <span lang="en">lucid</span></span>
       </li>
     </ul>
 
-    <!-- Вердикт одной фразой и язык разбора -->
-    <div style="display: flex; align-items: center; gap: 12px">
-      <div style="flex: 1; display: flex; align-items: flex-start; gap: 10px">
-        <span aria-hidden="true" style="flex: none; margin-top: 1px; width: 22px; height: 22px; border-radius: 50%; background: #C62828; color: #FFFFFF; display: flex; align-items: center; justify-content: center">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7l10 10"></path><path d="M17 7L7 17"></path></svg>
-        </span>
-        <p style="margin: 0; font-size: 16px; line-height: 22px; font-weight: 700"><span style="color: #C62828; font-weight: 800">Неверно.</span> Верный ответ — A, <span lang="en">equivocal</span></p>
-      </div>
-      <div role="group" aria-label="Язык разбора" style="flex: none; display: flex; background: #E8EBF2; border-radius: 14px">
-        <button type="button" aria-pressed="{{ruPressed}}" onClick="{{setRu}}" style="height: 44px; min-width: 50px; padding: 0 12px; border: 0; border-radius: 14px; font-size: 15px; font-weight: 800; {{ruStyle}}">RU</button>
-        <button type="button" aria-pressed="{{enPressed}}" onClick="{{setEn}}" style="height: 44px; min-width: 50px; padding: 0 12px; border: 0; border-radius: 14px; font-size: 15px; font-weight: 800; {{enStyle}}">EN</button>
-      </div>
-    </div>
+    <!-- Разбор продолжает ленту: тонкая линия слева, узел-вердикт сверху -->
+    <section aria-label="Разбор" style="flex: none; position: relative; margin-top: 22px; padding-left: 40px; display: flex; flex-direction: column">
+      <span aria-hidden="true" style="position: absolute; left: 13.25px; top: 30px; bottom: 22px; width: 1.5px; background: rgba(27, 30, 40, 0.12)"></span>
 
-    <!-- Разбор — лента из шагов: подсказка, ваш ответ, тема; раскрыт второй уровень -->
-    <div style="display: flex; flex-direction: column; gap: 14px">
+      <div style="min-height: 28px; display: flex; align-items: center; gap: 10px">
+        <span aria-hidden="true" style="position: absolute; left: 0; top: 0; width: 28px; height: 28px; border-radius: 50%; background: #C2410C; color: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.8" stroke-linecap="round"><path d="M7 7l10 10"></path><path d="M17 7L7 17"></path></svg></span>
+        <p role="status" style="flex: 1; min-width: 0; margin: 0; font-size: 17px; line-height: 22px">
+          <sc-if value="{{isRu}}" hint-placeholder-val="{{ true }}"><span><strong style="font-weight: 600">Неверно.</strong> Верный ответ — A, <span lang="en">equivocal</span>.</span></sc-if>
+          <sc-if value="{{isEn}}" hint-placeholder-val="{{ false }}"><span lang="en"><strong style="font-weight: 600">Incorrect.</strong> The answer is A, equivocal.</span></sc-if>
+        </p>
+      </div>
 
       <sc-if value="{{isRu}}" hint-placeholder-val="{{ true }}">
-        <div style="display: flex; flex-direction: column; gap: 14px">
-          <div style="position: relative; display: grid; grid-template-columns: 32px 1fr; column-gap: 12px; align-items: start">
-            <span aria-hidden="true" style="position: absolute; left: 15px; top: 16px; bottom: -14px; width: 2px; background: #D9DDE6"></span>
-            <span aria-hidden="true" style="position: relative; z-index: 1; width: 32px; height: 32px; border-radius: 50%; background: #ECE8FF; color: #5B4BC4; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 4px #F5F7FB">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 17.5h5"></path><path d="M10.5 20.5h3"></path><path d="M12 3.5a5.5 5.5 0 0 0-3.2 10c.5.4.7.9.7 1.5v.5h5V15c0-.6.2-1.1.7-1.5A5.5 5.5 0 0 0 12 3.5z"></path></svg>
-            </span>
-            <p style="margin: 0; padding-top: 4px; font-size: 16px; line-height: 24px; font-weight: 400"><strong style="font-weight: 800">Подсказка</strong> — <span lang="en">„hedging on nearly every recommendation“</span>: выводы уклончивы. Это и есть <strong lang="en" style="font-weight: 800">equivocal</strong> — двусмысленный, уклончивый.</p>
-          </div>
-          <div style="position: relative; display: grid; grid-template-columns: 32px 1fr; column-gap: 12px; align-items: start">
-            <span aria-hidden="true" style="position: absolute; left: 15px; top: 16px; bottom: -20px; width: 2px; background: #D9DDE6"></span>
-            <span aria-hidden="true" style="position: relative; z-index: 1; width: 32px; height: 32px; border-radius: 50%; background: #E8EBF2; color: #C62828; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 4px #F5F7FB">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7l10 10"></path><path d="M17 7L7 17"></path></svg>
-            </span>
-            <p style="margin: 0; padding-top: 4px; font-size: 16px; line-height: 24px; font-weight: 400"><strong style="font-weight: 800">Ваш ответ</strong> — <strong lang="en" style="font-weight: 800">exhaustive</strong> („исчерпывающий“). Соблазняет, потому что рядом стоит <span lang="en">thoroughness</span>. Но <span lang="en">although</span> требует контраста с похвалой, а не её повтора.</p>
-          </div>
-        </div>
+        <p style="margin: 10px 0 0; font-size: 16px; line-height: 23px; color: #2E323D">Подсказка — «<span lang="en">hedging on nearly every recommendation</span>»: выводы уклончивы. Это и есть <i lang="en">equivocal</i> — двусмысленный, уклончивый.</p>
       </sc-if>
-
       <sc-if value="{{isEn}}" hint-placeholder-val="{{ false }}">
-        <div lang="en" style="display: flex; flex-direction: column; gap: 14px">
-          <div style="position: relative; display: grid; grid-template-columns: 32px 1fr; column-gap: 12px; align-items: start">
-            <span aria-hidden="true" style="position: absolute; left: 15px; top: 16px; bottom: -14px; width: 2px; background: #D9DDE6"></span>
-            <span aria-hidden="true" style="position: relative; z-index: 1; width: 32px; height: 32px; border-radius: 50%; background: #ECE8FF; color: #5B4BC4; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 4px #F5F7FB">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 17.5h5"></path><path d="M10.5 20.5h3"></path><path d="M12 3.5a5.5 5.5 0 0 0-3.2 10c.5.4.7.9.7 1.5v.5h5V15c0-.6.2-1.1.7-1.5A5.5 5.5 0 0 0 12 3.5z"></path></svg>
-            </span>
-            <p style="margin: 0; padding-top: 4px; font-size: 16px; line-height: 24px; font-weight: 400"><strong style="font-weight: 800">The clue</strong> is “hedging on nearly every recommendation”: the conclusions avoided commitment. That is what <strong style="font-weight: 800">equivocal</strong> means — deliberately ambiguous.</p>
-          </div>
-          <div style="position: relative; display: grid; grid-template-columns: 32px 1fr; column-gap: 12px; align-items: start">
-            <span aria-hidden="true" style="position: absolute; left: 15px; top: 16px; bottom: -20px; width: 2px; background: #D9DDE6"></span>
-            <span aria-hidden="true" style="position: relative; z-index: 1; width: 32px; height: 32px; border-radius: 50%; background: #E8EBF2; color: #C62828; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 4px #F5F7FB">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7l10 10"></path><path d="M17 7L7 17"></path></svg>
-            </span>
-            <p style="margin: 0; padding-top: 4px; font-size: 16px; line-height: 24px; font-weight: 400"><strong style="font-weight: 800">Your answer</strong>, <strong style="font-weight: 800">exhaustive</strong> (“covering everything”), is tempting because thoroughness appears nearby. But although signals a contrast with the praise, not a repeat of it.</p>
-          </div>
-        </div>
+        <p lang="en" style="margin: 10px 0 0; font-size: 16px; line-height: 23px; color: #2E323D">The clue is “hedging on nearly every recommendation”: the conclusions avoided commitment. That is what <i>equivocal</i> means — deliberately ambiguous.</p>
       </sc-if>
 
-      <div style="position: relative; display: grid; grid-template-columns: 32px 1fr; column-gap: 12px; align-items: start">
-        <span aria-hidden="true" style="position: relative; z-index: 1; margin-top: 6px; width: 32px; height: 32px; border-radius: 50%; background: #E8EBF2; color: #1E2230; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 4px #F5F7FB">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5c-1.6-1.3-4-2-7.5-2v13c3.5 0 5.9.7 7.5 2 1.6-1.3 4-2 7.5-2v-13c-3.5 0-5.9.7-7.5 2z"></path><path d="M12 6.5v13"></path></svg>
-        </span>
-        <div style="display: flex; flex-direction: column; align-items: flex-start">
-          <a href="#" style="min-height: 44px; display: flex; align-items: center; font-size: 16px; line-height: 22px; font-weight: 800; color: #1E2230; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; text-decoration-color: #B4ABEE">Тема: слова-сигналы контраста · теория 3 мин</a>
-          <a href="#" style="min-height: 44px; display: flex; align-items: center; font-size: 14px; line-height: 20px; font-weight: 700; color: #565C6B; text-decoration: underline; text-underline-offset: 3px">Сообщить об ошибке</a>
+      <!-- Уровень 2 — по нажатию; язык — стеклянная капсула рядом -->
+      <div style="margin-top: 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px">
+        <button type="button" aria-expanded="{{moreExpanded}}" onClick="{{toggleMore}}" class="glass" style="flex: none; white-space: nowrap; height: 40px; padding: 0 12px 0 14px; border-radius: 20px; background: rgba(255, 255, 255, 0.62); -webkit-backdrop-filter: blur(16px) saturate(180%); backdrop-filter: blur(16px) saturate(180%); border: 1px solid rgba(0, 0, 0, 0.06); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 8px 24px rgba(0, 0, 0, 0.06); color: #1B1E28; font-size: 15px; font-weight: 500; display: flex; align-items: center; gap: 6px">
+          <sc-if value="{{isRu}}" hint-placeholder-val="{{ true }}"><span>Почему не <span lang="en">exhaustive</span>?</span></sc-if>
+          <sc-if value="{{isEn}}" hint-placeholder-val="{{ false }}"><span lang="en">Why not exhaustive?</span></sc-if>
+          <sc-if value="{{notMore}}" hint-placeholder-val="{{ true }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9.5l6 6 6-6"></path></svg></sc-if>
+          <sc-if value="{{more}}" hint-placeholder-val="{{ false }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 14.5l6-6 6 6"></path></svg></sc-if>
+        </button>
+        <div role="group" aria-label="Язык разбора" class="glass" style="flex: none; height: 40px; box-sizing: border-box; padding: 3px; border-radius: 20px; display: flex; background: rgba(226, 229, 237, 0.55); -webkit-backdrop-filter: blur(16px) saturate(180%); backdrop-filter: blur(16px) saturate(180%); border: 1px solid rgba(0, 0, 0, 0.06); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55)">
+          <button type="button" aria-pressed="{{ruPressed}}" onClick="{{setRu}}" style="width: 44px; height: 32px; padding: 0; border: 0; border-radius: 16px; font-size: 14px; {{ruStyle}}">RU</button>
+          <button type="button" aria-pressed="{{enPressed}}" onClick="{{setEn}}" style="width: 44px; height: 32px; padding: 0; border: 0; border-radius: 16px; font-size: 14px; {{enStyle}}">EN</button>
         </div>
       </div>
 
-    </div>
+      <sc-if value="{{more}}" hint-placeholder-val="{{ false }}">
+        <div class="f3-in" style="margin-top: 10px; padding: 14px 16px; border-radius: 20px; background: #FFFFFF">
+          <sc-if value="{{isRu}}" hint-placeholder-val="{{ true }}">
+            <p style="margin: 0; font-size: 15px; line-height: 22px"><i lang="en">exhaustive</i> — «исчерпывающий». Соблазняет, потому что рядом стоит <i lang="en">thoroughness</i>. Но <i lang="en">although</i> требует контраста с похвалой, а не её повтора.</p>
+          </sc-if>
+          <sc-if value="{{isEn}}" hint-placeholder-val="{{ false }}">
+            <p lang="en" style="margin: 0; font-size: 15px; line-height: 22px"><i>exhaustive</i> (“covering everything”) is tempting because <i>thoroughness</i> appears nearby. But <i>although</i> signals a contrast with the praise, not a repeat of it.</p>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <!-- Тема — простая ссылка, без стрелки -->
+      <a href="#" style="margin-top: 8px; min-height: 44px; display: inline-flex; align-items: center; align-self: flex-start; gap: 8px; font-size: 15px; line-height: 20px; font-weight: 500; color: #1B1E28; text-decoration: none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5B4BC4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.5h10.5a3 3 0 0 1 3 3v12H8a3 3 0 0 1-3-3z"></path><path d="M5 16.5a3 3 0 0 1 3-3h10.5"></path></svg>
+        <sc-if value="{{isRu}}" hint-placeholder-val="{{ true }}"><span style="text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px; text-decoration-color: rgba(27, 30, 40, 0.25)">Слова-сигналы контраста · теория 3 мин</span></sc-if>
+        <sc-if value="{{isEn}}" hint-placeholder-val="{{ false }}"><span lang="en" style="text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px; text-decoration-color: rgba(27, 30, 40, 0.25)">Contrast signal words · 3-min theory</span></sc-if>
+      </a>
+    </section>
   </main>
 
-  <!-- MainButton Telegram -->
-  <div style="flex: none; position: relative; z-index: 2; padding: 12px 16px 20px; background: #F5F7FB">
-    <span aria-hidden="true" style="position: absolute; left: 0; right: 0; top: -28px; height: 28px; background: linear-gradient(rgba(245, 247, 251, 0), #F5F7FB)"></span>
-    <button type="button" style="width: 100%; height: 50px; border: 0; border-radius: 16px; background: #1E2230; color: #FFFFFF; font-size: 17px; font-weight: 700">Следующий вопрос</button>
+  <div style="flex: none; position: relative; padding: 8px 16px 24px; background: #F5F6F9">
+    <span aria-hidden="true" style="position: absolute; left: 0; right: 0; top: -28px; height: 28px; background: linear-gradient(rgba(245, 246, 249, 0), #F5F6F9); pointer-events: none"></span>
+    <button type="button" style="display: block; width: 100%; height: 50px; border: 0; border-radius: 12px; background: #1B1E28; color: #FFFFFF; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif; font-size: 17px; font-weight: 600">Дальше · 5 из 10</button>
   </div>
 
 </div>
@@ -200,14 +147,18 @@ button:active,a:active{transform:scale(0.98)}
 <script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
 class Component extends DCLogic {
 renderVals() {
-const lang = (this.state && this.state.lang) || 'ru';
-const on = 'background: #1E2230; color: #FFFFFF;';
-const off = 'background: transparent; color: #565C6B;';
+const s = this.state || {};
+const lang = s.lang || 'ru';
+const more = !!s.more;
+const on = 'background: #FFFFFF; box-shadow: 0 1px 2px rgba(27,30,40,0.12), 0 2px 8px rgba(27,30,40,0.06); font-weight: 600; color: #1B1E28;';
+const off = 'background: transparent; box-shadow: none; font-weight: 400; color: #4A4F5C;';
 return {
 isRu: lang === 'ru', isEn: lang === 'en',
 ruPressed: lang === 'ru' ? 'true' : 'false', enPressed: lang === 'en' ? 'true' : 'false',
 ruStyle: lang === 'ru' ? on : off, enStyle: lang === 'en' ? on : off,
-setRu: () => this.setState({ lang: 'ru' }), setEn: () => this.setState({ lang: 'en' })
+setRu: () => this.setState({ lang: 'ru' }), setEn: () => this.setState({ lang: 'en' }),
+more: more, notMore: !more, moreExpanded: more ? 'true' : 'false',
+toggleMore: () => this.setState({ more: !more })
 };
 }
 }

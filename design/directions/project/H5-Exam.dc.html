@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>З · Колода — Пробный экзамен</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#22337A}a:hover{color:#141A26}
+button{font:inherit;cursor:pointer}
+button,a,label{-webkit-tap-highlight-color:transparent;transition:transform 160ms cubic-bezier(0.23,1,0.32,1)}
+button:active,a:active{transform:scale(0.98)}
+:focus-visible{outline:3px solid #22337A;outline-offset:2px}
+::selection{background:#D6DDF5;color:#141A26}
+input[type=radio]:checked{border-color:#22337A !important;background:#22337A !important;box-shadow:inset 0 0 0 4px #FFFFFF}
+label:has(input:checked){border-color:#22337A !important;background:rgba(34,51,122,0.05) !important}
+@media (prefers-reduced-transparency: reduce){.glass{background:#FFFFFF!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}}
+@media (prefers-reduced-motion: reduce){button,a,label{transition:none}button:active,a:active{transform:none}}
+</style>
+</helmet>
+<!-- Экзамен — как настоящий GRE, на английском: колоды нет, строгий лист; свет сверху нейтральный -->
+<div style="width: 390px; height: 844px; overflow: hidden; position: relative; box-sizing: border-box; font-family: 'Golos Text', system-ui, sans-serif; color: #141A26; background: radial-gradient(130% 50% at 50% -8%, rgba(100, 116, 139, 0.16) 0%, rgba(100, 116, 139, 0.05) 45%, rgba(100, 116, 139, 0) 75%), #F5F6F8; display: flex; flex-direction: column">
+
+  <button type="button" class="glass" aria-label="Назад" style="position: absolute; z-index: 10; top: 8px; left: 12px; width: 44px; height: 44px; padding: 0; border: 1px solid rgba(0, 0, 0, 0.06); border-radius: 50%; background: rgba(255, 255, 255, 0.62); -webkit-backdrop-filter: blur(16px) saturate(180%); backdrop-filter: blur(16px) saturate(180%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 8px 24px rgba(0, 0, 0, 0.08); color: #141A26; display: flex; align-items: center; justify-content: center">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 6l-6 6 6 6"></path></svg>
+  </button>
+  <button type="button" class="glass" aria-label="Меню" style="position: absolute; z-index: 10; top: 8px; right: 12px; width: 44px; height: 44px; padding: 0; border: 1px solid rgba(0, 0, 0, 0.06); border-radius: 50%; background: rgba(255, 255, 255, 0.62); -webkit-backdrop-filter: blur(16px) saturate(180%); backdrop-filter: blur(16px) saturate(180%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 8px 24px rgba(0, 0, 0, 0.08); color: #141A26; display: flex; align-items: center; justify-content: center">
+    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.7" fill="currentColor"></circle><circle cx="12" cy="12" r="1.7" fill="currentColor"></circle><circle cx="18" cy="12" r="1.7" fill="currentColor"></circle></svg>
+  </button>
+
+  <main lang="en" style="flex: 1; min-height: 0; overflow: hidden; padding: 64px 16px 0; display: flex; flex-direction: column; gap: 14px">
+
+    <section aria-label="Current section" style="flex: none; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+        <div style="min-width: 0; display: flex; flex-direction: column">
+          <h1 style="margin: 0; font-size: 18px; line-height: 24px; font-weight: 600">Quantitative Reasoning</h1>
+          <p style="margin: 2px 0 0; font-size: 14px; line-height: 19px; color: #56607A; font-variant-numeric: tabular-nums">Section 1 of 2 · Question 7 of 12</p>
+        </div>
+        <div style="flex: none; display: flex; flex-direction: column; align-items: flex-end">
+          <span role="timer" aria-label="Time remaining 14 minutes 32 seconds" style="font-size: 22px; line-height: 26px; font-weight: 500; font-variant-numeric: tabular-nums">14:32</span>
+          <button type="button" style="min-height: 44px; margin: -10px -8px -12px 0; padding: 0 8px; border: 0; border-radius: 999px; background: transparent; color: #22337A; font-size: 14px; line-height: 19px; font-weight: 500">Hide Time</button>
+        </div>
+      </div>
+      <ol aria-label="Sections" style="list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px">
+        <li style="display: flex; flex-direction: column; gap: 5px">
+          <span aria-hidden="true" style="height: 3px; border-radius: 2px; background: #22337A"></span>
+          <span style="font-size: 12px; line-height: 16px; color: #56607A; white-space: nowrap">AW</span>
+        </li>
+        <li style="display: flex; flex-direction: column; gap: 5px">
+          <span aria-hidden="true" style="height: 3px; border-radius: 2px; background: #22337A"></span>
+          <span style="font-size: 12px; line-height: 16px; color: #56607A; white-space: nowrap">Verbal 1</span>
+        </li>
+        <li style="display: flex; flex-direction: column; gap: 5px">
+          <span aria-hidden="true" style="height: 3px; border-radius: 2px; background: #22337A"></span>
+          <span style="font-size: 12px; line-height: 16px; color: #56607A; white-space: nowrap">Verbal 2</span>
+        </li>
+        <li aria-current="step" style="display: flex; flex-direction: column; gap: 5px">
+          <span aria-hidden="true" style="height: 3px; border-radius: 2px; background: linear-gradient(90deg, #22337A 58%, rgba(20, 26, 40, 0.14) 58%)"></span>
+          <span style="font-size: 12px; line-height: 16px; font-weight: 600; color: #141A26">Quant 1</span>
+        </li>
+        <li style="display: flex; flex-direction: column; gap: 5px">
+          <span aria-hidden="true" style="height: 3px; border-radius: 2px; background: rgba(20, 26, 40, 0.14)"></span>
+          <span style="font-size: 12px; line-height: 16px; color: #56607A">Quant 2</span>
+        </li>
+      </ol>
+    </section>
+
+    <!-- Инструменты экзамена — одна стеклянная капсула -->
+    <div role="toolbar" aria-label="Exam tools" class="glass" style="flex: none; height: 48px; box-sizing: border-box; padding: 2px; border-radius: 999px; background: rgba(255, 255, 255, 0.62); -webkit-backdrop-filter: blur(16px) saturate(180%); backdrop-filter: blur(16px) saturate(180%); border: 1px solid rgba(0, 0, 0, 0.06); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 8px 24px rgba(0, 0, 0, 0.08); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr))">
+      <button type="button" aria-pressed="false" style="border: 0; border-radius: 999px; background: transparent; color: #141A26; font-size: 15px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 6px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22337A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4.5h10v15.5l-5-3.5-5 3.5z"></path></svg>
+        Mark
+      </button>
+      <button type="button" style="border: 0; border-radius: 999px; background: transparent; color: #141A26; font-size: 15px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 6px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22337A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="4.5" width="6" height="6" rx="1.5"></rect><rect x="13.5" y="4.5" width="6" height="6" rx="1.5"></rect><rect x="4.5" y="13.5" width="6" height="6" rx="1.5"></rect><rect x="13.5" y="13.5" width="6" height="6" rx="1.5"></rect></svg>
+        Review
+      </button>
+      <button type="button" style="border: 0; border-radius: 999px; background: transparent; color: #141A26; font-size: 15px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 6px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22337A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5.5" y="3.5" width="13" height="17" rx="2.5"></rect><path d="M8.5 7.5h7"></path><path d="M9 12h.01"></path><path d="M12 12h.01"></path><path d="M15 12h.01"></path><path d="M9 16h.01"></path><path d="M12 16h.01"></path><path d="M15 16h.01"></path></svg>
+        Calculator
+      </button>
+    </div>
+
+    <!-- Лист задания — плотный, для чтения -->
+    <article aria-label="Question 7" style="flex: none; border-radius: 26px; padding: 18px 16px 16px; background: #FFFFFF; border: 1px solid rgba(20, 26, 40, 0.06); box-shadow: 0 1px 2px rgba(20, 26, 40, 0.04), 0 12px 32px -12px rgba(20, 26, 40, 0.10); display: flex; flex-direction: column; gap: 14px">
+      <p style="margin: 0 2px; font-size: 16px; line-height: 23px">Compare Quantity A and Quantity B.</p>
+      <p style="margin: 0; text-align: center; font-size: 20px; line-height: 26px"><i>x</i> &gt; 0</p>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-radius: 16px; border: 1px solid rgba(20, 26, 40, 0.10)">
+        <div style="padding: 10px 12px 12px; display: flex; flex-direction: column; align-items: center; gap: 4px; border-right: 1px solid rgba(20, 26, 40, 0.10)">
+          <span style="font-size: 13px; line-height: 18px; color: #56607A">Quantity A</span>
+          <span style="font-size: 22px; line-height: 28px">(<i>x</i> + 1)²</span>
+        </div>
+        <div style="padding: 10px 12px 12px; display: flex; flex-direction: column; align-items: center; gap: 4px">
+          <span style="font-size: 13px; line-height: 18px; color: #56607A">Quantity B</span>
+          <span style="font-size: 22px; line-height: 28px"><i>x</i>² + 1</span>
+        </div>
+      </div>
+      <!-- Выбран первый; в экзамене верность не показывается -->
+      <div role="radiogroup" aria-label="Answer choices" style="display: flex; flex-direction: column; gap: 8px">
+        <label style="min-height: 50px; box-sizing: border-box; border-radius: 16px; border: 1px solid rgba(20, 26, 40, 0.12); background: #FFFFFF; padding: 11px 14px; display: flex; align-items: center; gap: 12px; cursor: pointer; font-size: 16px; line-height: 21px">
+          <input type="radio" name="h5-answer" value="a" checked style="appearance: none; -webkit-appearance: none; margin: 0; flex: none; width: 22px; height: 22px; box-sizing: border-box; border-radius: 50%; border: 1.5px solid #8A93A6; background: #FFFFFF; cursor: pointer">
+          <span>Quantity A is greater.</span>
+        </label>
+        <label style="min-height: 50px; box-sizing: border-box; border-radius: 16px; border: 1px solid rgba(20, 26, 40, 0.12); background: #FFFFFF; padding: 11px 14px; display: flex; align-items: center; gap: 12px; cursor: pointer; font-size: 16px; line-height: 21px">
+          <input type="radio" name="h5-answer" value="b" style="appearance: none; -webkit-appearance: none; margin: 0; flex: none; width: 22px; height: 22px; box-sizing: border-box; border-radius: 50%; border: 1.5px solid #8A93A6; background: #FFFFFF; cursor: pointer">
+          <span>Quantity B is greater.</span>
+        </label>
+        <label style="min-height: 50px; box-sizing: border-box; border-radius: 16px; border: 1px solid rgba(20, 26, 40, 0.12); background: #FFFFFF; padding: 11px 14px; display: flex; align-items: center; gap: 12px; cursor: pointer; font-size: 16px; line-height: 21px">
+          <input type="radio" name="h5-answer" value="c" style="appearance: none; -webkit-appearance: none; margin: 0; flex: none; width: 22px; height: 22px; box-sizing: border-box; border-radius: 50%; border: 1.5px solid #8A93A6; background: #FFFFFF; cursor: pointer">
+          <span>The two quantities are equal.</span>
+        </label>
+        <label style="min-height: 50px; box-sizing: border-box; border-radius: 16px; border: 1px solid rgba(20, 26, 40, 0.12); background: #FFFFFF; padding: 11px 14px; display: flex; align-items: center; gap: 12px; cursor: pointer; font-size: 16px; line-height: 21px">
+          <input type="radio" name="h5-answer" value="d" style="appearance: none; -webkit-appearance: none; margin: 0; flex: none; width: 22px; height: 22px; box-sizing: border-box; border-radius: 50%; border: 1.5px solid #8A93A6; background: #FFFFFF; cursor: pointer">
+          <span>The relationship cannot be determined from the information given.</span>
+        </label>
+      </div>
+    </article>
+
+  </main>
+
+  <!-- Нижняя панель Telegram: SecondaryButton «Back» слева, MainButton «Next» справа -->
+  <div lang="en" style="flex: none; position: relative; z-index: 5; padding: 8px 16px 24px; background: #F5F6F8; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif">
+    <span aria-hidden="true" style="position: absolute; left: 0; right: 0; top: -28px; height: 28px; background: linear-gradient(rgba(245, 246, 248, 0), #F5F6F8); pointer-events: none"></span>
+    <button type="button" style="height: 50px; border: 0; border-radius: 12px; background: #FFFFFF; color: #22337A; font-size: 17px; font-weight: 600; box-shadow: 0 0 0 1px rgba(20, 26, 40, 0.06)">Back</button>
+    <button type="button" style="height: 50px; border: 0; border-radius: 12px; background: #22337A; color: #FFFFFF; font-size: 17px; font-weight: 600">Next</button>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

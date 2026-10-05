@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>З · Колода — Главная</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#22337A}a:hover{color:#141A26}
+button{font:inherit;cursor:pointer}
+button,a{-webkit-tap-highlight-color:transparent;transition:transform 160ms cubic-bezier(0.23,1,0.32,1)}
+button:active,a:active{transform:scale(0.98)}
+:focus-visible{outline:3px solid #22337A;outline-offset:2px}
+::selection{background:#D6DDF5;color:#141A26}
+@media (prefers-reduced-transparency: reduce){.glass{background:#FFFFFF!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}}
+@media (prefers-reduced-motion: reduce){button,a{transition:none}button:active,a:active{transform:none}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; overflow: hidden; position: relative; box-sizing: border-box; font-family: 'Golos Text', system-ui, sans-serif; color: #141A26; background: radial-gradient(130% 55% at 50% -8%, rgba(88, 101, 242, 0.18) 0%, rgba(88, 101, 242, 0.06) 45%, rgba(88, 101, 242, 0) 75%), #F5F6F8; display: flex; flex-direction: column">
+
+  <!-- Шапка Telegram в стеклянном стиле: рисует клиент, названия нет -->
+  <button type="button" class="glass" aria-label="Закрыть" style="position: absolute; z-index: 10; top: 8px; left: 12px; width: 44px; height: 44px; padding: 0; border: 1px solid rgba(0, 0, 0, 0.06); border-radius: 50%; background: rgba(255, 255, 255, 0.62); -webkit-backdrop-filter: blur(16px) saturate(180%); backdrop-filter: blur(16px) saturate(180%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 8px 24px rgba(0, 0, 0, 0.08); color: #141A26; display: flex; align-items: center; justify-content: center">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"></path></svg>
+  </button>
+  <button type="button" class="glass" aria-label="Меню" style="position: absolute; z-index: 10; top: 8px; right: 12px; width: 44px; height: 44px; padding: 0; border: 1px solid rgba(0, 0, 0, 0.06); border-radius: 50%; background: rgba(255, 255, 255, 0.62); -webkit-backdrop-filter: blur(16px) saturate(180%); backdrop-filter: blur(16px) saturate(180%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 8px 24px rgba(0, 0, 0, 0.08); color: #141A26; display: flex; align-items: center; justify-content: center">
+    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.7" fill="currentColor"></circle><circle cx="12" cy="12" r="1.7" fill="currentColor"></circle><circle cx="18" cy="12" r="1.7" fill="currentColor"></circle></svg>
+  </button>
+
+  <main style="flex: 1; min-height: 0; overflow: hidden; padding: 64px 16px 0; display: flex; flex-direction: column">
+
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <h1 style="margin: 0; font-size: 30px; line-height: 36px; font-weight: 600; letter-spacing: -0.02em">Сегодня</h1>
+      <p style="margin: 0; font-size: 15px; line-height: 20px; color: #56607A">Три колоды · около 22 минут</p>
+    </div>
+
+    <!-- Большая колода: верхняя карточка — тот самый вопрос, на котором остановились; края ниже — оставшиеся карточки -->
+    <div style="margin-top: 28px; display: flex; flex-direction: column">
+      <section class="glass" aria-label="Незаконченная тренировка, вопрос 4 из 10" style="position: relative; z-index: 3; border-radius: 26px; padding: 20px 20px 18px; background: rgba(255, 255, 255, 0.9); -webkit-backdrop-filter: blur(24px) saturate(160%); backdrop-filter: blur(24px) saturate(160%); border: 1px solid rgba(20, 26, 40, 0.06); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 1px 2px rgba(20, 26, 40, 0.04), 0 12px 32px -12px rgba(20, 26, 40, 0.10); display: flex; flex-direction: column">
+        <span lang="en" style="font-size: 14px; line-height: 20px; font-weight: 500; color: #22337A">Verbal · Text Completion</span>
+        <p lang="en" style="margin: 10px 0 0; font-size: 18px; line-height: 26px; color: #141A26; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden">Although the committee’s report was praised for its thoroughness, critics noted that its conclusions were oddly ______, hedging on nearly every recommendation it made.</p>
+        <div style="margin-top: 18px; display: flex; align-items: center; gap: 12px">
+          <span role="img" aria-label="Пройдено 3 карточки, сейчас 4-я из 10" style="display: flex; align-items: center; gap: 5px">
+            <span style="width: 7px; height: 7px; border-radius: 50%; background: #22337A"></span>
+            <span style="width: 7px; height: 7px; border-radius: 50%; background: #22337A"></span>
+            <span style="width: 7px; height: 7px; border-radius: 50%; background: #22337A"></span>
+            <span style="width: 11px; height: 11px; box-sizing: border-box; border-radius: 50%; border: 2px solid #22337A"></span>
+            <span style="width: 7px; height: 7px; border-radius: 50%; background: rgba(20, 26, 40, 0.14)"></span>
+            <span style="width: 7px; height: 7px; border-radius: 50%; background: rgba(20, 26, 40, 0.14)"></span>
+            <span style="width: 7px; height: 7px; border-radius: 50%; background: rgba(20, 26, 40, 0.14)"></span>
+            <span style="width: 7px; height: 7px; border-radius: 50%; background: rgba(20, 26, 40, 0.14)"></span>
+            <span style="width: 7px; height: 7px; border-radius: 50%; background: rgba(20, 26, 40, 0.14)"></span>
+            <span style="width: 7px; height: 7px; border-radius: 50%; background: rgba(20, 26, 40, 0.14)"></span>
+          </span>
+          <span style="margin-left: auto; font-size: 14px; line-height: 20px; color: #56607A; white-space: nowrap">~7 мин</span>
+        </div>
+      </section>
+      <div aria-hidden="true" style="position: relative; z-index: 2; margin: -12px 10px 0; height: 20px; border-radius: 18px; background: rgba(255, 255, 255, 0.62); border: 1px solid rgba(20, 26, 40, 0.05); box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.7), 0 6px 14px -10px rgba(20, 26, 40, 0.12)"></div>
+      <div aria-hidden="true" style="position: relative; z-index: 1; margin: -12px 20px 0; height: 20px; border-radius: 16px; background: rgba(255, 255, 255, 0.48); border: 1px solid rgba(20, 26, 40, 0.05); box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.7)"></div>
+      <div aria-hidden="true" style="position: relative; z-index: 0; margin: -12px 30px 0; height: 20px; border-radius: 14px; background: rgba(255, 255, 255, 0.36); border: 1px solid rgba(20, 26, 40, 0.05); box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.7)"></div>
+    </div>
+
+    <!-- Две маленькие колоды -->
+    <div style="margin-top: 28px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+
+      <a href="#" style="display: flex; flex-direction: column; text-decoration: none; color: #141A26">
+        <span style="position: relative; z-index: 2; border-radius: 22px; padding: 16px; background: rgba(255, 255, 255, 0.72); border: 1px solid rgba(20, 26, 40, 0.06); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9); display: flex; flex-direction: column; gap: 4px">
+          <span style="display: flex; align-items: center; gap: 8px">
+            <span aria-hidden="true" style="flex: none; width: 8px; height: 8px; border-radius: 50%; background: #13897A"></span>
+            <span lang="en" style="font-size: 13px; line-height: 18px; color: #56607A">Quant</span>
+          </span>
+          <span style="margin-top: 4px; font-size: 17px; line-height: 22px; font-weight: 600">Проценты и доли</span>
+          <span style="font-size: 14px; line-height: 19px; color: #56607A">8 вопросов · ~10 мин</span>
+        </span>
+        <span aria-hidden="true" style="position: relative; z-index: 1; margin: -12px 10px 0; height: 20px; border-radius: 16px; background: rgba(255, 255, 255, 0.5); border: 1px solid rgba(20, 26, 40, 0.05); box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.7)"></span>
+      </a>
+
+      <a href="#" style="display: flex; flex-direction: column; text-decoration: none; color: #141A26">
+        <span style="position: relative; z-index: 2; border-radius: 22px; padding: 16px; background: rgba(255, 255, 255, 0.72); border: 1px solid rgba(20, 26, 40, 0.06); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9); display: flex; flex-direction: column; gap: 4px">
+          <span style="display: flex; align-items: center; gap: 8px">
+            <span aria-hidden="true" style="flex: none; width: 8px; height: 8px; border-radius: 50%; background: #C56A1E"></span>
+            <span style="font-size: 13px; line-height: 18px; color: #56607A">Повторение</span>
+          </span>
+          <span style="margin-top: 4px; font-size: 17px; line-height: 22px; font-weight: 600">Слова · 12</span>
+          <span style="font-size: 14px; line-height: 19px; color: #56607A">~5 мин</span>
+        </span>
+        <span aria-hidden="true" style="position: relative; z-index: 1; margin: -12px 10px 0; height: 20px; border-radius: 16px; background: rgba(255, 255, 255, 0.5); border: 1px solid rgba(20, 26, 40, 0.05); box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.7)"></span>
+      </a>
+
+    </div>
+
+    <!-- Тихие входы: просто ссылки, без стрелок и рамок -->
+    <nav aria-label="Другое" style="margin-top: 24px; display: flex; flex-wrap: wrap; column-gap: 22px">
+      <a href="#" style="min-height: 44px; display: inline-flex; align-items: center; font-size: 16px; line-height: 22px; font-weight: 500; text-decoration: none; color: #22337A">Собрать колоду</a>
+      <a href="#" style="min-height: 44px; display: inline-flex; align-items: center; font-size: 16px; line-height: 22px; font-weight: 500; text-decoration: none; color: #22337A">Пробный экзамен</a>
+      <a href="#" style="min-height: 44px; display: inline-flex; align-items: center; font-size: 16px; line-height: 22px; font-weight: 500; text-decoration: none; color: #22337A">Слабые места</a>
+    </nav>
+
+  </main>
+
+  <!-- Нижняя панель Telegram: содержимое уходит под растушёвку; кнопку рисует клиент, цвет и текст наши -->
+  <div style="flex: none; position: relative; z-index: 5; padding: 8px 16px 24px; background: #F5F6F8">
+    <span aria-hidden="true" style="position: absolute; left: 0; right: 0; top: -28px; height: 28px; background: linear-gradient(rgba(245, 246, 248, 0), #F5F6F8); pointer-events: none"></span>
+    <button type="button" style="display: block; width: 100%; height: 50px; border: 0; border-radius: 12px; background: #22337A; color: #FFFFFF; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif; font-size: 17px; font-weight: 600">Продолжить · вопрос 4 из 10</button>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

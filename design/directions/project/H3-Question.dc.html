@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>З · Колода — Вопрос и разбор</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#22337A}a:hover{color:#141A26}
+button{font:inherit;cursor:pointer}
+button,a{-webkit-tap-highlight-color:transparent;transition:transform 160ms cubic-bezier(0.23,1,0.32,1)}
+button:active,a:active{transform:scale(0.98)}
+:focus-visible{outline:3px solid #22337A;outline-offset:2px}
+::selection{background:#D6DDF5;color:#141A26}
+.q-main{scrollbar-width:none}
+.q-main::-webkit-scrollbar{display:none}
+@media (prefers-reduced-transparency: reduce){.glass{background:#FFFFFF!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}}
+@media (prefers-reduced-motion: reduce){button,a{transition:none}button:active,a:active{transform:none}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; overflow: hidden; position: relative; box-sizing: border-box; font-family: 'Golos Text', system-ui, sans-serif; color: #141A26; background: radial-gradient(130% 55% at 50% -8%, rgba(88, 101, 242, 0.18) 0%, rgba(88, 101, 242, 0.06) 45%, rgba(88, 101, 242, 0) 75%), #F5F6F8; display: flex; flex-direction: column">
+
+  <button type="button" class="glass" aria-label="Назад" style="position: absolute; z-index: 10; top: 8px; left: 12px; width: 44px; height: 44px; padding: 0; border: 1px solid rgba(0, 0, 0, 0.06); border-radius: 50%; background: rgba(255, 255, 255, 0.62); -webkit-backdrop-filter: blur(16px) saturate(180%); backdrop-filter: blur(16px) saturate(180%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 8px 24px rgba(0, 0, 0, 0.08); color: #141A26; display: flex; align-items: center; justify-content: center">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 6l-6 6 6 6"></path></svg>
+  </button>
+  <button type="button" class="glass" aria-label="Меню" style="position: absolute; z-index: 10; top: 8px; right: 12px; width: 44px; height: 44px; padding: 0; border: 1px solid rgba(0, 0, 0, 0.06); border-radius: 50%; background: rgba(255, 255, 255, 0.62); -webkit-backdrop-filter: blur(16px) saturate(180%); backdrop-filter: blur(16px) saturate(180%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 8px 24px rgba(0, 0, 0, 0.08); color: #141A26; display: flex; align-items: center; justify-content: center">
+    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.7" fill="currentColor"></circle><circle cx="12" cy="12" r="1.7" fill="currentColor"></circle><circle cx="18" cy="12" r="1.7" fill="currentColor"></circle></svg>
+  </button>
+
+  <!-- Раскрытый второй уровень удлиняет карточку — тогда экран прокручивается -->
+  <main class="q-main" style="flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; padding: 64px 16px 16px; display: flex; flex-direction: column">
+
+    <div style="flex: none; min-height: 24px; display: flex; align-items: center; gap: 12px">
+      <span lang="en" style="font-size: 14px; line-height: 20px; font-weight: 500; color: #22337A">Text Completion</span>
+      <span role="img" aria-label="Вопросы: 1 верно, 2 неверно, 3 верно, 4 текущий — неверно, впереди ещё 6" style="flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 5px">
+        <span style="width: 7px; height: 7px; border-radius: 50%; background: #1D5BD8"></span>
+        <span style="width: 7px; height: 7px; box-sizing: border-box; border-radius: 50%; border: 1.5px solid #C2410C"></span>
+        <span style="width: 7px; height: 7px; border-radius: 50%; background: #1D5BD8"></span>
+        <span style="width: 11px; height: 11px; box-sizing: border-box; border-radius: 50%; border: 2.5px solid #C2410C"></span>
+        <span style="width: 6px; height: 6px; border-radius: 50%; background: rgba(20, 26, 40, 0.14)"></span>
+        <span style="width: 6px; height: 6px; border-radius: 50%; background: rgba(20, 26, 40, 0.14)"></span>
+        <span style="width: 6px; height: 6px; border-radius: 50%; background: rgba(20, 26, 40, 0.14)"></span>
+        <span style="width: 6px; height: 6px; border-radius: 50%; background: rgba(20, 26, 40, 0.14)"></span>
+        <span style="width: 6px; height: 6px; border-radius: 50%; background: rgba(20, 26, 40, 0.14)"></span>
+        <span style="width: 6px; height: 6px; border-radius: 50%; background: rgba(20, 26, 40, 0.14)"></span>
+      </span>
+      <span style="flex: none; font-size: 15px; line-height: 20px; font-weight: 500; font-variant-numeric: tabular-nums">4 из 10</span>
+    </div>
+
+    <!-- Верхняя карточка колоды: лицо — вопрос, за линией сгиба — оборот с разбором -->
+    <div style="flex: none; margin-top: 12px; display: flex; flex-direction: column">
+      <article class="glass" aria-label="Вопрос 4 из 10" style="position: relative; z-index: 3; border-radius: 26px; overflow: hidden; background: rgba(255, 255, 255, 0.9); -webkit-backdrop-filter: blur(24px) saturate(160%); backdrop-filter: blur(24px) saturate(160%); border: 1px solid rgba(20, 26, 40, 0.06); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 1px 2px rgba(20, 26, 40, 0.04), 0 12px 32px -12px rgba(20, 26, 40, 0.10)">
+
+        <p lang="en" style="margin: 0; padding: 18px 20px 10px; font-size: 17px; line-height: 25px">Although the committee’s report was praised for its thoroughness, critics noted that its conclusions were oddly <span role="img" aria-label="пропуск" style="display: inline-block; width: 56px; border-bottom: 1.5px solid #141A26; transform: translateY(-4px)"></span>, hedging on nearly every recommendation it made.</p>
+
+        <ul aria-label="Варианты ответа" style="list-style: none; margin: 0; padding: 0 12px 12px; display: flex; flex-direction: column; gap: 2px">
+          <li style="height: 40px; padding: 0 12px 0 8px; border-radius: 14px; background: rgba(29, 91, 216, 0.08); display: flex; align-items: center; gap: 10px">
+            <span aria-hidden="true" style="flex: none; width: 22px; height: 22px; border-radius: 50%; background: #1D5BD8; color: #FFFFFF; display: flex; align-items: center; justify-content: center">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 12.5l4 4 9-9"></path></svg>
+            </span>
+            <span style="flex: none; width: 14px; font-size: 14px; color: #56607A">A</span>
+            <span lang="en" style="flex: 1; font-size: 17px; line-height: 22px; font-weight: 600">equivocal</span>
+            <span style="flex: none; font-size: 14px; line-height: 18px; font-weight: 500; color: #1D5BD8">верный</span>
+          </li>
+          <li style="height: 40px; padding: 0 12px 0 8px; border-radius: 14px; background: rgba(194, 65, 12, 0.08); display: flex; align-items: center; gap: 10px">
+            <span aria-hidden="true" style="flex: none; width: 22px; height: 22px; border-radius: 50%; background: #C2410C; color: #FFFFFF; display: flex; align-items: center; justify-content: center">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"><path d="M7 7l10 10M17 7L7 17"></path></svg>
+            </span>
+            <span style="flex: none; width: 14px; font-size: 14px; color: #56607A">C</span>
+            <span lang="en" style="flex: 1; font-size: 17px; line-height: 22px">exhaustive</span>
+            <span style="flex: none; font-size: 14px; line-height: 18px; font-weight: 500; color: #B23C0A">ваш ответ</span>
+          </li>
+          <!-- После ответа остальные варианты сжаты в одну тихую строку: в фокусе только верный и ваш -->
+          <li lang="en" style="min-height: 32px; padding: 0 12px 0 10px; display: flex; flex-wrap: wrap; align-items: center; column-gap: 16px; font-size: 15px; line-height: 20px; color: #56607A">
+            <span><span style="font-size: 13px">B</span>&#160;incisive</span>
+            <span><span style="font-size: 13px">D</span>&#160;dogmatic</span>
+            <span><span style="font-size: 13px">E</span>&#160;lucid</span>
+          </li>
+        </ul>
+
+        <!-- Оборот карточки: уровень 1 виден сразу, уровень 2 — по кнопке -->
+        <section aria-label="Разбор" style="border-top: 1px dashed rgba(20, 26, 40, 0.16); padding: 16px 20px 8px">
+          <sc-if value="{{isRu}}" hint-placeholder-val="{{ true }}">
+            <div role="status" style="display: flex; flex-direction: column; gap: 6px">
+              <p style="margin: 0; font-size: 16px; line-height: 22px; font-weight: 600">Неверно. Верный ответ — A, <span lang="en">equivocal</span>.</p>
+              <p style="margin: 0; font-size: 16px; line-height: 23px">Подсказка — «<span lang="en">hedging on nearly every recommendation</span>»: выводы уклончивы. Это и есть <i lang="en">equivocal</i> — двусмысленный, уклончивый.</p>
+            </div>
+          </sc-if>
+          <sc-if value="{{isEn}}" hint-placeholder-val="{{ false }}">
+            <div role="status" lang="en" style="display: flex; flex-direction: column; gap: 6px">
+              <p style="margin: 0; font-size: 16px; line-height: 22px; font-weight: 600">Incorrect. The answer is A, equivocal.</p>
+              <p style="margin: 0; font-size: 16px; line-height: 23px">The clue is “hedging on nearly every recommendation”: the conclusions avoided commitment. That is what <i>equivocal</i> means — deliberately ambiguous.</p>
+            </div>
+          </sc-if>
+
+          <div style="margin-top: 8px; display: flex; align-items: center; gap: 8px">
+            <button type="button" aria-expanded="{{moreExpanded}}" aria-controls="h3-more" onClick="{{toggleMore}}" style="flex: 1; min-width: 0; height: 44px; margin-left: -8px; padding: 0 8px; border: 0; border-radius: 999px; background: transparent; color: #22337A; display: flex; align-items: center; gap: 6px; text-align: left">
+              <sc-if value="{{isRu}}" hint-placeholder-val="{{ true }}">
+                <span style="font-size: 15px; line-height: 20px; font-weight: 600">Почему не <span lang="en">exhaustive</span>?</span>
+              </sc-if>
+              <sc-if value="{{isEn}}" hint-placeholder-val="{{ false }}">
+                <span lang="en" style="font-size: 15px; line-height: 20px; font-weight: 600">Why not exhaustive?</span>
+              </sc-if>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; transition: transform 200ms cubic-bezier(0.23,1,0.32,1); {{chevronStyle}}"><path d="M6 9.5l6 6 6-6"></path></svg>
+            </button>
+            <div role="group" aria-label="Язык разбора" style="flex: none; width: 92px; height: 34px; box-sizing: border-box; padding: 3px; border-radius: 999px; background: rgba(20, 26, 40, 0.06); display: flex">
+              <button type="button" aria-pressed="{{ruPressed}}" onClick="{{setRu}}" style="flex: 1; height: 44px; margin: -8px 0; padding: 8px 0; border: 0; background: transparent; display: flex">
+                <span style="flex: 1; height: 28px; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-size: 14px; {{ruStyle}}">RU</span>
+              </button>
+              <button type="button" aria-pressed="{{enPressed}}" onClick="{{setEn}}" style="flex: 1; height: 44px; margin: -8px 0; padding: 8px 0; border: 0; background: transparent; display: flex">
+                <span style="flex: 1; height: 28px; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-size: 14px; {{enStyle}}">EN</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="h3-more">
+            <sc-if value="{{moreRu}}" hint-placeholder-val="{{ false }}">
+              <p style="margin: 2px 0 8px; font-size: 16px; line-height: 23px"><i lang="en">exhaustive</i> — «исчерпывающий». Соблазняет, потому что рядом стоит <i lang="en">thoroughness</i>. Но <i lang="en">although</i> требует контраста с похвалой, а не её повтора.</p>
+            </sc-if>
+            <sc-if value="{{moreEn}}" hint-placeholder-val="{{ false }}">
+              <p lang="en" style="margin: 2px 0 8px; font-size: 16px; line-height: 23px"><i>exhaustive</i> (“covering everything”) is tempting because <i>thoroughness</i> appears nearby. But <i>although</i> signals a contrast with the praise, not a repeat of it.</p>
+            </sc-if>
+          </div>
+
+          <!-- Ссылка на теорию: просто ссылка, без стрелки -->
+          <a href="#" style="min-height: 44px; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; color: #22337A; font-size: 15px; line-height: 20px; font-weight: 500">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="M4.5 5.5a2 2 0 0 1 2-2h12v14h-12a2 2 0 0 0-2 2z"></path><path d="M4.5 19.5a2 2 0 0 0 2 2h12v-4"></path></svg>
+            <sc-if value="{{isRu}}" hint-placeholder-val="{{ true }}"><span>Слова-сигналы контраста · теория 3 мин</span></sc-if>
+            <sc-if value="{{isEn}}" hint-placeholder-val="{{ false }}"><span lang="en">Contrast signal words · 3-min theory</span></sc-if>
+          </a>
+        </section>
+      </article>
+      <div aria-hidden="true" style="position: relative; z-index: 2; margin: -12px 10px 0; height: 20px; border-radius: 18px; background: rgba(255, 255, 255, 0.62); border: 1px solid rgba(20, 26, 40, 0.05); box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.7), 0 6px 14px -10px rgba(20, 26, 40, 0.12)"></div>
+      <div aria-hidden="true" style="position: relative; z-index: 1; margin: -12px 20px 0; height: 20px; border-radius: 16px; background: rgba(255, 255, 255, 0.45); border: 1px solid rgba(20, 26, 40, 0.05); box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.7)"></div>
+    </div>
+
+    <div style="flex: none; margin-top: 4px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 4px">
+      <span style="font-size: 14px; line-height: 19px; color: #56607A">в колоде ещё 6</span>
+      <a href="#" style="min-height: 44px; display: inline-flex; align-items: center; font-size: 14px; line-height: 19px; color: #56607A; text-decoration: none">Сообщить об ошибке</a>
+    </div>
+
+  </main>
+
+  <div style="flex: none; position: relative; z-index: 5; padding: 8px 16px 24px; background: #F5F6F8">
+    <span aria-hidden="true" style="position: absolute; left: 0; right: 0; top: -28px; height: 28px; background: linear-gradient(rgba(245, 246, 248, 0), #F5F6F8); pointer-events: none"></span>
+    <button type="button" style="display: block; width: 100%; height: 50px; border: 0; border-radius: 12px; background: #22337A; color: #FFFFFF; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif; font-size: 17px; font-weight: 600">Дальше · 5 из 10</button>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+const s = this.state || {};
+const lang = s.lang || 'ru';
+const more = !!s.more;
+const on = 'background: #FFFFFF; color: #141A26; font-weight: 600; box-shadow: 0 1px 2px rgba(20,26,40,0.12), 0 2px 8px rgba(20,26,40,0.06);';
+const off = 'background: transparent; color: #56607A; font-weight: 500; box-shadow: none;';
+return {
+isRu: lang === 'ru', isEn: lang === 'en',
+ruPressed: lang === 'ru' ? 'true' : 'false', enPressed: lang === 'en' ? 'true' : 'false',
+ruStyle: lang === 'ru' ? on : off, enStyle: lang === 'en' ? on : off,
+setRu: () => this.setState({ lang: 'ru' }), setEn: () => this.setState({ lang: 'en' }),
+moreRu: more && lang === 'ru', moreEn: more && lang === 'en',
+moreExpanded: more ? 'true' : 'false',
+chevronStyle: more ? 'transform: rotate(180deg);' : 'transform: none;',
+toggleMore: () => this.setState({ more: !more })
+};
+}
+}
+</script>
+</body>
+</html>
