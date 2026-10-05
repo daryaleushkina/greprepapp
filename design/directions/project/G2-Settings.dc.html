@@ -54,26 +54,27 @@ button:active,a:active{transform:scale(0.98)}
     <h1 style="margin: 0; font-size: 32px; line-height: 38px; font-weight: 600; letter-spacing: -0.025em">Настройки</h1>
 
     <ul style="list-style: none; margin: 0; padding: 0 0 0 16px; border-radius: 26px; background: var(--surface); overflow: hidden; margin-top: 24px">
-      <li><a href="#" style="min-height: 52px; display: flex; align-items: center; gap: 12px; padding-right: 16px; text-decoration: none; color: var(--text); ">
-        <span style="flex: 1; min-width: 0; font-size: 17px; line-height: 22px">Язык интерфейса</span>
-        <span style="flex: none; font-size: 16px; line-height: 21px; color: var(--text-2)">Русский</span>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; color: var(--text-2)"><path d="M9.5 6l6 6-6 6"></path></svg>
-      </a></li>
-      <li><a href="#" style="min-height: 52px; display: flex; align-items: center; gap: 12px; padding-right: 16px; text-decoration: none; color: var(--text); border-top: 1px solid var(--line); ">
-        <span style="flex: 1; min-width: 0; font-size: 17px; line-height: 22px">Язык разбора</span>
-        <span style="flex: none; font-size: 16px; line-height: 21px; color: var(--text-2)">Как интерфейс</span>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; color: var(--text-2)"><path d="M9.5 6l6 6-6 6"></path></svg>
-      </a></li>
-      <li><a href="#" style="min-height: 52px; display: flex; align-items: center; gap: 12px; padding-right: 16px; text-decoration: none; color: var(--text); border-top: 1px solid var(--line); ">
-        <span style="flex: 1; min-width: 0; font-size: 17px; line-height: 22px">Размер текста</span>
-        <span style="flex: none; font-size: 16px; line-height: 21px; color: var(--text-2)">Как в системе</span>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; color: var(--text-2)"><path d="M9.5 6l6 6-6 6"></path></svg>
-      </a></li>
-      <li><a href="#" style="min-height: 52px; display: flex; align-items: center; gap: 12px; padding-right: 16px; text-decoration: none; color: var(--text); border-top: 1px solid var(--line); ">
-        <span style="flex: 1; min-width: 0; font-size: 17px; line-height: 22px">Тема</span>
-        <span style="flex: none; font-size: 16px; line-height: 21px; color: var(--text-2)">Как в Telegram</span>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; color: var(--text-2)"><path d="M9.5 6l6 6-6 6"></path></svg>
-      </a></li>
+      <li style="min-height: 56px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; padding: 8px 16px 8px 0; box-sizing: border-box; ">
+        <span style="flex: 1 1 auto; min-width: 0; font-size: 17px; line-height: 22px">Язык</span>
+        <span role="group" aria-label="Язык" class="glass" style="flex: none; display: inline-flex; gap: 2px; padding: 3px; border-radius: 20px; background: var(--fill); -webkit-backdrop-filter: blur(16px) saturate(180%); backdrop-filter: blur(16px) saturate(180%)">
+          <button type="button" style="height: 34px; padding: 0 11px; border: 0; border-radius: 17px; font-size: 15px; line-height: 20px; font-weight: 500; white-space: nowrap; {{segOn}}">Русский</button>
+          <button type="button" lang="en" style="height: 34px; padding: 0 11px; border: 0; border-radius: 17px; font-size: 15px; line-height: 20px; font-weight: 500; white-space: nowrap; {{segOff}}">English</button>
+        </span>
+      </li>
+      <li style="min-height: 56px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; padding: 8px 16px 8px 0; box-sizing: border-box; border-top: 1px solid var(--line);">
+        <span style="flex: 1 1 auto; min-width: 0; font-size: 17px; line-height: 22px">Тема</span>
+        <span role="group" aria-label="Тема" class="glass" style="flex: none; display: inline-flex; gap: 2px; padding: 3px; border-radius: 20px; background: var(--fill); -webkit-backdrop-filter: blur(16px) saturate(180%); backdrop-filter: blur(16px) saturate(180%)">
+          <button type="button" style="height: 34px; padding: 0 11px; border: 0; border-radius: 17px; font-size: 15px; line-height: 20px; font-weight: 500; white-space: nowrap; {{lightSeg}}">Светлая</button>
+          <button type="button" style="height: 34px; padding: 0 11px; border: 0; border-radius: 17px; font-size: 15px; line-height: 20px; font-weight: 500; white-space: nowrap; {{darkSeg}}">Тёмная</button>
+        </span>
+      </li>
+      <li style="min-height: 56px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; padding: 8px 16px 8px 0; box-sizing: border-box; border-top: 1px solid var(--line);">
+        <span style="flex: 1 1 auto; min-width: 0; font-size: 17px; line-height: 22px">Размер текста</span>
+        <span role="group" aria-label="Размер текста" class="glass" style="flex: none; display: inline-flex; gap: 2px; padding: 3px; border-radius: 20px; background: var(--fill); -webkit-backdrop-filter: blur(16px) saturate(180%); backdrop-filter: blur(16px) saturate(180%)">
+          <button type="button" style="height: 34px; padding: 0 11px; border: 0; border-radius: 17px; font-size: 15px; line-height: 20px; font-weight: 500; white-space: nowrap; {{segOn}}">Обычный</button>
+          <button type="button" style="height: 34px; padding: 0 11px; border: 0; border-radius: 17px; font-size: 15px; line-height: 20px; font-weight: 500; white-space: nowrap; {{segOff}}">Крупнее</button>
+        </span>
+      </li>
     </ul>
 
     <!-- Один аккаунт: способы входа связаны на сервере -->
@@ -115,7 +116,9 @@ button:active,a:active{transform:scale(0.98)}
 class Component extends DCLogic {
 renderVals() {
 const dark = this.props.dark ?? false;
-return { themeClass: dark ? 'dark' : '' };
+const on = 'background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.12);';
+const off = 'background: transparent; color: var(--text-2); box-shadow: none;';
+return { themeClass: dark ? 'dark' : '', segOn: on, segOff: off, lightSeg: dark ? off : on, darkSeg: dark ? on : off };
 }
 }
 </script>

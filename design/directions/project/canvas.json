@@ -551,444 +551,464 @@
    "x": 3760,
    "y": 5196
   },
-  "web-T1-Today.dc.html": {
-   "x": 0,
-   "y": 300,
-   "w": 1440,
-   "h": 900,
-   "title": "Сегодня — компьютер",
-   "page": "desktop",
-   "expand": "fill",
-   "is_interactive": true
-  },
-  "web-T2-TodayFirst.dc.html": {
-   "x": 1520,
-   "y": 300,
-   "w": 1440,
-   "h": 900,
-   "title": "Сегодня — первый раз, компьютер",
-   "page": "desktop",
-   "expand": "fill",
-   "is_interactive": true
-  },
-  "web-T3-TodayDone.dc.html": {
-   "x": 3040,
-   "y": 300,
-   "w": 1440,
-   "h": 900,
-   "title": "Сегодня — всё сделано, компьютер",
-   "page": "desktop",
-   "expand": "fill",
-   "is_interactive": true
-  },
-  "web-T4-SignIn.dc.html": {
-   "x": 4560,
-   "y": 300,
-   "w": 1440,
-   "h": 900,
-   "title": "Вход — компьютер",
-   "page": "desktop",
-   "expand": "fill"
-  },
-  "web-T5-Loading.dc.html": {
-   "x": 6080,
-   "y": 300,
-   "w": 1440,
-   "h": 900,
-   "title": "Сегодня — загрузка, компьютер",
-   "page": "desktop",
-   "expand": "fill"
-  },
-  "web-T6-Offline.dc.html": {
-   "x": 7600,
-   "y": 300,
-   "w": 1440,
-   "h": 900,
-   "title": "Нет связи — компьютер",
-   "page": "desktop",
-   "expand": "fill"
-  },
-  "web-R1-Builder.dc.html": {
-   "x": 0,
-   "y": 1600,
-   "w": 1440,
-   "h": 900,
-   "title": "Новая тренировка — компьютер",
-   "page": "desktop",
-   "expand": "fill"
-  },
-  "web-R2-BuilderTopics.dc.html": {
-   "x": 1520,
-   "y": 1600,
-   "w": 1440,
-   "h": 900,
-   "title": "Темы и сложность — компьютер",
-   "page": "desktop",
-   "expand": "fill"
-  },
-  "web-R3-QuestionTC.dc.html": {
-   "x": 3040,
-   "y": 1600,
-   "w": 1440,
-   "h": 900,
-   "title": "Text Completion — компьютер",
-   "page": "desktop",
-   "expand": "fill"
-  },
-  "web-R4-QuestionTCWrong.dc.html": {
-   "x": 4560,
-   "y": 1600,
-   "w": 1440,
-   "h": 900,
-   "title": "Text Completion, разбор — компьютер",
-   "page": "desktop",
-   "expand": "fill",
-   "is_interactive": true
-  },
-  "web-R5-QuestionTC3.dc.html": {
-   "x": 6080,
-   "y": 1600,
-   "w": 1440,
-   "h": 900,
-   "title": "Text Completion, три пропуска — компьютер",
-   "page": "desktop",
-   "expand": "fill"
-  },
-  "web-R6-QuestionSE.dc.html": {
-   "x": 7600,
-   "y": 1600,
-   "w": 1440,
-   "h": 900,
-   "title": "Sentence Equivalence — компьютер",
-   "page": "desktop",
-   "expand": "fill"
-  },
-  "web-R7-QuestionRC.dc.html": {
-   "x": 9120,
-   "y": 1600,
-   "w": 1440,
-   "h": 900,
-   "title": "Reading Comprehension — компьютер",
-   "page": "desktop",
-   "expand": "fill"
-  },
-  "web-R8-QuestionRCSelect.dc.html": {
-   "x": 10640,
-   "y": 1600,
-   "w": 1440,
-   "h": 900,
-   "title": "Reading Comprehension, выбор предложения — компьютер",
-   "page": "desktop",
-   "expand": "fill"
-  },
-  "web-R9-QuestionQC.dc.html": {
-   "x": 12160,
-   "y": 1600,
-   "w": 1440,
-   "h": 900,
-   "title": "Quantitative Comparison — компьютер",
-   "page": "desktop",
-   "expand": "fill"
-  },
-  "web-R10-QuestionMulti.dc.html": {
-   "x": 0,
-   "y": 2900,
-   "w": 1440,
-   "h": 900,
-   "title": "Вопрос Quant: несколько ответов — компьютер",
-   "page": "desktop",
-   "expand": "fill"
-  },
-  "web-R11-QuestionNumeric.dc.html": {
-   "x": 1520,
-   "y": 2900,
-   "w": 1440,
-   "h": 900,
-   "title": "Вопрос Quant: ввод числа — компьютер",
-   "page": "desktop",
-   "expand": "fill"
-  },
-  "web-R12-QuestionData.dc.html": {
-   "x": 3040,
-   "y": 2900,
-   "w": 1440,
-   "h": 900,
-   "title": "Вопрос Quant: график — компьютер",
-   "page": "desktop",
-   "expand": "fill"
-  },
-  "web-R13-Calculator.dc.html": {
-   "x": 4560,
-   "y": 2900,
-   "w": 1440,
-   "h": 900,
-   "title": "Калькулятор поверх вопроса — компьютер",
-   "page": "desktop",
-   "expand": "fill"
-  },
-  "web-R14-QuestionTimed.dc.html": {
-   "x": 6080,
-   "y": 2900,
-   "w": 1440,
-   "h": 900,
-   "title": "Режим «Проверка»: вопрос с таймером — компьютер",
-   "page": "desktop",
-   "expand": "fill"
-  },
-  "web-R15-Summary.dc.html": {
-   "x": 7600,
-   "y": 2900,
-   "w": 1440,
-   "h": 900,
-   "title": "Итог тренировки — компьютер",
-   "page": "desktop",
-   "expand": "fill"
-  },
-  "web-R16-Review.dc.html": {
-   "x": 9120,
-   "y": 2900,
-   "w": 1440,
-   "h": 984,
-   "title": "Разбор после «Проверки» — компьютер",
-   "page": "desktop",
-   "expand": "fill"
-  },
-  "web-R17-Report.dc.html": {
-   "x": 10640,
-   "y": 2900,
-   "w": 1440,
-   "h": 900,
-   "title": "Сообщить об ошибке — компьютер",
-   "page": "desktop",
-   "expand": "fill"
-  },
-  "web-R18-Theory.dc.html": {
-   "x": 12160,
-   "y": 2900,
-   "w": 1440,
-   "h": 1239,
-   "title": "Теория: слова-сигналы контраста — компьютер",
-   "page": "desktop",
-   "expand": "fill",
-   "is_interactive": true
-  },
-  "web-W1-Words.dc.html": {
-   "x": 0,
-   "y": 4539,
-   "w": 1440,
-   "h": 900,
-   "title": "Слова — компьютер",
-   "page": "desktop",
-   "expand": "fill",
-   "is_interactive": true
-  },
-  "web-W2-Search.dc.html": {
-   "x": 1520,
-   "y": 4539,
-   "w": 1440,
-   "h": 900,
-   "title": "Поиск слова — компьютер",
-   "page": "desktop",
-   "expand": "fill",
-   "is_interactive": true
-  },
-  "web-W3-PickTranslation.dc.html": {
-   "x": 3040,
-   "y": 4539,
-   "w": 1440,
-   "h": 900,
-   "title": "Слова — выбрать перевод — компьютер",
-   "page": "desktop",
-   "expand": "fill"
-  },
-  "web-W4-PickDefinition.dc.html": {
-   "x": 4560,
-   "y": 4539,
-   "w": 1440,
-   "h": 900,
-   "title": "Слова — выбрать определение — компьютер",
-   "page": "desktop",
-   "expand": "fill"
-  },
-  "web-W5-FillSentence.dc.html": {
-   "x": 6080,
-   "y": 4539,
-   "w": 1440,
-   "h": 900,
-   "title": "Слова — вставить в предложение — компьютер",
-   "page": "desktop",
-   "expand": "fill"
-  },
-  "web-W6-Synonym.dc.html": {
-   "x": 7600,
-   "y": 4539,
-   "w": 1440,
-   "h": 900,
-   "title": "Слова — подобрать синоним — компьютер",
-   "page": "desktop",
-   "expand": "fill"
-  },
-  "web-W7-WordCard.dc.html": {
-   "x": 9120,
-   "y": 4539,
-   "w": 1440,
-   "h": 900,
-   "title": "Слова — карточка слова — компьютер",
-   "page": "desktop",
-   "expand": "fill"
-  },
-  "web-W8-WordsDone.dc.html": {
-   "x": 10640,
-   "y": 4539,
-   "w": 1440,
-   "h": 900,
-   "title": "Слова — итог — компьютер",
-   "page": "desktop",
-   "expand": "fill"
-  },
-  "web-X1-Exam.dc.html": {
-   "x": 0,
-   "y": 5839,
-   "w": 1440,
-   "h": 900,
-   "title": "Экзамен — компьютер",
-   "page": "desktop",
-   "expand": "fill",
-   "is_interactive": true
-  },
-  "web-X2-ExamStart.dc.html": {
-   "x": 1520,
-   "y": 5839,
-   "w": 1440,
-   "h": 900,
-   "title": "Practice test — start · desktop",
-   "page": "desktop",
-   "expand": "fill"
-  },
-  "web-X3-ExamEssay.dc.html": {
-   "x": 3040,
-   "y": 5839,
-   "w": 1440,
-   "h": 900,
-   "title": "Practice test — Essay · desktop",
-   "page": "desktop",
-   "expand": "fill"
-  },
-  "web-X4-ExamQuestion.dc.html": {
-   "x": 4560,
-   "y": 5839,
-   "w": 1440,
-   "h": 900,
-   "title": "Practice test — Quant question · desktop",
-   "page": "desktop",
-   "expand": "fill"
-  },
-  "web-X5-ExamReview.dc.html": {
-   "x": 6080,
-   "y": 5839,
-   "w": 1440,
-   "h": 900,
-   "title": "Practice test — Review · desktop",
-   "page": "desktop",
-   "expand": "fill"
-  },
-  "web-X6-ExamBetween.dc.html": {
-   "x": 7600,
-   "y": 5839,
-   "w": 1440,
-   "h": 900,
-   "title": "Practice test — between sections · desktop",
-   "page": "desktop",
-   "expand": "fill"
-  },
-  "web-X7-ExamResults.dc.html": {
-   "x": 9120,
-   "y": 5839,
-   "w": 1440,
-   "h": 900,
-   "title": "Пробник — результаты · компьютер",
-   "page": "desktop",
-   "expand": "fill"
-  },
-  "web-X8-EssayTopics.dc.html": {
-   "x": 10640,
-   "y": 5839,
-   "w": 1440,
-   "h": 900,
-   "title": "Эссе — тема · компьютер",
-   "page": "desktop",
-   "expand": "fill"
-  },
-  "web-X9-EssayWrite.dc.html": {
-   "x": 12160,
-   "y": 5839,
-   "w": 1440,
-   "h": 900,
-   "title": "Эссе — письмо · компьютер",
-   "page": "desktop",
-   "expand": "fill"
-  },
-  "web-X10-EssayScore.dc.html": {
-   "x": 13680,
-   "y": 5839,
-   "w": 1440,
-   "h": 900,
-   "title": "Эссе — оценка · компьютер",
-   "page": "desktop",
-   "expand": "fill"
-  },
   "web-G1-Progress.dc.html": {
-   "x": 0,
-   "y": 7139,
-   "w": 1440,
-   "h": 900,
-   "title": "Прогресс — компьютер",
-   "page": "desktop",
    "expand": "fill",
-   "is_interactive": true
+   "h": 900,
+   "is_interactive": true,
+   "page": "desktop",
+   "title": "Прогресс — компьютер",
+   "w": 1440,
+   "x": 0,
+   "y": 7139
   },
   "web-G2-Settings.dc.html": {
-   "x": 1520,
-   "y": 7139,
-   "w": 1440,
+   "expand": "fill",
    "h": 900,
-   "title": "Настройки — компьютер",
    "page": "desktop",
-   "expand": "fill"
+   "title": "Настройки — компьютер",
+   "w": 1440,
+   "x": 1520,
+   "y": 7139
   },
   "web-G3-Paywall.dc.html": {
-   "x": 3040,
-   "y": 7139,
-   "w": 1440,
+   "expand": "fill",
    "h": 900,
-   "title": "Оформить подписку — компьютер",
    "page": "desktop",
-   "expand": "fill"
+   "title": "Оформить подписку — компьютер",
+   "w": 1440,
+   "x": 3040,
+   "y": 7139
   },
   "web-G4-Subscription.dc.html": {
-   "x": 4560,
-   "y": 7139,
-   "w": 1440,
+   "expand": "fill",
    "h": 900,
-   "title": "Подписка — компьютер",
    "page": "desktop",
-   "expand": "fill"
+   "title": "Подписка — компьютер",
+   "w": 1440,
+   "x": 4560,
+   "y": 7139
   },
   "web-G5-AccessEnded.dc.html": {
-   "x": 6080,
-   "y": 7139,
-   "w": 1440,
+   "expand": "fill",
    "h": 900,
-   "title": "Подписка закончилась — компьютер",
    "page": "desktop",
-   "expand": "fill"
+   "title": "Подписка закончилась — компьютер",
+   "w": 1440,
+   "x": 6080,
+   "y": 7139
   },
   "web-G6-ProgressEmpty.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "is_interactive": true,
+   "page": "desktop",
+   "title": "Прогресс — пусто, компьютер",
+   "w": 1440,
    "x": 7600,
-   "y": 7139,
+   "y": 7139
+  },
+  "web-R1-Builder.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "page": "desktop",
+   "title": "Новая тренировка — компьютер",
+   "w": 1440,
+   "x": 0,
+   "y": 1600
+  },
+  "web-R10-QuestionMulti.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "page": "desktop",
+   "title": "Вопрос Quant: несколько ответов — компьютер",
+   "w": 1440,
+   "x": 0,
+   "y": 2900
+  },
+  "web-R11-QuestionNumeric.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "page": "desktop",
+   "title": "Вопрос Quant: ввод числа — компьютер",
+   "w": 1440,
+   "x": 1520,
+   "y": 2900
+  },
+  "web-R12-QuestionData.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "page": "desktop",
+   "title": "Вопрос Quant: график — компьютер",
+   "w": 1440,
+   "x": 3040,
+   "y": 2900
+  },
+  "web-R13-Calculator.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "page": "desktop",
+   "title": "Калькулятор поверх вопроса — компьютер",
+   "w": 1440,
+   "x": 4560,
+   "y": 2900
+  },
+  "web-R14-QuestionTimed.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "page": "desktop",
+   "title": "Режим «Проверка»: вопрос с таймером — компьютер",
+   "w": 1440,
+   "x": 6080,
+   "y": 2900
+  },
+  "web-R15-Summary.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "page": "desktop",
+   "title": "Итог тренировки — компьютер",
+   "w": 1440,
+   "x": 7600,
+   "y": 2900
+  },
+  "web-R16-Review.dc.html": {
+   "expand": "fill",
+   "h": 984,
+   "page": "desktop",
+   "title": "Разбор после «Проверки» — компьютер",
+   "w": 1440,
+   "x": 9120,
+   "y": 2900
+  },
+  "web-R17-Report.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "page": "desktop",
+   "title": "Сообщить об ошибке — компьютер",
+   "w": 1440,
+   "x": 10640,
+   "y": 2900
+  },
+  "web-R18-Theory.dc.html": {
+   "expand": "fill",
+   "h": 1239,
+   "is_interactive": true,
+   "page": "desktop",
+   "title": "Теория: слова-сигналы контраста — компьютер",
+   "w": 1440,
+   "x": 12160,
+   "y": 2900
+  },
+  "web-R2-BuilderTopics.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "page": "desktop",
+   "title": "Темы и сложность — компьютер",
+   "w": 1440,
+   "x": 1520,
+   "y": 1600
+  },
+  "web-R3-QuestionTC.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "page": "desktop",
+   "title": "Text Completion — компьютер",
+   "w": 1440,
+   "x": 3040,
+   "y": 1600
+  },
+  "web-R4-QuestionTCWrong.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "is_interactive": true,
+   "page": "desktop",
+   "title": "Text Completion, разбор — компьютер",
+   "w": 1440,
+   "x": 4560,
+   "y": 1600
+  },
+  "web-R5-QuestionTC3.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "page": "desktop",
+   "title": "Text Completion, три пропуска — компьютер",
+   "w": 1440,
+   "x": 6080,
+   "y": 1600
+  },
+  "web-R6-QuestionSE.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "page": "desktop",
+   "title": "Sentence Equivalence — компьютер",
+   "w": 1440,
+   "x": 7600,
+   "y": 1600
+  },
+  "web-R7-QuestionRC.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "page": "desktop",
+   "title": "Reading Comprehension — компьютер",
+   "w": 1440,
+   "x": 9120,
+   "y": 1600
+  },
+  "web-R8-QuestionRCSelect.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "page": "desktop",
+   "title": "Reading Comprehension, выбор предложения — компьютер",
+   "w": 1440,
+   "x": 10640,
+   "y": 1600
+  },
+  "web-R9-QuestionQC.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "page": "desktop",
+   "title": "Quantitative Comparison — компьютер",
+   "w": 1440,
+   "x": 12160,
+   "y": 1600
+  },
+  "web-T1-Today.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "is_interactive": true,
+   "page": "desktop",
+   "title": "Сегодня — компьютер",
+   "w": 1440,
+   "x": 0,
+   "y": 300
+  },
+  "web-T2-TodayFirst.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "is_interactive": true,
+   "page": "desktop",
+   "title": "Сегодня — первый раз, компьютер",
+   "w": 1440,
+   "x": 1520,
+   "y": 300
+  },
+  "web-T3-TodayDone.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "is_interactive": true,
+   "page": "desktop",
+   "title": "Сегодня — всё сделано, компьютер",
+   "w": 1440,
+   "x": 3040,
+   "y": 300
+  },
+  "web-T4-SignIn.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "page": "desktop",
+   "title": "Вход — компьютер",
+   "w": 1440,
+   "x": 4560,
+   "y": 300
+  },
+  "web-T5-Loading.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "page": "desktop",
+   "title": "Сегодня — загрузка, компьютер",
+   "w": 1440,
+   "x": 6080,
+   "y": 300
+  },
+  "web-T6-Offline.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "page": "desktop",
+   "title": "Нет связи — компьютер",
+   "w": 1440,
+   "x": 7600,
+   "y": 300
+  },
+  "web-W1-Words.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "is_interactive": true,
+   "page": "desktop",
+   "title": "Слова — вариант A, «Недавние» строкой",
+   "w": 1440,
+   "x": 0,
+   "y": 4539
+  },
+  "web-W2-Search.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "is_interactive": true,
+   "page": "desktop",
+   "title": "Поиск слова — компьютер",
+   "w": 1440,
+   "x": 1520,
+   "y": 4539
+  },
+  "web-W3-PickTranslation.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "page": "desktop",
+   "title": "Слова — выбрать перевод — компьютер",
+   "w": 1440,
+   "x": 3040,
+   "y": 4539
+  },
+  "web-W4-PickDefinition.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "page": "desktop",
+   "title": "Слова — выбрать определение — компьютер",
+   "w": 1440,
+   "x": 4560,
+   "y": 4539
+  },
+  "web-W5-FillSentence.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "page": "desktop",
+   "title": "Слова — вставить в предложение — компьютер",
+   "w": 1440,
+   "x": 6080,
+   "y": 4539
+  },
+  "web-W6-Synonym.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "page": "desktop",
+   "title": "Слова — подобрать синоним — компьютер",
+   "w": 1440,
+   "x": 7600,
+   "y": 4539
+  },
+  "web-W7-WordCard.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "page": "desktop",
+   "title": "Слова — карточка слова — компьютер",
+   "w": 1440,
+   "x": 9120,
+   "y": 4539
+  },
+  "web-W8-WordsDone.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "page": "desktop",
+   "title": "Слова — итог — компьютер",
+   "w": 1440,
+   "x": 10640,
+   "y": 4539
+  },
+  "web-X1-Exam.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "is_interactive": true,
+   "page": "desktop",
+   "title": "Экзамен — компьютер",
+   "w": 1440,
+   "x": 0,
+   "y": 5839
+  },
+  "web-X10-EssayScore.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "page": "desktop",
+   "title": "Эссе — оценка · компьютер",
+   "w": 1440,
+   "x": 13680,
+   "y": 5839
+  },
+  "web-X2-ExamStart.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "page": "desktop",
+   "title": "Practice test — start · desktop",
+   "w": 1440,
+   "x": 1520,
+   "y": 5839
+  },
+  "web-X3-ExamEssay.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "page": "desktop",
+   "title": "Practice test — Essay · desktop",
+   "w": 1440,
+   "x": 3040,
+   "y": 5839
+  },
+  "web-X4-ExamQuestion.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "page": "desktop",
+   "title": "Practice test — Quant question · desktop",
+   "w": 1440,
+   "x": 4560,
+   "y": 5839
+  },
+  "web-X5-ExamReview.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "page": "desktop",
+   "title": "Practice test — Review · desktop",
+   "w": 1440,
+   "x": 6080,
+   "y": 5839
+  },
+  "web-X6-ExamBetween.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "page": "desktop",
+   "title": "Practice test — between sections · desktop",
+   "w": 1440,
+   "x": 7600,
+   "y": 5839
+  },
+  "web-X7-ExamResults.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "page": "desktop",
+   "title": "Пробник — результаты · компьютер",
+   "w": 1440,
+   "x": 9120,
+   "y": 5839
+  },
+  "web-X8-EssayTopics.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "page": "desktop",
+   "title": "Эссе — тема · компьютер",
+   "w": 1440,
+   "x": 10640,
+   "y": 5839
+  },
+  "web-X9-EssayWrite.dc.html": {
+   "expand": "fill",
+   "h": 900,
+   "page": "desktop",
+   "title": "Эссе — письмо · компьютер",
+   "w": 1440,
+   "x": 12160,
+   "y": 5839
+  },
+  "web-W1b-Words.dc.html": {
+   "x": 12360,
+   "y": 4539,
    "w": 1440,
    "h": 900,
-   "title": "Прогресс — пусто, компьютер",
+   "title": "Вариант B — «Недавние» в две колонки",
+   "page": "desktop",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "web-W1c-Words.dc.html": {
+   "x": 13880,
+   "y": 4539,
+   "w": 1440,
+   "h": 900,
+   "title": "Вариант C — «Недавние» карточками",
    "page": "desktop",
    "expand": "fill",
    "is_interactive": true
@@ -1004,12 +1024,74 @@
   "view": "canvas"
  },
  "notes": {
+  "d_G": {
+   "kind": "title1",
+   "maxW": 8000,
+   "page": "desktop",
+   "text": "Компьютер — прогресс, настройки, подписка",
+   "w": 240,
+   "x": 0,
+   "y": 6889
+  },
+  "d_R1": {
+   "kind": "title1",
+   "maxW": 8000,
+   "page": "desktop",
+   "text": "Компьютер — тренировка: конструктор и Verbal",
+   "w": 240,
+   "x": 0,
+   "y": 1350
+  },
+  "d_R2": {
+   "kind": "title1",
+   "maxW": 8000,
+   "page": "desktop",
+   "text": "Компьютер — тренировка: Quant, проверка, итог, теория",
+   "w": 240,
+   "x": 0,
+   "y": 2650
+  },
+  "d_T": {
+   "kind": "title1",
+   "maxW": 8000,
+   "page": "desktop",
+   "text": "Компьютер — общее",
+   "w": 240,
+   "x": 0,
+   "y": 50
+  },
+  "d_W": {
+   "kind": "title1",
+   "maxW": 8000,
+   "page": "desktop",
+   "text": "Компьютер — слова",
+   "w": 240,
+   "x": 0,
+   "y": 4289
+  },
+  "d_X": {
+   "kind": "title1",
+   "maxW": 8000,
+   "page": "desktop",
+   "text": "Компьютер — экзамен и эссе",
+   "w": 240,
+   "x": 0,
+   "y": 5589
+  },
   "howto4": {
    "fill": "gray",
    "page": "screens",
    "text": "Шаги — все экраны телефона\n\nВ каждом ряду — раздел приложения. Тёмная тема — переключатель «dark» в Tweaks у любого экрана.\n\nНа экранах с вкладками работает Play: вкладки и главные кнопки переходят между экранами. «Вопрос — неверный ответ» переключает RU/EN и раскрывает «Почему».\n\nЗадания и слова — наши примеры, не настоящий контент. Цена и имя — плейсхолдеры.",
    "w": 480,
    "x": 2900,
+   "y": 300
+  },
+  "howto5": {
+   "fill": "gray",
+   "page": "desktop",
+   "text": "Шаги — компьютер (сайт)\n\nТе же 48 экранов, что на телефоне, в раскладке для широкого окна. Разделы — со стеклянной боковой панелью; тренировка, слова и экзамен — в режиме фокуса, без панели.\n\nКаждая рамка — страница: в полноэкранном просмотре подстраивается под ширину окна, на узком окне колонки встают друг под друга. Тёмная тема — «dark» в Tweaks.",
+   "w": 520,
+   "x": 9200,
    "y": 300
   },
   "sD": {
@@ -1117,61 +1199,14 @@
    "x": 0,
    "y": 4946
   },
-  "d_T": {
-   "x": 0,
-   "y": 50,
-   "kind": "title1",
-   "maxW": 13000,
-   "text": "Компьютер — общее",
-   "page": "desktop"
-  },
-  "d_R1": {
-   "x": 0,
-   "y": 1350,
-   "kind": "title1",
-   "maxW": 13000,
-   "text": "Компьютер — тренировка: конструктор и Verbal",
-   "page": "desktop"
-  },
-  "d_R2": {
-   "x": 0,
-   "y": 2650,
-   "kind": "title1",
-   "maxW": 13000,
-   "text": "Компьютер — тренировка: Quant, проверка, итог, теория",
-   "page": "desktop"
-  },
-  "d_W": {
-   "x": 0,
-   "y": 4289,
-   "kind": "title1",
-   "maxW": 13000,
-   "text": "Компьютер — слова",
-   "page": "desktop"
-  },
-  "d_X": {
-   "x": 0,
-   "y": 5589,
-   "kind": "title1",
-   "maxW": 13000,
-   "text": "Компьютер — экзамен и эссе",
-   "page": "desktop"
-  },
-  "d_G": {
-   "x": 0,
-   "y": 6889,
-   "kind": "title1",
-   "maxW": 13000,
-   "text": "Компьютер — прогресс, настройки, подписка",
-   "page": "desktop"
-  },
-  "howto5": {
-   "x": 9200,
-   "y": 300,
-   "w": 520,
+  "recentVariants": {
+   "x": 12360,
+   "y": 4359,
+   "w": 1440,
    "fill": "gray",
    "page": "desktop",
-   "text": "Шаги — компьютер (сайт)\n\nТе же 48 экранов, что на телефоне, в раскладке для широкого окна. Разделы — со стеклянной боковой панелью; тренировка, слова и экзамен — в режиме фокуса, без панели.\n\nКаждая рамка — страница: в полноэкранном просмотре подстраивается под ширину окна, на узком окне колонки встают друг под друга. Тёмная тема — «dark» в Tweaks."
+   "maxH": 150,
+   "text": "Варианты блока «Недавние» (вкладка «Слова»): A — слово и перевод рядом в одну строку (основная рамка «Слова» в ряду слева), B — две колонки, слово над переводом, C — небольшие карточки. Выберите один — остальные уберу."
   }
  },
  "order": [
@@ -1289,7 +1324,9 @@
   "web-G3-Paywall.dc.html",
   "web-G4-Subscription.dc.html",
   "web-G5-AccessEnded.dc.html",
-  "web-G6-ProgressEmpty.dc.html"
+  "web-G6-ProgressEmpty.dc.html",
+  "web-W1b-Words.dc.html",
+  "web-W1c-Words.dc.html"
  ],
  "pages": [
   {
