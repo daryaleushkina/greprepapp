@@ -27,6 +27,9 @@
 | `docs/RESEARCH.md`                     | исследование: формат GRE, конкуренты, награды дизайна, правила для СДВГ, ограничения Telegram |
 | `design/directions/`                   | копия холста с шестью направлениями дизайна; как продолжить — `README.md` там |
 | `tools/design/lint-dc.py`              | проверка экранов холста (`.dc.html`) без рендера: теги, `data-props`, символы вместо иконок |
+| `design/tokens/`                       | токены «Шагов»: источник `src/*.json` (W3C DTCG) → `build.mjs` (Style Dictionary) → `generated/` (веб `tokens.css`, Apple `GPTokens.swift` и `GPColors.xcassets`, Android `GpTokens.kt`) и шапка `DESIGN.md`; правится только `src` |
+| `DESIGN.md`                            | дизайн-система: шапка — из токенов (не править руками), текст — правила применения |
+| `.github/workflows/tokens.yml`         | CI токенов: сгенерированное совпадает с источником, контраст AA в обеих темах |
 
 Тесты хуков (`.claude/hooks/*.test.ts`, `scripts/hooks/git-hooks.test.ts`)
 написаны под vitest, который приедет с каркасом. До него — так (64 теста,
@@ -38,6 +41,27 @@ r=$PWD && d=$(mktemp -d) && cd "$d" && echo '{"type":"module"}' > package.json \
   && npm i -D --legacy-peer-deps vitest@5 vite@8 >/dev/null \
   && cp -r "$r/.claude" "$r/scripts" . && npx vitest run .claude/hooks scripts/hooks; cd "$r"
 ```
+
+## Токены дизайна
+
+```bash
+pnpm --dir design/tokens install
+pnpm --dir design/tokens build   # после правки src: пересобрать generated/ и шапку DESIGN.md
+pnpm --dir design/tokens check   # то же, что CI: сгенерированное не разошлось с источником
+pnpm --dir design/tokens test    # контраст WCAG AA пар «текст / фон» в светлой и тёмной теме
+```
+
+- Слои: палитра (`palette.*`) → смысловые (`color.*`, `type.*`, `space.*`…) → компоненты (в шапке
+  `DESIGN.md`). В коде — только смысловые; палитра наружу не выходит.
+- Тема — те же имена с разными значениями (`color.light.json` / `color.dark.json`). Веб: атрибут
+  `data-theme` на `<html>`, без него — как в системе. Apple: каталог цветов с тёмным вариантом.
+  Android: `GpLightColors` / `GpDarkColors`.
+- «Крупнее»: веб — `data-text-size="large"` на `<html>` (текст в rem, ×1,125); Apple и Android —
+  множитель `textScaleLarge` / `TEXT_SCALE_LARGE` поверх системного масштаба.
+- Стекло и тени генерируются только для веба: на Apple стекло системное, на Android — Material.
+- `package.json` лежит в `design/tokens`, а не в корне: корневой включил бы гейт `pre-push` из
+  LifeCommit раньше каркаса. Каркас сделает рабочее пространство pnpm и подключит токены к вебу.
+- Kotlin пока ничем не компилируется (на Маке нет `kotlinc`, проекта Android нет) — проверит каркас.
 
 ## Грабли
 

@@ -1,0 +1,88 @@
+{
+  "sign-in": {
+    "$type": "color",
+    "telegram": {
+      "bg": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.0667,
+            0.6039,
+            0.9608
+          ],
+          "hex": "#119AF5"
+        }
+      },
+      "text": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "hex": "#FFFFFF"
+        }
+      }
+    },
+    "apple": {
+      "bg": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "hex": "#FFFFFF"
+        }
+      },
+      "text": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hex": "#000000"
+        }
+      }
+    },
+    "google": {
+      "bg": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.0745,
+            0.0745,
+            0.0784
+          ],
+          "hex": "#131314"
+        }
+      },
+      "stroke": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.5569,
+            0.5686,
+            0.5608
+          ],
+          "hex": "#8E918F"
+        }
+      },
+      "text": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.8902,
+            0.8902,
+            0.8902
+          ],
+          "hex": "#E3E3E3"
+        }
+      }
+    }
+  }
+}

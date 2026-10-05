@@ -1,0 +1,364 @@
+{
+  "space": {
+    "$type": "dimension",
+    "$description": "Отступы и промежутки: шаг 4 px, полушаги 2/6/10/14 — для плотных мест.",
+    "2": {
+      "$value": {
+        "value": 2,
+        "unit": "px"
+      }
+    },
+    "4": {
+      "$value": {
+        "value": 4,
+        "unit": "px"
+      }
+    },
+    "6": {
+      "$value": {
+        "value": 6,
+        "unit": "px"
+      }
+    },
+    "8": {
+      "$value": {
+        "value": 8,
+        "unit": "px"
+      }
+    },
+    "10": {
+      "$value": {
+        "value": 10,
+        "unit": "px"
+      }
+    },
+    "12": {
+      "$value": {
+        "value": 12,
+        "unit": "px"
+      }
+    },
+    "14": {
+      "$value": {
+        "value": 14,
+        "unit": "px"
+      }
+    },
+    "16": {
+      "$value": {
+        "value": 16,
+        "unit": "px"
+      }
+    },
+    "20": {
+      "$value": {
+        "value": 20,
+        "unit": "px"
+      }
+    },
+    "24": {
+      "$value": {
+        "value": 24,
+        "unit": "px"
+      }
+    },
+    "28": {
+      "$value": {
+        "value": 28,
+        "unit": "px"
+      }
+    },
+    "32": {
+      "$value": {
+        "value": 32,
+        "unit": "px"
+      }
+    },
+    "40": {
+      "$value": {
+        "value": 40,
+        "unit": "px"
+      }
+    },
+    "48": {
+      "$value": {
+        "value": 48,
+        "unit": "px"
+      }
+    },
+    "56": {
+      "$value": {
+        "value": 56,
+        "unit": "px"
+      }
+    },
+    "64": {
+      "$value": {
+        "value": 64,
+        "unit": "px"
+      }
+    },
+    "72": {
+      "$value": {
+        "value": 72,
+        "unit": "px"
+      }
+    }
+  },
+  "radius": {
+    "$type": "dimension",
+    "xs": {
+      "$value": {
+        "value": 6,
+        "unit": "px"
+      },
+      "$description": "Клавиши-подсказки, мелкие метки"
+    },
+    "sm": {
+      "$value": {
+        "value": 8,
+        "unit": "px"
+      },
+      "$description": "Бейджи, маркеры"
+    },
+    "md": {
+      "$value": {
+        "value": 12,
+        "unit": "px"
+      },
+      "$description": "MainButton Telegram, поля ввода"
+    },
+    "lg": {
+      "$value": {
+        "value": 16,
+        "unit": "px"
+      },
+      "$description": "Варианты ответа, строки-кнопки"
+    },
+    "xl": {
+      "$value": {
+        "value": 20,
+        "unit": "px"
+      },
+      "$description": "Крупные плитки, подложка сегментов"
+    },
+    "xxl": {
+      "$value": {
+        "value": 26,
+        "unit": "px"
+      },
+      "$description": "Карточки и сгруппированные списки"
+    },
+    "full": {
+      "$value": {
+        "value": 9999,
+        "unit": "px"
+      },
+      "$description": "Капсулы: кнопки 44–48 px, чипы, вкладки, круги"
+    }
+  },
+  "size": {
+    "$type": "dimension",
+    "tap-target": {
+      "$value": {
+        "value": 44,
+        "unit": "px"
+      },
+      "$description": "Минимум для нажатия (Apple HIG, WCAG 2.5.8 с запасом)"
+    },
+    "button": {
+      "$value": {
+        "value": 48,
+        "unit": "px"
+      },
+      "$description": "Капсула главного действия внутри экрана"
+    },
+    "button-compact": {
+      "$value": {
+        "value": 44,
+        "unit": "px"
+      }
+    },
+    "main-button": {
+      "$value": {
+        "value": 50,
+        "unit": "px"
+      },
+      "$description": "MainButton Telegram и её двойник вне Telegram"
+    },
+    "row": {
+      "$value": {
+        "value": 52,
+        "unit": "px"
+      },
+      "$description": "Строка списка"
+    },
+    "row-tall": {
+      "$value": {
+        "value": 56,
+        "unit": "px"
+      },
+      "$description": "Строка настроек, вариант ответа"
+    },
+    "step-node": {
+      "$value": {
+        "value": 28,
+        "unit": "px"
+      },
+      "$description": "Узел ленты шагов"
+    },
+    "step-node-current": {
+      "$value": {
+        "value": 36,
+        "unit": "px"
+      },
+      "$description": "Текущий узел ленты шагов"
+    },
+    "step-line": {
+      "$value": {
+        "value": 1.5,
+        "unit": "px"
+      },
+      "$description": "Нить ленты шагов"
+    },
+    "tab-bar-height": {
+      "$value": {
+        "value": 64,
+        "unit": "px"
+      }
+    },
+    "tab-bar-width": {
+      "$value": {
+        "value": 340,
+        "unit": "px"
+      }
+    },
+    "tab-bar-bottom": {
+      "$value": {
+        "value": 22,
+        "unit": "px"
+      }
+    },
+    "header-button": {
+      "$value": {
+        "value": 44,
+        "unit": "px"
+      },
+      "$description": "Стеклянные круги шапки Telegram"
+    },
+    "fade": {
+      "$value": {
+        "value": 28,
+        "unit": "px"
+      },
+      "$description": "Растушёвка над нижней панелью"
+    }
+  },
+  "layout": {
+    "$type": "dimension",
+    "gutter": {
+      "$value": {
+        "value": 20,
+        "unit": "px"
+      },
+      "$description": "Боковые поля экрана на телефоне"
+    },
+    "gutter-bar": {
+      "$value": {
+        "value": 16,
+        "unit": "px"
+      },
+      "$description": "Поля нижней панели с кнопками"
+    },
+    "top-inset": {
+      "$value": {
+        "value": 72,
+        "unit": "px"
+      },
+      "$description": "Отступ сверху под шапку Telegram"
+    },
+    "sidebar-min": {
+      "$value": {
+        "value": 248,
+        "unit": "px"
+      }
+    },
+    "sidebar-max": {
+      "$value": {
+        "value": 280,
+        "unit": "px"
+      }
+    },
+    "content-max": {
+      "$value": {
+        "value": 720,
+        "unit": "px"
+      },
+      "$description": "Ширина колонки содержимого на компьютере"
+    },
+    "breakpoint-wide": {
+      "$value": {
+        "value": 900,
+        "unit": "px"
+      },
+      "$description": "С этой ширины — боковая панель и крупная типографика"
+    }
+  },
+  "glass": {
+    "$description": "Параметры стеклянного размытия (веб).",
+    "blur": {
+      "$value": {
+        "value": 16,
+        "unit": "px"
+      },
+      "$type": "dimension"
+    },
+    "saturate": {
+      "$value": 1.8,
+      "$type": "number"
+    }
+  },
+  "motion": {
+    "duration": {
+      "$type": "duration",
+      "press": {
+        "$value": {
+          "value": 160,
+          "unit": "ms"
+        },
+        "$description": "Отклик на нажатие"
+      },
+      "reveal": {
+        "$value": {
+          "value": 240,
+          "unit": "ms"
+        },
+        "$description": "Появление разбора, раскрытие"
+      },
+      "pulse": {
+        "$value": {
+          "value": 1600,
+          "unit": "ms"
+        },
+        "$description": "Мерцание заглушки загрузки"
+      }
+    },
+    "easing": {
+      "$type": "cubicBezier",
+      "out": {
+        "$value": [
+          0.23,
+          1,
+          0.32,
+          1
+        ],
+        "$description": "Сильный ease-out: быстро стартует, мягко садится"
+      }
+    },
+    "press-scale": {
+      "$value": 0.98,
+      "$type": "number",
+      "$description": "Сжатие при нажатии"
+    }
+  }
+}

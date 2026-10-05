@@ -1,0 +1,30 @@
+name: Tokens
+
+# Токены дизайна: сгенерированные файлы и шапка DESIGN.md совпадают с design/tokens/src, контраст — AA
+# в обеих темах. Отдельно от deploy.yml: тот выключен до каркаса, а токены уже живые (решение Даши 05.10.2026).
+on:
+  push:
+    paths: ['design/tokens/**', 'DESIGN.md', '.github/workflows/tokens.yml']
+  pull_request:
+    paths: ['design/tokens/**', 'DESIGN.md', '.github/workflows/tokens.yml']
+
+jobs:
+  tokens:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: design/tokens
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: design/tokens/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: design/tokens/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      - run: pnpm test

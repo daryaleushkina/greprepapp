@@ -1,0 +1,440 @@
+{
+  "color": {
+    "$type": "color",
+    "bg": {
+      "$value": "{palette.mist-50}",
+      "$description": "Фон экрана под свечением"
+    },
+    "surface": {
+      "$value": "{palette.white}",
+      "$description": "Плотная поверхность: текст задания, разбор, сгруппированные списки"
+    },
+    "text": {
+      "$value": "{palette.ink-900}"
+    },
+    "text-secondary": {
+      "$value": "{palette.ink-600}",
+      "$description": "Подписи, мета, неактивные вкладки"
+    },
+    "line": {
+      "$value": {
+        "colorSpace": "srgb",
+        "components": [
+          0.1059,
+          0.1176,
+          0.1569
+        ],
+        "hex": "#1B1E28",
+        "alpha": 0.12
+      },
+      "$description": "Разделители, обводки, нить ленты шагов"
+    },
+    "fill": {
+      "$value": {
+        "colorSpace": "srgb",
+        "components": [
+          0.1059,
+          0.1176,
+          0.1569
+        ],
+        "hex": "#1B1E28",
+        "alpha": 0.06
+      },
+      "$description": "Подложка сегментов и наведения"
+    },
+    "accent": {
+      "$value": "{palette.ink-900}",
+      "$description": "Главная кнопка: монохром, цвет раздела не тратится на кнопки"
+    },
+    "on-accent": {
+      "$value": "{palette.white}"
+    },
+    "focus": {
+      "$value": "{palette.violet-600}",
+      "$description": "Кольцо фокуса клавиатуры"
+    },
+    "tab-selected": {
+      "$value": {
+        "colorSpace": "srgb",
+        "components": [
+          0.1059,
+          0.1176,
+          0.1569
+        ],
+        "hex": "#1B1E28",
+        "alpha": 0.07
+      },
+      "$description": "Подложка выбранной вкладки в капсуле"
+    },
+    "wrong": {
+      "$value": "{palette.orange-700}",
+      "$description": "Неверный ответ. Не красный: ошибка — повод разобраться, а не тревога"
+    },
+    "wrong-tint": {
+      "$value": {
+        "colorSpace": "srgb",
+        "components": [
+          0.7451,
+          0.251,
+          0.0471
+        ],
+        "hex": "#BE400C",
+        "alpha": 0.1
+      }
+    },
+    "verbal": {
+      "$value": "{palette.violet-600}"
+    },
+    "verbal-tint": {
+      "$value": {
+        "colorSpace": "srgb",
+        "components": [
+          0.3569,
+          0.2941,
+          0.7686
+        ],
+        "hex": "#5B4BC4",
+        "alpha": 0.12
+      }
+    },
+    "quant": {
+      "$value": "{palette.green-700}"
+    },
+    "quant-tint": {
+      "$value": {
+        "colorSpace": "srgb",
+        "components": [
+          0.0667,
+          0.451,
+          0.3725
+        ],
+        "hex": "#11735F",
+        "alpha": 0.12
+      }
+    },
+    "words": {
+      "$value": "{palette.rose-600}"
+    },
+    "words-tint": {
+      "$value": {
+        "colorSpace": "srgb",
+        "components": [
+          0.6902,
+          0.2627,
+          0.4157
+        ],
+        "hex": "#B0436A",
+        "alpha": 0.12
+      }
+    },
+    "essay": {
+      "$value": "{palette.amber-700}"
+    },
+    "essay-tint": {
+      "$value": {
+        "colorSpace": "srgb",
+        "components": [
+          0.6039,
+          0.3569,
+          0.0
+        ],
+        "hex": "#9A5B00",
+        "alpha": 0.12
+      }
+    },
+    "exam": {
+      "$value": "{palette.ink-900}",
+      "$description": "Экзамен нейтрален, как настоящий GRE"
+    },
+    "glow": {
+      "$description": "Свечение сверху экрана в цвет раздела: strong — центр, soft — край. Verbal — свечение по умолчанию (экраны вне раздела).",
+      "verbal": {
+        "strong": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.3569,
+              0.2941,
+              0.7686
+            ],
+            "hex": "#5B4BC4",
+            "alpha": 0.22
+          }
+        },
+        "soft": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.3569,
+              0.2941,
+              0.7686
+            ],
+            "hex": "#5B4BC4",
+            "alpha": 0.07
+          }
+        }
+      },
+      "quant": {
+        "strong": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.0667,
+              0.451,
+              0.3725
+            ],
+            "hex": "#11735F",
+            "alpha": 0.2
+          }
+        },
+        "soft": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.0667,
+              0.451,
+              0.3725
+            ],
+            "hex": "#11735F",
+            "alpha": 0.06
+          }
+        }
+      },
+      "words": {
+        "strong": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.7059,
+              0.2667,
+              0.4235
+            ],
+            "hex": "#B4446C",
+            "alpha": 0.2
+          }
+        },
+        "soft": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.7059,
+              0.2667,
+              0.4235
+            ],
+            "hex": "#B4446C",
+            "alpha": 0.06
+          }
+        }
+      },
+      "essay": {
+        "strong": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.6039,
+              0.3569,
+              0.0
+            ],
+            "hex": "#9A5B00",
+            "alpha": 0.18
+          }
+        },
+        "soft": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.6039,
+              0.3569,
+              0.0
+            ],
+            "hex": "#9A5B00",
+            "alpha": 0.05
+          }
+        }
+      },
+      "exam": {
+        "strong": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.1059,
+              0.1176,
+              0.1569
+            ],
+            "hex": "#1B1E28",
+            "alpha": 0.09
+          }
+        },
+        "soft": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.1059,
+              0.1176,
+              0.1569
+            ],
+            "hex": "#1B1E28",
+            "alpha": 0.03
+          }
+        }
+      }
+    },
+    "glass": {
+      "edge": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hex": "#000000",
+          "alpha": 0.06
+        },
+        "$description": "Внешний край стекла"
+      },
+      "rim": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "hex": "#FFFFFF",
+          "alpha": 0.6
+        },
+        "$description": "Блик по верхней кромке (inset)"
+      }
+    }
+  },
+  "glass-fill": {
+    "$type": "gradient",
+    "$description": "Заливка стекла сверху вниз (только веб; на Apple и Android стекло системное). regular — шапка, вкладки, чипы; strong — плотные карточки.",
+    "regular": {
+      "$value": [
+        {
+          "color": {
+            "colorSpace": "srgb",
+            "components": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "hex": "#FFFFFF",
+            "alpha": 0.8
+          },
+          "position": 0
+        },
+        {
+          "color": {
+            "colorSpace": "srgb",
+            "components": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "hex": "#FFFFFF",
+            "alpha": 0.54
+          },
+          "position": 1
+        }
+      ]
+    },
+    "strong": {
+      "$value": [
+        {
+          "color": {
+            "colorSpace": "srgb",
+            "components": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "hex": "#FFFFFF",
+            "alpha": 0.9
+          },
+          "position": 0
+        },
+        {
+          "color": {
+            "colorSpace": "srgb",
+            "components": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "hex": "#FFFFFF",
+            "alpha": 0.7
+          },
+          "position": 1
+        }
+      ]
+    }
+  },
+  "shadow": {
+    "$type": "shadow",
+    "glass": {
+      "$value": {
+        "color": {
+          "colorSpace": "srgb",
+          "components": [
+            0.1176,
+            0.1176,
+            0.2353
+          ],
+          "hex": "#1E1E3C",
+          "alpha": 0.22
+        },
+        "offsetX": {
+          "value": 0,
+          "unit": "px"
+        },
+        "offsetY": {
+          "value": 10,
+          "unit": "px"
+        },
+        "blur": {
+          "value": 30,
+          "unit": "px"
+        },
+        "spread": {
+          "value": -10,
+          "unit": "px"
+        }
+      },
+      "$description": "Мягкая тень под стеклом"
+    },
+    "segment-on": {
+      "$value": {
+        "color": {
+          "colorSpace": "srgb",
+          "components": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hex": "#000000",
+          "alpha": 0.12
+        },
+        "offsetX": {
+          "value": 0,
+          "unit": "px"
+        },
+        "offsetY": {
+          "value": 1,
+          "unit": "px"
+        },
+        "blur": {
+          "value": 3,
+          "unit": "px"
+        },
+        "spread": {
+          "value": 0,
+          "unit": "px"
+        }
+      },
+      "$description": "Выбранный сегмент переключателя"
+    }
+  }
+}
