@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Новая тренировка</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+/* Токены «Шагов»: светлая и тёмная тема. В компонентах — только var(--…) */
+.s{
+--bg:#F5F6F9;--surface:#FFFFFF;--text:#1B1E28;--text-2:#5A6070;--line:rgba(27,30,40,.12);--fill:rgba(27,30,40,.06);
+--accent:#1B1E28;--on-accent:#FFFFFF;--wrong:#C2410C;--wrong-tint:rgba(194,65,12,.10);
+--verbal:#5B4BC4;--verbal-tint:rgba(91,75,196,.12);--quant:#11735F;--quant-tint:rgba(17,115,95,.12);
+--words:#B4446C;--words-tint:rgba(180,68,108,.12);--essay:#9A5B00;--essay-tint:rgba(154,91,0,.12);--exam:#1B1E28;
+--glow:rgba(91,75,196,.22);--glow-2:rgba(91,75,196,.07);
+--glass:linear-gradient(180deg,rgba(255,255,255,.80),rgba(255,255,255,.54));--glass-strong:linear-gradient(180deg,rgba(255,255,255,.90),rgba(255,255,255,.70));--glass-edge:rgba(0,0,0,.06);--glass-rim:rgba(255,255,255,.6);
+--glass-shadow:0 10px 30px -10px rgba(30,30,60,.22);--tab-sel:rgba(27,30,40,.07);--focus:#5B4BC4;
+}
+.s.dark{
+--bg:#0E0F14;--surface:#1A1C23;--text:#F2F3F7;--text-2:#A3A8B5;--line:rgba(255,255,255,.12);--fill:rgba(255,255,255,.08);
+--accent:#F2F3F7;--on-accent:#111318;--wrong:#FF8A4C;--wrong-tint:rgba(255,138,76,.14);
+--verbal:#A898FF;--verbal-tint:rgba(168,152,255,.16);--quant:#4FC4A7;--quant-tint:rgba(79,196,167,.16);
+--words:#F28AB0;--words-tint:rgba(242,138,176,.16);--essay:#F0B45A;--essay-tint:rgba(240,180,90,.16);--exam:#F2F3F7;
+--glow:rgba(130,110,255,.30);--glow-2:rgba(130,110,255,.08);
+--glass:linear-gradient(180deg,rgba(64,66,80,.62),rgba(32,34,44,.50));--glass-strong:linear-gradient(180deg,rgba(48,50,62,.82),rgba(30,32,42,.72));--glass-edge:rgba(0,0,0,.35);--glass-rim:rgba(255,255,255,.12);
+--glass-shadow:0 10px 30px -10px rgba(0,0,0,.6);--tab-sel:rgba(255,255,255,.10);--focus:#A898FF;
+}
+a{color:var(--text)}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+button,a{-webkit-tap-highlight-color:transparent;transition:transform 160ms cubic-bezier(0.23,1,0.32,1)}
+button:active,a:active{transform:scale(0.98)}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+::selection{background:var(--verbal-tint)}
+@media (prefers-reduced-motion: reduce){button,a{transition:none}button:active,a:active{transform:none}}
+@media (prefers-reduced-transparency: reduce){.glass{background:var(--surface)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}}
+</style>
+</helmet>
+<div class="s {{themeClass}}" style="width: 390px; height: 844px; overflow: hidden; position: relative; box-sizing: border-box; font-family: 'Onest', system-ui, sans-serif; color: var(--text); background: radial-gradient(120% 52% at 50% -10%, var(--glow) 0%, var(--glow-2) 48%, transparent 74%), var(--bg); display: flex; flex-direction: column">
+
+  <!-- Шапку рисует Telegram: стеклянные круги поверх содержимого -->
+  <button type="button" class="glass" aria-label="Назад" style="position: absolute; z-index: 6; top: 8px; left: 12px; width: 44px; height: 44px; box-sizing: border-box; padding: 0; border-radius: 50%; background: var(--glass); -webkit-backdrop-filter: blur(16px) saturate(180%); backdrop-filter: blur(16px) saturate(180%); border: 1px solid var(--glass-edge); box-shadow: inset 0 1px 0 var(--glass-rim), var(--glass-shadow); display: flex; align-items: center; justify-content: center">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5.5L8 12l6.5 6.5"></path></svg>
+  </button>
+  <button type="button" class="glass" aria-label="Меню" style="position: absolute; z-index: 6; top: 8px; right: 12px; width: 44px; height: 44px; box-sizing: border-box; padding: 0; border-radius: 50%; background: var(--glass); -webkit-backdrop-filter: blur(16px) saturate(180%); backdrop-filter: blur(16px) saturate(180%); border: 1px solid var(--glass-edge); box-shadow: inset 0 1px 0 var(--glass-rim), var(--glass-shadow); display: flex; align-items: center; justify-content: center">
+    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5.5" cy="12" r="1.7" fill="currentColor"></circle><circle cx="12" cy="12" r="1.7" fill="currentColor"></circle><circle cx="18.5" cy="12" r="1.7" fill="currentColor"></circle></svg>
+  </button>
+
+  <main style="flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; padding: 68px 20px 20px; display: flex; flex-direction: column">
+    <h1 style="flex: none; margin: 0; font-size: 28px; line-height: 34px; font-weight: 600; letter-spacing: -0.02em">Новая тренировка</h1>
+
+    <!-- Готовые наборы — первыми и плотной поверхностью; выбранный уже стоит -->
+    <div role="radiogroup" aria-label="Готовые наборы" class="glass" style="flex: none; margin-top: 18px; padding-left: 16px; border-radius: 24px; background: var(--glass-strong); -webkit-backdrop-filter: blur(16px) saturate(180%); backdrop-filter: blur(16px) saturate(180%); border: 1px solid var(--glass-edge); box-shadow: inset 0 1px 0 var(--glass-rim), var(--glass-shadow)">
+        <button type="button" role="radio" aria-checked="true" style="width: 100%; min-height: 62px; box-sizing: border-box; margin: 0; padding: 10px 16px 10px 0; border: 0; border-bottom: 0.5px solid var(--line); background: transparent; display: flex; align-items: center; gap: 12px; text-align: left">
+          <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 17px; line-height: 22px; font-weight: 500">Как в прошлый раз</span>
+            <span style="font-size: 14px; line-height: 19px; color: var(--text-2)"><span lang="en">Verbal · Text Completion</span> · 10 · Практика</span>
+          </span>
+          <span aria-hidden="true" style="flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: var(--on-accent); display: flex; align-items: center; justify-content: center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 12.5l4 4 9-9"></path></svg></span>
+        </button>
+        <button type="button" role="radio" aria-checked="false" style="width: 100%; min-height: 62px; box-sizing: border-box; margin: 0; padding: 10px 16px 10px 0; border: 0; border-bottom: 0.5px solid var(--line); background: transparent; display: flex; align-items: center; gap: 12px; text-align: left">
+          <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 17px; line-height: 22px; font-weight: 500">Мои ошибки</span>
+            <span style="font-size: 14px; line-height: 19px; color: var(--text-2)">23 задания из всех разделов</span>
+          </span>
+          <span aria-hidden="true" style="flex: none; width: 24px; height: 24px; box-sizing: border-box; border-radius: 50%; border: 1.5px solid var(--line)"></span>
+        </button>
+        <button type="button" role="radio" aria-checked="false" style="width: 100%; min-height: 62px; box-sizing: border-box; margin: 0; padding: 10px 16px 10px 0; border: 0; border-bottom: 0.5px solid var(--line); background: transparent; display: flex; align-items: center; gap: 12px; text-align: left">
+          <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 17px; line-height: 22px; font-weight: 500">Слабая тема: проценты и доли</span>
+            <span style="font-size: 14px; line-height: 19px; color: var(--text-2)"><span lang="en">Quant</span> · 8 вопросов</span>
+          </span>
+          <span aria-hidden="true" style="flex: none; width: 24px; height: 24px; box-sizing: border-box; border-radius: 50%; border: 1.5px solid var(--line)"></span>
+        </button>
+        <button type="button" role="radio" aria-checked="false" style="width: 100%; min-height: 62px; box-sizing: border-box; margin: 0; padding: 10px 16px 10px 0; border: 0; background: transparent; display: flex; align-items: center; gap: 12px; text-align: left">
+          <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 17px; line-height: 22px; font-weight: 500">Проверка на время</span>
+            <span style="font-size: 14px; line-height: 19px; color: var(--text-2)"><span lang="en">Verbal</span> · 12 вопросов · 18 мин, как секция экзамена</span>
+          </span>
+          <span aria-hidden="true" style="flex: none; width: 24px; height: 24px; box-sizing: border-box; border-radius: 50%; border: 1.5px solid var(--line)"></span>
+        </button>
+    </div>
+
+    <!-- Своя сборка: без рубрики, поля показывают то, что сейчас выбрано -->
+    <div style="flex: none; margin-top: 24px; padding-left: 16px; border-radius: 24px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line)">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; padding-right: 14px; border-bottom: 0.5px solid var(--line)">
+        <span style="font-size: 17px; line-height: 22px">Раздел</span>
+        <div role="group" aria-label="Раздел" class="glass" style="flex: none; height: 40px; box-sizing: border-box; padding: 3px; border-radius: 20px; display: flex; background: var(--glass); -webkit-backdrop-filter: blur(16px) saturate(180%); backdrop-filter: blur(16px) saturate(180%); border: 1px solid var(--glass-edge); box-shadow: inset 0 1px 0 var(--glass-rim), var(--glass-shadow)">
+          <button type="button" aria-pressed="true" style="flex: 1; height: 32px; padding: 0 12px; border: 0; border-radius: 16px; font-size: 15px; background: var(--surface); color: var(--text); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,.10), 0 2px 8px rgba(0,0,0,.05)">Verbal</button>
+          <button type="button" aria-pressed="false" style="flex: 1; height: 32px; padding: 0 12px; border: 0; border-radius: 16px; font-size: 15px; background: transparent; color: var(--text-2); font-weight: 500">Quant</button>
+        </div>
+      </div>
+      <a href="#" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; padding-right: 14px; border-bottom: 0.5px solid var(--line); text-decoration: none; color: var(--text)">
+        <span style="font-size: 17px; line-height: 22px">Тип</span>
+        <span style="display: flex; align-items: center; gap: 6px; font-size: 16px; line-height: 22px; color: var(--text-2)"><span lang="en">Text Completion</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 5.5L16 12l-6.5 6.5"></path></svg>
+        </span>
+      </a>
+      <label for="r1-count" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; padding-right: 14px; border-bottom: 0.5px solid var(--line)">
+        <span style="font-size: 17px; line-height: 22px">Вопросов</span>
+        <input id="r1-count" type="number" inputmode="numeric" min="1" max="60" value="10" class="glass" style="width: 76px; height: 40px; box-sizing: border-box; padding: 0 8px; border-radius: 20px; background: var(--glass); -webkit-backdrop-filter: blur(16px) saturate(180%); backdrop-filter: blur(16px) saturate(180%); border: 1px solid var(--glass-edge); box-shadow: inset 0 1px 0 var(--glass-rim), var(--glass-shadow); text-align: center; font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums">
+      </label>
+      <div style="display: flex; flex-direction: column; gap: 4px; padding: 10px 14px 12px 0; border-bottom: 0.5px solid var(--line)">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+          <span style="font-size: 17px; line-height: 22px">Режим</span>
+          <div role="group" aria-label="Режим" class="glass" style="flex: none; height: 40px; box-sizing: border-box; padding: 3px; border-radius: 20px; display: flex; background: var(--glass); -webkit-backdrop-filter: blur(16px) saturate(180%); backdrop-filter: blur(16px) saturate(180%); border: 1px solid var(--glass-edge); box-shadow: inset 0 1px 0 var(--glass-rim), var(--glass-shadow)">
+          <button type="button" aria-pressed="true" style="flex: 1; height: 32px; padding: 0 12px; border: 0; border-radius: 16px; font-size: 15px; background: var(--surface); color: var(--text); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,.10), 0 2px 8px rgba(0,0,0,.05)">Практика</button>
+          <button type="button" aria-pressed="false" style="flex: 1; height: 32px; padding: 0 12px; border: 0; border-radius: 16px; font-size: 15px; background: transparent; color: var(--text-2); font-weight: 500">Проверка</button>
+        </div>
+        </div>
+        <p style="margin: 0; font-size: 14px; line-height: 19px; color: var(--text-2)">Разбор после каждого вопроса, без таймера</p>
+      </div>
+      <a href="R2-BuilderTopics.dc.html" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; padding-right: 14px; text-decoration: none; color: var(--text)">
+        <span style="font-size: 17px; line-height: 22px">Темы и сложность</span>
+        <span style="display: flex; align-items: center; gap: 6px; font-size: 16px; line-height: 22px; color: var(--text-2)">все
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 5.5L16 12l-6.5 6.5"></path></svg>
+        </span>
+      </a>
+    </div>
+  </main>
+
+  <!-- Нижняя панель Telegram: содержимое уходит под растушёвку; кнопки рисует клиент -->
+  <div style="flex: none; position: relative; z-index: 3; padding: 8px 16px 24px; background: var(--bg); display: flex; gap: 10px">
+    <span aria-hidden="true" style="position: absolute; left: 0; right: 0; top: -28px; height: 28px; background: linear-gradient(transparent, var(--bg)); pointer-events: none"></span>
+    <button type="button" style="flex: 1; height: 50px; border: 0; border-radius: 12px; background: var(--accent); color: var(--on-accent); font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif; font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums">Начать · 10 вопросов · ~12 мин</button>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+const dark = this.props.dark ?? false;
+return { themeClass: dark ? 'dark' : '' };
+}
+}
+</script>
+</body>
+</html>

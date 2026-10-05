@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Разбор проверки</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+/* Токены «Шагов»: светлая и тёмная тема. В компонентах — только var(--…) */
+.s{
+--bg:#F5F6F9;--surface:#FFFFFF;--text:#1B1E28;--text-2:#5A6070;--line:rgba(27,30,40,.12);--fill:rgba(27,30,40,.06);
+--accent:#1B1E28;--on-accent:#FFFFFF;--wrong:#C2410C;--wrong-tint:rgba(194,65,12,.10);
+--verbal:#5B4BC4;--verbal-tint:rgba(91,75,196,.12);--quant:#11735F;--quant-tint:rgba(17,115,95,.12);
+--words:#B4446C;--words-tint:rgba(180,68,108,.12);--essay:#9A5B00;--essay-tint:rgba(154,91,0,.12);--exam:#1B1E28;
+--glow:rgba(91,75,196,.22);--glow-2:rgba(91,75,196,.07);
+--glass:linear-gradient(180deg,rgba(255,255,255,.80),rgba(255,255,255,.54));--glass-strong:linear-gradient(180deg,rgba(255,255,255,.90),rgba(255,255,255,.70));--glass-edge:rgba(0,0,0,.06);--glass-rim:rgba(255,255,255,.6);
+--glass-shadow:0 10px 30px -10px rgba(30,30,60,.22);--tab-sel:rgba(27,30,40,.07);--focus:#5B4BC4;
+}
+.s.dark{
+--bg:#0E0F14;--surface:#1A1C23;--text:#F2F3F7;--text-2:#A3A8B5;--line:rgba(255,255,255,.12);--fill:rgba(255,255,255,.08);
+--accent:#F2F3F7;--on-accent:#111318;--wrong:#FF8A4C;--wrong-tint:rgba(255,138,76,.14);
+--verbal:#A898FF;--verbal-tint:rgba(168,152,255,.16);--quant:#4FC4A7;--quant-tint:rgba(79,196,167,.16);
+--words:#F28AB0;--words-tint:rgba(242,138,176,.16);--essay:#F0B45A;--essay-tint:rgba(240,180,90,.16);--exam:#F2F3F7;
+--glow:rgba(130,110,255,.30);--glow-2:rgba(130,110,255,.08);
+--glass:linear-gradient(180deg,rgba(64,66,80,.62),rgba(32,34,44,.50));--glass-strong:linear-gradient(180deg,rgba(48,50,62,.82),rgba(30,32,42,.72));--glass-edge:rgba(0,0,0,.35);--glass-rim:rgba(255,255,255,.12);
+--glass-shadow:0 10px 30px -10px rgba(0,0,0,.6);--tab-sel:rgba(255,255,255,.10);--focus:#A898FF;
+}
+a{color:var(--text)}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+button,a{-webkit-tap-highlight-color:transparent;transition:transform 160ms cubic-bezier(0.23,1,0.32,1)}
+button:active,a:active{transform:scale(0.98)}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+::selection{background:var(--verbal-tint)}
+@media (prefers-reduced-motion: reduce){button,a{transition:none}button:active,a:active{transform:none}}
+@media (prefers-reduced-transparency: reduce){.glass{background:var(--surface)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}}
+</style>
+</helmet>
+<!-- Разбор после «Проверки» Verbal: 12 вопросов, 4 ошибки; строка открывает разбор -->
+<div class="s {{themeClass}}" style="width: 390px; height: 844px; overflow: hidden; position: relative; box-sizing: border-box; font-family: 'Onest', system-ui, sans-serif; color: var(--text); background: radial-gradient(120% 52% at 50% -10%, var(--glow) 0%, var(--glow-2) 48%, transparent 74%), var(--bg); display: flex; flex-direction: column">
+  <!-- Шапку рисует Telegram: стеклянные круги поверх содержимого -->
+  <button type="button" class="glass" aria-label="Назад" style="position: absolute; z-index: 6; top: 8px; left: 12px; width: 44px; height: 44px; box-sizing: border-box; padding: 0; border-radius: 50%; background: var(--glass); -webkit-backdrop-filter: blur(16px) saturate(180%); backdrop-filter: blur(16px) saturate(180%); border: 1px solid var(--glass-edge); box-shadow: inset 0 1px 0 var(--glass-rim), var(--glass-shadow); display: flex; align-items: center; justify-content: center">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5.5L8 12l6.5 6.5"></path></svg>
+  </button>
+  <button type="button" class="glass" aria-label="Меню" style="position: absolute; z-index: 6; top: 8px; right: 12px; width: 44px; height: 44px; box-sizing: border-box; padding: 0; border-radius: 50%; background: var(--glass); -webkit-backdrop-filter: blur(16px) saturate(180%); backdrop-filter: blur(16px) saturate(180%); border: 1px solid var(--glass-edge); box-shadow: inset 0 1px 0 var(--glass-rim), var(--glass-shadow); display: flex; align-items: center; justify-content: center">
+    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5.5" cy="12" r="1.7" fill="currentColor"></circle><circle cx="12" cy="12" r="1.7" fill="currentColor"></circle><circle cx="18.5" cy="12" r="1.7" fill="currentColor"></circle></svg>
+  </button>
+  <main style="flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; padding: 68px 16px 0; display: flex; flex-direction: column">
+    <h1 style="flex: none; margin: 0; font-size: 28px; line-height: 34px; font-weight: 600; letter-spacing: -0.02em">Проверка · <span lang="en">Verbal</span></h1>
+    <p style="flex: none; margin: 4px 0 0; font-size: 15px; line-height: 20px; color: var(--text-2); font-variant-numeric: tabular-nums">8 из 12 верно · 17 минут из 18</p>
+    <div role="group" aria-label="Показать" class="glass" style="flex: none; align-self: flex-start; margin-top: 16px; height: 40px; box-sizing: border-box; padding: 3px; border-radius: 20px; background: var(--glass); -webkit-backdrop-filter: blur(16px) saturate(180%); backdrop-filter: blur(16px) saturate(180%); border: 1px solid var(--glass-edge); box-shadow: inset 0 1px 0 var(--glass-rim), var(--glass-shadow); display: flex">
+      <button type="button" aria-pressed="true" style="height: 32px; padding: 0 16px; border: 0; border-radius: 16px; background: var(--surface); box-shadow: 0 1px 3px var(--line); font-size: 15px; line-height: 20px; font-weight: 600">Все · 12</button>
+      <button type="button" aria-pressed="false" style="height: 32px; padding: 0 16px; border: 0; border-radius: 16px; background: transparent; font-size: 15px; line-height: 20px; color: var(--text-2)">Ошибки · 4</button>
+    </div>
+    <section aria-label="Вопросы" style="flex: none; margin: 14px 0 24px; border-radius: 24px; overflow: hidden; background: var(--surface); border: 1px solid var(--line)">
+      <a href="#" style="min-height: 58px; box-sizing: border-box; padding: 8px 14px 8px 16px; display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text)">
+        <span style="flex: none; width: 20px; font-size: 15px; line-height: 20px; color: var(--text-2); font-variant-numeric: tabular-nums">1</span>
+        <span role="img" aria-label="верно" style="flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--verbal-tint); color: var(--verbal); display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+          <span lang="en" style="font-size: 16px; line-height: 21px; font-weight: 500">Text Completion</span>
+          <span style="font-size: 14px; line-height: 19px; color: var(--text-2)">Слова-сигналы контраста</span>
+        </span>
+        <span style="flex: none; color: var(--text-2); display: flex"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 6l6 6-6 6"></path></svg></span>
+      </a>
+      <a href="#" style="border-top: 1px solid var(--line); min-height: 58px; box-sizing: border-box; padding: 8px 14px 8px 16px; display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text)">
+        <span style="flex: none; width: 20px; font-size: 15px; line-height: 20px; color: var(--text-2); font-variant-numeric: tabular-nums">2</span>
+        <span role="img" aria-label="неверно" style="flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--wrong-tint); color: var(--wrong); display: flex; align-items: center; justify-content: center"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"></path></svg></span>
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+          <span lang="en" style="font-size: 16px; line-height: 21px; font-weight: 500">Text Completion</span>
+          <span style="font-size: 14px; line-height: 19px; color: var(--text-2)">Причина и следствие</span>
+        </span>
+        <span style="flex: none; color: var(--text-2); display: flex"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 6l6 6-6 6"></path></svg></span>
+      </a>
+      <a href="#" style="border-top: 1px solid var(--line); min-height: 58px; box-sizing: border-box; padding: 8px 14px 8px 16px; display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text)">
+        <span style="flex: none; width: 20px; font-size: 15px; line-height: 20px; color: var(--text-2); font-variant-numeric: tabular-nums">3</span>
+        <span role="img" aria-label="верно" style="flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--verbal-tint); color: var(--verbal); display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+          <span lang="en" style="font-size: 16px; line-height: 21px; font-weight: 500">Sentence Equivalence</span>
+          <span style="font-size: 14px; line-height: 19px; color: var(--text-2)">Близкие синонимы</span>
+        </span>
+        <span style="flex: none; color: var(--text-2); display: flex"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 6l6 6-6 6"></path></svg></span>
+      </a>
+      <a href="#" style="border-top: 1px solid var(--line); min-height: 58px; box-sizing: border-box; padding: 8px 14px 8px 16px; display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text)">
+        <span style="flex: none; width: 20px; font-size: 15px; line-height: 20px; color: var(--text-2); font-variant-numeric: tabular-nums">4</span>
+        <span role="img" aria-label="неверно" style="flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--wrong-tint); color: var(--wrong); display: flex; align-items: center; justify-content: center"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"></path></svg></span>
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+          <span lang="en" style="font-size: 16px; line-height: 21px; font-weight: 500">Sentence Equivalence</span>
+          <span style="font-size: 14px; line-height: 19px; color: var(--text-2)">Близкие синонимы</span>
+        </span>
+        <span style="flex: none; color: var(--text-2); display: flex"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 6l6 6-6 6"></path></svg></span>
+      </a>
+      <a href="#" style="border-top: 1px solid var(--line); min-height: 58px; box-sizing: border-box; padding: 8px 14px 8px 16px; display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text)">
+        <span style="flex: none; width: 20px; font-size: 15px; line-height: 20px; color: var(--text-2); font-variant-numeric: tabular-nums">5</span>
+        <span role="img" aria-label="верно" style="flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--verbal-tint); color: var(--verbal); display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+          <span lang="en" style="font-size: 16px; line-height: 21px; font-weight: 500">Reading Comprehension</span>
+          <span style="font-size: 14px; line-height: 19px; color: var(--text-2)">Главная мысль</span>
+        </span>
+        <span style="flex: none; color: var(--text-2); display: flex"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 6l6 6-6 6"></path></svg></span>
+      </a>
+      <a href="#" style="border-top: 1px solid var(--line); min-height: 58px; box-sizing: border-box; padding: 8px 14px 8px 16px; display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text)">
+        <span style="flex: none; width: 20px; font-size: 15px; line-height: 20px; color: var(--text-2); font-variant-numeric: tabular-nums">6</span>
+        <span role="img" aria-label="верно" style="flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--verbal-tint); color: var(--verbal); display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+          <span lang="en" style="font-size: 16px; line-height: 21px; font-weight: 500">Reading Comprehension</span>
+          <span style="font-size: 14px; line-height: 19px; color: var(--text-2)">Вывод из текста</span>
+        </span>
+        <span style="flex: none; color: var(--text-2); display: flex"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 6l6 6-6 6"></path></svg></span>
+      </a>
+      <a href="#" style="border-top: 1px solid var(--line); min-height: 58px; box-sizing: border-box; padding: 8px 14px 8px 16px; display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text)">
+        <span style="flex: none; width: 20px; font-size: 15px; line-height: 20px; color: var(--text-2); font-variant-numeric: tabular-nums">7</span>
+        <span role="img" aria-label="верно" style="flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--verbal-tint); color: var(--verbal); display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+          <span lang="en" style="font-size: 16px; line-height: 21px; font-weight: 500">Text Completion</span>
+          <span style="font-size: 14px; line-height: 19px; color: var(--text-2)">Два пропуска</span>
+        </span>
+        <span style="flex: none; color: var(--text-2); display: flex"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 6l6 6-6 6"></path></svg></span>
+      </a>
+      <a href="#" style="border-top: 1px solid var(--line); min-height: 58px; box-sizing: border-box; padding: 8px 14px 8px 16px; display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text)">
+        <span style="flex: none; width: 20px; font-size: 15px; line-height: 20px; color: var(--text-2); font-variant-numeric: tabular-nums">8</span>
+        <span role="img" aria-label="верно" style="flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--verbal-tint); color: var(--verbal); display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+          <span lang="en" style="font-size: 16px; line-height: 21px; font-weight: 500">Sentence Equivalence</span>
+          <span style="font-size: 14px; line-height: 19px; color: var(--text-2)">Тон высказывания</span>
+        </span>
+        <span style="flex: none; color: var(--text-2); display: flex"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 6l6 6-6 6"></path></svg></span>
+      </a>
+      <a href="#" style="border-top: 1px solid var(--line); min-height: 58px; box-sizing: border-box; padding: 8px 14px 8px 16px; display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text)">
+        <span style="flex: none; width: 20px; font-size: 15px; line-height: 20px; color: var(--text-2); font-variant-numeric: tabular-nums">9</span>
+        <span role="img" aria-label="неверно" style="flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--wrong-tint); color: var(--wrong); display: flex; align-items: center; justify-content: center"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"></path></svg></span>
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+          <span lang="en" style="font-size: 16px; line-height: 21px; font-weight: 500">Reading Comprehension</span>
+          <span style="font-size: 14px; line-height: 19px; color: var(--text-2)">Роль предложения</span>
+        </span>
+        <span style="flex: none; color: var(--text-2); display: flex"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 6l6 6-6 6"></path></svg></span>
+      </a>
+      <a href="#" style="border-top: 1px solid var(--line); min-height: 58px; box-sizing: border-box; padding: 8px 14px 8px 16px; display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text)">
+        <span style="flex: none; width: 20px; font-size: 15px; line-height: 20px; color: var(--text-2); font-variant-numeric: tabular-nums">10</span>
+        <span role="img" aria-label="верно" style="flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--verbal-tint); color: var(--verbal); display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+          <span lang="en" style="font-size: 16px; line-height: 21px; font-weight: 500">Text Completion</span>
+          <span style="font-size: 14px; line-height: 19px; color: var(--text-2)">Слова-сигналы контраста</span>
+        </span>
+        <span style="flex: none; color: var(--text-2); display: flex"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 6l6 6-6 6"></path></svg></span>
+      </a>
+      <a href="#" style="border-top: 1px solid var(--line); min-height: 58px; box-sizing: border-box; padding: 8px 14px 8px 16px; display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text)">
+        <span style="flex: none; width: 20px; font-size: 15px; line-height: 20px; color: var(--text-2); font-variant-numeric: tabular-nums">11</span>
+        <span role="img" aria-label="верно" style="flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--verbal-tint); color: var(--verbal); display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+          <span lang="en" style="font-size: 16px; line-height: 21px; font-weight: 500">Sentence Equivalence</span>
+          <span style="font-size: 14px; line-height: 19px; color: var(--text-2)">Значение по контексту</span>
+        </span>
+        <span style="flex: none; color: var(--text-2); display: flex"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 6l6 6-6 6"></path></svg></span>
+      </a>
+      <a href="#" style="border-top: 1px solid var(--line); min-height: 58px; box-sizing: border-box; padding: 8px 14px 8px 16px; display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text)">
+        <span style="flex: none; width: 20px; font-size: 15px; line-height: 20px; color: var(--text-2); font-variant-numeric: tabular-nums">12</span>
+        <span role="img" aria-label="неверно" style="flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--wrong-tint); color: var(--wrong); display: flex; align-items: center; justify-content: center"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"></path></svg></span>
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+          <span lang="en" style="font-size: 16px; line-height: 21px; font-weight: 500">Reading Comprehension</span>
+          <span style="font-size: 14px; line-height: 19px; color: var(--text-2)">Вывод из текста</span>
+        </span>
+        <span style="flex: none; color: var(--text-2); display: flex"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 6l6 6-6 6"></path></svg></span>
+      </a>
+    </section>
+  </main>
+
+  <!-- Нижняя панель Telegram: содержимое уходит под растушёвку; кнопки рисует клиент -->
+  <div style="flex: none; position: relative; z-index: 4; padding: 8px 16px 24px; background: var(--bg); display: flex; gap: 10px">
+    <span aria-hidden="true" style="position: absolute; left: 0; right: 0; top: -28px; height: 28px; background: linear-gradient(transparent, var(--bg)); pointer-events: none"></span>
+    <button type="button" style="flex: 1; height: 50px; border: 0; border-radius: 12px; background: var(--accent); color: var(--on-accent); font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif; font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums">Повторить ошибки · 4</button>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+const dark = this.props.dark ?? false;
+return { themeClass: dark ? 'dark' : '' };
+}
+}
+</script>
+</body>
+</html>
