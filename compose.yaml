@@ -1,0 +1,24 @@
+# Локальный стек для разработки и тестов: только Postgres. Сервер Go и веб запускаются без Docker.
+# Порт 55432 — свой: 5432, 54322, 55421 и 55422 на Маке заняты соседними стеками (docs/HANDOFF.md, «Грабли»).
+# Пароль — только для локальной базы на 127.0.0.1, не секрет.
+name: greprep
+services:
+  postgres:
+    image: postgres:18.6
+    environment:
+      POSTGRES_USER: greprep
+      POSTGRES_PASSWORD: greprep
+      POSTGRES_DB: greprep
+    ports:
+      - "127.0.0.1:55432:5432"
+    # С 18-й версии образ хранит данные в /var/lib/postgresql/18/docker; том — на родителя, иначе данные
+    # уходят в безымянный том и пропадают при пересоздании контейнера.
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U greprep -d greprep"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+volumes:
+  pgdata:

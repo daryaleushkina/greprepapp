@@ -18,39 +18,65 @@
 
 ## 2. Каркас — первая задача кода
 
-Веб (мини-апп и сайт, React + Vite), приложения на Swift (iPhone, iPad, Mac)
-и Kotlin (Android), бэкенд на Go, Postgres, веб-админка — на своём
-сервере за рубежом (OVH или Hetzner, `PRODUCT.md`, «Stack»; аккаунт заводит
-Даша — до первой выкладки, а каркас и разработка идут локально). Ключ API
-Anthropic — позже: конвейер контента и оценка эссе делаются на подменённом
-API и переключаются на настоящий одной переменной. Платные аккаунты Apple
-Developer и Google Play — перед публикацией в магазины (решения Даши
-05.10.2026). Вместе с каркасом:
+Допрос Даши 06.10.2026: каркас глубокий — на каждой платформе сквозной путь
+«вход → экран «Сегодня» с данными с сервера → тесты → гейт». Продуктовые
+решения допроса — в `PRODUCT.md` (привязка способов входа, офлайн, стенд,
+адрес, мониторинг, копии базы, минимальные версии). Техника — по лучшим
+практикам, версии сверены по первоисточникам 06.10.2026:
 
-- **бэкенд на Go:** проверка initData, журнал запросов (одна строка на запрос,
-  id запроса в ответе), ошибки клиента — в таблицу `client_errors`; миграции
-  файлами и инструмент для них; локальный Postgres со своими портами (рядом
-  на Маке стоят стеки LifeCommit и audioguide — `docs/HANDOFF.md`, «Грабли»);
-- **тесты:** `go test -race`, интеграционные против локального Postgres,
-  внешнее — через `httptest`; фронт — vitest с порогом покрытия, Playwright
-  (iPhone/WebKit и Android/Chromium, обе темы), `checkScreen`, фикстура `me`,
-  сид, `e2e/a11y.spec.ts` (axe, WCAG AA) по образцу LifeCommit;
-  `docs/TESTING.md` по образцу audioguide — слои, что подменяется, что не
-  покрыто;
-- **гейт под Go и свой сервер:** переписать `scripts/hooks/pre-push` и
-  `.github/workflows/deploy.yml` (сейчас pnpm и wrangler из LifeCommit) — фронт,
-  `go vet`, `golangci-lint`, `go test -race`, e2e, сборка, деплой на сервер;
-  запреты в `.claude/settings.json` — под новый способ деплоя; прогнать тесты
-  хуков и дописать тест на `.claude/hooks/session-git.sh`;
-- **агенты ревью** `gp-review-access` и `gp-review-errors` переписать под Go и
-  Postgres (сейчас они про Worker, supabase-js и RLS);
-- **сервер:** TLS, запуск сервиса, обновления, мониторинг места и доступности;
-  ночная резервная копия Postgres с проверкой восстановлением на другой сервер
-  (по образцу `tools/db/backup.sh` из audioguide, раннер — GitHub: репозиторий
-  публичный, свой раннер к нему не подключать);
-- **бот:** имя и тексты (`TEXTS` в `scripts/setup-bot.mjs`), вебхук на Go;
-- переменная `DEPLOY_ENABLED=true` в GitHub — последним шагом, когда гейт
-  зелёный.
+- **договор** — один файл `api/openapi.yaml` (OpenAPI 3.1, осторожное
+  подмножество: без `oneOf`/`anyOf`, у каждого объекта
+  `additionalProperties: false`); из него генерируются сервер Go (ogen —
+  сам отклоняет лишние поля), веб и админка (Orval с проверкой каждого
+  ответа по Zod), Swift (генератор Apple), Kotlin (openapi-generator).
+  Сгенерированное коммитится, гейт проверяет, что оно свежее;
+- **сервер** — Go 1.27, Postgres 18, запросы sqlc + pgx, миграции goose
+  (SQL-файлы, встроены в бинарник, применяются до переключения на новую
+  сборку), журнал `slog` (строка на запрос, id запроса в ответе), ошибки
+  клиентов — таблица `client_errors`. Вход: initData — своя проверка подписи;
+  Telegram, Apple, Google — go-oidc по ключам компаний. Сессия — случайный
+  токен 256 бит, в базе только хэш; сайт — кука `__Host-` (HttpOnly,
+  SameSite=Strict), мини-апп и приложения — заголовок `Authorization`. Тесты
+  — настоящий Postgres, у каждого теста своя база-клон шаблона,
+  `go test -race`, golangci-lint v2;
+- **веб** — одно приложение для мини-аппа и сайта, оболочка выбирается при
+  запуске; React 19 с React Compiler, Vite 8, TypeScript 7, TanStack Router и
+  Query, CSS Modules на токенах, @tma.js/sdk-react; oxlint с проверкой типов,
+  Vitest 5, Playwright (WebKit и Chromium, обе темы, axe), эталонные снимки —
+  только в Docker-образе Playwright; Node 24 LTS, pnpm 12, рабочее
+  пространство: `apps/web`, `apps/admin`, `packages/api-client`,
+  `design/tokens`;
+- **админка** — отдельное приложение (её код не попадает к людям), Base UI на
+  наших токенах, вход Даши — Telegram и роль на сервере;
+- **Apple** — SwiftUI, Swift 6, `@Observable`; iOS 18 / macOS 15, стекло на
+  26+ с матовой подложкой ниже; токен — Keychain; Apple — родная кнопка,
+  Google и Telegram — системное окно браузера (OIDC с PKCE); Swift Testing,
+  XCUITest, снимки экранов; CI — раннер GitHub с Xcode 27;
+- **Android** — Kotlin 2.4, Compose, Navigation 3, Hilt, minSdk 26; токен —
+  ключ в Keystore + DataStore; Google — Credential Manager, Apple и Telegram —
+  Custom Tab; JUnit, Compose UI, Roborazzi, короткий прогон на эмуляторе в CI;
+- **выкладка** — бинарник Go + systemd + Caddy + Postgres 18 из PGDG; откат —
+  переключение на прошлую сборку; стенд — вторая копия рядом; копии базы —
+  pgBackRest; локально — Postgres 18 в Docker на порту 55432 (порты соседних
+  стеков — `docs/HANDOFF.md`, «Грабли»).
+
+Пока нет аккаунтов (сервер, хранилище, мониторинг, Apple Developer, Google,
+бот) — настоящие кнопки входа и выкладка ждут Дашу; локально, в тестах и на
+стенде вход — подменой, которая в бою выключена и это проверено тестом.
+
+Порядок — частями, каждая вливается в `main`, когда зелёная:
+
+1. договор, сервер Go и база; гейт `pre-push` под Go;
+2. веб (мини-апп и сайт);
+3. админка;
+4. приложение на Swift;
+5. приложение на Kotlin;
+6. CI в GitHub Actions на все части, `docs/TESTING.md`, агенты ревью
+   `gp-review-access` и `gp-review-errors` под Go и Postgres, тест на
+   `.claude/hooks/session-git.sh`;
+7. сервер, стенд, копии базы, мониторинг, бот (имя и тексты —
+   `scripts/setup-bot.mjs`, вебхук на Go) — когда Даша заведёт аккаунты;
+   последним шагом — `DEPLOY_ENABLED=true` в GitHub.
 
 ## 3. Шкала баллов пробника
 

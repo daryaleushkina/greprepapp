@@ -1,0 +1,486 @@
+openapi: 3.1.0
+# Договор между сервером Go и всеми клиентами: веб (мини-апп и сайт), админка, Swift, Kotlin.
+# Источник правды — этот файл; код по нему генерируется (docs/HANDOFF.md, «Договор API»).
+#
+# Осторожное подмножество OpenAPI 3.1 — его понимают все четыре генератора:
+#   • без oneOf / anyOf / allOf (генератор Kotlin их не поддерживает);
+#   • у каждого объекта additionalProperties: false — сервер (ogen) отклоняет лишние поля с 400;
+#   • вместо null — необязательное поле (null в 3.1 у Kotlin в бете);
+#   • securitySchemes генератор Swift игнорирует — токен там добавляет своя прослойка.
+info:
+  title: GrePrepApp API
+  version: 0.1.0
+  description: >-
+    Ошибка — всегда тело Error с машинным кодом и id запроса; тот же id — в заголовке X-Request-Id
+    каждого ответа. Вход: сайт — кука __Host-session, мини-апп и приложения — Authorization: Bearer.
+
+paths:
+  /api/health:
+    get:
+      operationId: getHealth
+      summary: Жив ли сервер и какая сборка (сверка после выкладки)
+      tags: [public]
+      security: []
+      responses:
+        '200':
+          description: Сервер отвечает, база доступна
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Health' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /api/auth/telegram-mini-app:
+    post:
+      operationId: signInWithTelegramMiniApp
+      summary: Вход из мини-аппа по initData (подпись проверяется ключом бота)
+      tags: [auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TelegramMiniAppSignIn' }
+      responses:
+        '200':
+          description: Вошёл; токен — в теле (мини-апп хранит его в памяти)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Session' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /api/auth/oidc:
+    post:
+      operationId: signInWithIdToken
+      summary: Вход по id_token Apple или Google, полученному на устройстве
+      description: >-
+        Родная кнопка Apple и Credential Manager Google отдают id_token прямо на устройстве. Сервер
+        проверяет подпись по ключам компании, издателя, получателя, срок и nonce.
+      tags: [auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/IdTokenSignIn' }
+      responses:
+        '200':
+          description: Вошёл
+          headers:
+            Set-Cookie:
+              description: Только при transport=cookie — __Host-session, HttpOnly, Secure, SameSite=Strict
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Session' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /api/auth/oidc/code:
+    post:
+      operationId: signInWithAuthorizationCode
+      summary: Вход по коду авторизации (Telegram везде, Apple на сайте и Android)
+      description: >-
+        Код обменивается на id_token на сервере: для обмена нужен секрет клиента, на устройство он не
+        попадает. PKCE — обязательно.
+      tags: [auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AuthorizationCodeSignIn' }
+      responses:
+        '200':
+          description: Вошёл
+          headers:
+            Set-Cookie:
+              description: Только при transport=cookie
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Session' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /api/auth/dev:
+    post:
+      operationId: signInForDevelopment
+      summary: Вход подменой — локально, в тестах и на стенде; в бою 404
+      description: >-
+        Включается переменной DEV_AUTH=1, которую сервер отказывается принять вместе с APP_ENV=production
+        (проверено тестом). Тем же путём e2e заводит своего пользователя на каждый тест.
+      tags: [auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DevSignIn' }
+      responses:
+        '200':
+          description: Вошёл
+          headers:
+            Set-Cookie:
+              description: Только при transport=cookie
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Session' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /api/auth/logout:
+    post:
+      operationId: signOut
+      summary: Выйти на этом устройстве — сессия удаляется сразу
+      tags: [auth]
+      responses:
+        '204':
+          description: Сессии больше нет; на сайте кука стёрта
+          headers:
+            Set-Cookie:
+              description: Стирает __Host-session
+              schema: { type: string }
+        default: { $ref: '#/components/responses/Error' }
+
+  /api/me:
+    get:
+      operationId: getMe
+      summary: Кто вошёл
+      tags: [account]
+      responses:
+        '200':
+          description: Пользователь
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /api/today:
+    get:
+      operationId: getToday
+      summary: Лента шагов на сегодня (экран «Сегодня»)
+      tags: [today]
+      responses:
+        '200':
+          description: Шаги по порядку; конец ленты виден
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Today' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /api/client-errors:
+    post:
+      operationId: reportClientError
+      summary: Ошибка на клиенте — в таблицу client_errors
+      description: >-
+        Можно без входа (ошибка до входа тоже важна). Размер тела и частота ограничены на сервере.
+      tags: [public]
+      security:
+        - {}
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ClientError' }
+      responses:
+        '204':
+          description: Записано
+        default: { $ref: '#/components/responses/Error' }
+
+  /api/admin/review-queue:
+    get:
+      operationId: getReviewQueue
+      summary: Очередь контента на проверку Даши (админка)
+      description: Только роль admin; остальным — 403 forbidden.
+      tags: [admin]
+      responses:
+        '200':
+          description: Очередь; в каркасе пустая
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ReviewQueue' }
+        default: { $ref: '#/components/responses/Error' }
+
+security:
+  - bearerAuth: []
+  - cookieAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Токен сессии — мини-апп и приложения
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: __Host-session
+      description: Токен сессии — сайт и админка
+
+  responses:
+    Error:
+      description: Любая ошибка — машинный код, текст для журнала, id запроса
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+
+  schemas:
+    Error:
+      type: object
+      additionalProperties: false
+      required: [code, message, requestId]
+      properties:
+        code:
+          type: string
+          description: >-
+            Машинный код: bad_request, unauthorized, forbidden, not_found, too_many_requests,
+            invalid_init_data, invalid_id_token, internal. Клиент показывает текст по коду, а не message.
+          examples: [unauthorized]
+        message:
+          type: string
+          description: Для журнала и разработчика, не для экрана
+        requestId:
+          type: string
+
+    Health:
+      type: object
+      additionalProperties: false
+      required: [status, version]
+      properties:
+        status:
+          type: string
+          enum: [ok]
+        version:
+          type: string
+          description: Коммит сборки — сверка «в бою новое» после выкладки
+
+    SessionTransport:
+      type: string
+      enum: [bearer, cookie]
+      description: >-
+        bearer — токен в теле (мини-апп, приложения); cookie — токен только в куке __Host-session
+        (сайт, админка), в теле его нет.
+
+    TelegramMiniAppSignIn:
+      type: object
+      additionalProperties: false
+      required: [initData]
+      properties:
+        initData:
+          type: string
+          minLength: 1
+          maxLength: 4096
+          description: Сырая строка initData от Telegram
+
+    IdentityProvider:
+      type: string
+      enum: [telegram, apple, google]
+
+    IdTokenSignIn:
+      type: object
+      additionalProperties: false
+      required: [provider, idToken, nonce, transport]
+      properties:
+        provider: { $ref: '#/components/schemas/IdentityProvider' }
+        idToken:
+          type: string
+          minLength: 1
+          maxLength: 8192
+        nonce:
+          type: string
+          minLength: 16
+          maxLength: 128
+          description: Тот же nonce, что ушёл провайдеру; сервер сверяет его с токеном
+        displayName:
+          type: string
+          maxLength: 128
+          description: >-
+            Имя, которое Apple отдаёт приложению только при первом входе (в id_token его нет). Берётся
+            только для нового аккаунта.
+        transport: { $ref: '#/components/schemas/SessionTransport' }
+        clientKind: { $ref: '#/components/schemas/ClientKind' }
+
+    AuthorizationCodeSignIn:
+      type: object
+      additionalProperties: false
+      required: [provider, code, codeVerifier, redirectUri, transport]
+      properties:
+        provider: { $ref: '#/components/schemas/IdentityProvider' }
+        code:
+          type: string
+          minLength: 1
+          maxLength: 2048
+        codeVerifier:
+          type: string
+          minLength: 43
+          maxLength: 128
+          description: PKCE (RFC 7636)
+        redirectUri:
+          type: string
+          minLength: 1
+          maxLength: 512
+          description: Должен совпасть с одним из зарегистрированных у провайдера
+        nonce:
+          type: string
+          minLength: 16
+          maxLength: 128
+        transport: { $ref: '#/components/schemas/SessionTransport' }
+        clientKind: { $ref: '#/components/schemas/ClientKind' }
+
+    DevSignIn:
+      type: object
+      additionalProperties: false
+      required: [name, transport]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 64
+          description: Имя тестового пользователя; один и тот же name — один и тот же пользователь
+        role: { $ref: '#/components/schemas/Role' }
+        transport: { $ref: '#/components/schemas/SessionTransport' }
+        clientKind: { $ref: '#/components/schemas/ClientKind' }
+
+    ClientKind:
+      type: string
+      enum: [web, telegram, ios, macos, android, admin]
+
+    Session:
+      type: object
+      additionalProperties: false
+      required: [expiresAt, user]
+      properties:
+        token:
+          type: string
+          description: Только при transport=bearer; хранить в Keychain / Keystore, в мини-аппе — в памяти
+        expiresAt:
+          type: string
+          format: date-time
+          description: Когда сессия истечёт без активности
+        user: { $ref: '#/components/schemas/User' }
+
+    Role:
+      type: string
+      enum: [user, admin]
+
+    Locale:
+      type: string
+      enum: [ru, en]
+
+    User:
+      type: object
+      additionalProperties: false
+      required: [id, name, role, locale, identities]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        role: { $ref: '#/components/schemas/Role' }
+        locale: { $ref: '#/components/schemas/Locale' }
+        identities:
+          type: array
+          maxItems: 3
+          items: { $ref: '#/components/schemas/LinkedIdentity' }
+
+    LinkedIdentity:
+      type: object
+      additionalProperties: false
+      required: [provider, linkedAt]
+      properties:
+        provider: { $ref: '#/components/schemas/IdentityProvider' }
+        linkedAt:
+          type: string
+          format: date-time
+
+    Section:
+      type: string
+      enum: [verbal, quant, words, essay]
+
+    StepState:
+      type: string
+      enum: [done, current, next]
+
+    TodayStep:
+      type: object
+      additionalProperties: false
+      required: [id, section, title, minutes, state]
+      properties:
+        id:
+          type: string
+        section: { $ref: '#/components/schemas/Section' }
+        title:
+          type: string
+          description: На языке интерфейса человека
+        minutes:
+          type: integer
+          minimum: 1
+          maximum: 240
+        state: { $ref: '#/components/schemas/StepState' }
+
+    Today:
+      type: object
+      additionalProperties: false
+      required: [date, steps]
+      properties:
+        date:
+          type: string
+          format: date
+        steps:
+          type: array
+          maxItems: 8
+          items: { $ref: '#/components/schemas/TodayStep' }
+
+    ClientError:
+      type: object
+      additionalProperties: false
+      required: [message, clientKind, appVersion, occurredAt]
+      properties:
+        message:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        stack:
+          type: string
+          maxLength: 16000
+        route:
+          type: string
+          maxLength: 512
+          description: Экран или путь, без параметров с личными данными
+        requestId:
+          type: string
+          maxLength: 64
+          description: X-Request-Id запроса, после которого случилась ошибка, если был
+        clientKind: { $ref: '#/components/schemas/ClientKind' }
+        appVersion:
+          type: string
+          minLength: 1
+          maxLength: 64
+        occurredAt:
+          type: string
+          format: date-time
+
+    ReviewQueue:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          maxItems: 200
+          items: { $ref: '#/components/schemas/ReviewItem' }
+
+    ReviewItem:
+      type: object
+      additionalProperties: false
+      required: [id, kind, title]
+      properties:
+        id:
+          type: string
+          format: uuid
+        kind:
+          type: string
+          enum: [question, word, theory, essay_prompt]
+        title:
+          type: string

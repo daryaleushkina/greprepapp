@@ -1,0 +1,10 @@
+# Настройки генератора ogen (go generate ./internal/api). Клиент Go не нужен — клиенты на TS, Swift, Kotlin.
+generator:
+  features:
+    enable:
+      - 'paths/server'
+      - 'ogen/unimplemented'
+    disable:
+      - 'paths/client'
+      - 'ogen/otel'
+      - 'debug/example_tests'

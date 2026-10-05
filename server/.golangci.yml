@@ -1,0 +1,60 @@
+# Линтер бэкенда в гейте (CLAUDE.md, «Тесты»): golangci-lint v2.14. Набор — под правила репозитория:
+# ошибки не глотать и оборачивать (errcheck, wrapcheck, errorlint), у запросов наружу и в базу —
+# context (noctx, contextcheck), ресурсы закрыты (bodyclose, sqlclosecheck, rowserrcheck), безопасность (gosec).
+# //nolint и отключение правил — только с согласия Даши и с причиной (CLAUDE.md, «Без обходов»).
+version: "2"
+run:
+  timeout: 5m
+linters:
+  default: standard
+  enable:
+    - bodyclose
+    - containedctx
+    - contextcheck
+    - errchkjson
+    - errorlint
+    - exhaustive
+    - fatcontext
+    - forcetypeassert
+    - gocritic
+    - gosec
+    - modernize
+    - nilerr
+    - nilnil
+    - noctx
+    - nolintlint
+    - rowserrcheck
+    - sloglint
+    - sqlclosecheck
+    - unparam
+    - usestdlibvars
+    - wrapcheck
+  settings:
+    wrapcheck:
+      # Свои пакеты оборачивают ошибки сами — повторная обёртка на каждом уровне только удлиняет текст.
+      ignore-package-globs:
+        - github.com/daryaleushkina/greprepapp/server/*
+    sloglint:
+      attr-only: true
+      no-global: all
+    exhaustive:
+      default-signifies-exhaustive: true
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+  exclusions:
+    generated: lax
+    rules:
+      # В тестах приведение типов и ответы без проверки ошибок — нормальная часть проверки: тест упадёт.
+      - path: _test\.go
+        linters: [forcetypeassert, errcheck, gosec, noctx, bodyclose, errchkjson, wrapcheck, unparam]
+      - path: internal/oidctest/
+        linters: [errchkjson, wrapcheck, gosec]
+formatters:
+  enable:
+    - gofumpt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/daryaleushkina/greprepapp

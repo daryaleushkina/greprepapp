@@ -1,4 +1,5 @@
-// git-хуки commit-msg (автор — Даша, без подписей ИИ) и pre-push (без каркаса — пропуск) — во временном репозитории.
+// git-хуки commit-msg (автор — Даша, без подписей ИИ) и pre-push (гейт на уходящем коммите; без каркаса — пропуск)
+// — во временном репозитории.
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -107,20 +108,47 @@ describe('git commit с хуками проекта', () => {
 });
 
 describe('pre-push', () => {
-  it('без package.json (каркаса нет) — пропускает пуш в main', () => {
-    const { dir, git, write } = repo();
-    write('README.md');
-    git('add', '.');
-    git('commit', '-q', '-m', 'Начало');
-    const sha = git('rev-parse', 'HEAD').stdout.trim();
-    const r = spawnSync(path.join(HOOKS, 'pre-push'), ['origin', 'x'], {
+  const push = (dir: string, sha: string) =>
+    spawnSync(path.join(HOOKS, 'pre-push'), ['origin', 'x'], {
       cwd: dir,
       encoding: 'utf8',
       env: ENV,
       input: `refs/heads/main ${sha} refs/heads/main 0000000000000000000000000000000000000000\n`,
     });
+
+  it('без каркаса (ни server/go.mod, ни package.json) — гейт проверять нечего, пуш в main проходит', () => {
+    const { dir, git, write } = repo();
+    write('README.md');
+    git('add', '.');
+    git('commit', '-q', '-m', 'Начало');
+    const r = push(dir, git('rev-parse', 'HEAD').stdout.trim());
     expect(r.status, r.stderr).toBe(0);
-    expect(r.stderr).toContain('package.json нет');
+    expect(r.stderr).toContain('каркаса нет');
+  });
+
+  it('в main уходит не текущий HEAD — отказ: гейт проверил бы другой коммит', () => {
+    const { dir, git, write } = repo();
+    write('a.txt');
+    git('add', '.');
+    git('commit', '-q', '-m', 'Первый');
+    const first = git('rev-parse', 'HEAD').stdout.trim();
+    write('b.txt');
+    git('add', '.');
+    git('commit', '-q', '-m', 'Второй');
+    const r = push(dir, first);
+    expect(r.status).toBe(1);
+    expect(r.stderr).toContain('не текущий HEAD');
+  });
+
+  it('незакоммиченные изменения — отказ: в гейт попало бы не то, что в коммите', () => {
+    const { dir, git, write } = repo();
+    write('a.txt');
+    git('add', '.');
+    git('commit', '-q', '-m', 'Первый');
+    write('a.txt', 'changed');
+    const r = push(dir, git('rev-parse', 'HEAD').stdout.trim());
+    expect(r.status).toBe(1);
+    expect(r.stderr).toContain('незакоммиченные изменения');
   });
 
   it('пуш не в main — молча пропускает', () => {

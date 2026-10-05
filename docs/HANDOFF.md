@@ -1,9 +1,8 @@
 # GrePrepApp — как всё устроено
 
-Кода пока нет. Стек решён: мини-апп на React + Vite, бэкенд на Go на своём
-сервере, Postgres там же, отдельная веб-админка (`PRODUCT.md`, «Stack»).
-Сейчас — дизайн, потом каркас (`docs/ROADMAP.md`). Правила работы —
-`CLAUDE.md`.
+Идёт каркас (`docs/ROADMAP.md` §2): договор API и сервер на Go готовы, дальше
+веб, админка, Swift, Kotlin, CI и сервер. Стек и решения — `PRODUCT.md`,
+«Stack», и ROADMAP §2. Правила работы — `CLAUDE.md`.
 
 ## Что лежит в репозитории
 
@@ -18,7 +17,10 @@
 | `.claude/hooks/block-no-verify.mjs`    | Claude не обходит git-хуки (`--no-verify`, подмена `core.hooksPath`) |
 | `.claude/hooks/protect-gates.mjs`      | правка git-хуков, CI и снижение порога покрытия — только с согласия Даши |
 | `.claude/settings.json`                | хуки Claude и запреты: деплой руками, чтение `.env`, `core.hooksPath`; пересъёмка эталонов снимков — с вопросом |
-| `scripts/hooks/`                       | `commit-msg` (автор и подписи ИИ), `pre-push` (гейт перед продом; без `package.json` пропускает) |
+| `scripts/hooks/`                       | `commit-msg` (автор и подписи ИИ), `pre-push` (гейт на уходящем в `main` коммите), `gate` (сами проверки — общие для хука и Actions, там же порог покрытия) |
+| `api/openapi.yaml`                     | договор API — источник правды для сервера и всех клиентов |
+| `server/`                              | бэкенд на Go: `cmd/greprep` (запуск, миграции), `internal/*` (ниже, «Бэкенд») |
+| `compose.yaml`                         | локальный Postgres 18 на порту 55432 |
 | `.github/workflows/deploy.yml`         | гейт и деплой для пушей из облака; выключен до переменной `DEPLOY_ENABLED=true`; пока в виде LifeCommit (pnpm, wrangler) — под Go переписывает каркас |
 | `scripts/setup-bot.mjs`, `set-bot-avatar.mjs` | настройка бота Telegram; имя и тексты не заданы (`TEXTS`)    |
 | `.oxlintrc.json`                       | линтер гейта: правила хуков React, висящие промисы                  |
@@ -41,6 +43,62 @@ r=$PWD && d=$(mktemp -d) && cd "$d" && echo '{"type":"module"}' > package.json \
   && npm i -D --legacy-peer-deps vitest@5 vite@8 >/dev/null \
   && cp -r "$r/.claude" "$r/scripts" . && npx vitest run .claude/hooks scripts/hooks; cd "$r"
 ```
+
+## Договор API
+
+`api/openapi.yaml` (OpenAPI 3.1) — единственное описание запросов и ответов. По нему генерируется
+код: сервер Go — ogen (`server/internal/api`), веб, админка, Swift и Kotlin — их частями каркаса.
+Сгенерированное коммитится; гейт заново генерирует и падает, если вышло не то, что в коммите.
+
+- Подмножество — то, что понимают все четыре генератора: без `oneOf`/`anyOf`/`allOf`; у каждого объекта
+  `additionalProperties: false` (сервер отвечает 400 `bad_request` на лишнее поле); вместо `null` —
+  необязательное поле.
+- Ошибка — всегда `Error {code, message, requestId}`; клиент показывает текст по `code`, `message` — для
+  журнала. Тот же id — в заголовке `X-Request-Id` каждого ответа и в строке журнала сервера.
+- Вход: сайт и админка — кука `__Host-session` (HttpOnly, Secure, SameSite=Strict), мини-апп и
+  приложения — `Authorization: Bearer`. Поменять договор → `cd server && go generate ./...`.
+
+## Бэкенд
+
+Go 1.27, Postgres 18. Поставить один раз: Docker, `golangci-lint` v2.14
+(`curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b "$(go env GOPATH)/bin" v2.14.0`).
+
+```bash
+docker compose up -d --wait                       # Postgres на 127.0.0.1:55432
+cd server
+cp .env.example .env                              # и заполнить; .env в git не попадает
+set -a && . ./.env && set +a
+go run ./cmd/greprep migrate up                   # схема
+go run ./cmd/greprep serve                        # API на 127.0.0.1:8090
+go generate ./...                                 # после правки api/openapi.yaml или SQL
+export TEST_DATABASE_URL='postgres://greprep:greprep@127.0.0.1:55432/greprep?sslmode=disable'
+go test -race ./...
+sh ../scripts/hooks/gate                          # всё, что проверит pre-push
+```
+
+| Пакет | Что |
+| --- | --- |
+| `internal/api` | сгенерировано ogen из договора — руками не править |
+| `internal/db` | сгенерировано sqlc из `internal/db/queries/*.sql` по схеме из миграций — руками не править |
+| `internal/migrations` | схема файлами SQL (goose), встроены в бинарник; `greprep migrate up` |
+| `internal/service` | обработчики договора и проверка сессии |
+| `internal/auth` | initData (HMAC ключом бота), OIDC Telegram/Apple/Google (go-oidc), токены сессий |
+| `internal/httpx` | id запроса, журнал, паника → 500, заголовки, предел тела, защита от чужих сайтов, частота |
+| `internal/app` | сборка сервера из частей; её же поднимают интеграционные тесты |
+| `internal/testdb`, `internal/oidctest` | своя база на каждый тест (клон шаблона), подменный провайдер входа |
+
+- **Сессия:** токен 256 бит, в базе только SHA-256; простой 30 дней, абсолютный срок 180 — дольше, чем
+  советует OWASP, потому что заниматься урывками и каждый день входить заново противоречит «один шаг до
+  дела»; взамен выход удаляет сессию сразу. Срок простоя продлевается не чаще раза в час.
+- **Привязка способов входа:** новый способ сам к аккаунту не прирастает — каждый вход ищет аккаунт по
+  своему `(provider, subject)`; Telegram на сайте и в приложениях попадает в аккаунт мини-аппа по
+  Telegram id (claim `id`; проверить на настоящем боте, что он совпадает с id из initData).
+- **Вход подменой** (`/api/auth/dev`, `DEV_AUTH=1`) — локально, в тестах и на стенде; с
+  `APP_ENV=production` сервер не стартует, а сам путь в production отвечает 404 (оба — тестами).
+- Код обмена на id_token (Telegram везде, Apple на сайте и Android) меняется на сервере: секрет клиента
+  на устройство не уходит. Секрет Apple — JWT из ключа `.p8`, его генерацию добавить, когда будет аккаунт.
+- **Тесты:** интеграционные поднимают тот же сервер, что в бою (`app.Handler`), против настоящего
+  Postgres; у каждого теста своя база. Нет `TEST_DATABASE_URL` — тест падает, а не пропускается.
 
 ## Токены дизайна
 
@@ -105,10 +163,16 @@ pnpm --dir design/tokens test    # контраст WCAG AA пар «текст 
   команда, `UID` занят системой, команды `timeout` нет. Бегущий bash-скрипт не
   править — bash дочитывает файл по смещению и падает посреди слова.
 - **Три локальных стека на одном Маке.** У audioguide и LifeCommit заняты Vite
-  5173, wrangler 8787 и Supabase 543xx/554xx. GrePrepApp нужны свои порты для
-  Vite (`--strictPort`), бэкенда и Postgres, иначе Playwright с
-  `reuseExistingServer` проверит чужое приложение, а бэкенд молча пойдёт в
-  чужую базу.
+  5173, wrangler 8787, Supabase 543xx/554xx, у tezis — Postgres 5432 и почта
+  1025/8025. Свои порты GrePrepApp: Postgres 55432, бэкенд 8090; Vite —
+  свой порт с `--strictPort`. Иначе Playwright с `reuseExistingServer`
+  проверит чужое приложение, а бэкенд молча пойдёт в чужую базу.
+- **sqlc и ogen — инструменты Go (`go tool`).** sqlc лежит в отдельном модуле
+  `server/tools`: его зависимости (парсер Postgres на cgo, gRPC) не попадают в
+  бэкенд. Первая сборка sqlc — около 30 с, потом из кэша.
+- **Postgres 18 в Docker хранит данные в `/var/lib/postgresql/18/docker`** —
+  том монтируется на `/var/lib/postgresql`, иначе данные уходят в безымянный
+  том и пропадают при пересоздании контейнера.
 
 ### Telegram
 

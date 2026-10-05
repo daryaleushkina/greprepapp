@@ -1,0 +1,69 @@
+#!/bin/sh
+# Гейт перед продом — одни и те же проверки для хука pre-push и GitHub Actions, чтобы они не расходились.
+# Каждая часть включается, когда она есть в репозитории (каркас собирается частями, docs/ROADMAP.md §2).
+#
+#   бэкенд (server/go.mod): сгенерированное свежее → go vet → golangci-lint → go test -race → порог покрытия.
+#
+# Порог покрытия — здесь, а правка этой папки — только с согласия Даши (.claude/hooks/protect-gates.mjs):
+# CLAUDE.md, «Порог не опускать; подняли покрытие — поднять и порог».
+# Запуск руками: sh scripts/hooks/gate
+
+set -eu
+
+# Покрытие ручного кода бэкенда, % (сгенерированное ogen и sqlc и помощники тестов не считаются).
+GO_COVERAGE_MIN=93.0
+
+root="$(git rev-parse --show-toplevel)"
+cd "$root"
+ran=""
+
+if [ -f server/go.mod ]; then
+  ran="$ran бэкенд"
+  echo "gate: бэкенд — сгенерированный код свежий?" >&2
+  (cd server && go generate ./...)
+  if [ -n "$(git status --porcelain -- server api)" ]; then
+    git status --porcelain -- server api >&2
+    echo "gate: код, сгенерированный из api/openapi.yaml и SQL, разошёлся с источником —" >&2
+    echo "      cd server && go generate ./... и закоммитить результат" >&2
+    exit 1
+  fi
+
+  echo "gate: бэкенд — go vet и golangci-lint" >&2
+  (cd server && go vet ./...)
+  lint="$(command -v golangci-lint || echo "$(go env GOPATH)/bin/golangci-lint")"
+  if [ ! -x "$lint" ]; then
+    echo "gate: нет golangci-lint — поставить: docs/HANDOFF.md, «Бэкенд»" >&2
+    exit 1
+  fi
+  (cd server && "$lint" run ./...)
+
+  # Интеграционные тесты идут против настоящего Postgres. В Actions его даёт сервис (TEST_DATABASE_URL уже
+  # задан), локально — compose.yaml; нет Docker — гейт красный: непроверенное в прод не уходит.
+  if [ -z "${TEST_DATABASE_URL:-}" ]; then
+    echo "gate: поднимаю локальный Postgres (compose.yaml)…" >&2
+    if ! docker compose up -d --wait postgres >&2; then
+      echo "gate: Postgres не поднялся (запущен ли Docker?)" >&2
+      exit 1
+    fi
+    TEST_DATABASE_URL="postgres://greprep:greprep@127.0.0.1:55432/greprep?sslmode=disable"
+  fi
+  export TEST_DATABASE_URL
+
+  echo "gate: бэкенд — go test -race и покрытие ≥ ${GO_COVERAGE_MIN}%" >&2
+  cover="$(mktemp)"
+  trap 'rm -f "$cover" "$cover.own"' EXIT
+  (cd server && go test -race -count=1 -coverpkg=./internal/... -coverprofile="$cover" ./...)
+  grep -v -E '/internal/(api|db|oidctest|testdb)/' "$cover" > "$cover.own"
+  total="$(cd server && go tool cover -func="$cover.own" | awk '/^total:/ { sub("%", "", $3); print $3 }')"
+  if ! awk -v t="$total" -v m="$GO_COVERAGE_MIN" 'BEGIN { exit !(t + 0 >= m + 0) }'; then
+    echo "gate: покрытие бэкенда ${total}% ниже порога ${GO_COVERAGE_MIN}% — дописать тесты, порог не опускать" >&2
+    exit 1
+  fi
+  echo "gate: покрытие бэкенда ${total}%" >&2
+fi
+
+if [ -z "$ran" ]; then
+  echo "gate: каркаса нет (ни server/go.mod, ни package.json) — проверять нечего" >&2
+else
+  echo "gate: зелёный —$ran" >&2
+fi
