@@ -20,6 +20,10 @@ GO_COVERAGE_MIN=93.0
 hooks="$(cd "$(dirname "$0")" && pwd)"
 root="$(git rev-parse --show-toplevel)"
 cd "$root"
+# При пуше из отдельной рабочей папки (git worktree) git отдаёт хуку GIT_DIR, и тогда git из подпапки
+# (cd apps/apple && git status -- Packages/…) считает подпапку корнем: свежий клиент выглядел «новым файлом».
+# Дальше git сам находит репозиторий по текущей папке.
+unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE
 ran=""
 skipped=""
 
