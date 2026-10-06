@@ -40,3 +40,4 @@ tools/dev/backlog.sh           # пересобрать это зеркало
 - [#17](https://github.com/daryaleushkina/greprepapp/issues/17) Сайт: после входа и конца сессии теряется адрес, с которого пришли
 - [#18](https://github.com/daryaleushkina/greprepapp/issues/18) Приложения Apple и Android: дисклеймер ETS в настройках
 - [#19](https://github.com/daryaleushkina/greprepapp/issues/19) Приложение Apple: передавать язык системы при входе (поле locale)
+- [#20](https://github.com/daryaleushkina/greprepapp/issues/20) Веб: разбить сборку по экранам — один пакет 528 КБ (165 КБ gzip)
