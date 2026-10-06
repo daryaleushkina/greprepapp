@@ -56,7 +56,7 @@ export function SettingsScreen(): ReactNode {
         </p>
       )}
       {/* Дисклеймер ETS — на входе сайта и в настройках каждого приложения (решение Даши 07.10.2026). */}
-      <p className={styles.disclaimer} lang="en">
+      <p className={styles.disclaimer} data-shell={shell} lang="en">
         {GRE_DISCLAIMER}
       </p>
     </div>

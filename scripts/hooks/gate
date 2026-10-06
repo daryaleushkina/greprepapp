@@ -6,7 +6,10 @@
 #   приложение Apple (apps/apple/project.yml): gate-apple — только когда пуш задевает приложение, договор, токены,
 #   сервер или гейт (apple-touched; база — GATE_BASE, её даёт pre-push; решение Даши 06.10.2026);
 #   приложение Android (apps/android): gate-android — когда пуш задевает приложение, договор, токены или гейт
-#   (android-touched), без эмулятора (решение Даши 06.10.2026).
+#   (android-touched), без эмулятора (решение Даши 06.10.2026);
+#   веб (package.json): Node 24 → зависимости по lockfile → клиент API и токены свежие, контраст токенов → typecheck →
+#   oxlint → vitest и порог покрытия (vitest.config.ts) → e2e (браузеры в Docker, compose.yaml) → сборка; при каждом
+#   пуше (согласие Даши 07.10.2026).
 #
 # Порог покрытия — здесь, а правка этой папки — только с согласия Даши (.claude/hooks/protect-gates.mjs):
 # CLAUDE.md, «Порог не опускать; подняли покрытие — поднять и порог».
@@ -90,6 +93,46 @@ if [ -f apps/android/settings.gradle.kts ]; then
     skipped="$skipped Android"
     echo "gate: Android — пропущен: в пуше нет правок приложения, договора, токенов и гейта" >&2
   fi
+fi
+
+if [ -f package.json ]; then
+  ran="$ran веб"
+  node_major="$(node -p 'process.versions.node.split(".")[0]' 2>/dev/null || echo нет)"
+  if [ "$node_major" != "24" ]; then
+    echo "gate: веб — нужен Node 24 (.node-version), сейчас: $node_major — fnm install 24 && fnm use 24" >&2
+    exit 1
+  fi
+  echo "gate: веб — зависимости по lockfile" >&2
+  pnpm install --frozen-lockfile --silent >&2
+
+  echo "gate: веб — клиент API и токены свежие?" >&2
+  pnpm --silent generate >/dev/null
+  if [ -n "$(git status --porcelain -- packages/api-client)" ]; then
+    git status --porcelain -- packages/api-client >&2
+    echo "gate: клиент веба разошёлся с api/openapi.yaml — pnpm generate и закоммитить результат" >&2
+    exit 1
+  fi
+  pnpm --silent --filter @greprep/tokens check >&2
+  pnpm --silent --filter @greprep/tokens test >/dev/null
+
+  echo "gate: веб — typecheck и oxlint" >&2
+  pnpm --silent typecheck >&2
+  pnpm --silent lint >&2
+
+  echo "gate: веб — модульные тесты и компоненты, порог покрытия (vitest.config.ts)" >&2
+  # Тесты компонентов идут в настоящем Chromium; есть — ничего не скачивается.
+  pnpm --silent exec playwright install chromium >/dev/null
+  pnpm --silent coverage >&2
+
+  echo "gate: веб — сквозные тесты (стенд server/cmd/e2estack, браузеры в Docker)" >&2
+  if ! docker compose --profile e2e up -d --wait postgres browsers >&2; then
+    echo "gate: Postgres или браузеры e2e не поднялись (запущен ли Docker?)" >&2
+    exit 1
+  fi
+  pnpm --silent e2e >&2
+
+  echo "gate: веб — сборка" >&2
+  pnpm --silent build >/dev/null
 fi
 
 if [ -n "$ran" ]; then

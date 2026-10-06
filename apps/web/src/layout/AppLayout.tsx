@@ -104,7 +104,7 @@ function SiteNav(): ReactNode {
           <span className={styles.brandTile}>
             <BrandMark />
           </span>
-          <span>{BRAND_NAME}</span>
+          <span className={styles.brandName}>{BRAND_NAME}</span>
         </Link>
         {TABS.map(({ to, key, Icon }) => (
           <Link key={key} to={to} className={styles.navItem} activeProps={{ 'aria-current': 'page' }} activeOptions={{ exact: to === '/', includeSearch: false }}>

@@ -8,6 +8,10 @@
 //     CI, эталоны сравниваются везде (docs/ROADMAP.md §2). localhost стенда браузеру отдаёт Playwright (exposeNetwork);
 //   • стенд — свои порты и база (сайт 5191 по https, API 8093, подменный OIDC 8094, greprep_web_e2e): сервер разработки,
 //     стенд сценариев Apple (8091) и соседние проекты на Маке не мешают;
+//   • веб — собранный (vite build + preview), а не сервер разработки: страница — один пакет, как в бою, а не сотни
+//     модулей по одному через прокси браузеров (WebKit на этом не укладывался во время ожидания), и без перезагрузок
+//     при пересборке зависимостей. В сборку для e2e входят подмена Telegram и вход подменой (VITE_TELEGRAM_MOCK,
+//     VITE_DEV_SIGN_IN);
 //   • мини-апп входит настоящим путём: фикстура подписывает initData ключом тестового бота (E2E_BOT_TOKEN), сервер
 //     проверяет подпись; сайт — кнопками через подменный провайдер или входом подменой.
 //
@@ -81,13 +85,14 @@ export default defineConfig<TgOptions>({
       timeout: 180_000,
     },
     {
-      command: 'pnpm --filter @greprep/web exec vite --port 5191 --strictPort',
+      command: 'pnpm --filter @greprep/web exec sh -c "vite build --outDir dist-e2e --emptyOutDir && vite preview --outDir dist-e2e --port 5191 --strictPort"',
       url: WEB,
       ignoreHTTPSErrors: true,
       env: {
         GP_API_TARGET: `http://${API}`,
         GP_APP_VERSION: 'e2e',
         VITE_DEV_SIGN_IN: '1',
+        VITE_TELEGRAM_MOCK: '1',
         VITE_OIDC_TELEGRAM_AUTHORIZATION_ENDPOINT: `${OIDC}/auth`,
         VITE_OIDC_TELEGRAM_CLIENT_ID: 'e2e-telegram',
         VITE_OIDC_APPLE_AUTHORIZATION_ENDPOINT: `${OIDC}/auth`,

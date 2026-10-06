@@ -25,6 +25,7 @@ package dev.greprepapp.api.models
 
 import dev.greprepapp.api.models.ClientKind
 import dev.greprepapp.api.models.IdentityProvider
+import dev.greprepapp.api.models.Locale
 import dev.greprepapp.api.models.SessionTransport
 
 import kotlinx.serialization.Serializable
@@ -41,6 +42,7 @@ import kotlinx.serialization.Contextual
  * @param transport 
  * @param nonce 
  * @param clientKind 
+ * @param locale Язык интерфейса на устройстве. Берётся только для нового аккаунта: у существующего вход язык не меняет. Нет поля — русский.
  */
 @Serializable
 
@@ -67,7 +69,11 @@ data class AuthorizationCodeSignIn (
     val nonce: kotlin.String? = null,
 
     @Contextual @SerialName(value = "clientKind")
-    val clientKind: ClientKind? = null
+    val clientKind: ClientKind? = null,
+
+    /* Язык интерфейса на устройстве. Берётся только для нового аккаунта: у существующего вход язык не меняет. Нет поля — русский. */
+    @Contextual @SerialName(value = "locale")
+    val locale: Locale? = null
 
 ) {
 

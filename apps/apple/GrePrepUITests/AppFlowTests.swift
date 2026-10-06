@@ -38,8 +38,9 @@ final class AppFlowTests: XCTestCase {
         XCTAssertTrue(app.buttons["signin.telegram"].waitForExistence(timeout: 10))
         signIn(app)
         XCTAssertEqual(app.staticTexts["today.summary"].label, "Три шага · около 25 минут")
-        XCTAssertTrue(app.staticTexts["Слова: повторение"].exists)
-        XCTAssertTrue(app.staticTexts["Verbal: Text Completion"].exists)
+        // Названия шагов — от сервера (server/internal/today): дело без раздела, раздел — строкой ниже.
+        XCTAssertTrue(app.staticTexts["Повторение"].exists)
+        XCTAssertTrue(app.staticTexts["Text Completion"].exists)
 
         app.buttons["today.start"].tap()
         // Открылся шаг: заголовок экрана — раздел шага, ленты под ним нет.

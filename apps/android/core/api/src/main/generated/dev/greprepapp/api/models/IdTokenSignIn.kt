@@ -25,6 +25,7 @@ package dev.greprepapp.api.models
 
 import dev.greprepapp.api.models.ClientKind
 import dev.greprepapp.api.models.IdentityProvider
+import dev.greprepapp.api.models.Locale
 import dev.greprepapp.api.models.SessionTransport
 
 import kotlinx.serialization.Serializable
@@ -40,6 +41,7 @@ import kotlinx.serialization.Contextual
  * @param transport 
  * @param displayName Имя, которое Apple отдаёт приложению только при первом входе (в id_token его нет). Берётся только для нового аккаунта.
  * @param clientKind 
+ * @param locale Язык интерфейса на устройстве. Берётся только для нового аккаунта: у существующего вход язык не меняет. Нет поля — русский.
  */
 @Serializable
 
@@ -63,7 +65,11 @@ data class IdTokenSignIn (
     val displayName: kotlin.String? = null,
 
     @Contextual @SerialName(value = "clientKind")
-    val clientKind: ClientKind? = null
+    val clientKind: ClientKind? = null,
+
+    /* Язык интерфейса на устройстве. Берётся только для нового аккаунта: у существующего вход язык не меняет. Нет поля — русский. */
+    @Contextual @SerialName(value = "locale")
+    val locale: Locale? = null
 
 ) {
 

@@ -28,8 +28,9 @@ function launchedByTelegram(): boolean {
 }
 
 export async function startTelegram(): Promise<TelegramStart> {
-  // Подмена окружения — только в разработке и динамическим импортом: в сборку не попадает ни код, ни тема.
-  if (import.meta.env.DEV) {
+  // Подмена окружения — в разработке и в сборке для e2e (VITE_TELEGRAM_MOCK=1), динамическим импортом: в боевую
+  // сборку не попадает ни код, ни тема (условие вычисляется при сборке, ветка вырезается).
+  if (import.meta.env.DEV || import.meta.env.VITE_TELEGRAM_MOCK === '1') {
     const { mockTelegramEnvForDev } = await import('./mockEnv');
     await mockTelegramEnvForDev();
   }

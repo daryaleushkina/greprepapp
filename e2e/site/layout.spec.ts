@@ -31,9 +31,10 @@ test('разделы и настройки на своей ширине', async 
     await expect(page.getByRole('heading', { name: 'Настройки' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Назад' })).toBeHidden();
     const panel = await page.getByRole('navigation', { name: 'Разделы' }).boundingBox();
-    // Панель: шире 900 px — колонка слева во всю высоту, уже — строка сверху.
+    // Панель: шире 900 px — колонка слева во всю высоту, уже — строка сверху от поля до поля содержимого
+    // (--layout-gutter, 20 px с каждой стороны).
     if (width >= 900) expect(panel?.height ?? 0).toBeGreaterThan(600);
-    else expect(panel?.width ?? 0).toBeGreaterThan(width - 40);
+    else expect(panel?.width ?? 0).toBeGreaterThanOrEqual(width - 40);
   }
 });
 

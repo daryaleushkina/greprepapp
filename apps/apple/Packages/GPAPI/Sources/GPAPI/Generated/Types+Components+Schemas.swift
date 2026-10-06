@@ -122,6 +122,10 @@ extension Components {
             public var transport: Components.Schemas.SessionTransport
             /// - Remark: Generated from `#/components/schemas/IdTokenSignIn/clientKind`.
             public var clientKind: Components.Schemas.ClientKind?
+            /// Язык интерфейса на устройстве. Берётся только для нового аккаунта: у существующего вход язык не меняет. Нет поля — русский.
+            ///
+            /// - Remark: Generated from `#/components/schemas/IdTokenSignIn/locale`.
+            public var locale: Components.Schemas.Locale?
             /// Creates a new `IdTokenSignIn`.
             ///
             /// - Parameters:
@@ -131,13 +135,15 @@ extension Components {
             ///   - displayName: Имя, которое Apple отдаёт приложению только при первом входе (в id_token его нет). Берётся только для нового аккаунта.
             ///   - transport:
             ///   - clientKind:
+            ///   - locale: Язык интерфейса на устройстве. Берётся только для нового аккаунта: у существующего вход язык не меняет. Нет поля — русский.
             public init(
                 provider: Components.Schemas.IdentityProvider,
                 idToken: Swift.String,
                 nonce: Swift.String,
                 displayName: Swift.String? = nil,
                 transport: Components.Schemas.SessionTransport,
-                clientKind: Components.Schemas.ClientKind? = nil
+                clientKind: Components.Schemas.ClientKind? = nil,
+                locale: Components.Schemas.Locale? = nil
             ) {
                 self.provider = provider
                 self.idToken = idToken
@@ -145,6 +151,7 @@ extension Components {
                 self.displayName = displayName
                 self.transport = transport
                 self.clientKind = clientKind
+                self.locale = locale
             }
             public enum CodingKeys: String, CodingKey {
                 case provider
@@ -153,6 +160,7 @@ extension Components {
                 case displayName
                 case transport
                 case clientKind
+                case locale
             }
         }
         /// - Remark: Generated from `#/components/schemas/AuthorizationCodeSignIn`.
@@ -175,6 +183,10 @@ extension Components {
             public var transport: Components.Schemas.SessionTransport
             /// - Remark: Generated from `#/components/schemas/AuthorizationCodeSignIn/clientKind`.
             public var clientKind: Components.Schemas.ClientKind?
+            /// Язык интерфейса на устройстве. Берётся только для нового аккаунта: у существующего вход язык не меняет. Нет поля — русский.
+            ///
+            /// - Remark: Generated from `#/components/schemas/AuthorizationCodeSignIn/locale`.
+            public var locale: Components.Schemas.Locale?
             /// Creates a new `AuthorizationCodeSignIn`.
             ///
             /// - Parameters:
@@ -185,6 +197,7 @@ extension Components {
             ///   - nonce:
             ///   - transport:
             ///   - clientKind:
+            ///   - locale: Язык интерфейса на устройстве. Берётся только для нового аккаунта: у существующего вход язык не меняет. Нет поля — русский.
             public init(
                 provider: Components.Schemas.IdentityProvider,
                 code: Swift.String,
@@ -192,7 +205,8 @@ extension Components {
                 redirectUri: Swift.String,
                 nonce: Swift.String? = nil,
                 transport: Components.Schemas.SessionTransport,
-                clientKind: Components.Schemas.ClientKind? = nil
+                clientKind: Components.Schemas.ClientKind? = nil,
+                locale: Components.Schemas.Locale? = nil
             ) {
                 self.provider = provider
                 self.code = code
@@ -201,6 +215,7 @@ extension Components {
                 self.nonce = nonce
                 self.transport = transport
                 self.clientKind = clientKind
+                self.locale = locale
             }
             public enum CodingKeys: String, CodingKey {
                 case provider
@@ -210,6 +225,7 @@ extension Components {
                 case nonce
                 case transport
                 case clientKind
+                case locale
             }
         }
         /// - Remark: Generated from `#/components/schemas/DevSignIn`.
@@ -224,6 +240,10 @@ extension Components {
             public var transport: Components.Schemas.SessionTransport
             /// - Remark: Generated from `#/components/schemas/DevSignIn/clientKind`.
             public var clientKind: Components.Schemas.ClientKind?
+            /// Язык интерфейса на устройстве. Берётся только для нового аккаунта: у существующего вход язык не меняет. Нет поля — русский.
+            ///
+            /// - Remark: Generated from `#/components/schemas/DevSignIn/locale`.
+            public var locale: Components.Schemas.Locale?
             /// Creates a new `DevSignIn`.
             ///
             /// - Parameters:
@@ -231,22 +251,26 @@ extension Components {
             ///   - role:
             ///   - transport:
             ///   - clientKind:
+            ///   - locale: Язык интерфейса на устройстве. Берётся только для нового аккаунта: у существующего вход язык не меняет. Нет поля — русский.
             public init(
                 name: Swift.String,
                 role: Components.Schemas.Role? = nil,
                 transport: Components.Schemas.SessionTransport,
-                clientKind: Components.Schemas.ClientKind? = nil
+                clientKind: Components.Schemas.ClientKind? = nil,
+                locale: Components.Schemas.Locale? = nil
             ) {
                 self.name = name
                 self.role = role
                 self.transport = transport
                 self.clientKind = clientKind
+                self.locale = locale
             }
             public enum CodingKeys: String, CodingKey {
                 case name
                 case role
                 case transport
                 case clientKind
+                case locale
             }
         }
         /// - Remark: Generated from `#/components/schemas/ClientKind`.

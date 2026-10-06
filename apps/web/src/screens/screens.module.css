@@ -89,3 +89,8 @@
   font: var(--font-caption);
   color: var(--color-text-secondary);
 }
+
+/* В мини-аппе низ настроек — по центру (G2), как версия над ним. */
+.disclaimer[data-shell='telegram'] {
+  text-align: center;
+}

@@ -229,6 +229,20 @@
     padding: 0 var(--space-8);
   }
 
+  /* Строка сверху — плотнее панели: пять пунктов и знак в одну строку. */
+  .frame[data-shell='site'] .navItem {
+    padding: 0 var(--space-10);
+    gap: var(--space-8);
+  }
+
+  .frame[data-shell='site'] .spacer {
+    display: none;
+  }
+
+  .frame[data-shell='site'] .settingsItem {
+    margin-left: auto;
+  }
+
   /* В строке сверху места на подпись «Настройки» нет — остаётся шестерёнка, подпись слышна диктору. */
   .frame[data-shell='site'] .settingsLabel {
     position: absolute;
@@ -239,9 +253,6 @@
     white-space: nowrap;
   }
 
-  .frame[data-shell='site'] .settingsItem {
-    padding: 0 var(--space-12);
-  }
 }
 
 @media (min-width: 900px) {
@@ -274,6 +285,19 @@
     padding: 0 var(--space-12) var(--space-20);
   }
 
+  .frame[data-shell='site'] .spacer {
+    display: block;
+  }
+
+  .frame[data-shell='site'] .settingsItem {
+    margin-left: 0;
+  }
+
+  .frame[data-shell='site'] .navItem {
+    padding: 0 var(--space-12);
+    gap: var(--space-12);
+  }
+
   .frame[data-shell='site'] .settingsLabel {
     position: static;
     width: auto;
@@ -302,6 +326,18 @@
 .back svg {
   width: var(--space-20);
   height: var(--space-20);
+}
+
+/* Узкая строка (600–759 px): имя рядом со знаком не помещается — остаётся знак, имя слышно диктору. */
+@media (min-width: 600px) and (max-width: 759px) {
+  .frame[data-shell='site'] .brandName {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
 }
 
 /* Настройки на сайте шире 600 px — пункт панели, «назад» там не нужен. */
