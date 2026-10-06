@@ -185,6 +185,9 @@ object TrainingScreens {
                 ),
         )
 
+    /** «Под этот выбор заданий пока нет» после «Начать». */
+    val builderNoQuestions = builderCustom.copy(problem = dev.greprepapp.app.feature.training.StartProblem.NoQuestions)
+
     val builderOffline = BuilderViewModel.UiState(content = BuilderViewModel.Content.Unavailable(TrainingProblem.Offline))
 
     val topics =

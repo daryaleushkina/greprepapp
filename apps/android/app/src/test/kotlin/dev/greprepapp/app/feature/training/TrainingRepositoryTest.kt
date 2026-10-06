@@ -71,6 +71,39 @@ class TrainingRepositoryTest {
         }
 
     @Test
+    fun aFullDiskDoesNotStopTheTrainingAndIsReported() =
+        runTest(main.dispatcher) {
+            // Вместо папки тренировок — файл: записать нельзя, как при полном диске.
+            File(folder.root, "trainings").writeText("")
+            val g = graph()
+            val id = g.started()
+            g.trainings.recordAnswer(id, 0, listOf("A"))
+            g.settle()
+            assertEquals(
+                "в памяти ответ есть, тренировка идёт",
+                listOf("A"),
+                g.trainingStore.trainings.value[id]
+                    ?.answer(0)
+                    ?.optionIds,
+            )
+            assertTrue(g.publicApi.reports.any { it.message.startsWith("training write failed") })
+        }
+
+    @Test
+    fun afterTheEndNothingChanges() =
+        runTest(main.dispatcher) {
+            val g = graph()
+            val id = g.started()
+            g.trainings.finish(id, timedOut = true)
+            g.trainings.answer(id, 0, listOf("A"))
+            g.trainings.finish(id, timedOut = false)
+            g.settle()
+            val t = g.trainingStore.get(id)!!
+            assertNull("ответ после конца не принимается", t.answer(0))
+            assertEquals("«Закончить» после тайм-аута его не отменяет", true, t.finish?.timedOut)
+        }
+
+    @Test
     fun optionsNameEveryTypeTheAppCanShow() =
         runTest(main.dispatcher) {
             val g = graph()

@@ -25,6 +25,7 @@ import dev.greprepapp.api.models.Section
 import dev.greprepapp.api.models.StepState
 import dev.greprepapp.api.models.TrainingMode
 import dev.greprepapp.app.MainActivity
+import dev.greprepapp.app.feature.training.TrainingStore
 import dev.greprepapp.app.testing.FakeNetwork
 import dev.greprepapp.app.testing.Fixtures
 import dev.greprepapp.app.testing.ManualTicker
@@ -64,6 +65,8 @@ class TrainingFlowTest {
     @Inject lateinit var clock: MutableClock
 
     @Inject lateinit var ticker: ManualTicker
+
+    @Inject lateinit var trainings: TrainingStore
 
     private var scenario: ActivityScenario<MainActivity>? = null
 
@@ -209,6 +212,26 @@ class TrainingFlowTest {
         compose.onNodeWithTag("today.continue").assertTextContains("вопрос 2 из 2", substring = true)
         click("today.continue")
         compose.waitUntilAtLeastOneExists(hasText("diplomat", substring = true), TIMEOUT)
+    }
+
+    @Test
+    fun signOutTakesTheTrainingAwayFromTheNextPerson() {
+        openBuilder()
+        click("builder.start")
+        answerPractice("A")
+        click("session.close")
+        waitFor("today.continue")
+
+        click("tab.progress")
+        click("progress.settings")
+        click("settings.signOut")
+        waitFor("signin.dev.name")
+        compose.onNodeWithTag("signin.dev.name").performTextInput("someone-else")
+        compose.onNodeWithTag("signin.dev.submit").performClick()
+        waitFor("today.plan")
+        compose.onNodeWithTag("today.plan").performScrollToNode(hasTestTag("today.newTraining"))
+        compose.onNodeWithTag("today.continue").assertDoesNotExist()
+        assertTrue("на устройстве ничего не осталось", trainings.trainings.value.isEmpty())
     }
 
     @Test

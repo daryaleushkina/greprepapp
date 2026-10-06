@@ -72,6 +72,13 @@ class TrainingSnapshotTest(
     fun reportSent() = snap("training-report-sent") { TrainingScreens.Report(sent = true) }
 
     @Test
+    fun sessionMissing() =
+        snap("training-session-missing") { Session(dev.greprepapp.app.feature.training.SessionViewModel.UiState.Missing) }
+
+    @Test
+    fun builderNoQuestions() = snap("training-builder-no-questions") { TrainingScreens.Builder(TrainingScreens.builderNoQuestions) }
+
+    @Test
     fun questionWrongLargeText() = snap("training-question-wrong-large", large = true) { Session(TrainingScreens.tcWrong) }
 
     @Test

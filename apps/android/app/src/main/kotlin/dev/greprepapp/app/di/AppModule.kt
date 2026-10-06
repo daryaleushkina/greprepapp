@@ -6,7 +6,6 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import dagger.multibindings.IntoSet
 import dev.greprepapp.app.BuildConfig
 import dev.greprepapp.app.core.AppConfig
 import dev.greprepapp.app.core.AppForeground
@@ -18,7 +17,6 @@ import dev.greprepapp.app.core.ProcessForeground
 import dev.greprepapp.app.core.SecondTicker
 import dev.greprepapp.app.core.Ticker
 import dev.greprepapp.app.core.session.KeystoreTokenStore
-import dev.greprepapp.app.core.session.PersonalData
 import dev.greprepapp.app.core.session.TokenStore
 import dev.greprepapp.app.feature.today.TodayCache
 import dev.greprepapp.app.feature.training.TrainingStore
@@ -71,18 +69,10 @@ object AppModule {
     ): TodayCache = TodayCache(context.noBackupFilesDir)
 
     @Provides
-    @IntoSet
-    fun todayIsPersonal(cache: TodayCache): PersonalData = cache
-
-    @Provides
     @Singleton
     fun trainingStore(
         @ApplicationContext context: Context,
     ): TrainingStore = TrainingStore(context.noBackupFilesDir)
-
-    @Provides
-    @IntoSet
-    fun trainingsArePersonal(store: TrainingStore): PersonalData = store
 
     @Provides
     @Singleton

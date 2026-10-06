@@ -342,16 +342,17 @@ func TestTrainingPrefersUnseenQuestions(t *testing.T) {
 		}
 		return out
 	}
-	// Sentence Equivalence в наборе шесть: вторая тройка — из тех, что ещё не попадались.
-	first := ids(e.start(t, token, practice("verbal", 3, "sentence_equivalence")))
-	second := ids(e.start(t, token, practice("verbal", 3, "sentence_equivalence")))
+	// Text Completion в наборе десять: вторая пятёрка — из тех, что ещё не попадались (случайно, без правила,
+	// так совпало бы раз в 252 прогона).
+	first := ids(e.start(t, token, practice("verbal", 5, "text_completion")))
+	second := ids(e.start(t, token, practice("verbal", 5, "text_completion")))
 	for _, id := range second {
 		if slices.Contains(first, id) {
 			t.Fatalf("seen question %s came back while unseen remained: %v then %v", id, first, second)
 		}
 	}
 	// Все уже видены — задания всё равно выдаются.
-	if all := ids(e.start(t, token, practice("verbal", 6, "sentence_equivalence"))); len(all) != 6 {
+	if all := ids(e.start(t, token, practice("verbal", 10, "text_completion"))); len(all) != 10 {
 		t.Fatalf("after everything is seen: %v", all)
 	}
 }

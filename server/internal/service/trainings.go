@@ -16,6 +16,7 @@ import (
 	"github.com/daryaleushkina/greprepapp/server/internal/api"
 	"github.com/daryaleushkina/greprepapp/server/internal/apperr"
 	"github.com/daryaleushkina/greprepapp/server/internal/db"
+	"github.com/daryaleushkina/greprepapp/server/internal/httpx"
 	"github.com/daryaleushkina/greprepapp/server/internal/training"
 )
 
@@ -64,7 +65,8 @@ func (s *Service) GetTrainingOptions(ctx context.Context, params api.GetTraining
 	if errors.Is(err, errUnreadableRequest) {
 		// Старый формат запроса после правки договора не должен закрывать конструктор насовсем: набор «Как в
 		// прошлый раз» пропадает, сбой — в журнал.
-		s.log.LogAttrs(ctx, slog.LevelError, "last training request", slog.String("error", err.Error()))
+		s.log.LogAttrs(ctx, slog.LevelError, "last training request",
+			slog.String("request_id", httpx.FromContext(ctx).ID), slog.String("error", err.Error()))
 	} else if err != nil {
 		return nil, err
 	}
