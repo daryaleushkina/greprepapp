@@ -81,3 +81,29 @@ describe('возврат от провайдера', () => {
     await expect.element(screen.getByRole('alert')).toHaveTextContent('Нет сети — войти получится, когда она появится.');
   });
 });
+
+describe('гонка с запросом «кто вошёл»', () => {
+  it('поздний ответ /api/me «не вошёл» не затирает только что открытую сессию', async () => {
+    storeAttempt();
+    // /api/me ушёл при открытии страницы возврата (куки ещё нет) и отвечает уже после обмена кода.
+    let releaseMe: () => void = () => {};
+    const meAnswered = new Promise<void>((r) => (releaseMe = r));
+    fakeServer({
+      'GET /api/me': async () => {
+        await meAnswered;
+        return apiError(401, 'unauthorized');
+      },
+      'POST /api/auth/oidc/code': () => {
+        setTimeout(releaseMe, 50);
+        return json({ expiresAt: '2026-11-05T10:00:00Z', user: user() });
+      },
+      'GET /api/today': () => json(STARTER),
+    });
+    const { screen, router } = await renderApp({ path: '/auth/callback?code=c-1&state=state-1' });
+    await expect.element(screen.getByText('Три шага · около 25 минут')).toBeVisible();
+    // Ответ /api/me пришёл — экран остался «Сегодня».
+    await new Promise((r) => setTimeout(r, 200));
+    expect(router.state.location.pathname).toBe('/');
+    await expect.element(screen.getByText('Три шага · около 25 минут')).toBeVisible();
+  });
+});

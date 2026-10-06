@@ -58,7 +58,7 @@ export function SignInScreen(): ReactNode {
     setMessage(null);
     try {
       const res = await signInForDevelopment({ name, transport: 'cookie', clientKind: 'web', locale });
-      signedIn(res.user);
+      await signedIn(res.user);
       await navigate({ to: '/', replace: true });
     } catch (e) {
       setMessage(isApiError(e) && e.kind === 'network' ? t.signIn.offline : t.signIn.failed);

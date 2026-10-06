@@ -30,7 +30,7 @@ export type Session =
 interface SessionApi {
   session: Session;
   /** Вошли на сайте (кнопкой или подменой): сервер уже поставил куку, здесь — кто вошёл. */
-  signedIn: (user: User) => void;
+  signedIn: (user: User) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -74,7 +74,12 @@ export function SessionProvider({ launch, children }: { launch: TelegramLaunch |
 
   const api: SessionApi = {
     session,
-    signedIn: (user) => queryClient.setQueryData<SessionData>(SESSION_KEY, { user, expired: false }),
+    signedIn: async (user) => {
+      // Запрос «кто вошёл», отправленный до входа (кука ещё не стояла), ответит «никто» позже — и затёр бы
+      // только что открытую сессию. Сначала его отменяем, потом записываем вошедшего.
+      await queryClient.cancelQueries({ queryKey: SESSION_KEY });
+      queryClient.setQueryData<SessionData>(SESSION_KEY, { user, expired: false });
+    },
     signOut: async () => {
       await apiSignOut();
       miniAppToken = null;

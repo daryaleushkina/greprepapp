@@ -45,6 +45,8 @@ export function AppGate(): ReactNode {
   return <Outlet />;
 }
 
+// Вкладка горит по пути, а не по параметрам адреса: у мини-аппа в адресе параметры запуска Telegram, и с точным
+// сравнением параметров «Сегодня» не горела бы никогда.
 const TABS = [
   { to: '/', key: 'today', Icon: TodayIcon },
   { to: '/words', key: 'words', Icon: WordsIcon },
@@ -81,7 +83,7 @@ function TabBar(): ReactNode {
       <span aria-hidden="true" className={styles.fade} />
       <nav aria-label={t.tabs.sections} className={`tabbar ${glass.glass} ${styles.tabBar}`}>
         {TABS.map(({ to, key, Icon }) => (
-          <Link key={key} to={to} className={styles.tab} activeProps={{ 'aria-current': 'page' }} activeOptions={{ exact: to === '/' }}>
+          <Link key={key} to={to} className={styles.tab} activeProps={{ 'aria-current': 'page' }} activeOptions={{ exact: to === '/', includeSearch: false }}>
             <Icon />
             <span>{t.tabs[key]}</span>
           </Link>
@@ -104,13 +106,18 @@ function SiteNav(): ReactNode {
           <span>{BRAND_NAME}</span>
         </Link>
         {TABS.map(({ to, key, Icon }) => (
-          <Link key={key} to={to} className={styles.navItem} activeProps={{ 'aria-current': 'page' }} activeOptions={{ exact: to === '/' }}>
+          <Link key={key} to={to} className={styles.navItem} activeProps={{ 'aria-current': 'page' }} activeOptions={{ exact: to === '/', includeSearch: false }}>
             <Icon />
             {t.tabs[key]}
           </Link>
         ))}
         <span className={styles.spacer} />
-        <Link to="/settings" className={`${styles.navItem} ${styles.settingsItem}`} activeProps={{ 'aria-current': 'page' }}>
+        <Link
+          to="/settings"
+          className={`${styles.navItem} ${styles.settingsItem}`}
+          activeProps={{ 'aria-current': 'page' }}
+          activeOptions={{ includeSearch: false }}
+        >
           <SettingsIcon />
           <span className={styles.settingsLabel}>{t.tabs.settings}</span>
         </Link>

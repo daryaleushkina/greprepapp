@@ -1,4 +1,4 @@
-# Локальный стек для разработки и тестов: только Postgres. Сервер Go и веб запускаются без Docker.
+# Локальный стек для разработки и тестов: Postgres и браузеры сквозных тестов. Сервер Go и веб запускаются без Docker.
 # Порт 55432 — свой: 5432, 54322, 55421 и 55422 на Маке заняты соседними стеками (docs/HANDOFF.md, «Грабли»).
 # Пароль — только для локальной базы на 127.0.0.1, не секрет.
 name: greprep
@@ -20,5 +20,25 @@ services:
       interval: 2s
       timeout: 3s
       retries: 30
+  # Браузеры e2e (WebKit и Chromium) — из образа Playwright той же версии, что @playwright/test в package.json:
+  # снимки экранов рисует один и тот же Linux и на Маке, и в CI, поэтому эталоны совпадают (docs/ROADMAP.md §2).
+  # Тесты идут на Маке и подключаются сюда; localhost стенда браузеру отдаёт сам Playwright (exposeNetwork).
+  # Поднимается только для e2e: docker compose --profile e2e up -d --wait browsers.
+  browsers:
+    image: mcr.microsoft.com/playwright:v1.63.0-noble
+    profiles: [e2e]
+    init: true
+    working_dir: /tmp
+    command: ["npx", "-y", "playwright@1.63.0", "run-server", "--port", "3000", "--host", "0.0.0.0"]
+    ports:
+      - "127.0.0.1:3556:3000"
+    volumes:
+      - npmcache:/root/.npm
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('net').connect(3000, '127.0.0.1').on('connect', () => process.exit(0)).on('error', () => process.exit(1))"]
+      interval: 2s
+      timeout: 3s
+      retries: 60
 volumes:
   pgdata:
+  npmcache:

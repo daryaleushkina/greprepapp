@@ -16,7 +16,7 @@ export function SignInButtons({ busy, onPress }: Props): ReactNode {
   const disabled = busy !== null;
   return (
     <div className={styles.buttons}>
-      <button type="button" className={`${styles.provider} ${styles.telegram}`} disabled={disabled} aria-busy={busy === 'telegram'} onClick={() => onPress('telegram')}>
+      <button type="button" className={`${styles.provider} ${styles.telegram}`} data-official-button="telegram" disabled={disabled} aria-busy={busy === 'telegram'} onClick={() => onPress('telegram')}>
         <TelegramLogo />
         {t.signIn.telegram}
       </button>

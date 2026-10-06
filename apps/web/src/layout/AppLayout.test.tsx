@@ -48,3 +48,15 @@ describe('разделы', () => {
     await expect.poll(() => router.state.location.pathname).toBe('/');
   });
 });
+
+describe('вкладка горит по пути', () => {
+  it('мини-апп: «Сегодня» текущая и с параметрами запуска Telegram в адресе', async () => {
+    fakeServer({ 'POST /api/auth/telegram-mini-app': () => json({ token: 't', expiresAt: '2026-11-05T10:00:00Z', user: user() }), 'GET /api/today': () => json(STARTER) });
+    const { screen } = await renderApp({
+      path: '/tg/?tgTheme=dark&tgPlatform=ios',
+      shell: 'telegram',
+      launch: { initDataRaw: 'hash=x', languageCode: 'ru' },
+    });
+    await expect.element(screen.getByRole('link', { name: 'Сегодня' })).toHaveAttribute('aria-current', 'page');
+  });
+});

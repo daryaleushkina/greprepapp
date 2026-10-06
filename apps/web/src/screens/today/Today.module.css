@@ -272,8 +272,11 @@
   animation: pulse var(--motion-duration-pulse) ease-in-out infinite;
 }
 
-.node.sk {
+/* Скелет узла — серый и без кольца, даже у текущего шага (иначе стиль текущего узла перекрасил бы его). */
+.item .node.sk {
   border: 0;
+  background: var(--color-fill);
+  box-shadow: none;
 }
 
 @keyframes pulse {

@@ -40,7 +40,7 @@ export function AuthCallback(): ReactNode {
       locale,
     })
       .then(async (res) => {
-        signedIn(res.user);
+        await signedIn(res.user);
         await navigate({ to: '/', replace: true });
       })
       .catch((e: unknown) => {
