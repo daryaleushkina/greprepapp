@@ -34,7 +34,9 @@
 - На `macos`, `tdesktop`, `unigram`, `weba`, `webk`, `web` размеры берутся из
   `window.innerHeight/innerWidth` — у этих клиентов нет шторки.
 - На `ios`/`android` SDK шлёт `web_app_request_viewport` и ждёт ответа.
-  Поэтому `mount()` асинхронный и может упасть по таймауту — ловим.
+  Поэтому `mount()` асинхронный. Таймаута по умолчанию нет — передаём
+  `viewport.mount({ timeout: 3000 })` и ловим ошибку, иначе неответивший
+  клиент оставит приложение без первого кадра.
 - Если первый ответ пришёл посреди анимации (`is_state_stable: false`),
   `stableHeight` на старте — **0**, пока не придёт устойчивое состояние. В
   `telegram.css` оболочка берёт `--tg-viewport-stable-height` — при нуле она

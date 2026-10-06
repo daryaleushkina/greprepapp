@@ -10,7 +10,7 @@
  * github.com/Telegram-Mini-Apps/reactjs-template, MIT, © 2024 Telegram Mini Apps).
  *
  * Идеи «рисовать нативные кнопки настоящим DOM, чтобы они были на скриншоте»,
- * «Escape = системная кнопка назад» и «хранилища поверх localStorage» взяты
+ * «Escape = кнопка назад» и «хранилища поверх localStorage» взяты
  * из assets/miniapp-mock.js навыка github.com/yaniv-golan/telegram-webapps-skill
  * (MIT, © 2026 Yaniv Golan). Код переписан: тот мок подменяет
  * window.Telegram.WebApp, а @tma.js/sdk этим объектом не пользуется вовсе —
@@ -151,7 +151,7 @@ export async function mockTelegramEnvForDev(): Promise<void> {
   chrome?.main.addEventListener('click', () => emitEvent('main_button_pressed'));
   chrome?.secondary.addEventListener('click', () => emitEvent('secondary_button_pressed'));
   chrome?.back.addEventListener('click', () => emitEvent('back_button_pressed'));
-  // Escape — как системная «назад» на Android: срабатывает только когда кнопка видна
+  // Escape — «назад» для удобства отладки; срабатывает, только когда кнопка видна
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && backVisible) emitEvent('back_button_pressed');
   });

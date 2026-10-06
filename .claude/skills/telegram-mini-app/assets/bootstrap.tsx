@@ -57,7 +57,9 @@ async function bootstrap(): Promise<void> {
   if (viewport.mount.isAvailable()) {
     try {
       // Асинхронно: на iOS/Android размеры и отступы спрашиваются у клиента.
-      await viewport.mount();
+      // Без timeout промис ждёт ответа сколько угодно — а клиент может и не
+      // ответить (официальный шаблон tma.js так обходит macOS).
+      await viewport.mount({ timeout: 3000 });
       viewport.bindCssVars();
     } catch (e) {
       // Клиент не ответил — живём на запасных значениях CSS, но не падаем.

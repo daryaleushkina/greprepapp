@@ -82,11 +82,11 @@ audioguide.
 - **Бинарник `impeccable` в git не кладётся** (12 МБ, под одну платформу):
   в `.gitignore` строка `.claude/skills/impeccable/scripts/bin/`, лаунчер
   скачает его сам при первом запуске.
-- **`telegram-mini-app` ссылается на файлы, которых нет**:
-  `references/sources.md`, `buttons-and-navigation.md`,
-  `storage-and-init-data.md`, `outside-telegram.md`, `platforms.md` и
-  `LICENSES.md`. В git LifeCommit их тоже нет — перенесено что было (задача #1).
-  Основное правило каждой темы есть в самом `SKILL.md`.
+- **`telegram-mini-app` перенесён целиком с Мака**, из рабочей папки
+  LifeCommit: в его git справочники (`references/sources.md`,
+  `buttons-and-navigation.md`, `storage-and-init-data.md`,
+  `outside-telegram.md`, `platforms.md`), `LICENSES.md` и `licenses/` не
+  попали, а там они лежат — версия от 05.10.2026 (задача #1).
 - **`ui-verification` — часть связки с `ui-design` того же автора**, который
   сюда не взят: он пересекается с `impeccable`. Без него навык работает в
   режиме «дали маршруты» — сам решает, какие пробы гонять; ссылки на схему
@@ -103,10 +103,10 @@ audioguide.
   русскоязычного интерфейса шрифт выбирается по разбору кириллицы, а не из
   его базы.
 - **Цвета мини-аппа.** `telegram-mini-app` требует брать их только из темы
-  Telegram (`themeParams`), и его `check.sh` ругается на hex. LifeCommit в
-  итоге осознанно взял свои hex (правило «The Own Palette Rule» в его
-  `DESIGN.md`). Здесь это ещё не решено (задача #2); готовые палитры навыков в
-  любом случае годятся только для акцента.
+  Telegram (`themeParams`), и его `check.sh` ругается на hex. Здесь решено
+  иначе: свои цвета «Шагов» из токенов (решение Даши 05.10.2026, задача #2) —
+  в мини-аппе из темы Telegram берётся только светлая она или тёмная. Готовые
+  палитры навыков годятся только для акцента.
 
 ## Что откуда взято
 
