@@ -67,14 +67,17 @@
 
 Порядок — частями, каждая вливается в `main`, когда зелёная. Готовы: договор,
 сервер Go, база и гейт под Go; приложения Apple (iPhone, iPad, Mac) и Android —
-раньше веба, по просьбе Даши 06.10.2026. Дальше:
+раньше веба, по просьбе Даши 06.10.2026; веб — мини-апп и сайт (вход, «Сегодня»,
+разделы-заглушки, настройки; e2e на iPhone, Android и трёх ширинах сайта). Дальше:
 
-1. веб (мини-апп и сайт);
-2. админка;
-3. CI в GitHub Actions на все части (для Apple — раннер macOS, Postgres без
-   Docker), `docs/TESTING.md`, агенты ревью `gp-review-access` и
-   `gp-review-errors` под Go и Postgres, тест на `.claude/hooks/session-git.sh`;
-4. сервер, стенд, копии базы, мониторинг, бот (имя и тексты —
+1. админка;
+2. CI в GitHub Actions на все части (для Apple — раннер macOS, Postgres без
+   Docker; e2e веба — с браузерами из того же образа Playwright, что
+   `compose.yaml`; `tokens.yml` — на корневой lockfile и Node 24),
+   `docs/TESTING.md`, агенты ревью `gp-review-access` и `gp-review-errors` под Go
+   и Postgres и правила путей линз в `/gp-review` под `server/` и `apps/`, тест на
+   `.claude/hooks/session-git.sh`;
+3. сервер, стенд, копии базы, мониторинг, бот (имя и тексты —
    `scripts/setup-bot.mjs`, вебхук на Go) — когда Даша заведёт аккаунты;
    последним шагом — `DEPLOY_ENABLED=true` в GitHub.
 

@@ -1,8 +1,8 @@
 # GrePrepApp — как всё устроено
 
 Идёт каркас (`docs/ROADMAP.md` §2): договор API, сервер на Go, приложение
-Apple (iPhone, iPad, Mac) и приложение Android готовы, дальше веб, админка, CI
-и сервер.
+Apple (iPhone, iPad, Mac), приложение Android и веб (мини-апп и сайт) готовы,
+дальше админка, CI и сервер.
 Стек и решения — `PRODUCT.md`, «Stack», и ROADMAP §2. Правила работы —
 `CLAUDE.md`.
 
@@ -22,7 +22,7 @@ Apple (iPhone, iPad, Mac) и приложение Android готовы, даль
 | `scripts/hooks/`                       | `commit-msg` (автор и подписи ИИ), `pre-push` (гейт на уходящем в `main` коммите), `gate` (сами проверки — общие для хука и Actions, там же порог покрытия), `gate-apple` и `gate-android` (части гейта для приложений), `apple-touched` и `android-touched` (нужна ли часть в этом пуше) |
 | `api/openapi.yaml`                     | договор API — источник правды для сервера и всех клиентов |
 | `server/`                              | бэкенд на Go: `cmd/greprep` (запуск, миграции), `internal/*` (ниже, «Бэкенд») |
-| `compose.yaml`                         | локальный Postgres 18 на порту 55432 |
+| `compose.yaml`                         | локальный Postgres 18 на порту 55432; браузеры e2e (профиль `e2e`, порт 3556) |
 | `apps/apple/`                          | приложение на SwiftUI для iPhone, iPad и Mac (ниже, «Приложение Apple») |
 | `apps/android/`                        | приложение на Kotlin и Compose для телефонов и планшетов Android (ниже, «Приложение Android») |
 | `.github/workflows/deploy.yml`         | гейт и деплой для пушей из облака; выключен до переменной `DEPLOY_ENABLED=true`; пока в виде LifeCommit (pnpm, wrangler) — под Go переписывает каркас |
@@ -35,23 +35,22 @@ Apple (iPhone, iPad, Mac) и приложение Android готовы, даль
 | `tools/design/lint-dc.py`              | проверка экранов холста (`.dc.html`) без рендера: теги, `data-props`, символы вместо иконок |
 | `design/tokens/`                       | токены «Шагов»: источник `src/*.json` (W3C DTCG) → `build.mjs` (Style Dictionary) → `generated/` (веб `tokens.css`, Apple `GPTokens.swift` и `GPColors.xcassets`, Android `GpTokens.kt`) и шапка `DESIGN.md`; правится только `src` |
 | `DESIGN.md`                            | дизайн-система: шапка — из токенов (не править руками), текст — правила применения |
+| `package.json`, `pnpm-workspace.yaml`  | рабочее пространство pnpm: `apps/web`, `packages/api-client`, `design/tokens`; команды — ниже, «Веб» |
+| `apps/web/`                            | веб: мини-апп Telegram (`/tg/`) и сайт — одно приложение (ниже, «Веб») |
+| `packages/api-client/`                 | клиент API для веба и админки: Orval из `api/openapi.yaml` + свой fetch с проверкой ответа по Zod |
+| `e2e/`, `playwright.config.ts`         | сквозные тесты веба: `e2e/miniapp/*`, `e2e/site/*`, эталоны снимков `e2e/__screens__/<проект>/` |
+| `vitest.config.ts`                     | модульные тесты (веб, клиент API, хуки Claude и git) и компоненты в Chromium; там же порог покрытия фронта |
+| `server/cmd/e2estack/`                 | стенд e2e: своя база, тот же `app.Handler`, подменный провайдер OIDC вместо Telegram, Apple и Google |
 | `.github/workflows/tokens.yml`         | CI токенов: сгенерированное совпадает с источником, контраст AA в обеих темах |
 
-Тесты хуков (`.claude/hooks/*.test.ts`, `scripts/hooks/git-hooks.test.ts`)
-написаны под vitest, который приедет с каркасом. До него — так (64 теста,
-03.10.2026 зелёные):
-
-```bash
-# из корня репозитория
-r=$PWD && d=$(mktemp -d) && cd "$d" && echo '{"type":"module"}' > package.json \
-  && npm i -D --legacy-peer-deps vitest@5 vite@8 >/dev/null \
-  && cp -r "$r/.claude" "$r/scripts" . && npx vitest run .claude/hooks scripts/hooks; cd "$r"
-```
+Тесты хуков (`.claude/hooks/*.test.ts`, `scripts/hooks/git-hooks.test.ts`) идут
+в `pnpm test` вместе с остальными модульными (проект `unit` в `vitest.config.ts`).
 
 ## Договор API
 
 `api/openapi.yaml` (OpenAPI 3.1) — единственное описание запросов и ответов. По нему генерируется
-код: сервер Go — ogen (`server/internal/api`), веб, админка, Swift и Kotlin — их частями каркаса.
+код: сервер Go — ogen (`server/internal/api`), веб и админка — Orval (`packages/api-client`), Swift и
+Kotlin — их частями каркаса.
 Сгенерированное коммитится; гейт заново генерирует и падает, если вышло не то, что в коммите.
 
 - Подмножество — то, что понимают все четыре генератора: без `oneOf`/`anyOf`/`allOf`; у каждого объекта
@@ -60,7 +59,7 @@ r=$PWD && d=$(mktemp -d) && cd "$d" && echo '{"type":"module"}' > package.json \
 - Ошибка — всегда `Error {code, message, requestId}`; клиент показывает текст по `code`, `message` — для
   журнала. Тот же id — в заголовке `X-Request-Id` каждого ответа и в строке журнала сервера.
 - Вход: сайт и админка — кука `__Host-session` (HttpOnly, Secure, SameSite=Strict), мини-апп и
-  приложения — `Authorization: Bearer`. Поменять договор → `cd server && go generate ./...`.
+  приложения — `Authorization: Bearer`. Поменять договор → `cd server && go generate ./...` и `pnpm generate`.
 
 ## Бэкенд
 
@@ -104,6 +103,55 @@ sh ../scripts/hooks/gate                          # всё, что провер�
 - **Тесты:** интеграционные поднимают тот же сервер, что в бою (`app.Handler`), против настоящего
   Postgres; у каждого теста своя база. Нет `TEST_DATABASE_URL` — тест падает, а не пропускается.
 
+## Веб
+
+Одно приложение на мини-апп Telegram и сайт (`apps/web`): оболочка выбирается по адресу — `/tg/…` мини-апп
+(этот адрес задаётся боту), остальное — сайт. React 19 с React Compiler (через Babel: нативный oxc пока
+экспериментальный), Vite 8, TanStack Router и Query, CSS Modules на токенах, `@tma.js/sdk-react`. Node 24 и pnpm 12
+(`.node-version`, `packageManager`): fnm переключает Node сам при `cd`, pnpm — через corepack.
+
+```bash
+pnpm install
+pnpm dev                 # https://localhost:5190 (самоподписанный сертификат — один раз «всё равно открыть»), API — 127.0.0.1:8090
+pnpm generate            # клиент API после правки api/openapi.yaml (packages/api-client/src/generated — руками не править)
+pnpm typecheck && pnpm lint
+pnpm test                # модульные (node) и компоненты (Chromium); pnpm coverage — то же с порогом
+docker compose --profile e2e up -d --wait postgres browsers
+pnpm e2e                 # сквозные: сам поднимает стенд API (8093), подменный OIDC (8094) и Vite (5191)
+```
+
+- **Вход.** Мини-апп входит сам: `POST /api/auth/telegram-mini-app` с initData, токен — в памяти вкладки
+  (`session/session.tsx`); 401 посреди работы — тихо входит заново (не чаще раза в 10 с). Сайт — кука
+  `__Host-session`, кто вошёл — `GET /api/me`. Кнопки Telegram, Apple и Google — OIDC с PKCE: попытка (state, nonce,
+  code_verifier) — в `sessionStorage`, одноразовая, возврат — `/auth/callback`, код меняет сервер
+  (`auth/oidc.ts`). Адрес страницы входа и client ID провайдера — переменные сборки `VITE_OIDC_<ПРОВАЙДЕР>_*`
+  (`src/env.d.ts`); пусто — кнопка говорит «ещё не подключён». `VITE_DEV_SIGN_IN=1` — форма входа подменой в сборке
+  для стенда (в разработке она есть всегда; в бою сервер на этот путь отвечает 404).
+- **Язык.** До входа: мини-апп — по языку Telegram, как сервер; сайт — русский, кроме браузера с английским первым и
+  без русского (решение Даши 06.10.2026); язык последнего аккаунта на устройстве запоминается. После входа — язык
+  аккаунта; при первом входе сайт отправляет свой язык в поле `locale`.
+- **Клиент API** (`packages/api-client`): все запросы — через `src/http.ts`: ответ проверяется схемой Zod из договора,
+  отказ — `ApiError` с видом `network` (нет сети, оборванное тело), `server` (код договора) или `contract` (ответ не
+  по договору — уходит в отчёт об ошибке клиента). Лишние поля в ответе не роняют клиента.
+- **Ошибки клиента** — `/api/client-errors` (`errors/report.ts`): падение экрана, необработанные ошибки и промисы,
+  ответы не по договору; та же ошибка — не чаще раза в 10 с, не больше 20 со страницы.
+- **Раскладка** (`layout/AppLayout.*`): прокручивается `main.app-shell`, документ — нет; место под капсулой — `::after`
+  (WKWebView не учитывает `padding-bottom`); верхний отступ мини-аппа — safe area + область кнопок Telegram.
+
+### Как проверяется веб
+
+- **Модульные и компоненты** (`vitest.config.ts`): `unit` — чистые функции и клиент API в node; `dom` — экраны
+  целиком в настоящем Chromium (`src/test/app.tsx`: настоящие маршруты, сессия и клиент, сервер подменён таблицей
+  ответов по договору). Порог покрытия — там же.
+- **Сквозные** (`playwright.config.ts`): стенд `server/cmd/e2estack` — та же сборка сервера, что в бою, своя база
+  `greprep_web_e2e` с нуля на каждый прогон, ключ тестового бота (им фикстура подписывает initData — мини-апп
+  входит настоящим путём) и подменный провайдер OIDC (пускает любого, но протокол соблюдает: только код с PKCE S256,
+  код одноразовый, адрес возврата и секрет сверяются; `login_hint` задаёт, кто входит, `deny` — отказ). Браузеры —
+  в образе Playwright (`compose.yaml`, `browsers`), снимки сравниваются везде. Проекты: `tg-ios-*`, `tg-android-*`
+  (мини-апп, обе темы), `site-desktop-light`, `site-desktop-safari-dark`, `site-medium` (760 px), `site-phone`.
+- Новый экран или состояние — строка в `e2e/miniapp/screens.spec.ts` или `e2e/site/screens.spec.ts` с
+  `checkScreen`; доступность — `e2e/*/a11y.spec.ts` (axe, WCAG 2.2 AA; официальная кнопка Telegram исключена только
+  из проверки контраста — её цвета задаёт Telegram, 3,01 : 1).
 ## Приложение Apple
 
 Одно приложение на SwiftUI для iPhone, iPad и Mac (`apps/apple`): iOS 18 и macOS 15, Swift 6 со строгой
@@ -237,8 +285,9 @@ pnpm --dir design/tokens test    # контраст WCAG AA пар «текст 
 - «Крупнее»: веб — `data-text-size="large"` на `<html>` (текст в rem, ×1,125); Apple и Android —
   множитель `textScaleLarge` / `TEXT_SCALE_LARGE` поверх системного масштаба.
 - Стекло и тени генерируются только для веба: на Apple стекло системное, на Android — Material.
-- `package.json` лежит в `design/tokens`, а не в корне: корневой включил бы гейт `pre-push` из
-  LifeCommit раньше каркаса. Каркас сделает рабочее пространство pnpm и подключит токены к вебу.
+- `design/tokens` — пакет рабочего пространства (`@greprep/tokens`); веб берёт `generated/web/tokens.css`
+  прямо из него. Свой `pnpm-lock.yaml` в папке остался только ради ключа кэша в `tokens.yml` — замена — с CI,
+  часть 6 каркаса.
 - Android берёт `generated/android` как есть: Kotlin — исходниками модуля `core/design`, цвета ресурсами
   (`generated/android/res`, `gp_*`) — для фона окна и заставки, которые рисуются до Compose.
 
@@ -265,6 +314,23 @@ pnpm --dir design/tokens test    # контраст WCAG AA пар «текст 
   на Маке включить один раз — `/impeccable hooks on`.
 - **Принудительный push в `main` из облака блокирует авто-режим Claude Code.**
   Переписать уже залитую историю — только с Мака или с явным разрешением.
+
+- **WebKit не хранит Secure-куку на http://localhost** (Chromium хранит): вход на сайте «заканчивался» бы на
+  следующем же запросе. Поэтому Vite и в разработке, и в e2e — по https (`@vitejs/plugin-basic-ssl`).
+- **@tma.js/sdk не принимает initData без поля `signature`** — экран остаётся пустым, в консоли
+  `InvalidLaunchParamsError`. Telegram его присылает с 2024 года; подписанная в тестах initData тоже его содержит
+  (`e2e/fixtures.ts`). Клиент Telegram старше этого мини-апп не откроет — так устроен SDK.
+- **Orval 8.40 в режиме схем Zod ссылается на тип `ErrorResponse`, но не создаёт его** — в `orval.config.ts`
+  суффикс ответов выключен (`components.responses.suffix: ''`), тип берётся из схемы `Error`.
+- **React Compiler через Babel — только на `apps/web/src/**/*.tsx?`**: на сгенерированном клиенте он вставляет импорт
+  `react/compiler-runtime`, которого пакет `api-client` не видит, а без фильтра по расширению Babel пытается
+  разобрать CSS.
+- **Активная вкладка TanStack Router при `exact` сравнивает и параметры адреса** — в мини-аппе там параметры запуска,
+  и «Сегодня» не горела. У ссылок разделов — `includeSearch: false`.
+- **Запрос «кто вошёл» до входа отвечает позже входа** и затирал свежую сессию (возврат от провайдера). Перед записью
+  вошедшего запрос сессии отменяется (`signedIn` в `session/session.tsx`).
+- **Скрытое `display: none` выпадает из дерева доступности**: в тестах «капсулы нет» — это «не найдена по роли»,
+  а не «не видна».
 
 ## Грабли из LifeCommit и audioguide
 
@@ -307,10 +373,12 @@ pnpm --dir design/tokens test    # контраст WCAG AA пар «текст 
 - **Облачные ресурсы (сервер, домен, внешние сервисы) — спросить Дашу, в
   каком аккаунте**, до создания: аккаунтов несколько, и первый деплой
   LifeCommit однажды ушёл не туда.
-- **Node 22 для фронта.** На 20.x vitest падает на отсутствующем
-  `styleText`. Версию держать одним файлом `.node-version` (его читает
-  `setup-node` в CI). pnpm — прибить версией в `packageManager`; при
-  странной ошибке pnpm сначала проверять это.
+- **Node 24 для фронта** (в LifeCommit — 22: на 20.x vitest падает на
+  отсутствующем `styleText`). Версия — одним файлом `.node-version` (его читает
+  `setup-node` в CI и fnm на Маке). pnpm — прибит версией в `packageManager`;
+  при странной ошибке pnpm сначала проверять это. pnpm 12 не запускает скрипты
+  установки зависимостей без разрешения — список в `pnpm-workspace.yaml`
+  (`allowBuilds`).
 - **Bash на Маке — 3.2:** кириллица в именах переменных выполняется как
   команда, `UID` занят системой, команды `timeout` нет. Бегущий bash-скрипт не
   править — bash дочитывает файл по смещению и падает посреди слова.
@@ -389,9 +457,9 @@ LifeCommit и audioguide здесь не используются, их подв
 
 ### Тесты и CI
 
-- **Эталоны снимков сравниваются только на Маке**; на Linux (Actions, облако)
-  — `ignoreSnapshots`, проверяются вёрстка, поведение и доступность. Проверка
-  «ничего шире экрана» пропускает всё, у чего есть прокручиваемый предок.
+- **Эталоны снимков в LifeCommit сравнивались только на Маке** (на Linux шрифты
+  рисуются иначе). Здесь иначе: браузеры e2e всегда в Docker-образе Playwright,
+  снимки сравниваются и на Маке, и в CI (выше, «Как проверяется веб»).
 - **e2e:** `retries: 1` вместе с `failOnFlakyTests`; язык и часовой пояс
   прибиты; Android-Chromium без `--use-fake-ui-for-media-stream` виснет на
   запросе доступа к микрофону.

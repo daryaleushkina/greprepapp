@@ -71,3 +71,11 @@ test.describe('английский Telegram', () => {
     await expect(page.getByRole('button', { name: 'Start' })).toBeVisible();
   });
 });
+
+test('API от имени человека: свой план и свой аккаунт; без входа — 401', async ({ me, request }) => {
+  const plan = await me.api<{ steps: { id: string }[] }>('GET', '/today');
+  expect(plan.steps.map((s) => s.id)).toEqual(['words', 'verbal', 'quant']);
+  const account = await me.api<{ name: string; identities: { provider: string }[] }>('GET', '/me');
+  expect(account.identities.map((i) => i.provider)).toEqual(['telegram']);
+  expect((await request.get('/api/today')).status()).toBe(401);
+});

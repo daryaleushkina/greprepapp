@@ -45,9 +45,18 @@ export function miniAppUrl(user: TelegramUser, o: TgOptions, path = '/'): string
   return `/tg${path}?${q.toString()}`;
 }
 
+/** Человек теста со своей сессией: запросы к API от его имени (проверка endpoint — CLAUDE.md, «Тесты»). */
+export interface Me {
+  user: TelegramUser;
+  /** Запрос к API от имени этого человека; ответ не 2xx — исключение с текстом ответа. */
+  api: <T = unknown>(method: string, path: string, body?: unknown) => Promise<T>;
+}
+
 type Fixtures = TgOptions & {
   /** Человек мини-аппа (Telegram). */
   tgUser: TelegramUser;
+  /** Тот же человек, вошедший по initData: me.api(...) — запросы от его имени. */
+  me: Me;
   /** Мини-апп, открытый под tgUser: вход по initData прошёл, «Сегодня» на экране. */
   miniApp: Page;
   /** Сайт, вошли подменой под своим именем: «Сегодня» на экране. */
@@ -69,6 +78,18 @@ export const test = base.extend<Fixtures>({
 
   tgUser: async ({}, use) => {
     await use(newTelegramUser());
+  },
+
+  me: async ({ request, tgUser }, use) => {
+    const res = await request.post('/api/auth/telegram-mini-app', { data: { initData: signInitData(tgUser) } });
+    expect(res.status(), await res.text()).toBe(200);
+    const { token } = (await res.json()) as { token: string };
+    const api = async <T,>(method: string, path: string, body?: unknown): Promise<T> => {
+      const r = await request.fetch(`/api${path}`, { method, headers: { Authorization: `Bearer ${token}` }, ...(body !== undefined && { data: body }) });
+      if (!r.ok()) throw new Error(`${method} ${path}: ${r.status()} ${await r.text()}`);
+      return (r.status() === 204 ? undefined : await r.json()) as T;
+    };
+    await use({ user: tgUser, api });
   },
 
   watch: async ({}, use, testInfo) => {
