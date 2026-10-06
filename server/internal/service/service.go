@@ -158,7 +158,7 @@ func (s *Service) SignInWithIdToken(ctx context.Context, req *api.IdTokenSignIn)
 	}
 	return s.signIn(ctx, signInRequest{
 		identity:   id,
-		locale:     "ru",
+		locale:     clientLocale(req.Locale),
 		transport:  req.Transport,
 		clientKind: req.ClientKind.Or(defaultClientKind(req.Transport)),
 	})
@@ -172,7 +172,7 @@ func (s *Service) SignInWithAuthorizationCode(ctx context.Context, req *api.Auth
 	}
 	return s.signIn(ctx, signInRequest{
 		identity:   id,
-		locale:     "ru",
+		locale:     clientLocale(req.Locale),
 		transport:  req.Transport,
 		clientKind: req.ClientKind.Or(defaultClientKind(req.Transport)),
 	})
@@ -186,11 +186,17 @@ func (s *Service) SignInForDevelopment(ctx context.Context, req *api.DevSignIn) 
 	}
 	return s.signIn(ctx, signInRequest{
 		identity:   auth.Identity{Provider: "dev", Subject: req.Name, Name: req.Name},
-		locale:     "ru",
+		locale:     clientLocale(req.Locale),
 		role:       string(req.Role.Or(api.RoleUser)),
 		transport:  req.Transport,
 		clientKind: req.ClientKind.Or(defaultClientKind(req.Transport)),
 	})
+}
+
+// clientLocale — язык нового аккаунта вне мини-аппа: тот, что клиент выбрал по языку устройства. Нет
+// поля — русский: аудитория русскоязычная (PRODUCT.md, «Users»).
+func clientLocale(l api.OptLocale) string {
+	return string(l.Or(api.LocaleRu))
 }
 
 func defaultClientKind(t api.SessionTransport) api.ClientKind {

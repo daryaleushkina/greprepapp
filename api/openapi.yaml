@@ -299,6 +299,11 @@ components:
             только для нового аккаунта.
         transport: { $ref: '#/components/schemas/SessionTransport' }
         clientKind: { $ref: '#/components/schemas/ClientKind' }
+        locale:
+          $ref: '#/components/schemas/Locale'
+          description: >-
+            Язык интерфейса на устройстве. Берётся только для нового аккаунта: у существующего вход язык не
+            меняет. Нет поля — русский.
 
     AuthorizationCodeSignIn:
       type: object
@@ -326,6 +331,11 @@ components:
           maxLength: 128
         transport: { $ref: '#/components/schemas/SessionTransport' }
         clientKind: { $ref: '#/components/schemas/ClientKind' }
+        locale:
+          $ref: '#/components/schemas/Locale'
+          description: >-
+            Язык интерфейса на устройстве. Берётся только для нового аккаунта: у существующего вход язык не
+            меняет. Нет поля — русский.
 
     DevSignIn:
       type: object
@@ -340,6 +350,11 @@ components:
         role: { $ref: '#/components/schemas/Role' }
         transport: { $ref: '#/components/schemas/SessionTransport' }
         clientKind: { $ref: '#/components/schemas/ClientKind' }
+        locale:
+          $ref: '#/components/schemas/Locale'
+          description: >-
+            Язык интерфейса на устройстве. Берётся только для нового аккаунта: у существующего вход язык не
+            меняет. Нет поля — русский.
 
     ClientKind:
       type: string

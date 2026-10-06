@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"io"
 	"log/slog"
+	"maps"
 	"net/http"
 	"net/http/cookiejar"
 	"net/http/httptest"
@@ -545,4 +546,57 @@ func TestOIDCSignIn(t *testing.T) {
 		"redirectUri": "https://evil.example/cb", "transport": "bearer",
 	}})
 	wantError(t, foreign, http.StatusBadRequest, "bad_request")
+}
+
+// Язык нового аккаунта вне мини-аппа — тот, что выбрал клиент по языку устройства (сайт: русский, кроме
+// английского браузера без русского — решение Даши 06.10.2026). У существующего аккаунта вход язык не меняет.
+func TestSignInLocale(t *testing.T) {
+	t.Parallel()
+	google := oidctest.New(t)
+	telegram := oidctest.New(t)
+	e := newEnv(t, func(c *config.Config) {
+		c.Google = google.Config()
+		c.Telegram = telegram.Config()
+	})
+	locale := func(r resp) any {
+		t.Helper()
+		if r.status != http.StatusOK {
+			t.Fatalf("sign-in: %d %s", r.status, r.raw)
+		}
+		return r.body["user"].(map[string]any)["locale"]
+	}
+
+	dev := func(name string, extra map[string]any) resp {
+		body := map[string]any{"name": name, "transport": "bearer"}
+		maps.Copy(body, extra)
+		return e.do(t, call{method: "POST", path: "/api/auth/dev", body: body})
+	}
+	if got := locale(dev("locale-en", map[string]any{"locale": "en"})); got != "en" {
+		t.Fatalf("new account with locale en: %v", got)
+	}
+	if got := locale(dev("locale-en", map[string]any{"locale": "ru"})); got != "en" {
+		t.Fatalf("existing account must keep its locale, got %v", got)
+	}
+	if got := locale(dev("locale-default", nil)); got != "ru" {
+		t.Fatalf("no locale — Russian by default, got %v", got)
+	}
+	wantError(t, dev("locale-bad", map[string]any{"locale": "de"}), http.StatusBadRequest, "bad_request")
+
+	const nonce = "nonce-0123456789abcdef"
+	idToken := e.do(t, call{method: "POST", path: "/api/auth/oidc", body: map[string]any{
+		"provider": "google", "idToken": google.Token(t, "web.services", "google-locale", nonce, nil),
+		"nonce": nonce, "transport": "bearer", "locale": "en",
+	}})
+	if got := locale(idToken); got != "en" {
+		t.Fatalf("id_token sign-in with locale en: %v", got)
+	}
+
+	telegram.CodeToken.Store(telegram.Token(t, "web.services", "opaque", nonce, map[string]any{"id": 77}))
+	code := e.do(t, call{method: "POST", path: "/api/auth/oidc/code", body: map[string]any{
+		"provider": "telegram", "code": oidctest.GoodCode, "codeVerifier": strings.Repeat("v", 43),
+		"redirectUri": "https://app.example/auth/callback", "nonce": nonce, "transport": "bearer", "locale": "en",
+	}})
+	if got := locale(code); got != "en" {
+		t.Fatalf("code sign-in with locale en: %v", got)
+	}
 }

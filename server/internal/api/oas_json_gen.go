@@ -53,9 +53,15 @@ func (s *AuthorizationCodeSignIn) encodeFields(e *jx.Encoder) {
 			s.ClientKind.Encode(e)
 		}
 	}
+	{
+		if s.Locale.Set {
+			e.FieldStart("locale")
+			s.Locale.Encode(e)
+		}
+	}
 }
 
-var jsonFieldsNameOfAuthorizationCodeSignIn = [7]string{
+var jsonFieldsNameOfAuthorizationCodeSignIn = [8]string{
 	0: "provider",
 	1: "code",
 	2: "codeVerifier",
@@ -63,6 +69,7 @@ var jsonFieldsNameOfAuthorizationCodeSignIn = [7]string{
 	4: "nonce",
 	5: "transport",
 	6: "clientKind",
+	7: "locale",
 }
 
 // Decode decodes AuthorizationCodeSignIn from json.
@@ -149,6 +156,16 @@ func (s *AuthorizationCodeSignIn) Decode(d *jx.Decoder) error {
 				return nil
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"clientKind\"")
+			}
+		case "locale":
+			if err := func() error {
+				s.Locale.Reset()
+				if err := s.Locale.Decode(d); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"locale\"")
 			}
 		default:
 			return errors.Errorf("unexpected field %q", k)
@@ -479,13 +496,20 @@ func (s *DevSignIn) encodeFields(e *jx.Encoder) {
 			s.ClientKind.Encode(e)
 		}
 	}
+	{
+		if s.Locale.Set {
+			e.FieldStart("locale")
+			s.Locale.Encode(e)
+		}
+	}
 }
 
-var jsonFieldsNameOfDevSignIn = [4]string{
+var jsonFieldsNameOfDevSignIn = [5]string{
 	0: "name",
 	1: "role",
 	2: "transport",
 	3: "clientKind",
+	4: "locale",
 }
 
 // Decode decodes DevSignIn from json.
@@ -538,6 +562,16 @@ func (s *DevSignIn) Decode(d *jx.Decoder) error {
 				return nil
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"clientKind\"")
+			}
+		case "locale":
+			if err := func() error {
+				s.Locale.Reset()
+				if err := s.Locale.Decode(d); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"locale\"")
 			}
 		default:
 			return errors.Errorf("unexpected field %q", k)
@@ -911,15 +945,22 @@ func (s *IdTokenSignIn) encodeFields(e *jx.Encoder) {
 			s.ClientKind.Encode(e)
 		}
 	}
+	{
+		if s.Locale.Set {
+			e.FieldStart("locale")
+			s.Locale.Encode(e)
+		}
+	}
 }
 
-var jsonFieldsNameOfIdTokenSignIn = [6]string{
+var jsonFieldsNameOfIdTokenSignIn = [7]string{
 	0: "provider",
 	1: "idToken",
 	2: "nonce",
 	3: "displayName",
 	4: "transport",
 	5: "clientKind",
+	6: "locale",
 }
 
 // Decode decodes IdTokenSignIn from json.
@@ -994,6 +1035,16 @@ func (s *IdTokenSignIn) Decode(d *jx.Decoder) error {
 				return nil
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"clientKind\"")
+			}
+		case "locale":
+			if err := func() error {
+				s.Locale.Reset()
+				if err := s.Locale.Decode(d); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"locale\"")
 			}
 		default:
 			return errors.Errorf("unexpected field %q", k)
@@ -1273,6 +1324,39 @@ func (s OptClientKind) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON implements stdjson.Unmarshaler.
 func (s *OptClientKind) UnmarshalJSON(data []byte) error {
+	d := jx.DecodeBytes(data)
+	return s.Decode(d)
+}
+
+// Encode encodes Locale as json.
+func (o OptLocale) Encode(e *jx.Encoder) {
+	if !o.Set {
+		return
+	}
+	e.Str(string(o.Value))
+}
+
+// Decode decodes Locale from json.
+func (o *OptLocale) Decode(d *jx.Decoder) error {
+	if o == nil {
+		return errors.New("invalid: unable to decode OptLocale to nil")
+	}
+	o.Set = true
+	if err := o.Value.Decode(d); err != nil {
+		return err
+	}
+	return nil
+}
+
+// MarshalJSON implements stdjson.Marshaler.
+func (s OptLocale) MarshalJSON() ([]byte, error) {
+	e := jx.Encoder{}
+	s.Encode(&e)
+	return e.Bytes(), nil
+}
+
+// UnmarshalJSON implements stdjson.Unmarshaler.
+func (s *OptLocale) UnmarshalJSON(data []byte) error {
 	d := jx.DecodeBytes(data)
 	return s.Decode(d)
 }

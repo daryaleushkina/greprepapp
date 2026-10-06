@@ -26,6 +26,10 @@ type AuthorizationCodeSignIn struct {
 	Nonce       OptString        `json:"nonce"`
 	Transport   SessionTransport `json:"transport"`
 	ClientKind  OptClientKind    `json:"clientKind"`
+	// Язык интерфейса на устройстве. Берётся только для
+	// нового аккаунта: у существующего вход язык не меняет.
+	// Нет поля — русский.
+	Locale OptLocale `json:"locale"`
 }
 
 // GetProvider returns the value of Provider.
@@ -63,6 +67,11 @@ func (s *AuthorizationCodeSignIn) GetClientKind() OptClientKind {
 	return s.ClientKind
 }
 
+// GetLocale returns the value of Locale.
+func (s *AuthorizationCodeSignIn) GetLocale() OptLocale {
+	return s.Locale
+}
+
 // SetProvider sets the value of Provider.
 func (s *AuthorizationCodeSignIn) SetProvider(val IdentityProvider) {
 	s.Provider = val
@@ -96,6 +105,11 @@ func (s *AuthorizationCodeSignIn) SetTransport(val SessionTransport) {
 // SetClientKind sets the value of ClientKind.
 func (s *AuthorizationCodeSignIn) SetClientKind(val OptClientKind) {
 	s.ClientKind = val
+}
+
+// SetLocale sets the value of Locale.
+func (s *AuthorizationCodeSignIn) SetLocale(val OptLocale) {
+	s.Locale = val
 }
 
 type BearerAuth struct {
@@ -310,6 +324,10 @@ type DevSignIn struct {
 	Role       OptRole          `json:"role"`
 	Transport  SessionTransport `json:"transport"`
 	ClientKind OptClientKind    `json:"clientKind"`
+	// Язык интерфейса на устройстве. Берётся только для
+	// нового аккаунта: у существующего вход язык не меняет.
+	// Нет поля — русский.
+	Locale OptLocale `json:"locale"`
 }
 
 // GetName returns the value of Name.
@@ -332,6 +350,11 @@ func (s *DevSignIn) GetClientKind() OptClientKind {
 	return s.ClientKind
 }
 
+// GetLocale returns the value of Locale.
+func (s *DevSignIn) GetLocale() OptLocale {
+	return s.Locale
+}
+
 // SetName sets the value of Name.
 func (s *DevSignIn) SetName(val string) {
 	s.Name = val
@@ -350,6 +373,11 @@ func (s *DevSignIn) SetTransport(val SessionTransport) {
 // SetClientKind sets the value of ClientKind.
 func (s *DevSignIn) SetClientKind(val OptClientKind) {
 	s.ClientKind = val
+}
+
+// SetLocale sets the value of Locale.
+func (s *DevSignIn) SetLocale(val OptLocale) {
+	s.Locale = val
 }
 
 // Ref: #/components/schemas/Error
@@ -493,6 +521,10 @@ type IdTokenSignIn struct {
 	DisplayName OptString        `json:"displayName"`
 	Transport   SessionTransport `json:"transport"`
 	ClientKind  OptClientKind    `json:"clientKind"`
+	// Язык интерфейса на устройстве. Берётся только для
+	// нового аккаунта: у существующего вход язык не меняет.
+	// Нет поля — русский.
+	Locale OptLocale `json:"locale"`
 }
 
 // GetProvider returns the value of Provider.
@@ -525,6 +557,11 @@ func (s *IdTokenSignIn) GetClientKind() OptClientKind {
 	return s.ClientKind
 }
 
+// GetLocale returns the value of Locale.
+func (s *IdTokenSignIn) GetLocale() OptLocale {
+	return s.Locale
+}
+
 // SetProvider sets the value of Provider.
 func (s *IdTokenSignIn) SetProvider(val IdentityProvider) {
 	s.Provider = val
@@ -553,6 +590,11 @@ func (s *IdTokenSignIn) SetTransport(val SessionTransport) {
 // SetClientKind sets the value of ClientKind.
 func (s *IdTokenSignIn) SetClientKind(val OptClientKind) {
 	s.ClientKind = val
+}
+
+// SetLocale sets the value of Locale.
+func (s *IdTokenSignIn) SetLocale(val OptLocale) {
+	s.Locale = val
 }
 
 // Ref: #/components/schemas/IdentityProvider
@@ -712,6 +754,52 @@ func (o OptClientKind) Get() (v ClientKind, ok bool) {
 
 // Or returns value if set, or given parameter if does not.
 func (o OptClientKind) Or(d ClientKind) ClientKind {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptLocale returns new OptLocale with value set to v.
+func NewOptLocale(v Locale) OptLocale {
+	return OptLocale{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptLocale is optional Locale.
+type OptLocale struct {
+	Value Locale
+	Set   bool
+}
+
+// IsSet returns true if OptLocale was set.
+func (o OptLocale) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptLocale) Reset() {
+	var v Locale
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptLocale) SetTo(v Locale) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptLocale) Get() (v Locale, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptLocale) Or(d Locale) Locale {
 	if v, ok := o.Get(); ok {
 		return v
 	}
