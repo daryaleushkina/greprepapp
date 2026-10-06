@@ -56,7 +56,7 @@ object AppModule {
     @Singleton
     fun tokenStore(
         @ApplicationContext context: Context,
-    ): TokenStore = KeystoreTokenStore(context)
+    ): TokenStore = KeystoreTokenStore(context.noBackupFilesDir)
 
     @Provides
     @Singleton

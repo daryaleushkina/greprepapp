@@ -17,6 +17,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import java.io.IOException
 import java.security.GeneralSecurityException
+import java.security.ProviderException
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
@@ -63,6 +64,32 @@ class SessionManagerTest {
                     .single()
                     .route,
             )
+        }
+
+    @Test
+    fun keystoreHardwareFailureOnLaunchSignsOutInsteadOfCrashing() =
+        runTest(main.dispatcher) {
+            // Keystore на части прошивок бросает ProviderException (RuntimeException), а не GeneralSecurityException.
+            val graph = graph(token = "saved") { tokens.readFailure = ProviderException("keystore hardware") }
+            assertEquals(SessionState.SignedOut(null), graph.session.state.value)
+            assertNull(graph.tokens.token)
+            assertEquals(
+                "launch",
+                graph.publicApi.reports
+                    .single()
+                    .route,
+            )
+        }
+
+    @Test
+    fun personalDataIsNotWrittenForASessionThatEnded() =
+        runTest(main.dispatcher) {
+            val graph = graph(token = "a")
+            graph.session.signOut()
+            advanceUntilIdle()
+            val written = graph.session.writeIfCurrent(id = 1) { graph.cache.save(starterPlan) }
+            assertEquals(false, written)
+            assertNull(graph.cache.load())
         }
 
     @Test

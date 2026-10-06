@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
@@ -28,6 +28,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import dev.greprepapp.app.R
@@ -156,8 +157,9 @@ private fun ProviderButton(
                 disabledContainerColor = container,
                 disabledContentColor = content,
             ),
-        contentPadding = PaddingValues(horizontal = GpSpace.s12),
-        modifier = Modifier.fillMaxWidth().height(GpSize.buttonCompact).testTag(tag),
+        // Высота — минимум, а не жёстко: при крупном шрифте подпись переносится и кнопка растёт, а не режет её.
+        contentPadding = PaddingValues(horizontal = GpSpace.s12, vertical = GpSpace.s8),
+        modifier = Modifier.fillMaxWidth().heightIn(min = GpSize.buttonCompact).testTag(tag),
     ) {
         Box(contentAlignment = Alignment.Center) {
             Row(
@@ -170,7 +172,7 @@ private fun ProviderButton(
                 } else {
                     Icon(painter = painterResource(logo), contentDescription = null, tint = logoTint)
                 }
-                Text(text = text, style = textStyle)
+                Text(text = text, style = textStyle, textAlign = TextAlign.Center)
             }
             if (busy) CircularProgressIndicator(color = content, modifier = Modifier.size(GpSpace.s20))
         }

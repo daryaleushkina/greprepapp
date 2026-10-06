@@ -123,6 +123,12 @@ class ScreenSnapshotTest(
     @Test
     fun progress() = snap("progress") { Today(starter, tab = AppTab.Progress) }
 
+    @Test
+    fun settings() = snap("settings") { Settings() }
+
+    @Test
+    fun step() = snap("step") { Step() }
+
     companion object {
         private const val SYSTEM_FONT_SCALE = 1.3f
 

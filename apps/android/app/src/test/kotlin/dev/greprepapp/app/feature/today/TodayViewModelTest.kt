@@ -29,6 +29,7 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import java.io.File
 import java.time.Duration
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -70,6 +71,31 @@ class TodayViewModelTest {
             assertEquals(StudySection.Words, content.plan.current?.section)
             assertNull(vm.state.value.stale)
             assertEquals(content.plan, graph.cache.load())
+        }
+
+    @Test
+    fun planIsShownEvenIfItCannotBeKeptForOffline() =
+        runTest(main.dispatcher) {
+            val graph = signedIn()
+            // Папки нет — запись падает с FileNotFoundException (как при полном диске).
+            val broken = TodayCache(File(folder.root, "absent"))
+            val vm =
+                TodayViewModel(
+                    api = api,
+                    cache = broken,
+                    session = graph.session,
+                    network = network,
+                    reporter = graph.reporter,
+                    clock = graph.clock,
+                    foreground = foreground,
+                    io = main.dispatcher,
+                )
+            advanceUntilIdle()
+            assertEquals(3, (vm.state.value.content as Content.Plan).plan.steps.size)
+            assertNull(vm.state.value.stale)
+            val report = graph.publicApi.reports.single()
+            assertEquals("today", report.route)
+            assertEquals("today cache write failed: FileNotFoundException", report.message)
         }
 
     @Test
@@ -135,6 +161,35 @@ class TodayViewModelTest {
             // Поздний ответ не вернул на устройство план вышедшего.
             assertEquals(Content.Loading, vm.state.value.content)
             assertNull(graph.cache.load())
+        }
+
+    @Test
+    fun planArrivingAsThePersonSignsOutIsNotLeftOnTheDevice() =
+        runTest(main.dispatcher) {
+            val graph = signedIn()
+            val gate = CompletableDeferred<Unit>()
+            api.gate = gate
+            viewModel(graph)
+            // Ответ пришёл и прошёл проверку входа, а выход успел стереть данные раньше записи в кэш.
+            gate.complete(Unit)
+            graph.session.signOut()
+            advanceUntilIdle()
+            assertNull("план вышедшего не должен остаться на устройстве", graph.cache.load())
+        }
+
+    @Test
+    fun returningToTheAppBeforeTheFirstAnswerDoesNotRestartIt() =
+        runTest(main.dispatcher) {
+            val graph = signedIn()
+            val gate = CompletableDeferred<Unit>()
+            api.gate = gate
+            val vm = viewModel(graph)
+            foreground.events.emit(Unit)
+            advanceUntilIdle()
+            assertEquals("запрос в пути не обрывается", 1, api.calls)
+            gate.complete(Unit)
+            advanceUntilIdle()
+            assertTrue(vm.state.value.content is Content.Plan)
         }
 
     @Test

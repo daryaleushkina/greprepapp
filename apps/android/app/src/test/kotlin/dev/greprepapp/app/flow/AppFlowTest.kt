@@ -186,6 +186,21 @@ class AppFlowTest {
         waitFor("exam.placeholder")
     }
 
+    @Test
+    fun tappingTheCurrentTabReturnsToItsStart() {
+        server.issue("saved")
+        tokens.token = "saved"
+        launch()
+        waitFor("today.plan")
+        compose.onNodeWithTag("tab.progress").performClick()
+        waitFor("progress.settings")
+        compose.onNodeWithTag("progress.settings").performClick()
+        waitFor("settings.signOut")
+        compose.onNodeWithTag("tab.progress").performClick()
+        waitFor("progress.empty")
+        compose.onNodeWithTag("settings.signOut").assertDoesNotExist()
+    }
+
     private fun androidx.compose.ui.test.SemanticsNodeInteraction.assertDoesNotExistNow() = assertDoesNotExist()
 
     private companion object {

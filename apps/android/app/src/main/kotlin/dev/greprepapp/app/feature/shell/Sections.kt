@@ -104,36 +104,41 @@ fun SettingsScreen(
     modifier: Modifier = Modifier,
 ) {
     NestedScreen(title = stringResource(R.string.settings), onBack = onBack, modifier = modifier) { padding ->
+        // Колонка не шире 720 и прижата к краю заголовка, как лента «Сегодня»: на планшете лишняя ширина
+        // остаётся справа пустой. Ширина ограничивается до fillMaxWidth — после fillMaxSize она бы не сработала.
         Column(
             modifier =
                 Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .padding(padding)
-                    .padding(horizontal = GpLayout.gutter, vertical = GpSpace.s16)
-                    .widthIn(max = GpLayout.contentMax),
-            verticalArrangement = Arrangement.spacedBy(GpSpace.s8),
+                    .padding(horizontal = GpLayout.gutter, vertical = GpSpace.s16),
         ) {
-            Surface(
-                color = Gp.colors.surface,
-                shape = RoundedCornerShape(GpRadius.xxl),
-                modifier = Modifier.fillMaxWidth(),
+            Column(
+                modifier = Modifier.widthIn(max = GpLayout.contentMax).fillMaxWidth().testTag("settings.column"),
+                verticalArrangement = Arrangement.spacedBy(GpSpace.s8),
             ) {
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.settings_sign_out)) },
-                    colors = ListItemDefaults.colors(containerColor = Gp.colors.surface),
-                    modifier =
-                        Modifier
-                            .clickable(role = Role.Button, onClick = onSignOut)
-                            .testTag("settings.signOut"),
+                Surface(
+                    color = Gp.colors.surface,
+                    shape = RoundedCornerShape(GpRadius.xxl),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    ListItem(
+                        headlineContent = { Text(stringResource(R.string.settings_sign_out)) },
+                        colors = ListItemDefaults.colors(containerColor = Gp.colors.surface),
+                        modifier =
+                            Modifier
+                                .clickable(role = Role.Button, onClick = onSignOut)
+                                .testTag("settings.signOut"),
+                    )
+                }
+                Text(
+                    text = stringResource(R.string.settings_version, appVersion),
+                    style = Gp.type.footnote,
+                    color = Gp.colors.textSecondary,
+                    modifier = Modifier.padding(horizontal = GpSpace.s16),
                 )
             }
-            Text(
-                text = stringResource(R.string.settings_version, appVersion),
-                style = Gp.type.footnote,
-                color = Gp.colors.textSecondary,
-                modifier = Modifier.padding(horizontal = GpSpace.s16),
-            )
         }
     }
 }

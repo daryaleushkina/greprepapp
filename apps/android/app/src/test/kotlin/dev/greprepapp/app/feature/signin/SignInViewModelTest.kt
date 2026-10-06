@@ -23,6 +23,7 @@ import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import java.io.IOException
+import java.security.ProviderException
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
@@ -132,6 +133,18 @@ class SignInViewModelTest {
             advanceUntilIdle()
             assertEquals(Message.Failed, vm.state.value.message)
             assertEquals(SessionState.SignedOut(null), graph.session.state.value)
+        }
+
+    @Test
+    fun keystoreHardwareFailureOnSaveFailsHonestly() =
+        runTest(main.dispatcher) {
+            val (graph, vm) = setUp()
+            graph.tokens.saveFailure = ProviderException("keystore hardware")
+            vm.signInForDevelopment("anna")
+            advanceUntilIdle()
+            assertEquals(Message.Failed, vm.state.value.message)
+            assertEquals(SessionState.SignedOut(null), graph.session.state.value)
+            assertEquals(1, graph.publicApi.reports.size)
         }
 
     @Test

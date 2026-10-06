@@ -27,7 +27,6 @@ android {
         targetSdk = 37
         versionCode = 1
         versionName = "0.1.0"
-        testInstrumentationRunner = "dev.greprepapp.app.HiltTestRunner"
         buildConfigField("String", "API_BASE_URL", "\"${releaseApiBaseUrl.get()}\"")
     }
 
@@ -137,8 +136,6 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
     implementation(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.navigation3.ui)
-    implementation(libs.androidx.datastore.preferences)
-    implementation(libs.androidx.browser)
     implementation(libs.compose.material3.adaptive.navigation.suite)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)
@@ -157,7 +154,6 @@ dependencies {
     testImplementation(libs.roborazzi.junit.rule)
     testImplementation(libs.compose.ui.test.junit4)
     testImplementation(libs.kotlinx.coroutines.test)
-    testImplementation(libs.turbine)
     testImplementation(libs.okhttp.mockwebserver)
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.androidx.test.ext.junit)
@@ -168,12 +164,4 @@ dependencies {
 
     kover(project(":core:api"))
     kover(project(":core:design"))
-
-    androidTestImplementation(platform(libs.compose.bom))
-    androidTestImplementation(libs.androidx.test.runner)
-    androidTestImplementation(libs.androidx.test.ext.junit)
-    androidTestImplementation(libs.androidx.test.uiautomator)
-    androidTestImplementation(libs.compose.ui.test.junit4)
-    androidTestImplementation(libs.hilt.android.testing)
-    kspAndroidTest(libs.hilt.compiler)
 }

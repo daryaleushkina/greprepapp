@@ -17,6 +17,8 @@ import com.github.takahirom.roborazzi.captureRoboImage
 import dev.greprepapp.app.core.session.SignOutReason
 import dev.greprepapp.app.feature.shell.AppTab
 import dev.greprepapp.app.feature.shell.MainScaffold
+import dev.greprepapp.app.feature.shell.SettingsScreen
+import dev.greprepapp.app.feature.shell.StepPlaceholderScreen
 import dev.greprepapp.app.feature.signin.SignInContent
 import dev.greprepapp.app.feature.signin.SignInViewModel
 import dev.greprepapp.app.feature.today.TodayContent
@@ -85,6 +87,12 @@ abstract class SnapshotBase(
     ) = MainScaffold(appVersion = "0.1.0 (1)", onSignOut = {}, initialTab = tab) {
         TodayContent(state = state, onRefresh = {}, onSelect = {})
     }
+
+    @Composable
+    protected fun Settings() = SettingsScreen(appVersion = "0.1.0 (1)", onSignOut = {}, onBack = {})
+
+    @Composable
+    protected fun Step() = StepPlaceholderScreen(step = TodayPlan.from(starterPlan).steps[1], onBack = {})
 
     protected val starter = UiState(content = Content.Plan(TodayPlan.from(starterPlan)))
 

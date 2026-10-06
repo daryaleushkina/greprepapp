@@ -13,8 +13,8 @@
 set -eu
 
 # Покрытие строк ручного кода приложения и его модулей, % (клиент договора, Hilt и токены — сгенерированы,
-# не считаются; app/build.gradle.kts, kover). Первый замер 06.10.2026 — 89,5 %.
-ANDROID_COVERAGE_MIN=89.0
+# не считаются; app/build.gradle.kts, kover). Замер 06.10.2026 после ревью — 94,3 %.
+ANDROID_COVERAGE_MIN=94.0
 
 root="$(git rev-parse --show-toplevel)"
 app="$root/apps/android"

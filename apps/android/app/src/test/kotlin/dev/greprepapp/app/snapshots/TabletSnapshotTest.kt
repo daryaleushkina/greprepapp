@@ -51,6 +51,9 @@ class TabletSnapshotTest(
     @Test
     fun signIn() = snap("tablet-signin") { SignIn() }
 
+    @Test
+    fun settings() = snap("tablet-settings") { Settings() }
+
     companion object {
         @JvmStatic
         @ParameterizedRobolectricTestRunner.Parameters(name = "{0}")

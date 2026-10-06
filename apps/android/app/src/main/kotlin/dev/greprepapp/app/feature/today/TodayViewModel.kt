@@ -115,6 +115,8 @@ class TodayViewModel
          * обновить не удалось. План дня меняется после тренировки, а не каждую минуту.
          */
         fun refreshIfStale() {
+            // Первый ответ ещё в пути (медленная сеть, свернул и вернулся) — не обрывать его новым запросом.
+            if (refreshJob?.isActive == true) return
             val last = fetchedAt
             if (last != null && mutableState.value.stale == null &&
                 Duration.between(last, clock.instant()) < FRESH_FOR
@@ -133,7 +135,7 @@ class TodayViewModel
                     val result = apiCall { api.getToday() }
                     if (!session.isCurrent(id)) return@launch
                     when (result) {
-                        is ApiResult.Ok -> show(result.value)
+                        is ApiResult.Ok -> show(result.value, id)
                         is ApiResult.Failed -> handle(result.failure, id)
                     }
                     mutableState.update { it.copy(isRefreshing = false) }
@@ -147,11 +149,14 @@ class TodayViewModel
             return !offline
         }
 
-        private suspend fun show(dto: Today) {
+        private suspend fun show(
+            dto: Today,
+            id: Long,
+        ) {
             mutableState.update { it.copy(content = Content.Plan(TodayPlan.from(dto)), stale = null) }
             fetchedAt = clock.instant()
             try {
-                withContext(io) { cache.save(dto) }
+                session.writeIfCurrent(id) { cache.save(dto) }
             } catch (failure: IOException) {
                 // Только класс: в тексте ошибки — путь к файлу.
                 reporter.report("today cache write failed: ${failure.javaClass.simpleName}", route = ROUTE)

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Окно до Compose: фон — токен bg (Compose рисует остальное сам). Цвета здесь — те же значения, что в
-         design/tokens; XML-ресурсы токены не генерируют, а без них окно мигало бы белым в тёмной теме. -->
+    <!-- Окно до Compose: фон — токен bg (Compose рисует остальное сам). @color/gp_* генерирует
+         design/tokens (generated/android/res, светлая и тёмная): руками цвета окна не заводить. -->
     <style name="Theme.GrePrep" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="android:windowBackground">@color/gp_bg</item>
     </style>

@@ -122,6 +122,22 @@ class SessionManager
             }
         }
 
+        /**
+         * Записать личные данные входа id (кэш плана), только если человек ещё не вышел. Под тем же замком, что
+         * выход: иначе ответ, проверенный до выхода, записался бы на диск уже после того, как выход всё стёр.
+         */
+        suspend fun writeIfCurrent(
+            id: Long,
+            write: () -> Unit,
+        ): Boolean =
+            withContext(io) {
+                mutex.withLock {
+                    if (!isCurrent(id)) return@withLock false
+                    write()
+                    true
+                }
+            }
+
         /** Сервер ответил 401 на запрос входа id: сессии больше нет (истекла или вышли на другом устройстве). */
         fun handleUnauthorized(id: Long) {
             scope.launch(io) {

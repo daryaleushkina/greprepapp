@@ -12,13 +12,12 @@ import dev.greprepapp.api.models.SessionTransport
 import dev.greprepapp.app.core.AppConfig
 import dev.greprepapp.app.core.report.ClientErrorReporter
 import dev.greprepapp.app.core.session.SessionManager
+import dev.greprepapp.app.core.session.isStorageFailure
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.io.IOException
-import java.security.GeneralSecurityException
 import javax.inject.Inject
 
 /** Вход вне Telegram: Telegram, Apple, Google (PRODUCT.md, «Stack», вход) и подмена в отладочной сборке. */
@@ -92,9 +91,9 @@ class SignInViewModel
             try {
                 session.didSignIn(token)
                 mutableState.value = UiState()
-            } catch (failure: IOException) {
-                storageFailed(failure)
-            } catch (failure: GeneralSecurityException) {
+            } catch (failure: Exception) {
+                if (!failure.isStorageFailure()) throw failure
+                // Токен не сохранился (Keystore, диск) — человек остаётся на экране входа и видит ошибку.
                 storageFailed(failure)
             }
         }
