@@ -22,11 +22,18 @@ tools/dev/backlog.sh           # пересобрать это зеркало
 - [#5](https://github.com/daryaleushkina/greprepapp/issues/5) Вход через Google в приложении Apple: где менять код на id_token
 - [#6](https://github.com/daryaleushkina/greprepapp/issues/6) Аккаунт Apple Developer: подключить к приложению
 - [#7](https://github.com/daryaleushkina/greprepapp/issues/7) Экран входа: ссылки на условия и политику конфиденциальности
+- [#12](https://github.com/daryaleushkina/greprepapp/issues/12) Android: вход через Telegram, Google и Apple
+- [#14](https://github.com/daryaleushkina/greprepapp/issues/14) Android: эмулятор и инструментальные тесты (Keystore, сеть, запуск)
 
 ## Инфраструктура
 
 - [#4](https://github.com/daryaleushkina/greprepapp/issues/4) Договор API: новое значение enum в ответе ломает уже установленные приложения
+- [#9](https://github.com/daryaleushkina/greprepapp/issues/9) /gp-review: линзы доступа и интерфейса не включаются для server/ и apps/web
+- [#10](https://github.com/daryaleushkina/greprepapp/issues/10) CI токенов: корневой lockfile pnpm и Node 24
+- [#11](https://github.com/daryaleushkina/greprepapp/issues/11) Стенд: вход подменой даёт роль admin кому угодно
+- [#15](https://github.com/daryaleushkina/greprepapp/issues/15) Приложение Apple: правила вёрстки в тестах и прогон на iOS 18 в CI
 
 ## Без метки
 
 - [#8](https://github.com/daryaleushkina/greprepapp/issues/8) Язык приложения и язык плана с сервера могут разойтись
+- [#13](https://github.com/daryaleushkina/greprepapp/issues/13) Приложение Apple: сеть пропала без запроса — нет строки «Нет сети», план не обновляется после
