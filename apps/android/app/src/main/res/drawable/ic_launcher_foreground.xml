@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Значок приложения: знак-лента (ic_brand_mark, сетка 30 × 30) в безопасной зоне адаптивного значка 66 dp
+     из 108 — масштаб 2, сдвиг 24. Рабочий значок: настоящий появится вместе с именем бренда. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:tint="@color/gp_verbal"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:scaleX="2"
+        android:scaleY="2"
+        android:translateX="24"
+        android:translateY="24">
+        <path
+            android:pathData="M9,7.5V22.5"
+            android:strokeWidth="1.8"
+            android:strokeAlpha="0.45"
+            android:strokeColor="@android:color/white"
+            android:strokeLineCap="round" />
+        <path
+            android:fillColor="@android:color/white"
+            android:pathData="M5.4,6a3.6,3.6 0,1 0,7.2 0a3.6,3.6 0,1 0,-7.2 0Z" />
+        <path
+            android:pathData="M6.4,15a2.6,2.6 0,1 0,5.2 0a2.6,2.6 0,1 0,-5.2 0ZM6.4,24a2.6,2.6 0,1 0,5.2 0a2.6,2.6 0,1 0,-5.2 0Z"
+            android:strokeWidth="1.8"
+            android:strokeColor="@android:color/white" />
+        <path
+            android:pathData="M16,6H24M16,15H22M16,24H23"
+            android:strokeWidth="1.8"
+            android:strokeColor="@android:color/white"
+            android:strokeLineCap="round" />
+    </group>
+</vector>

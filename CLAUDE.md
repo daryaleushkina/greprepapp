@@ -119,10 +119,13 @@
   `golangci-lint` (в том числе непроверенные ошибки) → `go test -race` и порог
   покрытия; приложение Apple — клиент API свежий → `swift format` → релизная
   сборка iOS и Mac → юнит-тесты, снимки и сценарии на симуляторах и Mac и порог
-  покрытия; затем e2e (iPhone/WebKit и Android/Chromium, светлая и тёмная) →
+  покрытия; приложение Android — клиент API свежий → ktlint → Android lint →
+  тесты, сценарии и снимки на Robolectric и порог покрытия → релизная сборка без
+  входа подменой; затем e2e (iPhone/WebKit и Android/Chromium, светлая и тёмная) →
   сборка → деплой на сервер. Часть Apple идёт, когда в пуше задеты приложение,
-  договор, токены, сервер или сам гейт (решение Даши 06.10.2026). Пуш в `main`
-  с Мака проверяет хук `scripts/hooks/pre-push` (уже под Go и Apple), пуш из
+  договор, токены, сервер или сам гейт; часть Android — приложение, договор,
+  токены или гейт, без эмулятора (решения Даши 06.10.2026). Пуш в `main`
+  с Мака проверяет хук `scripts/hooks/pre-push` (уже под Go, Apple и Android), пуш из
   облака — GitHub Actions (`.github/workflows/deploy.yml`, ещё в виде LifeCommit;
   переделывает CI-часть каркаса, ROADMAP §2; до того задача выключена до переменной
   `DEPLOY_ENABLED=true`). Красное —
@@ -246,4 +249,10 @@ iPhone, iPad и Mac и Kotlin (Jetpack Compose) для Android. Скиллы
   (`StubServer`), без пауз (`eventually`). Новый экран проверяется глазами на
   своих симуляторах, включая iOS 18 (`scripts/run-sim.sh`). Как устроено —
   `docs/HANDOFF.md`, «Приложение Apple».
-- **Kotlin:** правила — вместе с его каркасом.
+- **Kotlin:** видимая фича — сценарий через интерфейс в
+  `apps/android/app/src/test/.../flow` (Hilt, подменный сервер по договору) и
+  снимки экрана в `ScreenSnapshotTest` / `TabletSnapshotTest` — телефон и
+  планшет в обеих темах, «Крупнее»; логика — JUnit на Robolectric рядом
+  (`TestGraph`), без пауз (`advanceUntilIdle`, `waitUntil…`). Компоненты Material
+  в наших токенах, иконки — Material Symbols. Как устроено — `docs/HANDOFF.md`,
+  «Приложение Android».

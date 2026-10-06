@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="signin_tagline">GRE® prep that explains every mistake — in Russian and in English.</string>
+    <string name="signin_telegram">Log in with Telegram</string>
+    <string name="signin_apple">Sign in with Apple</string>
+    <string name="signin_google">Sign in with Google</string>
+    <string name="signin_legal">By continuing, you accept the terms and the privacy policy.</string>
+    <string name="signin_expired">You were signed out — please sign in again.</string>
+    <string name="signin_not_connected_telegram">Log-in with Telegram isn’t connected yet — it will be before the beta.</string>
+    <string name="signin_not_connected_apple">Sign in with Apple isn’t connected yet — it will be before the beta.</string>
+    <string name="signin_not_connected_google">Sign-in with Google isn’t connected yet — it will be before the beta.</string>
+    <string name="signin_offline">No connection — you can sign in once it’s back.</string>
+    <string name="signin_too_many">Too many attempts in a row — please wait a minute.</string>
+    <string name="signin_failed">Couldn’t sign in. Please try again.</string>
+
+    <string name="tab_today">Today</string>
+    <string name="tab_words">Words</string>
+    <string name="tab_exam">Exam</string>
+    <string name="tab_progress">Progress</string>
+
+    <string name="section_words">Words</string>
+    <string name="section_essay">Essay</string>
+
+    <string name="today_plan">Today’s plan</string>
+    <string name="today_no_steps">No steps for today</string>
+    <string name="today_steps_1">One step</string>
+    <string name="today_steps_2">Two steps</string>
+    <string name="today_steps_3">Three steps</string>
+    <string name="today_steps_4">Four steps</string>
+    <string name="today_steps_5">Five steps</string>
+    <string name="today_steps_6">Six steps</string>
+    <string name="today_steps_7">Seven steps</string>
+    <string name="today_steps_8">Eight steps</string>
+    <string name="today_summary">%1$s · %2$s</string>
+    <string name="today_step_minutes_approx">~%1$d min</string>
+    <string name="today_step_minutes">%1$d min</string>
+    <string name="today_start">Start</string>
+    <string name="today_start_step">Start the step</string>
+    <string name="today_now">Now: %1$s</string>
+    <string name="today_end">That’s all for today.</string>
+    <string name="today_done_title">That’s all for today</string>
+    <string name="today_done_subtitle">Tomorrow there will be a new plan here.</string>
+    <string name="today_loading">Loading today’s plan</string>
+    <string name="today_offline_title">No connection</string>
+    <string name="today_offline_message">Today’s plan will load once you’re back online.</string>
+    <string name="today_failed_title">Couldn’t load the plan</string>
+    <string name="today_failed_message">We already know about the error. Please try again a bit later.</string>
+    <string name="today_retry">Try again</string>
+    <string name="today_stale_offline">No connection — the plan will update by itself once it’s back.</string>
+    <string name="today_stale_failed">Couldn’t update the plan — we’ll show a fresh one as soon as the server responds.</string>
+    <string name="today_needs_network">You need a connection to start. Once it’s back, everything will work.</string>
+    <string name="step_placeholder">The step will start here. Practice and words arrive in the next parts.</string>
+
+    <string name="placeholder_soon">Coming soon</string>
+    <string name="placeholder_words">The dictionary will live here: today’s words, review and search.</string>
+    <string name="placeholder_exam">Practice tests just like the real GRE and scored essays will live here.</string>
+    <string name="progress_empty_title">No practice yet</string>
+    <string name="progress_empty_message">Topics with the most mistakes will appear here — in order, starting with the first to work on.</string>
+
+    <string name="settings">Settings</string>
+    <string name="settings_sign_out">Sign out</string>
+    <string name="settings_version">Version %1$s</string>
+    <string name="navigate_back">Back</string>
+
+    <plurals name="today_minutes">
+        <item quantity="one">%d minute</item>
+        <item quantity="other">%d minutes</item>
+    </plurals>
+    <plurals name="today_minutes_about">
+        <item quantity="one">about %d minute</item>
+        <item quantity="other">about %d minutes</item>
+    </plurals>
+    <plurals name="today_steps">
+        <item quantity="one">%d step</item>
+        <item quantity="other">%d steps</item>
+    </plurals>
+</resources>

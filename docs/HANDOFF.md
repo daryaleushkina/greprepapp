@@ -1,7 +1,8 @@
 # GrePrepApp — как всё устроено
 
-Идёт каркас (`docs/ROADMAP.md` §2): договор API, сервер на Go и приложение
-Apple (iPhone, iPad, Mac) готовы, дальше веб, админка, Kotlin, CI и сервер.
+Идёт каркас (`docs/ROADMAP.md` §2): договор API, сервер на Go, приложение
+Apple (iPhone, iPad, Mac) и приложение Android готовы, дальше веб, админка, CI
+и сервер.
 Стек и решения — `PRODUCT.md`, «Stack», и ROADMAP §2. Правила работы —
 `CLAUDE.md`.
 
@@ -18,11 +19,12 @@ Apple (iPhone, iPad, Mac) готовы, дальше веб, админка, Kot
 | `.claude/hooks/block-no-verify.mjs`    | Claude не обходит git-хуки (`--no-verify`, подмена `core.hooksPath`) |
 | `.claude/hooks/protect-gates.mjs`      | правка git-хуков, CI и снижение порога покрытия — только с согласия Даши |
 | `.claude/settings.json`                | хуки Claude и запреты: деплой руками, чтение `.env`, `core.hooksPath`; пересъёмка эталонов снимков — с вопросом |
-| `scripts/hooks/`                       | `commit-msg` (автор и подписи ИИ), `pre-push` (гейт на уходящем в `main` коммите), `gate` (сами проверки — общие для хука и Actions, там же порог покрытия), `gate-apple` (часть гейта для приложения Apple) |
+| `scripts/hooks/`                       | `commit-msg` (автор и подписи ИИ), `pre-push` (гейт на уходящем в `main` коммите), `gate` (сами проверки — общие для хука и Actions, там же порог покрытия), `gate-apple` и `gate-android` (части гейта для приложений), `apple-touched` и `android-touched` (нужна ли часть в этом пуше) |
 | `api/openapi.yaml`                     | договор API — источник правды для сервера и всех клиентов |
 | `server/`                              | бэкенд на Go: `cmd/greprep` (запуск, миграции), `internal/*` (ниже, «Бэкенд») |
 | `compose.yaml`                         | локальный Postgres 18 на порту 55432 |
 | `apps/apple/`                          | приложение на SwiftUI для iPhone, iPad и Mac (ниже, «Приложение Apple») |
+| `apps/android/`                        | приложение на Kotlin и Compose для телефонов и планшетов Android (ниже, «Приложение Android») |
 | `.github/workflows/deploy.yml`         | гейт и деплой для пушей из облака; выключен до переменной `DEPLOY_ENABLED=true`; пока в виде LifeCommit (pnpm, wrangler) — под Go переписывает каркас |
 | `scripts/setup-bot.mjs`, `set-bot-avatar.mjs` | настройка бота Telegram; имя и тексты не заданы (`TEXTS`)    |
 | `.oxlintrc.json`                       | линтер гейта: правила хуков React, висящие промисы                  |
@@ -169,6 +171,53 @@ sh ../../scripts/hooks/gate-apple     # всё, что проверит pre-push
 - **Логотипы Telegram и Google** — фигуры SwiftUI из `scripts/logos/*.svg` (`scripts/svg2swift.py`):
   SVG из каталога система растрирует то чётко, то мыльно, и снимки расходились.
 
+## Приложение Android
+
+Kotlin 2.4 и Jetpack Compose (Material 3), Android 8+ (minSdk 26), targetSdk 37; один модуль экранов и два
+служебных (`apps/android`). Версии библиотек — последние стабильные на 06.10.2026 (`gradle/libs.versions.toml`;
+решение Даши — «стек самый современный»). Поставить один раз: Android SDK (Android Studio), JDK 21 — Gradle
+находит его сам (`gradle/gradle-daemon-jvm.properties`).
+
+```bash
+cd apps/android
+./gradlew :app:installDebug                # собрать и поставить на запущенный эмулятор (сервер — 10.0.2.2:8090)
+./gradlew :core:api:generateApi            # после правки api/openapi.yaml: клиент в core/api/src/main/generated, закоммитить
+./gradlew :app:testDebugUnitTest           # тесты, сценарии через интерфейс и снимки (без сверки)
+./gradlew :app:recordRoborazziDebug        # переснять эталоны снимков — только при намеренной правке вида
+./gradlew ktlintFormat                     # стиль кода
+sh ../../scripts/hooks/gate-android        # всё, что проверит pre-push
+```
+
+| Путь | Что |
+| --- | --- |
+| `app` | экраны, навигация (Navigation 3), Hilt, хранилища; `src/debug` — вход подменой и http до Мака, в релизе их нет |
+| `core/api` | клиент договора: `src/main/generated` — openapi-generator (руками не править), `src/main/kotlin` — Retrofit, разбор JSON, `apiCall` и `ApiFailure` |
+| `core/design` | тема Compose поверх токенов (`design/tokens/generated/android` берётся как есть), шрифт Onest, разделы и свет сверху, главная кнопка |
+| `app/src/test/.../flow` | сценарии через интерфейс (`AppFlowTest`) против подменного сервера по договору (`FakeServer`) |
+| `app/src/test/.../snapshots`, `app/src/test/snapshots` | снимки экранов (Roborazzi) и их эталоны: телефон и планшет, светлая и тёмная, «Крупнее» и крупный системный шрифт |
+
+- **Поведение — как у Apple:** терпимое чтение ответа (лишние поля пропускаются, enum — #4), прошлый план без
+  сети со строкой «Нет сети», шаг без сети не начать — объяснение у шага, 502/503/504 и обрыв ответа — «нет
+  сети», выход сразу стирает токен и данные на устройстве, поздний ответ и поздний 401 после выхода
+  отбрасываются (номер входа в `SessionManager`). Одно отличие: строка «Нет сети» появляется, как только
+  пропала сеть, и план обновляется, когда она вернулась, даже если запросов не было (у Apple — #13).
+- **Токен** — файл в `noBackupFilesDir`, зашифрованный AES-GCM ключом Android Keystore. Резервная копия
+  выключена: ключ в неё не попадает, и восстановленный токен не расшифровался бы.
+- **Навигация** — Material по ширине окна (`NavigationSuiteScaffold`): нижняя панель на телефоне, боковая на
+  планшете; у «Сегодня» и «Прогресса» свои стопки, «Назад» в корне другой вкладки — на «Сегодня». Корень
+  (вход или разделы) — ключ Navigation 3 с номером входа: выход убирает модели экранов вместе с запросами.
+- **Кнопки входа** — официального вида, шрифт Roboto лежит в приложении (`res/font`, OFL): Google требует
+  Roboto Medium, а системный шрифт у Samsung другой. Telegram, Google и Apple пока «ещё не подключён» (#12).
+- **Отладка ≠ релиз:** форма входа подменой и строки к ней — в `src/debug`, в релизе `devSignInForm = null`;
+  http разрешён только до `10.0.2.2` и `127.0.0.1` в отладке. Гейт проверяет готовый релизный APK: в нём нет
+  `api/auth/dev`, адреса Мака и строк «для разработки». Адрес боевого сервера — свойство сборки `gp.apiBaseUrl`.
+- **Язык** — по системе, с настройкой «Язык приложения» Android 13+ (`generateLocaleConfig`); по умолчанию
+  русский (`values`), английский — `values-en`. Тексты — те же, что у Apple.
+- **Тесты:** логика — JUnit на Robolectric (`TestGraph` собирает настоящие `SessionManager`, кэш и отчёты
+  поверх подменных частей договора); сценарии — Hilt с `TestAppModule` вместо `AppModule` (устройство
+  подменено, сеть и разбор ответов — настоящие); снимки — `SnapshotBase`. Покрытие — Kover, порог — в гейте.
+  Эмулятор в гейт не входит (решение Даши 06.10.2026); инструментальные тесты — #14.
+
 ## Токены дизайна
 
 ```bash
@@ -188,7 +237,8 @@ pnpm --dir design/tokens test    # контраст WCAG AA пар «текст 
 - Стекло и тени генерируются только для веба: на Apple стекло системное, на Android — Material.
 - `package.json` лежит в `design/tokens`, а не в корне: корневой включил бы гейт `pre-push` из
   LifeCommit раньше каркаса. Каркас сделает рабочее пространство pnpm и подключит токены к вебу.
-- Kotlin пока ничем не компилируется (на Маке нет `kotlinc`, проекта Android нет) — проверит каркас.
+- Android берёт `generated/android` как есть: Kotlin — исходниками модуля `core/design`, цвета ресурсами
+  (`generated/android/res`, `gp_*`) — для фона окна и заставки, которые рисуются до Compose.
 
 ## Грабли
 
@@ -231,6 +281,24 @@ pnpm --dir design/tokens test    # контраст WCAG AA пар «текст 
 - **Кнопка Apple на Mac** в обёртке SwiftUI держит свой размер — там своя обёртка над
   `ASAuthorizationAppleIDButton` с `sizeThatFits`.
 - **Симулятор «Hearway…» — соседнего проекта**, его не трогать: у GrePrep свои симуляторы.
+
+### Android и Robolectric
+
+- **Эмулятор из сессии Claude Code не получает аппаратную виртуализацию** («hvf is not enabled», устройство
+  offline) — запускать его из Android Studio, дальше `adb` из сессии работает (#14). Эмулятор в SDK может
+  быть старым (32.x) и не поднимать Android 16 — обновить Emulator в SDK Manager.
+- **Robolectric на Android 16+ и JDK 21** падает на `jdk.internal.access` — в `testOptions` нужен
+  `--add-opens=java.base/jdk.internal.access=ALL-UNNAMED`.
+- **Espresso 3.5** (его тянет Compose UI-test) на Android 17 падает: нет `InputManager.getInstance()` —
+  в тестах явно `espresso-core` 3.7.
+- **`advanceUntilIdle()` не ждёт `backgroundScope`** — фоновую работу, итог которой проверяет тест, запускать
+  в обычной области тестового диспетчера (`TestGraph.appScope`).
+- **Снимок экрана иногда выходит пустым** (однотонный фон активности) в длинной серии снимков, хотя сам экран
+  на месте. `SnapshotBase` такой кадр не принимает и собирает экран заново; `RuntimeEnvironment.setFontScale`
+  и смена `@Config(qualifiers)` посреди класса задевают следующие снимки — масштаб шрифта задаётся через
+  `LocalDensity`, планшет — отдельным классом.
+- **Поиск кода из сессии с worktree:** составные команды с переменными и `git -C` изоляция worktree не
+  пропускает — простые команды по одной или скрипт в scratchpad.
 
 ### Машина и аккаунты
 

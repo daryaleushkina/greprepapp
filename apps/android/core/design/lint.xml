@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Тема — единственное законное место для своих CompositionLocal (так устроен и MaterialTheme): токены
+     цвета, текста, тёмной темы и ширины окна читаются через Gp.*. Новые CompositionLocal вне темы lint
+     по-прежнему не пропустит. -->
+<lint>
+    <issue id="ComposeCompositionLocalUsage">
+        <option name="allowed-composition-locals" value="LocalGpColors,LocalGpType,LocalGpDark,LocalGpWide" />
+    </issue>
+</lint>

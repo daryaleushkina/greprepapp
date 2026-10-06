@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Только отладочная сборка: вход подменой (/api/auth/dev). В релизе этих строк нет. -->
+<resources>
+    <string name="dev_signin_title" translatable="false">Для разработки — вход подменой</string>
+    <string name="dev_signin_name" translatable="false">Имя тестового пользователя</string>
+    <string name="dev_signin_submit" translatable="false">Войти</string>
+</resources>

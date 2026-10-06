@@ -37,3 +37,4 @@ tools/dev/backlog.sh           # пересобрать это зеркало
 
 - [#8](https://github.com/daryaleushkina/greprepapp/issues/8) Язык приложения и язык плана с сервера могут разойтись
 - [#13](https://github.com/daryaleushkina/greprepapp/issues/13) Приложение Apple: сеть пропала без запроса — нет строки «Нет сети», план не обновляется после
+- [#16](https://github.com/daryaleushkina/greprepapp/issues/16) Android: два тихих случая в кэше плана (после ревью каркаса)

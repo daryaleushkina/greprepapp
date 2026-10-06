@@ -303,6 +303,24 @@ object GpMotion {
 `;
 }
 
+// Цвета ресурсами Android: их читает то, что рисуется до Compose, — фон окна и заставка запуска (иначе окно
+// мигнёт чужим цветом). Светлая тема — values, тёмная — values-night, имена — gp_<роль>.
+function emitAndroidColorResources({ themed }) {
+  const xName = (t) => 'gp_' + t.path.slice(t.path[0] === 'color' ? 1 : 0).join('_').replace(/-/g, '_');
+  const xColor = (c) => {
+    const [r, g, b] = rgb255(c);
+    const a = Math.round(alphaOf(c) * 255);
+    return '#' + [a, r, g, b].map((x) => x.toString(16).padStart(2, '0')).join('').toUpperCase();
+  };
+  const file = (m) => `<?xml version="1.0" encoding="utf-8"?>
+<!-- ${HEADER} -->
+<resources>
+${themed[m].filter((t) => t.$type === 'color').map((t) => `    <color name="${xName(t)}">${xColor(t.$value)}</color>`).join('\n')}
+</resources>
+`;
+  return { 'android/res/values/gp_colors.xml': file('light'), 'android/res/values-night/gp_colors.xml': file('dark') };
+}
+
 // ---------- Шапка DESIGN.md ----------
 
 // Формат DESIGN.md (google-labs-code/design.md): темы в схеме нет, поэтому у тёмных цветов суффикс -dark.
@@ -349,6 +367,7 @@ export async function render() {
     'web/tokens.css': emitCss(parts),
     'apple/GPTokens.swift': emitSwift(parts),
     'android/GpTokens.kt': emitKotlin(parts),
+    ...emitAndroidColorResources(parts),
     ...Object.fromEntries(Object.entries(emitColorAssets(parts)).map(([k, v]) => ['apple/' + k, v])),
   };
   return { files, frontmatter: emitFrontmatter(parts) };

@@ -1,0 +1,96 @@
+#!/bin/sh
+# Гейт приложения Android. Его зовёт scripts/hooks/gate, когда в пуше задеты приложение, договор, токены или
+# сам гейт (android-touched); руками — sh scripts/hooks/gate-android. Эмулятор не нужен (решение Даши
+# 06.10.2026): сценарии через интерфейс и снимки экранов идут на Robolectric.
+#
+#   клиент API свежий → ktlint → Android lint (debug и release, предупреждение — ошибка) →
+#   тесты клиента → тесты приложения, сценарии и сверка снимков → порог покрытия →
+#   релизная сборка с R8 → в релизе нет входа подменой и адреса отладочного сервера.
+#
+# Порог покрытия — здесь, а правка этой папки — только с согласия Даши (.claude/hooks/protect-gates.mjs):
+# CLAUDE.md, «Порог не опускать; подняли покрытие — поднять и порог».
+
+set -eu
+
+# Покрытие строк ручного кода приложения и его модулей, % (клиент договора, Hilt и токены — сгенерированы,
+# не считаются; app/build.gradle.kts, kover). Первый замер 06.10.2026 — 89,5 %.
+ANDROID_COVERAGE_MIN=89.0
+
+root="$(git rev-parse --show-toplevel)"
+app="$root/apps/android"
+cd "$app"
+
+work="$(mktemp -d)"
+trap 'rm -rf "$work"' EXIT
+
+# SDK — из окружения или там, куда его ставит Android Studio на Маке.
+if [ -z "${ANDROID_HOME:-}" ]; then
+  ANDROID_HOME="$HOME/Library/Android/sdk"
+fi
+export ANDROID_HOME
+if [ ! -d "$ANDROID_HOME/platforms" ]; then
+  echo "gate: Android — нет Android SDK ($ANDROID_HOME): docs/HANDOFF.md, «Приложение Android»" >&2
+  exit 1
+fi
+
+# Шаг Gradle: лог — в файл, при ошибке — хвост лога на экран.
+step() {
+  name="$1"
+  shift
+  log="$work/$name.log"
+  echo "gate: Android — $name" >&2
+  if ! ./gradlew --console=plain "$@" >"$log" 2>&1; then
+    grep -E '^e: |Error:|FAILED|What went wrong|\.kt:[0-9]+' "$log" | head -40 >&2
+    echo "gate: Android — «$name» не прошёл (полный лог: ./gradlew $*)" >&2
+    exit 1
+  fi
+}
+
+step "клиент API из договора" :core:api:generateApi
+if [ -n "$(git status --porcelain -- core/api/src/main/generated)" ]; then
+  git status --porcelain -- core/api/src/main/generated >&2
+  echo "gate: Android — клиент, сгенерированный из api/openapi.yaml, разошёлся с договором —" >&2
+  echo "      cd apps/android && ./gradlew :core:api:generateApi и закоммитить результат" >&2
+  exit 1
+fi
+
+step "стиль кода (ktlint)" ktlintCheck
+step "Android lint" lintDebug lintRelease
+step "тесты клиента API" :core:api:test
+step "тесты, сценарии и снимки экранов" :app:verifyRoborazziDebug :app:koverXmlReportDebug
+
+report="app/build/reports/kover/reportDebug.xml"
+total="$(python3 - "$report" <<'EOF'
+import sys
+import xml.etree.ElementTree as ET
+
+root = ET.parse(sys.argv[1]).getroot()
+line = next(c for c in root.findall("counter") if c.get("type") == "LINE")
+missed, covered = int(line.get("missed")), int(line.get("covered"))
+print(f"{100 * covered / (missed + covered):.1f}")
+EOF
+)"
+if ! awk -v t="$total" -v m="$ANDROID_COVERAGE_MIN" 'BEGIN { exit !(t + 0 >= m + 0) }'; then
+  echo "gate: Android — покрытие ${total}% ниже порога ${ANDROID_COVERAGE_MIN}% — дописать тесты, порог не опускать" >&2
+  exit 1
+fi
+echo "gate: Android — покрытие ${total}%" >&2
+
+step "релизная сборка" :app:assembleRelease
+
+# В релизе нет входа подменой (его код — только в src/debug, R8 выбрасывает недостижимое) и адреса сервера
+# на Маке. Проверяется сама сборка, а не исходники: так ловится и случайная ссылка из общего кода.
+apk="app/build/outputs/apk/release/app-release-unsigned.apk"
+unzip -q -o "$apk" 'classes*.dex' resources.arsc -d "$work/apk"
+for forbidden in "api/auth/dev" "10.0.2.2"; do
+  if grep -a -q -F "$forbidden" "$work"/apk/classes*.dex; then
+    echo "gate: Android — в релизной сборке есть «$forbidden»: вход подменой и сервер на Маке — только для отладки" >&2
+    exit 1
+  fi
+done
+if grep -a -q -F "Для разработки" "$work/apk/resources.arsc"; then
+  echo "gate: Android — в релизной сборке остались строки входа подменой" >&2
+  exit 1
+fi
+
+echo "gate: Android — зелёный" >&2

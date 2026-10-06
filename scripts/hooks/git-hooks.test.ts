@@ -215,3 +215,57 @@ describe('apple-touched — нужна ли в гейте часть Apple', () 
     expect(r.stderr).toContain('Apple — пропущен');
   });
 });
+
+describe('android-touched — нужна ли в гейте часть Android', () => {
+  const touched = (dir: string, ...base: string[]) =>
+    spawnSync('sh', [path.join(HOOKS, 'android-touched'), ...base], { cwd: dir, encoding: 'utf8', env: ENV }).status;
+
+  const history = (file: string) => {
+    const { dir, git, write } = repo();
+    write('apps/android/settings.gradle.kts');
+    write('docs/HANDOFF.md');
+    git('add', '.');
+    git('commit', '-q', '-m', 'База');
+    const base = git('rev-parse', 'HEAD').stdout.trim();
+    write(file, 'новое');
+    git('add', '.');
+    git('commit', '-q', '-m', 'Правка');
+    return { dir, git, base };
+  };
+
+  it.each(['docs/HANDOFF.md', 'server/main.go', 'apps/apple/GrePrep/App.swift'])(
+    'задет только %s — часть Android можно пропустить',
+    (file) => {
+      const { dir, base } = history(file);
+      expect(touched(dir, base)).toBe(1);
+    },
+  );
+
+  it.each(['apps/android/app/build.gradle.kts', 'api/openapi.yaml', 'design/tokens/src/x.json', 'scripts/hooks/gate'])(
+    'задет %s — проверять',
+    (file) => {
+      const { dir, base } = history(file);
+      expect(touched(dir, base)).toBe(0);
+    },
+  );
+
+  it('нет базы, нулевая или незнакомая база — проверять всё', () => {
+    const { dir } = history('docs/HANDOFF.md');
+    expect(touched(dir)).toBe(0);
+    expect(touched(dir, '0000000000000000000000000000000000000000')).toBe(0);
+    expect(touched(dir, 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef')).toBe(0);
+  });
+
+  it('pre-push с одними документами — гейт пропускает часть Android и говорит об этом', () => {
+    const { dir, git, base } = history('docs/HANDOFF.md');
+    const head = git('rev-parse', 'HEAD').stdout.trim();
+    const r = spawnSync(path.join(HOOKS, 'pre-push'), ['origin', 'x'], {
+      cwd: dir,
+      encoding: 'utf8',
+      env: ENV,
+      input: `refs/heads/main ${head} refs/heads/main ${base}\n`,
+    });
+    expect(r.status, r.stderr).toBe(0);
+    expect(r.stderr).toContain('Android — пропущен');
+  });
+});

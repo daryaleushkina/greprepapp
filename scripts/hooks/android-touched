@@ -1,0 +1,13 @@
+#!/bin/sh
+# Нужна ли в гейте часть Android: да, если между базой (что уже лежит в main на GitHub) и HEAD задеты
+# приложение, договор API, токены дизайна или сам гейт. Сервер приложению Android в гейте не нужен: сценарии
+# идут против подменного сервера по договору. Нет базы (первый пуш, запуск руками) — проверять всё.
+#   sh scripts/hooks/android-touched [база] — код 0: проверять, 1: можно пропустить.
+
+set -eu
+
+base="${1:-}"
+[ -z "$base" ] && exit 0
+[ "$base" = "0000000000000000000000000000000000000000" ] && exit 0
+git cat-file -e "$base^{commit}" 2>/dev/null || exit 0
+[ -n "$(git diff --name-only "$base" HEAD -- apps/android api design/tokens scripts/hooks)" ]

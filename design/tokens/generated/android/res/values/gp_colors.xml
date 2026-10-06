@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Сгенерировано design/tokens/build.mjs из design/tokens/src — руками не править. -->
+<resources>
+    <color name="gp_bg">#FFF5F6F9</color>
+    <color name="gp_surface">#FFFFFFFF</color>
+    <color name="gp_text">#FF1B1E28</color>
+    <color name="gp_text_secondary">#FF5A6070</color>
+    <color name="gp_line">#1F1B1E28</color>
+    <color name="gp_fill">#0F1B1E28</color>
+    <color name="gp_accent">#FF1B1E28</color>
+    <color name="gp_on_accent">#FFFFFFFF</color>
+    <color name="gp_focus">#FF5B4BC4</color>
+    <color name="gp_tab_selected">#121B1E28</color>
+    <color name="gp_wrong">#FFBE400C</color>
+    <color name="gp_wrong_tint">#1ABE400C</color>
+    <color name="gp_verbal">#FF5B4BC4</color>
+    <color name="gp_verbal_tint">#1F5B4BC4</color>
+    <color name="gp_quant">#FF11735F</color>
+    <color name="gp_quant_tint">#1F11735F</color>
+    <color name="gp_words">#FFB0436A</color>
+    <color name="gp_words_tint">#1FB0436A</color>
+    <color name="gp_essay">#FF9A5B00</color>
+    <color name="gp_essay_tint">#1F9A5B00</color>
+    <color name="gp_exam">#FF1B1E28</color>
+    <color name="gp_glow_verbal_strong">#385B4BC4</color>
+    <color name="gp_glow_verbal_soft">#125B4BC4</color>
+    <color name="gp_glow_quant_strong">#3311735F</color>
+    <color name="gp_glow_quant_soft">#0F11735F</color>
+    <color name="gp_glow_words_strong">#33B4446C</color>
+    <color name="gp_glow_words_soft">#0FB4446C</color>
+    <color name="gp_glow_essay_strong">#2E9A5B00</color>
+    <color name="gp_glow_essay_soft">#0D9A5B00</color>
+    <color name="gp_glow_exam_strong">#171B1E28</color>
+    <color name="gp_glow_exam_soft">#081B1E28</color>
+    <color name="gp_glass_edge">#0F000000</color>
+    <color name="gp_glass_rim">#99FFFFFF</color>
+    <color name="gp_sign_in_telegram_bg">#FF119AF5</color>
+    <color name="gp_sign_in_telegram_text">#FFFFFFFF</color>
+    <color name="gp_sign_in_apple_bg">#FF000000</color>
+    <color name="gp_sign_in_apple_text">#FFFFFFFF</color>
+    <color name="gp_sign_in_google_bg">#FFFFFFFF</color>
+    <color name="gp_sign_in_google_stroke">#FF747775</color>
+    <color name="gp_sign_in_google_text">#FF1F1F1F</color>
+</resources>

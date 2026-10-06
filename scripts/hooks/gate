@@ -4,7 +4,9 @@
 #
 #   бэкенд (server/go.mod): сгенерированное свежее → go vet → golangci-lint → go test -race → порог покрытия;
 #   приложение Apple (apps/apple/project.yml): gate-apple — только когда пуш задевает приложение, договор, токены,
-#   сервер или гейт (apple-touched; база — GATE_BASE, её даёт pre-push; решение Даши 06.10.2026).
+#   сервер или гейт (apple-touched; база — GATE_BASE, её даёт pre-push; решение Даши 06.10.2026);
+#   приложение Android (apps/android): gate-android — когда пуш задевает приложение, договор, токены или гейт
+#   (android-touched), без эмулятора (решение Даши 06.10.2026).
 #
 # Порог покрытия — здесь, а правка этой папки — только с согласия Даши (.claude/hooks/protect-gates.mjs):
 # CLAUDE.md, «Порог не опускать; подняли покрытие — поднять и порог».
@@ -76,10 +78,20 @@ if [ -f apps/apple/project.yml ]; then
   fi
 fi
 
+if [ -f apps/android/settings.gradle.kts ]; then
+  if sh "$hooks/android-touched" "${GATE_BASE:-}"; then
+    ran="$ran Android"
+    sh "$hooks/gate-android"
+  else
+    skipped="$skipped Android"
+    echo "gate: Android — пропущен: в пуше нет правок приложения, договора, токенов и гейта" >&2
+  fi
+fi
+
 if [ -n "$ran" ]; then
   echo "gate: зелёный —$ran" >&2
 elif [ -n "$skipped" ]; then
   echo "gate: зелёный — проверять нечего (пропущено:$skipped)" >&2
 else
-  echo "gate: каркаса нет (ни server/go.mod, ни apps/apple, ни package.json) — проверять нечего" >&2
+  echo "gate: каркаса нет (ни server/go.mod, ни apps/apple, ни apps/android, ни package.json) — проверять нечего" >&2
 fi

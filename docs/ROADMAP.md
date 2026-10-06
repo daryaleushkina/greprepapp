@@ -52,9 +52,10 @@
   26+ с матовой подложкой ниже; токен — Keychain; Apple — родная кнопка,
   Google и Telegram — системное окно браузера (OIDC с PKCE); Swift Testing,
   XCUITest, снимки экранов; CI — раннер GitHub с Xcode 27;
-- **Android** — Kotlin 2.4, Compose, Navigation 3, Hilt, minSdk 26; токен —
-  ключ в Keystore + DataStore; Google — Credential Manager, Apple и Telegram —
-  Custom Tab; JUnit, Compose UI, Roborazzi, короткий прогон на эмуляторе в CI;
+- **Android** — Kotlin 2.4, Compose, Navigation 3, Hilt, minSdk 26, targetSdk
+  37; токен — файл, зашифрованный ключом Keystore; Google — Credential Manager,
+  Apple и Telegram — Custom Tab (#12); JUnit и Compose UI на Robolectric,
+  Roborazzi; эмулятор — вне гейта (#14);
 - **выкладка** — бинарник Go + systemd + Caddy + Postgres 18 из PGDG; откат —
   переключение на прошлую сборку; стенд — вторая копия рядом; копии базы —
   pgBackRest; локально — Postgres 18 в Docker на порту 55432 (порты соседних
@@ -65,16 +66,15 @@
 стенде вход — подменой, которая в бою выключена и это проверено тестом.
 
 Порядок — частями, каждая вливается в `main`, когда зелёная. Готовы: договор,
-сервер Go, база и гейт под Go; приложение Apple (iPhone, iPad, Mac) — раньше
-веба, по просьбе Даши 06.10.2026. Дальше:
+сервер Go, база и гейт под Go; приложения Apple (iPhone, iPad, Mac) и Android —
+раньше веба, по просьбе Даши 06.10.2026. Дальше:
 
 1. веб (мини-апп и сайт);
 2. админка;
-3. приложение на Kotlin;
-4. CI в GitHub Actions на все части (для Apple — раннер macOS, Postgres без
+3. CI в GitHub Actions на все части (для Apple — раннер macOS, Postgres без
    Docker), `docs/TESTING.md`, агенты ревью `gp-review-access` и
    `gp-review-errors` под Go и Postgres, тест на `.claude/hooks/session-git.sh`;
-5. сервер, стенд, копии базы, мониторинг, бот (имя и тексты —
+4. сервер, стенд, копии базы, мониторинг, бот (имя и тексты —
    `scripts/setup-bot.mjs`, вебхук на Go) — когда Даша заведёт аккаунты;
    последним шагом — `DEPLOY_ENABLED=true` в GitHub.
 
@@ -133,5 +133,7 @@ Mac и Kotlin (Jetpack Compose) для Android. Правила тестов, п�
 симуляторе и эмуляторе, сборка и публикация в магазины решаются вместе с
 каркасом; публикация и платные аккаунты разработчика — только с согласия Даши.
 Android — чистый Kotlin, без Skip (решение Даши 05.10.2026, `PRODUCT.md`,
-«Platform»). Бэкенд на своём сервере позволит приложениям работать из России
+«Platform»). Android дальше растёт фича за фичей сквозняком — договор API →
+сервер и база → экраны → тесты (решение Даши 06.10.2026): все экраны «Шагов» —
+настоящие, с логикой на сервере, а не на демо-данных. Бэкенд на своём сервере позволит приложениям работать из России
 без VPN.
