@@ -31,17 +31,17 @@ func TestForNewUser(t *testing.T) {
 	if current != 1 {
 		t.Fatalf("current steps = %d, want exactly 1", current)
 	}
-	if p.Steps[0].Title != "Слова: повторение" {
+	if p.Steps[0].Title != "Повторение" {
 		t.Fatalf("ru title = %q", p.Steps[0].Title)
 	}
 }
 
 func TestLocaleFallback(t *testing.T) {
 	t.Parallel()
-	if got := ForNewUser(time.Now(), "en").Steps[0].Title; got != "Words: review" {
+	if got := ForNewUser(time.Now(), "en").Steps[0].Title; got != "Review" {
 		t.Fatalf("en title = %q", got)
 	}
-	if got := ForNewUser(time.Now(), "de").Steps[0].Title; got != "Слова: повторение" {
+	if got := ForNewUser(time.Now(), "de").Steps[0].Title; got != "Повторение" {
 		t.Fatalf("unknown locale title = %q, want Russian", got)
 	}
 }

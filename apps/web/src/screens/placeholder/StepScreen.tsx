@@ -1,7 +1,7 @@
 // Шаг из ленты «Сегодня». Тренировки, слова и экзамен — следующие части (ROADMAP §5); пока экран говорит, что
 // здесь начнётся шаг. Режим фокуса: без вкладок, «назад» — кнопкой Telegram или ссылкой на сайте.
 import { useGetToday } from '@greprep/api-client';
-import { useNavigate, useParams } from '@tanstack/react-router';
+import { useNavigate, useParams, useRouter } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
 import { StatusScreen } from '../../components/StatusScreen';
 import { useI18n } from '../../i18n/i18n';
@@ -16,11 +16,13 @@ export function StepScreen(): ReactNode {
   const { shell } = useShell();
   const { session } = useSession();
   const navigate = useNavigate();
+  const router = useRouter();
   const { stepId } = useParams({ from: '/app/step/$stepId' });
   // План уже в кэше с «Сегодня»; открыли шаг по ссылке — подгрузится тот же запрос.
   const today = useGetToday({ query: { enabled: session.status === 'signedIn' } });
   const step = today.data?.steps.find((s) => s.id === stepId);
-  useBackButton(shell === 'telegram' ? () => void navigate({ to: '/' }) : null);
+  // Назад — по истории (на «Сегодня» вернётся прокрутка); открыли шаг сразу по ссылке — на «Сегодня».
+  useBackButton(shell === 'telegram' ? () => (router.history.canGoBack() ? router.history.back() : void navigate({ to: '/' })) : null);
   return (
     <FocusLayout glow={step?.section ?? 'verbal'}>
       <div className={styles.screen}>

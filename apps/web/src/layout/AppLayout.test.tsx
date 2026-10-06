@@ -60,3 +60,19 @@ describe('вкладка горит по пути', () => {
     await expect.element(screen.getByRole('link', { name: 'Сегодня' })).toHaveAttribute('aria-current', 'page');
   });
 });
+
+describe('сессия кончилась на экране шага', () => {
+  it('сразу на вход с «Вход закончился», без повторов отказа сервера', async () => {
+    let todayCalls = 0;
+    fakeServer({
+      'GET /api/me': () => json(user()),
+      'GET /api/today': () => {
+        todayCalls++;
+        return new Response(JSON.stringify({ code: 'unauthorized', message: 'x', requestId: 'r' }), { status: 401 });
+      },
+    });
+    const { screen } = await renderApp({ path: '/step/verbal' });
+    await expect.element(screen.getByText('Вход закончился — войдите снова.')).toBeVisible();
+    expect(todayCalls).toBe(1);
+  });
+});

@@ -208,6 +208,9 @@ importers:
       '@fontsource-variable/onest':
         specifier: ^5.3.1
         version: 5.3.1
+      '@fontsource/roboto':
+        specifier: ^5.3.0
+        version: 5.3.0
       '@greprep/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
@@ -537,6 +540,9 @@ packages:
 
   '@fontsource-variable/onest@5.3.1':
     resolution: {integrity: sha512-xaaw6G4HDB2/RczsWLD/2bnib4ykmQlTlBUN3GOEOiyErilZukQWVJG95h9zwAy0i8KY+QzDa+COPfqhI72Acw==}
+
+  '@fontsource/roboto@5.3.0':
+    resolution: {integrity: sha512-BapRJOWYP+LZ21zp+wBQjfpPYKRoxc4LspJ/RLuI+HSMBD5u/X4O+ESDrSvEqDSy0rAl7GwBJ+09mdc16cVQ1Q==}
 
   '@jridgewell/gen-mapping@0.4.0-beta.0':
     resolution: {integrity: sha512-JdGNkbE4GlNPYQhM0L95fBQr7ctLZJ276QXQLTad4t1oSdnnCI3fDq9DW3BqYAWv8Wc3+HS+4Gsii1oPMCfz1w==}
@@ -2563,6 +2569,8 @@ snapshots:
     optional: true
 
   '@fontsource-variable/onest@5.3.1': {}
+
+  '@fontsource/roboto@5.3.0': {}
 
   '@jridgewell/gen-mapping@0.4.0-beta.0':
     dependencies:

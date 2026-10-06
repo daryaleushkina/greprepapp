@@ -26,14 +26,20 @@ export class ApiError extends Error {
   readonly status: number;
   readonly code: string;
   readonly requestId: string | undefined;
+  /** Под каким токеном ушёл запрос (configureHttp, getAuthTag): поздний 401 от старого токена — не повод входить заново. */
+  readonly authTag: number | undefined;
 
-  constructor(kind: ApiErrorKind, opts: { status?: number; code?: string; requestId?: string; message: string; cause?: unknown }) {
+  constructor(
+    kind: ApiErrorKind,
+    opts: { status?: number; code?: string; requestId?: string; message: string; cause?: unknown; authTag?: number },
+  ) {
     super(opts.message, { cause: opts.cause });
     this.name = 'ApiError';
     this.kind = kind;
     this.status = opts.status ?? 0;
     this.code = opts.code ?? kind;
     this.requestId = opts.requestId;
+    this.authTag = opts.authTag;
   }
 }
 
@@ -44,11 +50,13 @@ export function isApiError(e: unknown): e is ApiError {
 interface HttpConfig {
   /** Токен сессии мини-аппа (в памяти). null — запрос без Authorization. */
   getToken: () => string | null;
+  /** Номер текущего токена: меняется с каждым входом и сбросом, попадает в ApiError.authTag. */
+  getAuthTag: () => number;
   /** Адрес API; пусто — тот же сайт (в разработке запросы проксирует Vite, в бою — Caddy). */
   baseUrl: string;
 }
 
-const config: HttpConfig = { getToken: () => null, baseUrl: '' };
+const config: HttpConfig = { getToken: () => null, getAuthTag: () => 0, baseUrl: '' };
 let lastRequestId: string | undefined;
 
 export function configureHttp(next: Partial<HttpConfig>): void {
@@ -67,6 +75,7 @@ export async function http<T>(url: string, init: HttpInit = {}): Promise<T> {
   const headers = new Headers(request.headers);
   headers.set('Accept', 'application/json');
   const token = config.getToken();
+  const authTag = config.getAuthTag();
   if (token && !headers.has('Authorization')) headers.set('Authorization', `Bearer ${token}`);
 
   let res: Response;
@@ -84,10 +93,11 @@ export async function http<T>(url: string, init: HttpInit = {}): Promise<T> {
   try {
     text = await res.text();
   } catch (cause) {
+    if (cause instanceof DOMException && cause.name === 'AbortError') throw cause;
     throw new ApiError('network', { status: res.status, requestId, message: `${url}: body interrupted`, cause });
   }
 
-  if (!res.ok) throw serverError(res.status, text, requestId, url);
+  if (!res.ok) throw serverError(res.status, text, requestId, url, authTag);
 
   // 204 — успех без тела (выход, отчёт об ошибке). Тело у ответа, который договор описал без тела, не читаем.
   if (res.status === 204 || !schema) return undefined as T;
@@ -107,7 +117,7 @@ export async function http<T>(url: string, init: HttpInit = {}): Promise<T> {
   return parsed.data as T;
 }
 
-function serverError(status: number, text: string, requestId: string | undefined, url: string): ApiError {
+function serverError(status: number, text: string, requestId: string | undefined, url: string, authTag: number): ApiError {
   let body: unknown;
   try {
     body = JSON.parse(text);
@@ -122,9 +132,16 @@ function serverError(status: number, text: string, requestId: string | undefined
       requestId,
       code: status >= 500 ? 'internal' : 'bad_response',
       message: `${url}: ${status} without a contract error body`,
+      authTag,
     });
   }
-  return new ApiError('server', { status, code: parsed.data.code, requestId: parsed.data.requestId || requestId, message: `${url}: ${status} ${parsed.data.code}: ${parsed.data.message}` });
+  return new ApiError('server', {
+    status,
+    code: parsed.data.code,
+    requestId: parsed.data.requestId || requestId,
+    message: `${url}: ${status} ${parsed.data.code}: ${parsed.data.message}`,
+    authTag,
+  });
 }
 
 /**

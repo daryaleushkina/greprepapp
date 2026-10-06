@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { apiError, fakeServer, json, renderApp, STARTER, user } from '../../test/app';
 
 /** Попытка, которую оставил бы beginSignIn перед уходом к провайдеру. */
@@ -82,15 +82,30 @@ describe('возврат от провайдера', () => {
   });
 });
 
+describe('хранилище вкладки запрещено настройками браузера', () => {
+  it('возврат не падает, а ведёт на вход с «Не получилось»', async () => {
+    fakeServer(signedOut);
+    const denied = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new DOMException('The operation is insecure.', 'SecurityError');
+    });
+    const { screen, router } = await renderApp({ path: '/auth/callback?code=c-1&state=state-1' });
+    await expect.element(screen.getByRole('alert')).toHaveTextContent('Не получилось войти. Попробуйте ещё раз.');
+    expect(router.state.location.search).toEqual({ reason: 'failed' });
+    denied.mockRestore();
+  });
+});
+
 describe('гонка с запросом «кто вошёл»', () => {
   it('поздний ответ /api/me «не вошёл» не затирает только что открытую сессию', async () => {
     storeAttempt();
     // /api/me ушёл при открытии страницы возврата (куки ещё нет) и отвечает уже после обмена кода.
     let releaseMe: () => void = () => {};
     const meAnswered = new Promise<void>((r) => (releaseMe = r));
+    let meReturned = false;
     fakeServer({
       'GET /api/me': async () => {
         await meAnswered;
+        meReturned = true;
         return apiError(401, 'unauthorized');
       },
       'POST /api/auth/oidc/code': () => {
@@ -101,8 +116,9 @@ describe('гонка с запросом «кто вошёл»', () => {
     });
     const { screen, router } = await renderApp({ path: '/auth/callback?code=c-1&state=state-1' });
     await expect.element(screen.getByText('Три шага · около 25 минут')).toBeVisible();
-    // Ответ /api/me пришёл — экран остался «Сегодня».
-    await new Promise((r) => setTimeout(r, 200));
+    // Ответ /api/me пришёл (и обработан, пока экран «Сегодня») — сессия осталась.
+    await expect.poll(() => meReturned).toBe(true);
+    await expect.poll(() => router.state.location.pathname).toBe('/');
     expect(router.state.location.pathname).toBe('/');
     await expect.element(screen.getByText('Три шага · около 25 минут')).toBeVisible();
   });

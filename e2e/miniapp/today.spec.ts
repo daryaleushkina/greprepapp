@@ -1,7 +1,7 @@
 // Мини-апп: вход без экранов (initData) и «Сегодня» с сервера — сквозной путь каркаса (docs/ROADMAP.md §2).
 import { expect, miniAppUrl, navLink, newTelegramUser, signInitData, test } from '../fixtures';
 
-const STEPS_RU = ['Слова: повторение', 'Verbal: Text Completion', 'Quant: Quantitative Comparison'];
+const STEPS_RU = ['Повторение', 'Text Completion', 'Quantitative Comparison'];
 
 test('вход по initData — сразу «Сегодня» с планом сервера', async ({ miniApp: page }) => {
   await expect(page.getByText('Три шага · около 25 минут')).toBeVisible();
@@ -30,8 +30,8 @@ test('без сети новый шаг не начинается — объяс
   await page.getByRole('button', { name: 'Начать' }).click();
   await expect(page.getByText('Чтобы начать, нужна сеть. Когда она появится, всё заработает.')).toBeVisible();
   await context.setOffline(false);
-  await page.getByRole('link', { name: /Verbal: Text Completion/ }).click();
-  await expect(page.getByRole('heading', { name: 'Verbal: Text Completion' })).toBeVisible();
+  await page.getByRole('link', { name: /Text Completion/ }).click();
+  await expect(page.getByRole('heading', { name: 'Text Completion' })).toBeVisible();
 });
 
 test('вкладки и настройки из «Прогресса»; выхода в мини-аппе нет', async ({ miniApp: page }) => {
@@ -67,7 +67,7 @@ test.describe('английский Telegram', () => {
   test('интерфейс и план — по-английски', async ({ miniApp: page }) => {
     await expect(page.getByRole('heading', { level: 1, name: 'Today' })).toBeVisible();
     await expect(page.getByText('Three steps · about 25 minutes')).toBeVisible();
-    await expect(page.getByText('Words: review', { exact: true })).toBeVisible();
+    await expect(page.getByText('Review', { exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Start' })).toBeVisible();
   });
 });
@@ -78,4 +78,14 @@ test('API от имени человека: свой план и свой акк
   const account = await me.api<{ name: string; identities: { provider: string }[] }>('GET', '/me');
   expect(account.identities.map((i) => i.provider)).toEqual(['telegram']);
   expect((await request.get('/api/today')).status()).toBe(401);
+});
+
+test('тема Telegram сменилась посреди работы — приложение и шапка клиента следом', async ({ miniApp: page, tgTheme }) => {
+  const next = tgTheme === 'light' ? 'dark' : 'light';
+  const bg = () => page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--color-bg').trim());
+  const before = await bg();
+  // window.__tgMock — переключатель темы в подмене Telegram (apps/web/src/telegram/mockEnv.ts).
+  await page.evaluate((name) => (window as unknown as { __tgMock: { setTheme: (n: string) => void } }).__tgMock.setTheme(name), next);
+  await expect(page.locator('html')).toHaveAttribute('data-theme', next);
+  await expect.poll(bg).not.toBe(before);
 });

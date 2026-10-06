@@ -30,12 +30,39 @@ describe('reportError', () => {
     });
   });
 
+  it('initData и подписи в тексте ошибки вырезаются: это действующий вход на сутки', async () => {
+    const { reportError } = await load();
+    const err = new Error(
+      'Invalid value for launch params: tgWebAppThemeParams=%7B%7D&tgWebAppData=auth_date%3D1%26user%3D%257B%257D%26hash%3Dabc123&tgWebAppVersion=10.1',
+    );
+    err.stack = `${err.message}\n    at restore (sdk.js:1:1)`;
+    reportError(err);
+    reportError(new Error('initData rejected: query_id=AA&user=%7B%7D&signature=sig&hash=deadbeef'));
+    reportError(new Error('POST body initData=query_id%3DAA%26hash%3Dcafe was refused'));
+    const sent = JSON.stringify(reportClientError.mock.calls);
+    expect(sent).not.toMatch(/abc123|deadbeef|cafe|auth_date|signature=sig/);
+    expect(sent).toContain('initData=[скрыто]');
+    expect(sent).toContain('tgWebAppData=[скрыто]');
+    expect(sent).toContain('tgWebAppVersion=10.1');
+  });
+
   it('не Error — тоже отчёт; та же ошибка подряд — один раз', async () => {
     const { reportError } = await load();
     reportError('plain string');
     reportError('plain string');
     expect(reportClientError).toHaveBeenCalledTimes(1);
     expect(reportClientError.mock.calls[0]?.[0]).toMatchObject({ message: 'Error: plain string', clientKind: 'web' });
+  });
+
+  it('та же ошибка через 10 с — снова отчёт', async () => {
+    const now = vi.spyOn(Date, 'now').mockReturnValue(1_000_000);
+    const { reportError } = await load();
+    reportError(new Error('again'));
+    now.mockReturnValue(1_005_000);
+    reportError(new Error('again'));
+    now.mockReturnValue(1_011_000);
+    reportError(new Error('again'));
+    expect(reportClientError).toHaveBeenCalledTimes(2);
   });
 
   it('не больше 20 отчётов со страницы', async () => {

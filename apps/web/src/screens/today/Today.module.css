@@ -34,6 +34,7 @@
 .ribbon {
   --node-column: var(--size-step-node-current);
   --ribbon-gap: var(--space-24);
+  --ribbon-column-gap: var(--space-14);
   margin-top: var(--space-28);
   display: flex;
   flex-direction: column;
@@ -44,7 +45,7 @@
   position: relative;
   display: grid;
   grid-template-columns: var(--node-column) minmax(0, 1fr);
-  column-gap: var(--space-14);
+  column-gap: var(--ribbon-column-gap);
   align-items: start;
 }
 
@@ -174,9 +175,33 @@
   color: var(--section-color);
 }
 
+.startWrap {
+  margin-top: var(--space-12);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-8);
+}
+
+.key {
+  display: none;
+  align-self: flex-end;
+  padding: var(--space-2) var(--space-6);
+  border: var(--size-hairline) solid var(--color-line);
+  border-radius: var(--radius-xs);
+  font: var(--font-key);
+  font-family: var(--font-family-text);
+  color: var(--color-text-secondary);
+}
+
+@media (hover: hover) and (pointer: fine) and (min-width: 900px) {
+  .key {
+    display: block;
+  }
+}
+
 /* Главная кнопка экрана — одна, графитовая капсула (DESIGN.md, button-main). */
 .start {
-  margin-top: var(--space-12);
   height: var(--size-button);
   padding: 0 var(--space-24);
   border: 0;
@@ -200,12 +225,22 @@
 
 .row {
   min-height: var(--size-tap-target);
+  /* Поле под подсветку наведения: строка шире текста на отступ, а место в ленте то же (web-T1). */
+  margin: calc(-1 * var(--space-6)) calc(-1 * var(--space-12));
+  padding: var(--space-6) var(--space-12);
   display: flex;
   align-items: flex-start;
   gap: var(--space-12);
   color: var(--color-text);
   text-decoration: none;
   border-radius: var(--radius-lg);
+}
+
+/* Наведение — только там, где есть мышь: на телефоне подсветка «залипала» бы после касания. */
+@media (hover: hover) and (pointer: fine) {
+  a.row:hover {
+    background: var(--color-fill);
+  }
 }
 
 .rowText {
@@ -229,7 +264,7 @@
 .end {
   display: grid;
   grid-template-columns: var(--node-column) minmax(0, 1fr);
-  column-gap: var(--space-14);
+  column-gap: var(--ribbon-column-gap);
   align-items: center;
 }
 
@@ -328,18 +363,17 @@
   border-radius: var(--radius-full);
 }
 
-/* ── компьютер (шире 900 px, layout.breakpoint-wide): карточка шире, кнопка справа (web-T1) ── */
+/* ── широкий экран (с 600 px, layout.breakpoint-narrow): карточка шире, кнопка справа своей ширины (web-T1) ── */
 
 @media (min-width: 900px) {
   .ribbon {
     --ribbon-gap: var(--space-28);
+    --ribbon-column-gap: var(--space-20);
     margin-top: var(--space-40);
   }
+}
 
-  .item {
-    column-gap: var(--space-20);
-  }
-
+@media (min-width: 600px) {
   .card {
     padding: var(--space-24);
     flex-direction: row;
@@ -361,8 +395,9 @@
     display: inline;
   }
 
-  .start {
+  .startWrap {
     margin-top: 0;
+    align-items: flex-end;
   }
 
   .blocked {

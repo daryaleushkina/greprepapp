@@ -11,14 +11,26 @@ import {
   type User,
 } from '@greprep/api-client';
 import { useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
-import { createContext, use, type ReactNode } from 'react';
+import { createContext, use, useEffect, type ReactNode } from 'react';
+import { reportError } from '../errors/report';
 import type { TelegramLaunch } from '../telegram/sdk';
 
 export const SESSION_KEY = ['session'] as const;
 
 /** Токен мини-аппа — только в памяти вкладки (api/openapi.yaml, Session.token). */
 let miniAppToken: string | null = null;
-configureHttp({ getToken: () => miniAppToken });
+/** Номер токена: растёт при каждой смене, запросы помнят, под каким ушли (ApiError.authTag). */
+let authTag = 0;
+configureHttp({ getToken: () => miniAppToken, getAuthTag: () => authTag });
+
+function setMiniAppToken(token: string | null): void {
+  miniAppToken = token;
+  authTag++;
+}
+
+export function currentAuthTag(): number {
+  return authTag;
+}
 
 export type Session =
   | { status: 'loading' }
@@ -42,7 +54,9 @@ type SessionData = { user: User | null; expired: boolean };
 async function loadSession(launch: TelegramLaunch | null): Promise<SessionData> {
   if (launch) {
     const res = await signInWithTelegramMiniApp({ initData: launch.initDataRaw });
-    miniAppToken = res.token ?? null;
+    // Вход по initData — всегда с токеном в теле (transport bearer); без него мини-апп не сможет ни одного запроса.
+    if (!res.token) throw new ApiError('contract', { status: 200, message: 'telegram-mini-app sign-in returned no token' });
+    setMiniAppToken(res.token);
     return { user: res.user, expired: false };
   }
   try {
@@ -59,15 +73,20 @@ export function SessionProvider({ launch, children }: { launch: TelegramLaunch |
     queryKey: SESSION_KEY,
     queryFn: () => loadSession(launch),
     staleTime: Infinity,
-    // Нет сети при входе — пробуем ещё; отказ сервера (неверная initData) повтором не лечится.
-    retry: (count, e) => isApiError(e) && e.kind === 'network' && count < 3,
   });
 
+  // Ответ сервера не по договору при входе — ошибка у нас, а не у человека: в отчёт.
+  const error = query.error;
+  useEffect(() => {
+    if (isApiError(error) && error.kind === 'contract') reportError(error);
+  }, [error]);
+
   let session: Session;
-  if (query.data) {
-    session = query.data.user ? { status: 'signedIn', user: query.data.user } : { status: 'signedOut', expired: query.data.expired };
-  } else if (query.isError) {
+  // Ошибка — раньше данных: мини-апп, который не смог войти заново, не должен показывать прошлую сессию.
+  if (query.isError) {
     session = { status: 'error', error: query.error, retry: () => void query.refetch() };
+  } else if (query.data) {
+    session = query.data.user ? { status: 'signedIn', user: query.data.user } : { status: 'signedOut', expired: query.data.expired };
   } else {
     session = { status: 'loading' };
   }
@@ -81,8 +100,14 @@ export function SessionProvider({ launch, children }: { launch: TelegramLaunch |
       queryClient.setQueryData<SessionData>(SESSION_KEY, { user, expired: false });
     },
     signOut: async () => {
-      await apiSignOut();
-      miniAppToken = null;
+      try {
+        await apiSignOut();
+      } catch (e) {
+        // 401 — сессии на сервере уже нет (вышли в другой вкладке, срок кончился): цель выхода достигнута, данные
+        // с экрана всё равно стираем. Остальные отказы — экран как был: кука, может быть, ещё жива.
+        if (!(isApiError(e) && e.status === 401)) throw e;
+      }
+      setMiniAppToken(null);
       forgetUserData(queryClient, false);
     },
   };
@@ -102,16 +127,20 @@ export function useSession(): SessionApi {
 export function onUnauthorized(queryClient: QueryClient, error: unknown, isMiniApp: boolean): void {
   if (!(error instanceof ApiError) || error.status !== 401) return;
   if (isMiniApp) {
+    // Запрос ушёл под старым токеном, а новый уже есть — его не трогаем.
+    if (error.authTag !== undefined && error.authTag !== authTag) return;
     // Не чаще раза в 10 секунд: если сервер отвечает 401 и свежей сессии, заново не входим по кругу —
     // экран покажет ошибку как есть.
     const now = Date.now();
     if (now - lastReauthAt < REAUTH_EVERY_MS) return;
     lastReauthAt = now;
-    miniAppToken = null;
-    void queryClient
-      .refetchQueries({ queryKey: SESSION_KEY })
-      // Вошли заново — перечитать то, что упало на старой сессии.
-      .then(() => queryClient.invalidateQueries({ predicate: (q) => q.queryKey[0] !== SESSION_KEY[0] }));
+    setMiniAppToken(null);
+    void queryClient.refetchQueries({ queryKey: SESSION_KEY }).then(() => {
+      // Вошли заново — перечитать то, что упало на старой сессии; не вошли — экран входа скажет, а запросы без
+      // токена слать незачем.
+      if (queryClient.getQueryState(SESSION_KEY)?.status !== 'success') return;
+      return queryClient.invalidateQueries({ predicate: (q) => q.queryKey[0] !== SESSION_KEY[0] });
+    });
     return;
   }
   forgetUserData(queryClient, true);

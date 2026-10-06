@@ -1,7 +1,7 @@
 // «Прогресс» — пока пустой, как в макете G6-ProgressEmpty; отсюда на телефоне — настройки (PRODUCT.md,
 // «Навигация»: настройки — в «Прогрессе»). На сайте шире 600 px настройки — пункт панели, кнопки здесь нет.
 import { Link } from '@tanstack/react-router';
-import { useEffect, type ReactNode } from 'react';
+import { useLayoutEffect, type ReactNode } from 'react';
 import { SettingsIcon } from '../../components/icons';
 import { StatusScreen } from '../../components/StatusScreen';
 import { useI18n } from '../../i18n/i18n';
@@ -14,7 +14,8 @@ export function ProgressScreen(): ReactNode {
   const { t } = useI18n();
   const { shell } = useShell();
   const setGlow = useGlow();
-  useEffect(() => setGlow('exam'), [setGlow]);
+  // Экран вне раздела — свет Verbal, по умолчанию (описание токена glow-verbal).
+  useLayoutEffect(() => setGlow('verbal'), [setGlow]);
   return (
     <div className={styles.screen}>
       <div className={styles.titleRow}>

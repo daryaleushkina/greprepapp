@@ -15,6 +15,20 @@ describe('настройки', () => {
     expect(requests.some((r) => r.method === 'POST' && r.url.endsWith('/api/auth/logout'))).toBe(true);
   });
 
+  it('сессия уже кончилась (вышли в другой вкладке) — «Выйти» всё равно выходит и стирает данные', async () => {
+    const { requests } = fakeServer({ ...signedIn, 'POST /api/auth/logout': () => apiError(401, 'unauthorized') });
+    // Сначала «Сегодня»: план человека оказывается в кэше, потом — настройки.
+    const { screen, router, queryClient } = await renderApp({ path: '/' });
+    await expect.element(screen.getByText('Три шага · около 25 минут')).toBeVisible();
+    expect(queryClient.getQueryData(['/api/today'])).toBeDefined();
+    await router.navigate({ to: '/settings' });
+    await screen.getByRole('button', { name: 'Выйти' }).click();
+    await expect.element(screen.getByRole('button', { name: 'Войти через Telegram' })).toBeVisible();
+    expect(router.state.location.pathname).toBe('/signin');
+    expect(queryClient.getQueryData(['/api/today'])).toBeUndefined();
+    expect(requests.some((r) => r.url.endsWith('/api/auth/logout'))).toBe(true);
+  });
+
   it.each([
     [() => apiError(500, 'internal'), 'Не получилось выйти. Попробуйте ещё раз.'],
     [
@@ -81,9 +95,48 @@ describe('мини-апп: вход по initData', () => {
     expect(signIns).toBe(2);
   });
 
-  it('язык Telegram — английский: экран загрузки по-английски, дальше язык аккаунта', async () => {
-    fakeServer({ 'POST /api/auth/telegram-mini-app': () => json({ token: 't', expiresAt: '2026-11-05T10:00:00Z', user: user({ locale: 'en' }) }), 'GET /api/today': () => json(STARTER) });
+  it('вход заново не удался — упавшие запросы не перечитываются без токена, экран говорит, что не вошли', async () => {
+    let signIns = 0;
+    let todayCalls = 0;
+    fakeServer({
+      'POST /api/auth/telegram-mini-app': () =>
+        ++signIns === 1 ? json({ token: 'tok-1', expiresAt: '2026-11-05T10:00:00Z', user: user() }) : apiError(401, 'invalid_init_data'),
+      'GET /api/today': () => {
+        todayCalls++;
+        return apiError(401, 'unauthorized');
+      },
+    });
+    const { screen } = await renderApp({ path: '/tg/', shell: 'telegram', launch });
+    await expect.element(screen.getByText('Не получилось войти. Попробуйте ещё раз.')).toBeVisible();
+    expect(signIns).toBe(2);
+    expect(todayCalls).toBe(1);
+  });
+
+  it('язык Telegram — английский: пока идёт вход, экран загрузки по-английски; дальше — язык аккаунта', async () => {
+    let finishSignIn: () => void = () => {};
+    const signedInLater = new Promise<void>((r) => (finishSignIn = r));
+    fakeServer({
+      'POST /api/auth/telegram-mini-app': async () => {
+        await signedInLater;
+        return json({ token: 't', expiresAt: '2026-11-05T10:00:00Z', user: user({ locale: 'ru' }) });
+      },
+      'GET /api/today': () => json(STARTER),
+    });
     const { screen } = await renderApp({ path: '/tg/', shell: 'telegram', launch: { ...launch, languageCode: 'en' } });
     await expect.element(screen.getByRole('heading', { level: 1, name: 'Today' })).toBeVisible();
+    await expect.element(screen.getByText('Loading today’s plan')).toBeInTheDocument();
+    finishSignIn();
+    // Аккаунт — русский: после входа интерфейс на языке аккаунта.
+    await expect.element(screen.getByRole('heading', { level: 1, name: 'Сегодня' })).toBeVisible();
+  });
+
+  it('ответ входа без токена — ошибка договора: «Не получилось войти» и отчёт', async () => {
+    const { requests } = fakeServer({
+      'POST /api/auth/telegram-mini-app': () => json({ expiresAt: '2026-11-05T10:00:00Z', user: user() }),
+      'POST /api/client-errors': () => new Response(null, { status: 204 }),
+    });
+    const { screen } = await renderApp({ path: '/tg/', shell: 'telegram', launch });
+    await expect.element(screen.getByText('Не получилось войти. Попробуйте ещё раз.')).toBeVisible();
+    await expect.poll(() => requests.some((r) => r.url.endsWith('/api/client-errors'))).toBe(true);
   });
 });

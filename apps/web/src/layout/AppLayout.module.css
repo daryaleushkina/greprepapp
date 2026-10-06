@@ -116,7 +116,8 @@
   right: 0;
   bottom: 0;
   height: calc(var(--size-tab-bar-height) + var(--size-tab-bar-bottom) + var(--app-inset-bottom) + var(--size-fade));
-  background: linear-gradient(transparent, var(--color-bg) 78%);
+  /* Плотный фон — уже к верхнему краю капсулы: текст под стеклом не читается рядом с подписями вкладок. */
+  background: linear-gradient(transparent, var(--color-bg) var(--size-fade));
   pointer-events: none;
 }
 
@@ -184,6 +185,12 @@
   height: var(--space-20);
 }
 
+@media (hover: hover) and (pointer: fine) {
+  .navItem:hover {
+    background: var(--color-fill);
+  }
+}
+
 .navItem[aria-current='page'] {
   background: var(--color-tab-selected);
   color: var(--color-text);
@@ -206,7 +213,8 @@
 
   .frame[data-shell='site'] .sideWrap {
     display: flex;
-    padding: var(--space-12) var(--space-12) 0;
+    /* Край полосы — по полю содержимого: один левый край у панели и у ленты. */
+    padding: var(--space-12) calc(var(--app-inset-right) + var(--layout-gutter)) 0 calc(var(--app-inset-left) + var(--layout-gutter));
   }
 
   .frame[data-shell='site'] .side {

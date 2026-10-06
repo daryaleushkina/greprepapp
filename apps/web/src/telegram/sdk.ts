@@ -1,7 +1,7 @@
 // Запуск мини-аппа: порядок инициализации @tma.js/sdk-react 3.x — по навыку telegram-mini-app
 // (assets/bootstrap.tsx). Цвета — свои, «Шагов» (решение Даши 05.10.2026): из темы Telegram берётся только,
 // светлая она или тёмная, а шапке, фону и нижней панели клиента отдаётся наш фон, чтобы швов не было.
-import { backButton, init, initData, miniApp, themeParams, viewport } from '@tma.js/sdk-react';
+import { backButton, init, initData, miniApp, retrieveLaunchParams, themeParams, viewport } from '@tma.js/sdk-react';
 
 export interface TelegramLaunch {
   /** Сырая initData — уходит на сервер, тот проверяет подпись ключом бота. */
@@ -10,8 +10,24 @@ export interface TelegramLaunch {
   languageCode: string | undefined;
 }
 
-/** null — это не Telegram (страницу /tg/ открыли в браузере) или клиент не прислал initData. */
-export async function startTelegram(): Promise<TelegramLaunch | null> {
+export type TelegramStart =
+  | { kind: 'ok'; launch: TelegramLaunch }
+  /** /tg/ открыли в обычном браузере — мини-апп без Telegram бесполезен, дорога на сайт. */
+  | { kind: 'not-telegram' }
+  /** Telegram открыл мини-апп, но запустить SDK не вышло (старый клиент, испорченные параметры запуска). */
+  | { kind: 'failed'; error: unknown };
+
+/** Признаки запуска из Telegram: параметры во фрагменте адреса или сохранённые SDK после перезагрузки. */
+function launchedByTelegram(): boolean {
+  if (location.hash.includes('tgWebApp')) return true;
+  try {
+    return sessionStorage.getItem('tapps/launchParams') !== null;
+  } catch {
+    return false;
+  }
+}
+
+export async function startTelegram(): Promise<TelegramStart> {
   // Подмена окружения — только в разработке и динамическим импортом: в сборку не попадает ни код, ни тема.
   if (import.meta.env.DEV) {
     const { mockTelegramEnvForDev } = await import('./mockEnv');
@@ -19,8 +35,8 @@ export async function startTelegram(): Promise<TelegramLaunch | null> {
   }
   try {
     init();
-  } catch {
-    return null;
+  } catch (error) {
+    return launchedByTelegram() ? { kind: 'failed', error } : { kind: 'not-telegram' };
   }
   // Тема — первой: miniApp берёт из неё цвета. bindCssVars — здесь, вне React: второй вызов бросает, а StrictMode
   // зовёт эффекты дважды.
@@ -43,15 +59,42 @@ export async function startTelegram(): Promise<TelegramLaunch | null> {
     }
   }
 
+  await enterFullscreenOnPhone();
+
   const raw = initData.raw();
-  if (!raw) return null;
-  return { initDataRaw: raw, languageCode: initData.user()?.language_code };
+  if (!raw) return { kind: 'failed', error: new Error('Telegram launched the mini app without initData') };
+  return { kind: 'ok', launch: { initDataRaw: raw, languageCode: initData.user()?.language_code } };
 }
 
-/** Тема Telegram → data-theme на <html>: токены переключают цвета сами (design/tokens, generated/web). */
+/**
+ * Полноэкранный режим на телефонах (решение Даши 07.10.2026): так шапка Telegram — стеклянные круги поверх
+ * содержимого, а свет раздела доходит до верха, как на холсте; отступ под кругами даёт content safe area. На
+ * компьютере (Telegram Desktop, веб) — обычное окно.
+ */
+async function enterFullscreenOnPhone(): Promise<void> {
+  let platform = '';
+  try {
+    platform = retrieveLaunchParams().tgWebAppPlatform;
+  } catch {
+    return;
+  }
+  if ((platform !== 'ios' && platform !== 'android') || !viewport.requestFullscreen.isAvailable() || viewport.isFullscreen()) return;
+  try {
+    await viewport.requestFullscreen();
+  } catch (e) {
+    // Клиент отказал (старая версия, уже полноэкранный) — остаёмся в обычном режиме, это не ошибка человека.
+    console.warn('requestFullscreen failed', e);
+  }
+}
+
+/**
+ * Тема Telegram → data-theme на <html>: токены переключают цвета сами (design/tokens, generated/web). Светлая или
+ * тёмная — по теме клиента (themeParams), а не miniApp.isDark: тот считается по фону мини-аппа, а фон мы задаём сами,
+ * и после этого смена темы в Telegram до приложения не доходила бы.
+ */
 export function followTelegramTheme(): () => void {
   const apply = () => {
-    document.documentElement.dataset.theme = miniApp.isDark() ? 'dark' : 'light';
+    document.documentElement.dataset.theme = themeParams.isDark() ? 'dark' : 'light';
     // Наш фон — шапке, фону под приложением и нижней панели клиента. Цвет читаем из токенов после смены темы.
     const bg = getComputedStyle(document.documentElement).getPropertyValue('--color-bg').trim();
     if (isHex(bg)) {
@@ -61,7 +104,7 @@ export function followTelegramTheme(): () => void {
     }
   };
   apply();
-  return miniApp.isDark.sub(apply);
+  return themeParams.isDark.sub(apply);
 }
 
 function isHex(value: string): value is `#${string}` {

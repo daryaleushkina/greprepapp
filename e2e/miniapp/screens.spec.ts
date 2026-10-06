@@ -57,3 +57,11 @@ test('не получилось загрузить план — «Повтори
   await page.getByRole('button', { name: 'Повторить' }).click();
   await expect(page.getByText('Три шага · около 25 минут')).toBeVisible();
 });
+
+test('Telegram сообщил высоту больше видимой — капсула вкладок всё равно на экране', async ({ page, watch, tgUser, tgTheme, tgPlatform, tgInsets }) => {
+  watch(page);
+  // Так бывает на iPhone (docs/HANDOFF.md, «Telegram»): stableHeight на 120 px больше видимой части.
+  await page.goto(`${miniAppUrl(tgUser, { tgTheme, tgPlatform, tgInsets })}&tgViewportExtra=120`);
+  await expect(page.getByText('Три шага · около 25 минут')).toBeVisible();
+  await checkScreen(page, 'today-tall-viewport');
+});

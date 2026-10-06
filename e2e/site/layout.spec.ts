@@ -39,7 +39,7 @@ test('разделы и настройки на своей ширине', async 
 
 test('шаг — режим фокуса без разделов, «Назад» — на «Сегодня»', async ({ site: page }) => {
   await page.getByRole('button', { name: 'Начать' }).click();
-  await expect(page.getByRole('heading', { name: 'Слова: повторение' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Повторение' })).toBeVisible();
   await expect(page.getByRole('navigation', { name: 'Разделы' })).toHaveCount(0);
   await page.getByRole('link', { name: 'Назад' }).click();
   await expect(page.getByText('Три шага · около 25 минут')).toBeVisible();

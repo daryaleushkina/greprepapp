@@ -163,6 +163,7 @@ export async function checkScreen(page: Page, name: string, opts: { mask?: Locat
     const bar = document.querySelector<HTMLElement>('.tabbar');
     if (bar && bar.getClientRects().length > 0 && getComputedStyle(bar).display !== 'none') {
       const b = bar.getBoundingClientRect();
+      if (b.bottom > innerHeight + 1) out.push(`капсула вкладок ниже края экрана: ${Math.round(b.bottom)} > ${innerHeight}`);
       const over = new Set<string>();
       // Капсула скруглена на всю высоту: проверяем её прямоугольную середину, а не углы вне скругления.
       const r = b.height / 2;

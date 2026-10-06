@@ -111,4 +111,15 @@ describe('вход через провайдера', () => {
     // Пока уходим — кнопки заняты: второй уход не начнётся.
     await expect.element(screen.getByRole('button', { name: button })).toBeDisabled();
   });
+
+  it('вернулись «назад» со страницы провайдера (страница из кэша браузера) — кнопки снова доступны', async () => {
+    vi.stubEnv('VITE_OIDC_APPLE_AUTHORIZATION_ENDPOINT', 'https://oauth.example/authorize');
+    vi.stubEnv('VITE_OIDC_APPLE_CLIENT_ID', 'apple-services-id');
+    fakeServer(signedOut);
+    const { screen } = await renderApp({ path: '/signin' });
+    await screen.getByRole('button', { name: 'Вход с Apple' }).click();
+    await expect.element(screen.getByRole('button', { name: 'Вход с Apple' })).toBeDisabled();
+    window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }));
+    await expect.element(screen.getByRole('button', { name: 'Вход с Apple' })).toBeEnabled();
+  });
 });

@@ -2,9 +2,10 @@
 // там человек опознан самим Telegram.
 import { isApiError, signInForDevelopment } from '@greprep/api-client';
 import { Navigate, useNavigate, useSearch } from '@tanstack/react-router';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { beginSignIn } from '../../auth/oidc';
 import { BrandMark } from '../../components/BrandMark';
+import { KeepHyphenated } from '../../components/KeepHyphenated';
 import { BRAND_NAME, DEV_SIGN_IN, providerConfig, type Provider } from '../../config';
 import { GRE_DISCLAIMER } from '../../i18n/dict';
 import { leaveTo } from '../../leave';
@@ -24,6 +25,16 @@ export function SignInScreen(): ReactNode {
   const navigate = useNavigate();
   const [busy, setBusy] = useState<Provider | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+
+  // Ушли к провайдеру и вернулись «назад»: браузер достаёт страницу из кэша вместе с состоянием «уходим» —
+  // кнопки остались бы выключенными.
+  useEffect(() => {
+    const restored = (e: PageTransitionEvent) => {
+      if (e.persisted) setBusy(null);
+    };
+    window.addEventListener('pageshow', restored);
+    return () => window.removeEventListener('pageshow', restored);
+  }, []);
 
   if (shell === 'telegram' || session.status === 'signedIn') return <Navigate to="/" replace />;
 
@@ -74,7 +85,9 @@ export function SignInScreen(): ReactNode {
               <BrandMark className={styles.glyph} />
             </span>
             <h1 className={styles.title}>{BRAND_NAME}</h1>
-            <p className={styles.tagline}>{t.signIn.tagline}</p>
+            <p className={styles.tagline}>
+              <KeepHyphenated text={t.signIn.tagline} />
+            </p>
           </div>
 
           <div className={styles.actions}>

@@ -67,6 +67,37 @@ describe('«Сегодня»', () => {
     await expect.element(screen.getByText('Здесь начнётся шаг. Тренировки и слова появятся в следующих частях.')).toBeVisible();
   });
 
+  it('Enter начинает текущий шаг, когда фокус ни на чём; на кнопке и в поле Enter делает своё', async () => {
+    fakeServer({ ...signedIn, 'GET /api/today': () => json(STARTER) });
+    const { screen, router } = await renderApp({ path: '/' });
+    await expect.element(screen.getByRole('button', { name: 'Начать' })).toBeVisible();
+    (document.activeElement as HTMLElement | null)?.blur();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    await expect.poll(() => router.state.location.pathname).toBe('/step/words');
+  });
+
+  it('с Shift или повтором Enter ничего не начинает', async () => {
+    fakeServer({ ...signedIn, 'GET /api/today': () => json(STARTER) });
+    const { screen, router } = await renderApp({ path: '/' });
+    await expect.element(screen.getByRole('button', { name: 'Начать' })).toBeVisible();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', shiftKey: true, bubbles: true }));
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', repeat: true, bubbles: true }));
+    await new Promise((r) => setTimeout(r, 100));
+    expect(router.state.location.pathname).toBe('/');
+  });
+
+  it('сеть вернулась — объяснение «нужна сеть» у шага пропадает само', async () => {
+    fakeServer({ ...signedIn, 'GET /api/today': () => json(STARTER) });
+    const { screen } = await renderApp({ path: '/' });
+    await expect.element(screen.getByRole('button', { name: 'Начать' })).toBeVisible();
+    onlineManager.setOnline(false);
+    await screen.getByRole('button', { name: 'Начать' }).click();
+    const hint = screen.getByText('Чтобы начать, нужна сеть. Когда она появится, всё заработает.');
+    await expect.element(hint).toBeVisible();
+    onlineManager.setOnline(true);
+    await expect.poll(() => hint.elements().length).toBe(0);
+  });
+
   it('обновить не вышло — прошлый план остаётся, над ним тихая строка', async () => {
     let fail = false;
     fakeServer({ ...signedIn, 'GET /api/today': () => (fail ? apiError(500, 'internal') : json(STARTER)) });

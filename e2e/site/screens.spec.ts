@@ -25,6 +25,6 @@ test('«Сегодня», разделы, настройки, шаг', async ({ 
   await expect(page.getByRole('button', { name: 'Выйти' })).toBeVisible();
   await checkScreen(page, 'settings');
   await page.goto('/step/verbal');
-  await expect(page.getByRole('heading', { name: 'Verbal: Text Completion' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Text Completion' })).toBeVisible();
   await checkScreen(page, 'step');
 });

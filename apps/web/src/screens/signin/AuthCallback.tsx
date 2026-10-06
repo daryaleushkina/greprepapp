@@ -23,8 +23,18 @@ export function AuthCallback(): ReactNode {
     if (started.current) return;
     started.current = true;
     const fail = (reason: SignInReason) => void navigate({ to: '/signin', search: { reason }, replace: true });
-    const result = finishSignIn(new URLSearchParams(search), sessionStorage);
+    let result: ReturnType<typeof finishSignIn>;
+    try {
+      result = finishSignIn(new URLSearchParams(search), sessionStorage);
+    } catch (e) {
+      // Хранилище вкладки запрещено настройками браузера — попытку не прочитать, вход не завершить.
+      console.error(e);
+      fail('failed');
+      return;
+    }
     if (!result.ok) {
+      // Отмена — выбор человека; неверный возврат (чужой state, старая вкладка, подделка) — в журнал консоли.
+      if (result.reason === 'invalid') console.warn('sign-in callback rejected: no matching attempt or bad parameters');
       fail(result.reason === 'cancelled' ? 'cancelled' : 'failed');
       return;
     }
@@ -54,7 +64,7 @@ export function AuthCallback(): ReactNode {
   return (
     <div className={styles.page}>
       <main className={`app-shell ${styles.scroll}`}>
-        <StatusScreen title={t.signIn.signingIn} />
+        <StatusScreen live title={t.signIn.signingIn} />
       </main>
     </div>
   );

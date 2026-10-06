@@ -17,7 +17,7 @@ async function failure(p: Promise<unknown>): Promise<ApiError> {
   return e;
 }
 
-beforeEach(() => configureHttp({ getToken: () => null, baseUrl: '' }));
+beforeEach(() => configureHttp({ getToken: () => null, getAuthTag: () => 0, baseUrl: '' }));
 afterEach(() => vi.unstubAllGlobals());
 
 describe('http', () => {
@@ -51,10 +51,18 @@ describe('http', () => {
     expect(await http('/api/client-errors', { method: 'POST' })).toBeUndefined();
   });
 
-  it('ошибка из договора — код и id запроса', async () => {
-    vi.stubGlobal('fetch', respond(401, '{"code":"unauthorized","message":"no session","requestId":"r9"}'));
+  it('ошибка из договора — код, id запроса и номер токена, под которым ушёл запрос', async () => {
+    let tag = 7;
+    configureHttp({ getAuthTag: () => tag });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        tag = 8; // пока запрос шёл, токен сменился
+        return new Response('{"code":"unauthorized","message":"no session","requestId":"r9"}', { status: 401 });
+      }),
+    );
     const e = await failure(http('/api/me', { schema: Thing }));
-    expect(e).toMatchObject({ kind: 'server', status: 401, code: 'unauthorized', requestId: 'r9' });
+    expect(e).toMatchObject({ kind: 'server', status: 401, code: 'unauthorized', requestId: 'r9', authTag: 7 });
   });
 
   it('ошибка без тела договора: 502 от прокси — server/internal, 4xx — contract', async () => {
@@ -86,6 +94,16 @@ describe('http', () => {
   it('ответ не по договору — contract', async () => {
     vi.stubGlobal('fetch', respond(200, '{"id":5}'));
     expect(await failure(http('/api/thing', { schema: Thing }))).toMatchObject({ kind: 'contract', status: 200 });
+  });
+
+  it('отмена посреди чтения ответа — тоже отмена, а не «нет сети»', async () => {
+    const abort = new DOMException('aborted', 'AbortError');
+    const body = new ReadableStream({ start: (c) => c.error(abort) });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(body, { status: 200 })),
+    );
+    await expect(http('/api/today', { schema: Thing })).rejects.toBe(abort);
   });
 
   it('отменённый запрос пробрасывается как есть', async () => {

@@ -5,7 +5,7 @@
 // экране, а обновить его не вышло, — план остаётся и над ним тихая строка.
 import { isApiError, useGetToday, type TodayStep } from '@greprep/api-client';
 import { useNavigate } from '@tanstack/react-router';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { OfflineIcon } from '../../components/icons';
 import { StatusScreen } from '../../components/StatusScreen';
 import { reportError } from '../../errors/report';
@@ -24,18 +24,13 @@ export function TodayScreen(): ReactNode {
   const online = useOnline();
   const navigate = useNavigate();
   const [blockedStepId, setBlockedStepId] = useState<string | null>(null);
-  const today = useGetToday({
-    query: {
-      enabled: session.status === 'signedIn',
-      // Нет сети — повторяем, пока экран открыт (TanStack Query сам ждёт, когда сеть вернётся); отказ сервера
-      // повтором не лечится.
-      retry: (count, e) => isApiError(e) && e.kind === 'network' && count < 3,
-    },
-  });
+  // Повторы — только при нехватке сети (queryClient.ts); без сети запрос ждёт её возвращения.
+  const today = useGetToday({ query: { enabled: session.status === 'signedIn' } });
   const plan = today.data;
   const current = plan?.steps.find((s) => s.state === 'current');
 
-  useEffect(() => {
+  // До отрисовки кадра: из эффекта после неё браузер успел бы показать кадр со светом прошлого экрана.
+  useLayoutEffect(() => {
     setGlow(current?.section ?? 'verbal');
   }, [current?.section, setGlow]);
 
@@ -59,6 +54,22 @@ export function TodayScreen(): ReactNode {
     void navigate({ to: '/step/$stepId', params: { stepId: step.id } });
   };
 
+  // Компьютер: Enter начинает текущий шаг (web-T1). Только когда фокус ни на чём: на кнопке и в поле Enter делает своё.
+  // Обработчик — в ref: новая функция на каждый рендер иначе переподписывала бы клавиатуру.
+  const startCurrent = useRef<(() => void) | null>(null);
+  useLayoutEffect(() => {
+    startCurrent.current = current ? () => start(current) : null;
+  });
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Enter' || e.repeat || e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+      if (document.activeElement && document.activeElement !== document.body) return;
+      startCurrent.current?.();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
   return (
     <div className={styles.screen}>
       <header className={styles.head}>
@@ -79,11 +90,12 @@ export function TodayScreen(): ReactNode {
               {offline ? t.today.staleOffline : t.today.staleFailed}
             </p>
           )}
-          {plan.steps.length > 0 && <StepRibbon steps={plan.steps} blockedStepId={blockedStepId} onStart={start} />}
+          {plan.steps.length > 0 && <StepRibbon steps={plan.steps} blockedStepId={offline ? blockedStepId : null} onStart={start} />}
         </>
       ) : today.isError || offline ? (
         <StatusScreen
           heading="h2"
+          live
           icon={offline ? <OfflineIcon /> : undefined}
           title={offline ? t.today.offlineTitle : t.today.failedTitle}
           text={offline ? t.today.offlineText : t.today.failedText}

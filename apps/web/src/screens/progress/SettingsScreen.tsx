@@ -3,8 +3,9 @@
 // вход — это сам Telegram (комментарий в web-G2-Settings).
 import { isApiError } from '@greprep/api-client';
 import { useNavigate } from '@tanstack/react-router';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useLayoutEffect, useState, type ReactNode } from 'react';
 import { APP_VERSION } from '../../config';
+import { GRE_DISCLAIMER } from '../../i18n/dict';
 import { useI18n } from '../../i18n/i18n';
 import { BackLink, useGlow } from '../../layout/AppLayout';
 import { useSession } from '../../session/session';
@@ -20,7 +21,7 @@ export function SettingsScreen(): ReactNode {
   const setGlow = useGlow();
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState<string | null>(null);
-  useEffect(() => setGlow('exam'), [setGlow]);
+  useLayoutEffect(() => setGlow('verbal'), [setGlow]);
   useBackButton(shell === 'telegram' ? () => void navigate({ to: '/progress' }) : null);
 
   const onSignOut = async () => {
@@ -40,19 +41,24 @@ export function SettingsScreen(): ReactNode {
     <div className={styles.screen}>
       {shell === 'site' && <BackLink fallback="/progress" narrowOnly />}
       <h1 className={styles.title}>{t.tabs.settings}</h1>
-      {shell === 'site' && (
-        <div className={styles.group}>
-          <button type="button" className={styles.groupRow} onClick={() => void onSignOut()} disabled={busy}>
+      {/* Макеты G2 и web-G2: «Выйти» — тихая текстовая кнопка на одной строке с версией; в мини-аппе — версия по центру. */}
+      <div className={styles.settingsFooter} data-shell={shell}>
+        {shell === 'site' && (
+          <button type="button" className={styles.textButton} onClick={() => void onSignOut()} disabled={busy}>
             {t.settings.signOut}
           </button>
-        </div>
-      )}
+        )}
+        <p className={styles.version}>{t.settings.version(APP_VERSION || 'dev')}</p>
+      </div>
       {failed && (
         <p className={styles.error} role="alert">
           {failed}
         </p>
       )}
-      <p className={styles.footnote}>{t.settings.version(APP_VERSION || 'dev')}</p>
+      {/* Дисклеймер ETS — на входе сайта и в настройках каждого приложения (решение Даши 07.10.2026). */}
+      <p className={styles.disclaimer} lang="en">
+        {GRE_DISCLAIMER}
+      </p>
     </div>
   );
 }

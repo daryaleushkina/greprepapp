@@ -1,3 +1,4 @@
+import { isApiError } from '@greprep/api-client';
 import { QueryCache, QueryClient } from '@tanstack/react-query';
 import { onUnauthorized, SESSION_KEY } from './session/session';
 import type { Shell } from './shell';
@@ -10,7 +11,13 @@ export function makeQueryClient(shell: Shell): QueryClient {
         if (query.queryKey[0] !== SESSION_KEY[0]) onUnauthorized(queryClient, error, shell === 'telegram');
       },
     }),
-    defaultOptions: { queries: { staleTime: 30_000 } },
+    defaultOptions: {
+      queries: {
+        staleTime: 30_000,
+        // Повтор лечит только сеть; отказ сервера (401, 403, 400) повтором не лечится — сразу к обработке.
+        retry: (count, e) => isApiError(e) && e.kind === 'network' && count < 3,
+      },
+    },
   });
   return queryClient;
 }

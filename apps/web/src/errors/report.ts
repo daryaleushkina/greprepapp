@@ -16,9 +16,19 @@ export function configureReporter(next: Shell): void {
   shell = next;
 }
 
+/**
+ * initData (tgWebAppData) и подписи в тексте ошибки — это действующий вход на сутки (INIT_DATA_MAX_AGE): в таблицу
+ * ошибок они не попадают. Так бывает, когда @tma.js/sdk не принимает параметры запуска — он цитирует их целиком.
+ */
+export function redact(text: string): string {
+  return text
+    .replace(/(tgWebAppData|initData)=[^&\s"']*/g, '$1=[скрыто]')
+    .replace(/\b(hash|signature)=[^&\s"']*/g, '$1=[скрыто]');
+}
+
 export function reportError(error: unknown): void {
   const err = error instanceof Error ? error : new Error(String(error));
-  const message = `${err.name}: ${err.message}`.slice(0, 2000);
+  const message = redact(`${err.name}: ${err.message}`).slice(0, 2000);
   const now = Date.now();
   const last = recent.get(message);
   if (sent >= MAX_PER_PAGE || (last !== undefined && now - last < REPEAT_MS)) return;
@@ -28,7 +38,7 @@ export function reportError(error: unknown): void {
   const requestId = lastSeenRequestId();
   reportClientError({
     message,
-    ...(err.stack && { stack: err.stack.slice(0, 16000) }),
+    ...(err.stack && { stack: redact(err.stack).slice(0, 16000) }),
     // Путь без параметров: в них могут быть код входа и прочее личное.
     route: location.pathname.slice(0, 512),
     ...(requestId && { requestId }),

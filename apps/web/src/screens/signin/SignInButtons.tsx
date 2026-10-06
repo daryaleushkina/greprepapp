@@ -1,6 +1,8 @@
 // Кнопки входа — официального вида по правилам каждой компании, не свои (решение Даши 05.10.2026, DESIGN.md
 // «Правило официальных кнопок»): новая кнопка Telegram — синяя капсула; «Вход с Apple» — чёрная или белая;
 // Google — белая с рамкой или тёмная, цветная «G». Цвета — токены --sign-in-*; знаки — официальные рисунки.
+// Roboto 500 — шрифт кнопки Google по её правилам; со своего сервера, как Onest (без Google Fonts).
+import '@fontsource/roboto/500.css';
 import type { ReactNode } from 'react';
 import type { Provider } from '../../config';
 import { useI18n } from '../../i18n/i18n';

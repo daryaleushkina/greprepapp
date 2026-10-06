@@ -31,11 +31,18 @@
  *                                чтобы тесты шли параллельно и не видели данных друг друга
  *   ?tgViewportExtra=120         Telegram сообщает высоту на столько больше видимой (так бывает на iPhone:
  *                                низ уезжал под панель, и календарь не листался — 03.10.2026)
+ *   window.__tgMock.setTheme('dark') — сменить тему посреди работы, как это делает клиент (theme_changed)
  *   ?tgInitData=…                готовая initData. e2e подписывает её ключом тестового бота, и мини-апп входит
  *                                настоящим путём, с проверкой подписи на сервере; без неё initData неподписанная
  *                                и сервер её отклонит
  */
 import { emitEvent, isTMA, mockTelegramEnv } from '@tma.js/sdk-react';
+
+declare global {
+  interface Window {
+    __tgMock?: { setTheme: (name: 'light' | 'dark') => void };
+  }
+}
 
 type Rgb = `#${string}`;
 type Theme = Record<string, Rgb>;
@@ -111,7 +118,7 @@ export async function mockTelegramEnvForDev(): Promise<void> {
   if (await isTMA('complete')) return;
 
   const q = new URLSearchParams(window.location.search);
-  const theme = q.get('tgTheme') === 'light' ? LIGHT_THEME : DARK_THEME;
+  let theme = q.get('tgTheme') === 'light' ? LIGHT_THEME : DARK_THEME;
   const platform = q.get('tgPlatform') ?? 'ios';
   const version = q.get('tgVersion') ?? '10.1';
   const drawChrome = q.get('tgChrome') !== '0';
@@ -180,6 +187,14 @@ export async function mockTelegramEnvForDev(): Promise<void> {
   const device = store('tg-mock-device:', localStorage);
   const secure = store('tg-mock-secure:', sessionStorage);
 
+  // Смена темы посреди работы (человек переключил тему в Telegram, сработал ночной режим) — для e2e.
+  window.__tgMock = {
+    setTheme(name) {
+      theme = name === 'light' ? LIGHT_THEME : DARK_THEME;
+      emitEvent('theme_changed', { theme_params: theme });
+    },
+  };
+
   mockTelegramEnv({
     launchParams: new URLSearchParams([
       ['tgWebAppThemeParams', JSON.stringify(theme)],
@@ -218,6 +233,9 @@ export async function mockTelegramEnvForDev(): Promise<void> {
           b.position = str(p, 'position') ?? b.position;
           return render();
         }
+        case 'web_app_request_fullscreen':
+          // Клиент переходит в полноэкранный режим и сообщает об этом (Bot API 8.0).
+          return emitEvent('fullscreen_changed', { is_fullscreen: true });
         case 'web_app_setup_back_button':
           backVisible = bool(p, 'is_visible') ?? backVisible;
           return render();

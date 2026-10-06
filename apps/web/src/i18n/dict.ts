@@ -74,6 +74,7 @@ export interface Dict {
     signingIn: string;
   };
   crash: { title: string; text: string; reload: string };
+  telegramFailed: { title: string; text: string };
 }
 
 const dictRu: Dict = {
@@ -121,8 +122,7 @@ const dictRu: Dict = {
     version: (v) => `Версия ${v}`,
   },
   signIn: {
-    // Неразрывный дефис (U+2011): «по-» не должно оставаться в конце строки.
-    tagline: 'Подготовка к GRE® с разбором каждой ошибки — по\u2011русски и по\u2011английски.',
+    tagline: 'Подготовка к GRE® с разбором каждой ошибки — по-русски и по-английски.',
     telegram: 'Войти через Telegram',
     apple: 'Вход с Apple',
     google: 'Войти с аккаунтом Google',
@@ -146,6 +146,10 @@ const dictRu: Dict = {
     title: 'Что-то пошло не так',
     text: 'Мы уже знаем об ошибке. Обновите страницу — всё сохранено.',
     reload: 'Обновить',
+  },
+  telegramFailed: {
+    title: 'Не получилось открыть в Telegram',
+    text: 'Обновите Telegram и откройте приложение снова — мы уже знаем об ошибке.',
   },
 };
 
@@ -218,6 +222,10 @@ const dictEn: Dict = {
     title: 'Something went wrong',
     text: 'We already know about the error. Reload the page — everything is saved.',
     reload: 'Reload',
+  },
+  telegramFailed: {
+    title: 'Couldn’t open in Telegram',
+    text: 'Update Telegram and open the app again — we already know about the error.',
   },
 };
 

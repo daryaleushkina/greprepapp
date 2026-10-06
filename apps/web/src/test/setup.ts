@@ -7,6 +7,7 @@ import { afterEach, vi } from 'vitest';
 import { resetReauthForTests } from '../session/session';
 
 afterEach(() => {
+  vi.restoreAllMocks();
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();
   sessionStorage.clear();

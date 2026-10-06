@@ -25,10 +25,12 @@ type template struct {
 	title       map[string]string
 }
 
+// Название — само дело, без раздела: раздел клиент пишет строкой ниже (макет T1: «Text Completion» и под ним
+// «Verbal»), иначе он повторялся бы дважды. Типы заданий GRE — по-английски и в русском интерфейсе.
 var starter = []template{
-	{"words", "words", 5, map[string]string{"ru": "Слова: повторение", "en": "Words: review"}},
-	{"verbal", "verbal", 10, map[string]string{"ru": "Verbal: Text Completion", "en": "Verbal: Text Completion"}},
-	{"quant", "quant", 10, map[string]string{"ru": "Quant: Quantitative Comparison", "en": "Quant: Quantitative Comparison"}},
+	{"words", "words", 5, map[string]string{"ru": "Повторение", "en": "Review"}},
+	{"verbal", "verbal", 10, map[string]string{"ru": "Text Completion", "en": "Text Completion"}},
+	{"quant", "quant", 10, map[string]string{"ru": "Quantitative Comparison", "en": "Quantitative Comparison"}},
 }
 
 // ForNewUser — план для того, кто ещё ничего не решал. Дата — в UTC: часовой пояс человека появится

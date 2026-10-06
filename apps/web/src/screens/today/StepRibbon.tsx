@@ -87,9 +87,15 @@ function CurrentStep({ step, blocked, onStart }: { step: TodayStep; blocked: boo
           <span className={styles.cardSubMinutes}> · {t.today.approxShort(step.minutes)}</span>
         </span>
       </div>
-      <button type="button" className={styles.start} onClick={() => onStart(step)}>
-        {t.today.start}
-      </button>
+      <div className={styles.startWrap}>
+        <button type="button" className={styles.start} onClick={() => onStart(step)}>
+          {t.today.start}
+        </button>
+        {/* Тихая подсказка клавиши — только с клавиатурой и мышью (DESIGN.md, «Навигация → Компьютер»). */}
+        <kbd className={styles.key} aria-hidden="true">
+          Enter
+        </kbd>
+      </div>
       {blocked && <p className={styles.blocked}>{t.today.needNetwork}</p>}
     </section>
   );

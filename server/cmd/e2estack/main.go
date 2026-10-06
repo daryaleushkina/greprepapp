@@ -86,7 +86,7 @@ func run(ctx context.Context, log *slog.Logger) error {
 	provider := func(clientID string) config.Provider {
 		return config.Provider{
 			Issuer: issuer, Audiences: []string{clientID}, ClientID: clientID,
-			ClientSecret: "e2e-secret", RedirectURIs: redirect,
+			ClientSecret: fakeClientSecret, RedirectURIs: redirect,
 		}
 	}
 	cfg := config.Config{

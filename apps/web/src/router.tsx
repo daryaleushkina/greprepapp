@@ -8,6 +8,7 @@
 import type { QueryClient } from '@tanstack/react-query';
 import { createRootRouteWithContext, createRoute, createRouter, Outlet, type RouterHistory } from '@tanstack/react-router';
 import { z } from 'zod';
+import { Crashed, reportRouteError } from './errors/ErrorBoundary';
 import { AppGate, TabsLayout } from './layout/AppLayout';
 import { SectionPlaceholder } from './screens/placeholder/SectionPlaceholder';
 import { StepScreen } from './screens/placeholder/StepScreen';
@@ -72,7 +73,13 @@ export function makeRouter(context: RouterContext, history?: RouterHistory) {
     ...(history && { history }),
     basepath: context.shell === 'telegram' ? TELEGRAM_BASE : '/',
     defaultPreload: 'intent',
+    // У маршрутизатора свой перехват ошибок экранов — без этих двух ErrorBoundary снаружи их бы не увидел:
+    // человек получил бы английскую заглушку, а отчёт не ушёл бы.
+    defaultErrorComponent: Crashed,
+    defaultOnCatch: reportRouteError,
     scrollRestoration: true,
+    // Вкладки делят один контейнер прокрутки: новая вкладка — сверху, а не с прокруткой прошлой.
+    scrollToTopSelectors: ['#main'],
   });
 }
 

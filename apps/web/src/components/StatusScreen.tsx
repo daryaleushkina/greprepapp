@@ -9,12 +9,14 @@ interface Props {
   action?: { label: string; onClick: () => void };
   /** Заголовок страницы (h1) — когда экран состояния стоит вместо всего экрана, а не внутри раздела. */
   heading?: 'h1' | 'h2';
+  /** Смена состояния («Нет сети», «Не получилось») — диктор её объявит; постоянная заглушка — нет. */
+  live?: boolean;
 }
 
-export function StatusScreen({ title, text, icon, action, heading = 'h1' }: Props): ReactNode {
+export function StatusScreen({ title, text, icon, action, heading = 'h1', live = false }: Props): ReactNode {
   const Heading = heading;
   return (
-    <section className={styles.status} role="status">
+    <section className={styles.status} {...(live && { role: 'status' })}>
       {icon && <span className={styles.icon}>{icon}</span>}
       <Heading className={styles.title}>{title}</Heading>
       {text && <p className={styles.text}>{text}</p>}

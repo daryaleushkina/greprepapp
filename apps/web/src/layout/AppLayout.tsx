@@ -8,7 +8,7 @@ import { Link, Navigate, Outlet, useMatchRoute, useRouter } from '@tanstack/reac
 import { createContext, use, useState, type ReactNode } from 'react';
 import { BrandMark } from '../components/BrandMark';
 import { BackIcon, ExamIcon, ProgressIcon, SettingsIcon, TodayIcon, WordsIcon } from '../components/icons';
-import { StatusScreen } from '../components/StatusScreen';
+import { FullScreenStatus } from '../components/FullScreenStatus';
 import { BRAND_NAME } from '../config';
 import { useI18n } from '../i18n/i18n';
 import { useSession } from '../session/session';
@@ -35,7 +35,8 @@ export function AppGate(): ReactNode {
     const offline = isApiError(session.error) && session.error.kind === 'network';
     const tooMany = isApiError(session.error) && session.error.code === 'too_many_requests';
     return (
-      <StatusScreen
+      <FullScreenStatus
+        live
         title={offline ? t.today.offlineTitle : t.signIn.failed}
         text={offline ? t.signIn.offline : tooMany ? t.signIn.tooMany : t.today.failedText}
         action={{ label: t.today.retry, onClick: session.retry }}

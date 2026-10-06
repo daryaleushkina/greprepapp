@@ -1,0 +1,7 @@
+/* Экран состояния во весь экран — с теми же отступами, что у экранов (вырез, кнопки Telegram, боковые поля). */
+.full {
+  height: var(--app-height);
+  overflow-y: auto;
+  padding: calc(var(--app-inset-top) + var(--space-20)) calc(var(--app-inset-right) + var(--layout-gutter))
+    calc(var(--app-inset-bottom) + var(--space-20)) calc(var(--app-inset-left) + var(--layout-gutter));
+}

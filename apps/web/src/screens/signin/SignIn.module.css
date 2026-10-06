@@ -10,10 +10,17 @@
 .scroll {
   height: 100%;
   overflow-y: auto;
-  padding: calc(var(--app-inset-top) + var(--space-24)) calc(var(--app-inset-right) + var(--space-24))
-    calc(var(--app-inset-bottom) + var(--space-28)) calc(var(--app-inset-left) + var(--space-24));
+  padding: calc(var(--app-inset-top) + var(--space-24)) calc(var(--app-inset-right) + var(--space-24)) 0
+    calc(var(--app-inset-left) + var(--space-24));
   display: flex;
   flex-direction: column;
+}
+
+/* Отступ снизу — псевдоэлементом: WKWebView не учитывает нижний отступ контейнера прокрутки (docs/HANDOFF.md). */
+.scroll::after {
+  content: '';
+  flex: none;
+  height: calc(var(--app-inset-bottom) + var(--space-28));
 }
 
 /* На телефоне карточки нет: стекло — только у плитки знака, остальное лежит на свете. */
@@ -105,9 +112,10 @@
   font-weight: var(--font-weight-semibold);
 }
 
+/* Размеры знаков — из правил оформления кнопок Telegram (22 px) и Google (18 px), а не из нашей шкалы. */
 .logoTelegram {
-  width: var(--space-24);
-  height: var(--space-24);
+  width: 22px;
+  height: 22px;
 }
 
 .apple {
@@ -124,7 +132,7 @@
   height: var(--space-20);
 }
 
-/* Google: Roboto 14/500 и разрядка 0,25 px — из его правил оформления кнопки. */
+/* Google: Roboto Medium 14 px и разрядка 0,25 px — из его правил оформления кнопки. */
 .google {
   gap: var(--space-10);
   padding: 0 var(--space-12);
@@ -133,12 +141,13 @@
   color: var(--sign-in-google-text);
   font: var(--font-footnote);
   font-family: Roboto, Arial, sans-serif;
+  font-weight: var(--font-weight-medium);
   letter-spacing: 0.25px;
 }
 
 .logoGoogle {
-  width: var(--space-20);
-  height: var(--space-20);
+  width: 18px;
+  height: 18px;
 }
 
 .legal {
@@ -204,7 +213,7 @@
 
 @media (min-width: 600px) {
   .scroll {
-    padding: var(--space-48) var(--space-16);
+    padding: var(--space-48) var(--space-16) 0;
     align-items: center;
     justify-content: center;
   }
@@ -226,5 +235,14 @@
 
   .intro {
     flex: none;
+  }
+
+  /* В карточке подпись — во всю её ширину (web-T4), а не узкой колонкой телефона. */
+  .tagline {
+    max-width: none;
+  }
+
+  .scroll::after {
+    height: var(--space-48);
   }
 }

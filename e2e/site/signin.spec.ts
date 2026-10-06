@@ -101,6 +101,6 @@ test.describe('английский браузер', () => {
     await expect(page.getByText('GRE® prep that explains every mistake — in Russian and in English.')).toBeVisible();
     await page.getByRole('button', { name: 'Sign in with Google' }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'Today' })).toBeVisible();
-    await expect(page.getByText('Words: review', { exact: true })).toBeVisible();
+    await expect(page.getByText('Review', { exact: true })).toBeVisible();
   });
 });

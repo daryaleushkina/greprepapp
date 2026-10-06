@@ -8,8 +8,11 @@
  */
 
 :root {
-  /* Видимая высота: в мини-аппе — от Telegram (по stableHeight, навык), на сайте — 100dvh. */
-  --app-height: var(--tg-viewport-stable-height, 100dvh);
+  /*
+   * Видимая высота: в мини-аппе — от Telegram (по stableHeight, навык), на сайте — 100dvh. Не больше 100dvh: Telegram на
+   * iPhone бывает сообщает высоту больше видимой, и капсула вкладок уезжала за нижний край (docs/HANDOFF.md, «Telegram»).
+   */
+  --app-height: min(var(--tg-viewport-stable-height, 100dvh), 100dvh);
   /*
    * Отступы = системные (вырез, полоска «домой») + интерфейс Telegram поверх содержимого (кнопки шапки в
    * полноэкранном режиме). Сумма — практика сообщества, документация Telegram её явно не описывает (навык).

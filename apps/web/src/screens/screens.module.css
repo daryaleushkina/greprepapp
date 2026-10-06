@@ -41,27 +41,41 @@
   }
 }
 
-/* Секция настроек — плотная поверхность (стекло — только у управления поверх содержимого). */
-.group {
-  margin-top: var(--space-24);
-  border-radius: var(--radius-xxl);
-  background: var(--color-surface);
-  overflow: hidden;
+/* Низ настроек: «Выйти» и версия на одной строке (web-G2); в мини-аппе выхода нет — версия по центру (G2). */
+.settingsFooter {
+  margin-top: var(--space-32);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-16);
 }
 
-.groupRow {
-  width: 100%;
-  min-height: var(--size-row);
-  padding: 0 var(--space-16);
+.settingsFooter[data-shell='telegram'] {
+  justify-content: center;
+}
+
+.textButton {
+  min-height: var(--size-tap-target);
+  padding: 0;
   border: 0;
   background: none;
-  color: var(--color-text);
-  font: var(--font-body);
-  text-align: left;
+  color: var(--color-text-secondary);
+  font: var(--font-subhead);
+  font-weight: var(--font-weight-medium);
+  text-decoration: underline;
+  text-decoration-thickness: var(--size-hairline);
+  text-decoration-color: var(--color-line);
+  text-underline-offset: var(--space-4);
 }
 
-.groupRow:disabled {
+.textButton:disabled {
+  opacity: 0.5;
+}
+
+.version {
+  font: var(--font-caption);
   color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
 }
 
 .error {
@@ -70,9 +84,8 @@
   color: var(--color-text);
 }
 
-.footnote {
+.disclaimer {
   margin-top: var(--space-16);
-  font: var(--font-footnote);
+  font: var(--font-caption);
   color: var(--color-text-secondary);
-  font-variant-numeric: tabular-nums;
 }
