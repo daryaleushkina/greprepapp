@@ -41,3 +41,7 @@ tools/dev/backlog.sh           # пересобрать это зеркало
 - [#18](https://github.com/daryaleushkina/greprepapp/issues/18) Приложения Apple и Android: дисклеймер ETS в настройках
 - [#19](https://github.com/daryaleushkina/greprepapp/issues/19) Приложение Apple: передавать язык системы при входе (поле locale)
 - [#20](https://github.com/daryaleushkina/greprepapp/issues/20) Веб: разбить сборку по экранам — один пакет 528 КБ (165 КБ gzip)
+- [#21](https://github.com/daryaleushkina/greprepapp/issues/21) Приложение Apple: тренировки, первый срез — экраны по готовому договору
+- [#22](https://github.com/daryaleushkina/greprepapp/issues/22) Мини-апп и сайт: тренировки, первый срез — экраны по готовому договору
+- [#23](https://github.com/daryaleushkina/greprepapp/issues/23) Задания Quant: формулы сверх Unicode — дроби, степени, корни
+- [#24](https://github.com/daryaleushkina/greprepapp/issues/24) Админка: правка проверенного задания — новой версией, не на месте; очередь жалоб

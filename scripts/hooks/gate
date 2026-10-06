@@ -18,7 +18,8 @@
 set -eu
 
 # Покрытие ручного кода бэкенда, % (сгенерированное ogen и sqlc и помощники тестов не считаются).
-GO_COVERAGE_MIN=93.0
+# Замер 07.10.2026 после тренировок — 94,4 %.
+GO_COVERAGE_MIN=94.0
 
 hooks="$(cd "$(dirname "$0")" && pwd)"
 root="$(git rev-parse --show-toplevel)"
