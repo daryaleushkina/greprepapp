@@ -105,6 +105,29 @@ class TrainingRulesTest {
     }
 
     @Test
+    fun theTopicWithMoreMistakesComesFirst() {
+        // Первая ошибка — в теме контраста (tc1), но в теме синонимов (se) их две.
+        val t =
+            StoredTraining(
+                session = Fixtures.session(tc1, se, se),
+                startedAtMillis = START,
+                answers = listOf(answer(0, "B"), answer(1, "A", "B"), answer(2, "B", "D")).associateBy { it.position },
+                finish = TrainingFinish("2026-10-06T09:05:00Z", timedOut = false),
+            )
+        assertEquals(listOf("close-synonyms", "contrast-signals"), TrainingRules.result(t).review.map { it.topicId })
+    }
+
+    @Test
+    fun summaryMinutesNeverExceedTheLimit() {
+        assertEquals(1 to null, TrainingRules.summaryMinutes(20, null))
+        assertEquals(11 to null, TrainingRules.summaryMinutes(680, null))
+        // Лимит 105 с — «2 минуты из 2», а не «2 из 1»; 450 с — «8 из 8», а не «8 из 7».
+        assertEquals(2 to 2, TrainingRules.summaryMinutes(105, 105))
+        assertEquals(8 to 8, TrainingRules.summaryMinutes(450, 450))
+        assertEquals(3 to 8, TrainingRules.summaryMinutes(170, 450))
+    }
+
+    @Test
     fun afterTimeOutUnansweredAreNotTopicMistakes() {
         val result =
             TrainingRules.result(

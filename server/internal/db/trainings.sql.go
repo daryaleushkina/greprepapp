@@ -304,20 +304,23 @@ func (q *Queries) LockTraining(ctx context.Context, arg LockTrainingParams) (Tra
 }
 
 const pickQuestions = `-- name: PickQuestions :many
+WITH seen AS (
+  SELECT DISTINCT i.question_id
+  FROM trainings tr
+  JOIN training_items i ON i.training_id = tr.id
+  WHERE tr.user_id = $6
+)
 SELECT q.id
 FROM questions q
 JOIN topics t ON t.id = q.topic_id
+LEFT JOIN seen s ON s.question_id = q.id
 WHERE q.status = 'approved'
   AND t.section = $1
   AND q.question_type = ANY ($2::text[])
   AND (cardinality($3::text[]) = 0 OR q.topic_id = ANY ($3::text[]))
   AND ($4::text IS NULL OR q.difficulty = $4::text)
-ORDER BY EXISTS (
-    SELECT 1 FROM training_items i
-    JOIN trainings tr ON tr.id = i.training_id
-    WHERE tr.user_id = $5 AND i.question_id = q.id
-  ), random()
-LIMIT $6::integer
+ORDER BY s.question_id IS NOT NULL, random()
+LIMIT $5::integer
 `
 
 type PickQuestionsParams struct {
@@ -325,19 +328,20 @@ type PickQuestionsParams struct {
 	QuestionTypes []string
 	TopicIds      []string
 	Difficulty    *string
-	UserID        uuid.UUID
 	MaxCount      int
+	UserID        uuid.UUID
 }
 
-// Подбор заданий: только проверенные, сначала те, что человек ещё не видел, внутри — случайно.
+// Подбор заданий: только проверенные, сначала те, что человек ещё не видел, внутри — случайно. Виденное —
+// по тренировкам самого человека (индекс по user_id), а не по всем показам задания всем людям.
 func (q *Queries) PickQuestions(ctx context.Context, arg PickQuestionsParams) ([]uuid.UUID, error) {
 	rows, err := q.db.Query(ctx, pickQuestions,
 		arg.Section,
 		arg.QuestionTypes,
 		arg.TopicIds,
 		arg.Difficulty,
-		arg.UserID,
 		arg.MaxCount,
+		arg.UserID,
 	)
 	if err != nil {
 		return nil, err
@@ -425,6 +429,22 @@ func (q *Queries) SaveTrainingAnswer(ctx context.Context, arg SaveTrainingAnswer
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const trainingHasQuestion = `-- name: TrainingHasQuestion :one
+SELECT EXISTS (SELECT 1 FROM training_items WHERE training_id = $1 AND question_id = $2)
+`
+
+type TrainingHasQuestionParams struct {
+	TrainingID uuid.UUID
+	QuestionID uuid.UUID
+}
+
+func (q *Queries) TrainingHasQuestion(ctx context.Context, arg TrainingHasQuestionParams) (bool, error) {
+	row := q.db.QueryRow(ctx, trainingHasQuestion, arg.TrainingID, arg.QuestionID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
 }
 
 const upsertQuestion = `-- name: UpsertQuestion :exec

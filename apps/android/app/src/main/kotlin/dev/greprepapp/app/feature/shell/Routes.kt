@@ -63,6 +63,14 @@ sealed interface MainRoute : NavKey {
     ) : MainRoute
 }
 
+/**
+ * «Назад» внутри входа: корень (вкладки) не снимается. Второе нажатие на стрелку, пока уходящий экран ещё на
+ * месте (переход), иначе опустошило бы стопку — а NavDisplay с пустой стопкой падает.
+ */
+fun MutableList<NavKey>.popUnlessRoot() {
+    if (size > 1) removeAt(lastIndex)
+}
+
 /** Разделы: «Сегодня · Слова · Экзамен · Прогресс» (PRODUCT.md, «Навигация»); эссе — в «Экзамене». */
 enum class AppTab(
     @param:StringRes val label: Int,

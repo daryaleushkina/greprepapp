@@ -452,11 +452,34 @@ func TestCheckTrainingTimesOut(t *testing.T) {
 		t.Fatalf("answers = %v", got)
 	}
 
-	// Время вышло: два неотвеченных — «не успел», не ошибки темы; длительность — не больше лимита.
-	sum := e.finish(t, token, id, now.Add(time.Hour), true)
+	// Человек передумал: сначала верно, потом неверно — остаётся последнее.
+	if r := e.submit(t, token, id, answer(0, []string{wrongOption(t, q0)}, now.Add(2*time.Minute))); r.status != http.StatusNoContent {
+		t.Fatalf("submit change: %d %s", r.status, r.raw)
+	}
+	got = items(t, e.do(t, call{method: "GET", path: "/api/trainings/" + id, bearer: token}).body)
+	if got[0]["correct"] != false {
+		t.Fatalf("a later answer must replace an earlier one: %v", got[0])
+	}
+
+	// Часы устройства спешат на час: такой ответ не должен навсегда закрыть вопрос для следующих.
+	if r := e.submit(t, token, id, answer(2, []string{wrongOption(t, question(t, its[2]))}, now.Add(time.Hour))); r.status != http.StatusNoContent {
+		t.Fatalf("submit future: %d %s", r.status, r.raw)
+	}
+	if r := e.submit(t, token, id, answer(2, strs(question(t, its[2])["answer"]), time.Now().Add(time.Second))); r.status != http.StatusNoContent {
+		t.Fatalf("submit after future: %d %s", r.status, r.raw)
+	}
+	got = items(t, e.do(t, call{method: "GET", path: "/api/trainings/" + id, bearer: token}).body)
+	if got[2]["correct"] != true {
+		t.Fatalf("an answer from the future froze the question: %v", got[2])
+	}
+
+	// Время вышло: неотвеченный — «не успел», не ошибка темы; длительность — не больше лимита, даже если
+	// тренировку закрыли через час после начала.
+	e.exec(t, "UPDATE trainings SET started_at = now() - interval '1 hour' WHERE id = $1", id)
+	sum := e.finish(t, token, id, time.Now(), true)
 	review, _ := sum.body["review"].([]any)
-	if sum.status != http.StatusOK || num(sum.body["correct"]) != 1 || num(sum.body["unanswered"]) != 2 || len(review) != 0 ||
-		num(sum.body["durationSeconds"]) > 3*105 {
+	if sum.status != http.StatusOK || num(sum.body["correct"]) != 1 || num(sum.body["unanswered"]) != 1 || len(review) != 1 ||
+		num(sum.body["durationSeconds"]) != 3*105 {
 		t.Fatalf("timed-out summary: %d %s", sum.status, sum.raw)
 	}
 }
@@ -511,9 +534,19 @@ func TestTrainingsWhenStorageBreaks(t *testing.T) {
 	internal(get())
 	internal(e.do(t, call{method: "POST", path: "/api/trainings", bearer: token, body: practice("quant", 50, "multiple_choice")}))
 
-	// Прошлый запрос не читается — конструктор не открывается, а не врёт «тренировок не было».
+	// Прошлый запрос не читается (старый формат) — конструктор всё равно открывается, без «Как в прошлый раз»;
+	// сбой — в журнал сервера.
 	e.exec(t, "UPDATE trainings SET request = '[]'")
-	internal(e.do(t, call{method: "GET", path: optionsPath, bearer: token}))
+	opts := e.do(t, call{method: "GET", path: optionsPath, bearer: token})
+	presets, _ := opts.body["presets"].([]any)
+	for _, p := range presets {
+		if p.(map[string]any)["kind"] == "last" {
+			t.Fatalf("unreadable last request offered as a preset: %s", opts.raw)
+		}
+	}
+	if opts.status != http.StatusOK {
+		t.Fatalf("options with an unreadable last request: %d %s", opts.status, opts.raw)
+	}
 
 	e.exec(t, "ALTER TABLE training_items RENAME TO training_items_gone")
 	internal(get())
@@ -569,6 +602,8 @@ func TestQuestionReports(t *testing.T) {
 	wantError(t, report(token, draft, map[string]any{"kind": "other"}), http.StatusNotFound, "not_found")
 	approved := "d3f00000-0000-4000-8000-000000000003"
 	wantError(t, report(other, approved, map[string]any{"kind": "other", "trainingId": tid}), http.StatusNotFound, "not_found")
+	// Своя тренировка, но задание не из неё — привязка была бы ложной.
+	wantError(t, report(token, approved, map[string]any{"kind": "other", "trainingId": tid}), http.StatusNotFound, "not_found")
 	wantError(t, report(token, approved, map[string]any{"kind": "wrong"}), http.StatusBadRequest, "bad_request")
 	long := make([]rune, 2001)
 	for i := range long {

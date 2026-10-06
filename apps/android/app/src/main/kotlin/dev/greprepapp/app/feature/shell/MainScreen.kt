@@ -61,7 +61,7 @@ fun MainScreen(
     val stack = rememberNavBackStack(MainRoute.Tabs)
 
     fun back() {
-        stack.removeLastOrNull()
+        stack.popUnlessRoot()
     }
 
     fun replaceTop(route: MainRoute) {

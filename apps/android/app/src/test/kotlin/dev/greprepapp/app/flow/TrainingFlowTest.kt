@@ -3,6 +3,7 @@ package dev.greprepapp.app.flow
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasTestTag
@@ -19,12 +20,17 @@ import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import dagger.hilt.android.testing.HiltTestApplication
 import dev.greprepapp.api.models.QuestionReport
+import dev.greprepapp.api.models.QuestionType
+import dev.greprepapp.api.models.Section
+import dev.greprepapp.api.models.StepState
 import dev.greprepapp.api.models.TrainingMode
 import dev.greprepapp.app.MainActivity
 import dev.greprepapp.app.testing.FakeNetwork
 import dev.greprepapp.app.testing.Fixtures
 import dev.greprepapp.app.testing.ManualTicker
 import dev.greprepapp.app.testing.MutableClock
+import dev.greprepapp.app.testing.plan
+import dev.greprepapp.app.testing.step
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -203,6 +209,91 @@ class TrainingFlowTest {
         compose.onNodeWithTag("today.continue").assertTextContains("вопрос 2 из 2", substring = true)
         click("today.continue")
         compose.waitUntilAtLeastOneExists(hasText("diplomat", substring = true), TIMEOUT)
+    }
+
+    @Test
+    fun checkFinishesFromTheQuestionList() {
+        server.nextSession = Fixtures.session(Fixtures.tc1, Fixtures.se, mode = TrainingMode.CHECK)
+        openBuilder()
+        click("builder.mode.check")
+        click("builder.start")
+        click("option.A")
+        click("question.next")
+        // Второй вопрос — «Пропустить»: после последнего открывается список вопросов.
+        click("session.secondary")
+        waitFor("overview")
+        click("overview.0")
+        waitFor("question.prompt")
+        compose.onNodeWithTag("option.A").assertIsSelected()
+        click("question.overview")
+        click("overview.finish")
+        waitFor("summary")
+        compose.waitUntil(TIMEOUT) { server.finishes.size == 1 }
+        assertEquals(false, server.finishes.single().timedOut)
+        assertTrue(server.answers.flatMap { it.answers }.any { it.position == 0 && it.optionIds == listOf("A") })
+    }
+
+    @Test
+    fun dontKnowCountsAsAMistakeAndRepeatStartsPractice() {
+        openBuilder()
+        click("builder.start")
+        click("question.dontKnow")
+        waitFor("explanation")
+        compose.onNodeWithTag("explanation.verdict").assertTextEquals("Верный ответ — A, equivocal.")
+        click("question.next")
+        click("question.dontKnow")
+        waitFor("explanation")
+        click("question.next")
+        waitFor("summary")
+        compose.onNodeWithTag("summary.correct").assertTextEquals("0")
+
+        server.nextSession = Fixtures.session(Fixtures.tc1, id = "22222222-0000-4000-8000-000000000002")
+        click("summary.repeat")
+        waitFor("question.prompt")
+        val repeat = server.starts.last()
+        assertEquals(TrainingMode.PRACTICE, repeat.mode)
+        assertEquals(listOf("contrast-signals", "close-synonyms"), repeat.topicIds)
+        assertEquals(5, repeat.count)
+    }
+
+    @Test
+    fun topicsShapeTheRequest() {
+        openBuilder()
+        click("builder.topics")
+        click("topic.cause-effect")
+        compose.onNodeWithTag("topics.done").assertTextEquals("Готово · 3 задания")
+        click("topics.done")
+        click("builder.start")
+        waitFor("question.prompt")
+        assertEquals(listOf("contrast-signals"), server.starts.single().topicIds)
+    }
+
+    @Test
+    fun timedPresetStartsAsItIs() {
+        openBuilder()
+        click("builder.preset.timed")
+        click("builder.start")
+        waitFor("question.prompt")
+        val request = server.starts.single()
+        assertEquals(TrainingMode.CHECK, request.mode)
+        assertEquals(setOf(QuestionType.TEXT_COMPLETION, QuestionType.SENTENCE_EQUIVALENCE), request.questionTypes)
+        assertEquals(12, request.count)
+    }
+
+    @Test
+    fun todayQuantStepOpensTheBuilderOnQuant() {
+        server.plan = plan(step("q", Section.QUANT, StepState.CURRENT, 10, "Quant: Quantitative Comparison"))
+        scenario = ActivityScenario.launch(MainActivity::class.java)
+        waitFor("signin.dev.name")
+        compose.onNodeWithTag("signin.dev.name").performTextInput("stepper")
+        compose.onNodeWithTag("signin.dev.submit").performClick()
+        click("today.start")
+        waitFor("builder.start")
+        compose.onNodeWithTag("builder.section.quant").assertIsSelected()
+        compose.onNodeWithTag("builder.type").assertTextContains("Quantitative Comparison", substring = true)
+        click("builder.start")
+        waitFor("question.prompt")
+        assertEquals(Section.QUANT, server.starts.single().section)
     }
 
     @Test

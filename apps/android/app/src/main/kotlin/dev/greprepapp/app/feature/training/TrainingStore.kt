@@ -38,17 +38,61 @@ class TrainingStore(
     val trainings: StateFlow<Map<String, StoredTraining>> = mutableTrainings.asStateFlow()
     val reports: StateFlow<List<PendingReport>> = mutableReports.asStateFlow()
 
-    /** Прочитать с диска один раз. Нечитаемый файл (старый формат, испорчен) пропускается и удаляется. */
+    /**
+     * Прочитать с диска один раз. Возвращает, что не прочиталось (класс ошибки, без пути), — для отчёта: в
+     * файле могли быть неотправленные ответы, и потеря не должна быть тихой. Испорченное или старого формата
+     * (новое обязательное поле в договоре) откладывается в сторону, а не стирается; не открывшееся сейчас
+     * (IOException) не трогается — прочтётся в следующий раз.
+     */
     @Synchronized
-    fun load() {
-        if (loaded) return
+    fun load(): List<String> {
+        if (loaded) return emptyList()
         loaded = true
+        val dropped = mutableListOf<String>()
         val files = dir.listFiles { f -> f.name.endsWith(TRAINING_SUFFIX) }.orEmpty()
         mutableTrainings.value =
             files
-                .mapNotNull { file -> read(file, StoredTraining.serializer()).also { if (it == null) file.delete() } }
-                .associateBy { it.id }
-        mutableReports.value = read(reportsFile, ListSerializer(PendingReport.serializer())).orEmpty()
+                .mapNotNull { file ->
+                    when (val r = read(file, StoredTraining.serializer())) {
+                        is Read.Ok -> {
+                            r.value
+                        }
+
+                        Read.Missing -> {
+                            null
+                        }
+
+                        is Read.Failed -> {
+                            dropped += r.reason
+                            if (r is Read.Corrupt) setAside(file)
+                            null
+                        }
+                    }
+                }.associateBy { it.id }
+        mutableReports.value =
+            when (val r = read(reportsFile, ListSerializer(PendingReport.serializer()))) {
+                is Read.Ok -> {
+                    r.value
+                }
+
+                Read.Missing -> {
+                    emptyList()
+                }
+
+                // Очередь жалоб — один файл, следующая запись перезаписала бы его: и испорченный, и не
+                // открывшийся — в сторону.
+                is Read.Failed -> {
+                    dropped += r.reason
+                    setAside(reportsFile)
+                    emptyList()
+                }
+            }
+        return dropped
+    }
+
+    /** Отложить нечитаемый файл: он больше не читается, но и не пропадает (выход сотрёт и его). */
+    private fun setAside(file: File) {
+        file.renameTo(File(dir, file.name + BROKEN_SUFFIX))
     }
 
     @Synchronized
@@ -92,19 +136,44 @@ class TrainingStore(
         if (dir.exists() && !dir.deleteRecursively()) throw IOException("trainings delete failed")
     }
 
+    /** Итог чтения файла: прочитан, нет его, испорчен или не открылся сейчас. */
+    private sealed interface Read<out T> {
+        data class Ok<T>(
+            val value: T,
+        ) : Read<T>
+
+        data object Missing : Read<Nothing>
+
+        sealed interface Failed : Read<Nothing> {
+            val reason: String
+        }
+
+        data class Corrupt(
+            override val reason: String,
+        ) : Failed
+
+        data class Unavailable(
+            override val reason: String,
+        ) : Failed
+    }
+
     private fun <T> read(
         file: File,
         serializer: KSerializer<T>,
-    ): T? {
-        if (!file.exists()) return null
+    ): Read<T> {
+        if (!file.exists()) return Read.Missing
+        val text =
+            try {
+                file.readText()
+            } catch (failure: IOException) {
+                return Read.Unavailable(failure.javaClass.simpleName)
+            }
         return try {
-            ApiJson.decodeFromString(serializer, file.readText())
-        } catch (_: IOException) {
-            null
-        } catch (_: SerializationException) {
-            null
-        } catch (_: IllegalArgumentException) {
-            null
+            Read.Ok(ApiJson.decodeFromString(serializer, text))
+        } catch (failure: SerializationException) {
+            Read.Corrupt(failure.javaClass.simpleName)
+        } catch (failure: IllegalArgumentException) {
+            Read.Corrupt(failure.javaClass.simpleName)
         }
     }
 
@@ -121,5 +190,6 @@ class TrainingStore(
 
     private companion object {
         const val TRAINING_SUFFIX = ".training.json"
+        const val BROKEN_SUFFIX = ".broken"
     }
 }

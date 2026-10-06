@@ -88,12 +88,10 @@ class ReportViewModel
             val s = mutableState.value
             val kind = s.kind ?: return
             if (!s.canSend) return
-            mutableState.update { it.copy(sending = true) }
-            viewModelScope.launch {
-                val text = s.text.trim().takeIf { it.isNotEmpty() }
-                repository.report(questionId, QuestionReport(kind = kind, text = text, trainingId = trainingId))
-                mutableState.update { it.copy(sending = false, sent = true) }
-            }
+            // Жалоба — в очередь области приложения: «Назад» сразу после «Отправить» её не теряет.
+            val text = s.text.trim().takeIf { it.isNotEmpty() }
+            repository.recordReport(questionId, QuestionReport(kind = kind, text = text, trainingId = trainingId))
+            mutableState.update { it.copy(sent = true) }
         }
 
         private companion object {

@@ -26,6 +26,7 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import java.io.File
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
@@ -57,6 +58,16 @@ class TrainingRepositoryTest {
             assertEquals(g.clock.millis(), stored.startedAtMillis)
             assertEquals(listOf(request), g.trainingsApi.starts)
             assertEquals(stored, g.trainings.active.first())
+        }
+
+    @Test
+    fun anUnreadableTrainingOnTheDeviceIsReported() =
+        runTest(main.dispatcher) {
+            val dir = File(folder.root, "trainings").apply { mkdirs() }
+            File(dir, "old.training.json").writeText("""{"session":{}}""")
+            val g = graph()
+            g.settle()
+            assertTrue(g.publicApi.reports.any { it.message.startsWith("training file unreadable") })
         }
 
     @Test
@@ -210,6 +221,109 @@ class TrainingRepositoryTest {
         }
 
     @Test
+    fun oneBrokenTrainingDoesNotHoldBackTheOthers() =
+        runTest(main.dispatcher) {
+            val g = graph()
+            g.trainingsApi.start = Reply.Ok(Fixtures.session(Fixtures.tc1, id = "old"))
+            val old = g.started()
+            g.trainingsApi.answersFor[old] = Reply.Error(500)
+            g.trainings.answer(old, 0, listOf("A"))
+            g.clock.now = g.clock.now.plusSeconds(60)
+            g.trainingsApi.start = Reply.Ok(Fixtures.session(Fixtures.tc1, id = "new"))
+            val new = g.started()
+            g.trainings.answer(new, 0, listOf("A"))
+            g.trainings.report(Fixtures.tc1.id, QuestionReport(QuestionReport.Kind.OTHER, trainingId = new))
+            g.settle()
+            assertEquals("старая ждёт следующего раза", setOf(0), g.trainingStore.get(old)!!.unsent)
+            assertTrue(
+                "новая ушла",
+                g.trainingStore
+                    .get(new)!!
+                    .unsent
+                    .isEmpty(),
+            )
+            assertTrue(
+                "жалобы тоже",
+                g.trainingStore.reports.value
+                    .isEmpty(),
+            )
+        }
+
+    @Test
+    fun refusalsThatMayPassLaterKeepTheQueue() =
+        runTest(main.dispatcher) {
+            val g = graph()
+            val id = g.started()
+            for (status in listOf(403, 408, 429)) {
+                g.trainingsApi.answers = Reply.Error(status, "refused")
+                g.trainings.answer(id, 0, listOf("A"))
+                g.settle()
+                assertEquals(
+                    "$status — не выбрасывать: подписка вернётся, ограничение снимется",
+                    setOf(0),
+                    g.trainingStore.get(id)!!.unsent,
+                )
+            }
+        }
+
+    @Test
+    fun aCheckWhoseTimeRanOutIsFinishedWithoutTheScreen() =
+        runTest(main.dispatcher) {
+            val g = graph()
+            g.trainingsApi.start = Reply.Ok(Fixtures.session(Fixtures.tc1, Fixtures.se, mode = TrainingMode.CHECK))
+            val id = g.started()
+            g.clock.now = g.clock.now.plusSeconds(3600)
+            g.foreground.events.tryEmit(Unit)
+            g.settle()
+            val t = g.trainingStore.get(id)!!
+            assertEquals(true, t.finish?.timedOut)
+            assertTrue("конец ушёл на сервер", t.finishSent)
+            assertNull("в «Продолжить» её нет", g.trainings.active.first())
+        }
+
+    @Test
+    fun anAbandonedTrainingLeavesTheDeviceOnceItsAnswersAreSent() =
+        runTest(main.dispatcher) {
+            val g = graph()
+            g.trainingsApi.start = Reply.Ok(Fixtures.session(Fixtures.tc1, Fixtures.se, id = "abandoned"))
+            val abandoned = g.started()
+            g.trainings.answer(abandoned, 0, listOf("A"))
+            g.clock.now = g.clock.now.plusSeconds(60)
+            g.trainingsApi.start = Reply.Ok(Fixtures.session(Fixtures.tc1, id = "current"))
+            val current = g.started()
+            g.settle()
+            assertEquals(
+                listOf(abandoned),
+                g.trainingsApi.sentAnswers
+                    .map { it.first }
+                    .distinct(),
+            )
+            assertNull("брошенная — прочь, когда её ответы дошли", g.trainingStore.get(abandoned))
+            assertEquals(
+                current,
+                g.trainings.active
+                    .first()
+                    ?.id,
+            )
+        }
+
+    @Test
+    fun finishedTrainingIsNoLongerOfferedToContinue() =
+        runTest(main.dispatcher) {
+            val g = graph()
+            val id = g.started()
+            assertEquals(
+                id,
+                g.trainings.active
+                    .first()
+                    ?.id,
+            )
+            g.trainings.finish(id, timedOut = false)
+            g.settle()
+            assertNull(g.trainings.active.first())
+        }
+
+    @Test
     fun reportsWaitForTheNetwork() =
         runTest(main.dispatcher) {
             val g = graph()
@@ -262,7 +376,7 @@ class TrainingRepositoryTest {
         }
 
     @Test
-    fun oldFinishedTrainingsArePrunedButUnfinishedStay() =
+    fun oldFinishedAndAbandonedTrainingsArePruned() =
         runTest(main.dispatcher) {
             val g = graph()
             val ids =
@@ -277,8 +391,12 @@ class TrainingRepositoryTest {
             g.started()
             g.settle()
             val kept = g.trainingStore.trainings.value.keys
-            assertTrue("незаконченная остаётся", ids[2] in kept)
-            assertEquals("законченных — три последних", setOf("id-4", "id-5", "id-2", "id-3", "id-6"), kept)
+            assertEquals(
+                "законченных — три последних; брошенная незаконченная (id-3) — прочь, её ответы уже дошли",
+                setOf("id-2", "id-4", "id-5", "id-6"),
+                kept,
+            )
+            assertTrue(ids[2] !in kept)
         }
 
     @Test

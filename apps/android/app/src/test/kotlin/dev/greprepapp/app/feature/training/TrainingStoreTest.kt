@@ -34,13 +34,34 @@ class TrainingStoreTest {
     }
 
     @Test
-    fun unreadableFileIsDroppedNotFatal() {
+    fun unreadableFileIsSetAsideAndReported() {
         val dir = File(folder.root, "trainings").apply { mkdirs() }
         File(dir, "broken.training.json").writeText("{not json")
         val store = TrainingStore(folder.root)
-        store.load()
+        val dropped = store.load()
         assertTrue(store.trainings.value.isEmpty())
-        assertFalse("испорченный файл убран, чтобы не читать его каждый раз", File(dir, "broken.training.json").exists())
+        assertEquals("о потере — в отчёт, по классу ошибки", listOf("JsonDecodingException"), dropped)
+        assertFalse("второй раз не читается", File(dir, "broken.training.json").exists())
+        assertTrue("файл не стёрт — отложен, неотправленное в нём можно достать", File(dir, "broken.training.json.broken").exists())
+    }
+
+    @Test
+    fun fileThatCannotBeOpenedNowIsKept() {
+        // Папка на месте файла: чтение бросает IOException, как недоступный в эту минуту файл.
+        val dir = File(folder.root, "trainings").apply { mkdirs() }
+        val busy = File(dir, "busy.training.json").apply { mkdirs() }
+        val dropped = TrainingStore(folder.root).load()
+        assertEquals(1, dropped.size)
+        assertTrue("не порча — не трогаем, прочтётся в следующий раз", busy.exists())
+    }
+
+    @Test
+    fun unreadableReportsAreSetAsideAndReported() {
+        val dir = File(folder.root, "trainings").apply { mkdirs() }
+        File(dir, "reports.json").writeText("[{")
+        val store = TrainingStore(folder.root)
+        assertEquals(1, store.load().size)
+        assertTrue(File(dir, "reports.json.broken").exists())
     }
 
     @Test

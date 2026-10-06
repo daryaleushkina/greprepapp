@@ -1,5 +1,6 @@
 package dev.greprepapp.app.feature.training
 
+import androidx.lifecycle.viewModelScope
 import dev.greprepapp.api.models.TrainingMode
 import dev.greprepapp.app.feature.training.SessionViewModel.UiState
 import dev.greprepapp.app.testing.Fixtures
@@ -7,6 +8,7 @@ import dev.greprepapp.app.testing.MainDispatcherRule
 import dev.greprepapp.app.testing.Reply
 import dev.greprepapp.app.testing.TestGraph
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -157,6 +159,55 @@ class SessionViewModelTest {
                 vm.screen.training.finish
                     ?.timedOut,
             )
+        }
+
+    @Test
+    fun anAnswerSurvivesClosingTheScreenRightAway() =
+        runTest(main.dispatcher) {
+            val vm = open(TrainingMode.CHECK)
+            val id = vm.screen.training.id
+            vm.select("B")
+            // Человек нажал «Закрыть» сразу после выбора: модель экрана уходит вместе с ним.
+            vm.viewModelScope.cancel()
+            advanceUntilIdle()
+            assertEquals(
+                listOf("B"),
+                graph.trainingStore
+                    .get(id)
+                    ?.answer(0)
+                    ?.optionIds,
+            )
+        }
+
+    @Test
+    fun aQuickFlagThenChoiceKeepsTheFlag() =
+        runTest(main.dispatcher) {
+            val vm = open(TrainingMode.CHECK)
+            vm.toggleFlag()
+            vm.select("B")
+            advanceUntilIdle()
+            val answer = vm.screen.training.answer(0)!!
+            assertTrue("отметка не сбросилась выбором", answer.flagged)
+            assertEquals(listOf("B"), answer.optionIds)
+            vm.toggleFlag()
+            vm.toggleFlag()
+            advanceUntilIdle()
+            assertTrue(
+                "двойное нажатие — снять и поставить, а не дважды поставить",
+                vm.screen.training
+                    .answer(0)!!
+                    .flagged,
+            )
+        }
+
+    @Test
+    fun practiceCannotMoveOnBeforeTheAnswerIsChecked() =
+        runTest(main.dispatcher) {
+            val vm = open()
+            vm.next()
+            advanceUntilIdle()
+            assertEquals(0, vm.screen.position)
+            assertNull(vm.screen.result)
         }
 
     @Test

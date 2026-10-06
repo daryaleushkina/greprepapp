@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"slices"
 	"time"
@@ -60,7 +61,11 @@ func (s *Service) GetTrainingOptions(ctx context.Context, params api.GetTraining
 
 	presets := []api.TrainingPreset{}
 	last, hasLast, err := s.lastRequest(qctx, p.user.ID)
-	if err != nil {
+	if errors.Is(err, errUnreadableRequest) {
+		// Старый формат запроса после правки договора не должен закрывать конструктор насовсем: набор «Как в
+		// прошлый раз» пропадает, сбой — в журнал.
+		s.log.LogAttrs(ctx, slog.LevelError, "last training request", slog.String("error", err.Error()))
+	} else if err != nil {
 		return nil, err
 	}
 	timedSection := api.SectionVerbal
@@ -149,10 +154,13 @@ func (s *Service) lastRequest(ctx context.Context, userID uuid.UUID) (r api.Trai
 		return r, false, fmt.Errorf("last training request: %w", err)
 	}
 	if err := r.UnmarshalJSON(raw); err != nil {
-		return r, false, fmt.Errorf("decode last training request: %w", err)
+		return r, false, fmt.Errorf("%w: %w", errUnreadableRequest, err)
 	}
 	return r, true, nil
 }
+
+// errUnreadableRequest — сохранённый запрос прошлой тренировки не разбирается по нынешнему договору.
+var errUnreadableRequest = errors.New("decode last training request")
 
 // StartTraining подбирает задания и отдаёт сессию целиком, чтобы она дожила без сети.
 func (s *Service) StartTraining(ctx context.Context, req *api.TrainingRequest) (*api.TrainingSession, error) {
@@ -291,8 +299,11 @@ func (s *Service) SubmitTrainingAnswers(ctx context.Context, req *api.AnswerBatc
 			if ids == nil {
 				ids = []string{}
 			}
+			// Время ответа — по часам устройства (отвечали без сети), но не раньше начала и не позже, чем ответ
+			// дошёл: иначе ответ из «будущего» навсегда закрыл бы вопрос для следующих ответов «Проверки».
+			answeredAt := clampTime(a.AnsweredAt, tr.StartedAt, s.now())
 			_, err = q.SaveTrainingAnswer(tctx, db.SaveTrainingAnswerParams{
-				OptionIds: ids, DontKnow: a.DontKnow, Flagged: a.Flagged, AnsweredAt: &a.AnsweredAt,
+				OptionIds: ids, DontKnow: a.DontKnow, Flagged: a.Flagged, AnsweredAt: &answeredAt,
 				ElapsedMs: &a.ElapsedMs, Correct: &correct, TrainingID: tr.ID, Position: a.Position,
 				KeepFirst: tr.Mode == string(api.TrainingModePractice),
 			})
@@ -388,7 +399,7 @@ func summaryOf(tr db.Training, rows []db.ListTrainingItemsRow) *api.TrainingSumm
 
 // ReportQuestion — «Сообщить об ошибке» в задании.
 func (s *Service) ReportQuestion(ctx context.Context, req *api.QuestionReport, params api.ReportQuestionParams) error {
-	p, err := principalFrom(ctx)
+	p, err := s.trainee(ctx)
 	if err != nil {
 		return err
 	}
@@ -398,6 +409,14 @@ func (s *Service) ReportQuestion(ctx context.Context, req *api.QuestionReport, p
 	if id, ok := req.TrainingId.Get(); ok {
 		if _, err := s.q.GetTraining(qctx, db.GetTrainingParams{ID: id, UserID: p.user.ID}); err != nil {
 			return trainingLookupError(err)
+		}
+		// Привязка к тренировке — только если задание из неё: иначе в админке была бы ложная подсказка.
+		in, err := s.q.TrainingHasQuestion(qctx, db.TrainingHasQuestionParams{TrainingID: id, QuestionID: params.QuestionId})
+		if err != nil {
+			return fmt.Errorf("check training question: %w", err)
+		}
+		if !in {
+			return apperr.New(http.StatusNotFound, apperr.NotFound, "question is not in the training", nil)
 		}
 		trainingID = &id
 	}

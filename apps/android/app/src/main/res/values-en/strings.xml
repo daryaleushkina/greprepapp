@@ -162,6 +162,7 @@
     <string name="summary_done">Done</string>
     <string name="summary_repeat">Review · %1$s</string>
     <string name="summary_perfect">No mistakes — nothing to review.</string>
+    <string name="summary_ran_out">No mistakes, but %1$s ran out of time.</string>
     <string name="review_title_practice">Practice review</string>
     <string name="review_title_check">Check review</string>
     <string name="review_all">All · %1$d</string>

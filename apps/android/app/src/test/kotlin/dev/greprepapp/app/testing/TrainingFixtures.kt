@@ -269,6 +269,9 @@ class FakeTrainingsApi : TrainingsApi {
     var options: Reply<TrainingOptions> = Reply.Ok(Fixtures.options())
     var start: Reply<TrainingSession> = Reply.Ok(Fixtures.session(Fixtures.tc1, Fixtures.se))
     var answers: Reply<Unit> = Reply.Ok(Unit)
+
+    /** Свой ответ сервера для отдельной тренировки (одна «сломанная» среди целых). */
+    val answersFor = mutableMapOf<String, Reply<Unit>>()
     var finish: Reply<TrainingSummary> = Reply.Ok(TrainingSummary(0, 1, 0, 0, emptyList()))
     var report: Reply<Unit> = Reply.Ok(Unit)
 
@@ -299,7 +302,7 @@ class FakeTrainingsApi : TrainingsApi {
     ): Response<Unit> {
         answersGate?.await()
         sentAnswers += trainingId to answerBatch
-        return answers.toResponseNoContent()
+        return (answersFor[trainingId] ?: answers).toResponseNoContent()
     }
 
     override suspend fun finishTraining(

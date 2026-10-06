@@ -10,21 +10,25 @@ ORDER BY t.position, t.id;
 -- name: GetLastTrainingRequest :one
 SELECT request FROM trainings WHERE user_id = $1 ORDER BY started_at DESC LIMIT 1;
 
--- Подбор заданий: только проверенные, сначала те, что человек ещё не видел, внутри — случайно.
+-- Подбор заданий: только проверенные, сначала те, что человек ещё не видел, внутри — случайно. Виденное —
+-- по тренировкам самого человека (индекс по user_id), а не по всем показам задания всем людям.
 -- name: PickQuestions :many
+WITH seen AS (
+  SELECT DISTINCT i.question_id
+  FROM trainings tr
+  JOIN training_items i ON i.training_id = tr.id
+  WHERE tr.user_id = sqlc.arg(user_id)
+)
 SELECT q.id
 FROM questions q
 JOIN topics t ON t.id = q.topic_id
+LEFT JOIN seen s ON s.question_id = q.id
 WHERE q.status = 'approved'
   AND t.section = sqlc.arg(section)
   AND q.question_type = ANY (sqlc.arg(question_types)::text[])
   AND (cardinality(sqlc.arg(topic_ids)::text[]) = 0 OR q.topic_id = ANY (sqlc.arg(topic_ids)::text[]))
   AND (sqlc.narg(difficulty)::text IS NULL OR q.difficulty = sqlc.narg(difficulty)::text)
-ORDER BY EXISTS (
-    SELECT 1 FROM training_items i
-    JOIN trainings tr ON tr.id = i.training_id
-    WHERE tr.user_id = sqlc.arg(user_id) AND i.question_id = q.id
-  ), random()
+ORDER BY s.question_id IS NOT NULL, random()
 LIMIT sqlc.arg(max_count)::integer;
 
 -- name: CreateTraining :one
@@ -83,6 +87,9 @@ SELECT EXISTS (
       WHERE i.question_id = q.id AND tr.user_id = sqlc.arg(user_id)
     ))
 );
+
+-- name: TrainingHasQuestion :one
+SELECT EXISTS (SELECT 1 FROM training_items WHERE training_id = $1 AND question_id = $2);
 
 -- name: InsertQuestionReport :exec
 INSERT INTO question_reports (user_id, question_id, training_id, kind, text) VALUES ($1, $2, $3, $4, $5);

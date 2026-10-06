@@ -21,6 +21,7 @@ import dev.greprepapp.app.core.session.SessionManager
 import dev.greprepapp.app.core.session.SessionState
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -34,6 +35,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.time.Clock
+import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -85,8 +87,12 @@ class TrainingRepository
         /** Незаконченная тренировка для «Продолжить» на «Сегодня» — самая свежая. */
         val active: Flow<StoredTraining?> =
             store.trainings
-                .map { all -> all.values.filterNot { it.isFinished }.maxByOrNull { it.startedAtMillis } }
-                .distinctUntilChanged()
+                .map { all ->
+                    all.values.filterNot { it.isFinished || isExpired(it) }.maxByOrNull { it.startedAtMillis }
+                }.distinctUntilChanged()
+
+        /** «Проверка», у которой вышло время, пока экрана не было: её закончит ближайшая отправка. */
+        private fun isExpired(t: StoredTraining): Boolean = TrainingRules.remainingSeconds(t, clock.millis()) == 0
 
         init {
             scope.launch(io) { load() }
@@ -96,11 +102,8 @@ class TrainingRepository
         }
 
         private fun load() {
-            try {
-                store.load()
-            } catch (failure: IOException) {
-                reporter.report("trainings load failed: ${failure.javaClass.simpleName}", route = ROUTE)
-            }
+            // Не прочиталось — в отчёт: в файле могли быть ответы, которые так и не дошли до сервера.
+            store.load().forEach { reason -> reporter.report("training file unreadable: $reason", route = ROUTE) }
         }
 
         /** Тренировка с устройства; первое значение — после чтения с диска, так что null — её правда нет. */
@@ -146,6 +149,39 @@ class TrainingRepository
                 }
             }
         }
+
+        /**
+         * Действие человека — в области приложения, а не экрана: закрыл тренировку сразу после нажатия — запись
+         * всё равно доходит. Старт без диспетчеризации: до первой приостановки код идёт в порядке нажатий, и очередь
+         * к замку правок (честный Mutex) — тоже.
+         */
+        private fun durable(block: suspend () -> Unit) {
+            scope.launch(start = CoroutineStart.UNDISPATCHED) { block() }
+        }
+
+        fun recordAnswer(
+            trainingId: String,
+            position: Int,
+            optionIds: List<String>,
+            dontKnow: Boolean = false,
+            flagged: Boolean = false,
+            elapsedMs: Int = 0,
+        ) = durable { answer(trainingId, position, optionIds, dontKnow, flagged, elapsedMs) }
+
+        fun recordPosition(
+            trainingId: String,
+            position: Int,
+        ) = durable { moveTo(trainingId, position) }
+
+        fun recordFinish(
+            trainingId: String,
+            timedOut: Boolean,
+        ) = durable { finish(trainingId, timedOut) }
+
+        fun recordReport(
+            questionId: String,
+            report: QuestionReport,
+        ) = durable { report(questionId, report) }
 
         /** Ответ на позицию: ложится на устройство и встаёт в очередь отправки. */
         suspend fun answer(
@@ -229,13 +265,20 @@ class TrainingRepository
                 true
             }
 
-        /** Старые законченные и отправленные тренировки — прочь; последние несколько остаются для разбора. */
+        /**
+         * Уборка: старые законченные и отправленные — прочь, последние несколько остаются для разбора. Брошенные
+         * незаконченные (человек начал новую) — прочь, когда их ответы дошли до сервера: продолжить можно только
+         * самую свежую.
+         */
         private fun prune() {
-            store.trainings.value.values
+            val all = store.trainings.value.values
+            all
                 .filter { it.isFinished && it.isSynced }
                 .sortedByDescending { it.startedAtMillis }
                 .drop(KEEP_FINISHED)
                 .forEach { store.remove(it.id) }
+            val unfinished = all.filterNot { it.isFinished }.sortedByDescending { it.startedAtMillis }
+            unfinished.drop(1).filter { it.unsent.isEmpty() }.forEach { store.remove(it.id) }
         }
 
         fun requestSync() {
@@ -247,41 +290,62 @@ class TrainingRepository
          * Нет сети или сервер не в себе — круг обрывается и повторится по следующему поводу.
          */
         suspend fun sync() {
-            if (!syncing.tryLock()) {
-                syncAgain = true
-                return
-            }
-            try {
-                do {
-                    syncAgain = false
-                    syncOnce()
-                } while (syncAgain)
-            } finally {
-                syncing.unlock()
+            while (true) {
+                if (!syncing.tryLock()) {
+                    syncAgain = true
+                    return
+                }
+                try {
+                    do {
+                        syncAgain = false
+                        syncOnce()
+                    } while (syncAgain)
+                } finally {
+                    syncing.unlock()
+                }
+                // Просьба могла прийти между последней проверкой и снятием замка — тогда ещё круг.
+                if (!syncAgain) return
             }
         }
 
         private suspend fun syncOnce() {
             val id = currentSession() ?: return
             withContext(io) { load() }
+            finishExpired()
             for (t in store.trainings.value.values
                 .sortedBy { it.startedAtMillis }) {
-                if (!sendAnswers(t, id)) return
+                when (sendAnswers(t, id)) {
+                    Sent.Stop -> return
+                    Sent.Later -> continue
+                    Sent.Done -> Unit
+                }
                 val fresh = store.trainings.value[t.id] ?: continue
-                if (fresh.finish != null && !fresh.finishSent && fresh.unsent.isEmpty() && !sendFinish(fresh, id)) return
+                if (fresh.finish != null && !fresh.finishSent && fresh.unsent.isEmpty() && sendFinish(fresh, id) == Sent.Stop) return
             }
             sendReports(id)
+            edits.withLock { write(id) { prune() } }
         }
 
-        /** false — круг прервать. */
+        /** «Проверка», у которой вышло время без экрана (приложение закрыли), заканчивается на её же сроке. */
+        private suspend fun finishExpired() {
+            store.trainings.value.values.filter { !it.isFinished && isExpired(it) }.forEach { t ->
+                val limit = t.session.timeLimitSeconds ?: return@forEach
+                val end = Instant.ofEpochMilli(t.startedAtMillis).plusSeconds(limit.toLong()).toString()
+                edit(t.id) { cur -> if (cur.isFinished) cur else cur.copy(finish = TrainingFinish(end, timedOut = true)) }
+            }
+        }
+
+        /** Чем кончилась отправка: дошло (или выброшено как наш баг), отложить эту и идти дальше, прервать круг. */
+        private enum class Sent { Done, Later, Stop }
+
         private suspend fun sendAnswers(
             t: StoredTraining,
             id: Long,
-        ): Boolean {
-            if (t.unsent.isEmpty()) return true
+        ): Sent {
+            if (t.unsent.isEmpty()) return Sent.Done
             val sent = t.unsent.sorted().mapNotNull { t.answers[it] }
             val result = apiCallNoContent { api.submitTrainingAnswers(t.id, AnswerBatch(sent)) }
-            if (!session.isCurrent(id)) return false
+            if (!session.isCurrent(id)) return Sent.Stop
             return settle(result, id, "answers") {
                 // Убрать из очереди только то, что не поменялось, пока ответ летел: новый ответ «Проверки» уйдёт следом.
                 edit(t.id) { cur -> cur.copy(unsent = cur.unsent.filterNot { cur.answers[it] in sent }.toSet()) }
@@ -291,10 +355,10 @@ class TrainingRepository
         private suspend fun sendFinish(
             t: StoredTraining,
             id: Long,
-        ): Boolean {
-            val finish = t.finish ?: return true
+        ): Sent {
+            val finish = t.finish ?: return Sent.Done
             val result = apiCall { api.finishTraining(t.id, finish) }
-            if (!session.isCurrent(id)) return false
+            if (!session.isCurrent(id)) return Sent.Stop
             return settle(result, id, "finish") { edit(t.id) { it.copy(finishSent = true) } }
         }
 
@@ -302,39 +366,49 @@ class TrainingRepository
             for (pending in store.reports.value) {
                 val result = apiCallNoContent { api.reportQuestion(pending.questionId, pending.report) }
                 if (!session.isCurrent(id)) return
-                val keepGoing =
+                val sent =
                     settle(result, id, "report") {
                         edits.withLock { write(id) { store.putReports(store.reports.value - pending) } }
                     }
-                if (!keepGoing) return
+                if (sent == Sent.Stop) return
             }
         }
 
         /**
-         * Итог отправки. Успех — done. Отказ 4xx — наш баг (клиент и сервер разошлись): в отчёт и тоже done, иначе
-         * очередь застрянет навсегда. Нет сети, конец входа, 5xx — круг прервать, отправится потом.
+         * Итог отправки. Успех — done. Отказ, который не пройдёт и потом (400, 404, 409, 410, 422), — наш баг
+         * (клиент и сервер разошлись): в отчёт и тоже done, иначе очередь застрянет навсегда. Нет сети и конец
+         * входа — круг прервать. 5xx и отказы, которые могут пройти позже (403 — подписка вернётся, 408, 429),
+         * — эту отложить, остальные отправлять: одна сломанная тренировка не держит очередь.
          */
         private suspend fun <T> settle(
             result: ApiResult<T>,
             id: Long,
             what: String,
             done: suspend () -> Unit,
-        ): Boolean =
+        ): Sent =
             when (result) {
                 is ApiResult.Ok -> {
                     done()
-                    true
+                    Sent.Done
                 }
 
                 is ApiResult.Failed -> {
                     val failure = result.failure
                     handle(failure, id, what)
-                    if (failure is ApiFailure.Server && failure.status in CLIENT_ERRORS) {
-                        reporter.report("training $what rejected: ${failure.code}", route = ROUTE, requestId = failure.requestId)
-                        done()
-                        true
-                    } else {
-                        false
+                    when {
+                        failure == ApiFailure.Offline || failure == ApiFailure.Unauthorized -> {
+                            Sent.Stop
+                        }
+
+                        failure is ApiFailure.Server && failure.status in PERMANENT -> {
+                            reporter.report("training $what rejected: ${failure.code}", route = ROUTE, requestId = failure.requestId)
+                            done()
+                            Sent.Done
+                        }
+
+                        else -> {
+                            Sent.Later
+                        }
                     }
                 }
             }
@@ -356,7 +430,9 @@ class TrainingRepository
             private const val NO_QUESTIONS = "no_questions"
             private const val KEEP_FINISHED = 3
             private const val MAX_ELAPSED_MS = 86_400_000
-            private val CLIENT_ERRORS = 400..499
+
+            /** Отказы, которые при повторе не пройдут: запрос не по договору. */
+            private val PERMANENT = setOf(400, 404, 409, 410, 422)
             private const val ROUTE = "training"
         }
     }

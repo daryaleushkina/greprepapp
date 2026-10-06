@@ -702,9 +702,7 @@ private fun OverviewPane(
     val answered =
         s.training.answers.values
             .count { it.optionIds.isNotEmpty() }
-    val flagged =
-        s.training.answers.values
-            .count { it.flagged }
+    val flagged = (0 until s.training.total).count { s.flaggedAt(it) }
     Scaffold(
         containerColor = Color.Transparent,
         topBar = { SessionHeader(s, section, actions) },
@@ -752,7 +750,7 @@ private fun OverviewCell(
     val colors = Gp.colors
     val answer = s.training.answer(position)
     val isAnswered = answer?.optionIds?.isNotEmpty() == true
-    val isFlagged = answer?.flagged == true
+    val isFlagged = s.flaggedAt(position)
     val state =
         listOfNotNull(
             stringResource(if (isAnswered) R.string.overview_answered else R.string.overview_empty),
@@ -851,7 +849,17 @@ private fun SummaryPane(
                 StatusLine(icon = R.drawable.ic_timer, text = stringResource(R.string.summary_timed_out))
             }
             if (result.review.isEmpty()) {
-                Text(text = stringResource(R.string.summary_perfect), style = Gp.type.body, color = colors.text)
+                // Ошибок темы нет, но вопросы могли остаться «не успел» — «без ошибок» при 1 из 3 звучало бы фальшиво.
+                val text =
+                    if (result.unanswered > 0) {
+                        stringResource(
+                            R.string.summary_ran_out,
+                            pluralStringResource(R.plurals.questions_count, result.unanswered, result.unanswered),
+                        )
+                    } else {
+                        stringResource(R.string.summary_perfect)
+                    }
+                Text(text = text, style = Gp.type.body, color = colors.text, modifier = Modifier.testTag("summary.noMistakes"))
             } else {
                 Text(
                     text = stringResource(R.string.summary_review),
@@ -901,12 +909,12 @@ private fun summaryLine(
     result: TrainingResult,
 ): String {
     val session = s.training.session
-    val minutes = (result.durationSeconds.toDouble() / SECONDS_PER_MINUTE).roundToInt().coerceAtLeast(1)
+    val (minutes, limit) =
+        TrainingRules.summaryMinutes(result.durationSeconds, if (s.training.isCheck) session.timeLimitSeconds else null)
     // «11 минут» не разрывается переносом строки.
     val duration = pluralStringResource(R.plurals.today_minutes, minutes, minutes).replace(' ', NBSP)
     val sectionLabel = session.section.study().label()
-    return if (s.training.isCheck) {
-        val limit = (session.timeLimitSeconds ?: 0) / SECONDS_PER_MINUTE
+    return if (limit != null) {
         listOf(
             stringResource(R.string.mode_check),
             sectionLabel,

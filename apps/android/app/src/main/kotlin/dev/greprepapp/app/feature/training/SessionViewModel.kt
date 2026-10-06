@@ -55,13 +55,17 @@ class SessionViewModel
             val english: Boolean?,
             /** Второй уровень разбора — «Почему не …?». */
             val whyNotOpen: Boolean,
+            /** Отметки «вернуться», нажатые сейчас: на диск они попадают чуть позже. */
+            val flags: Map<Int, Boolean> = emptyMap(),
         ) {
+            fun flaggedAt(position: Int): Boolean = flags[position] ?: (training.answer(position)?.flagged == true)
+
             val question: Question get() = training.question(position)
             val isLast: Boolean get() = position == training.total - 1
 
             /** «Практика»: ответ уже проверен — виден разбор. */
             val revealed: Boolean get() = !training.isCheck && training.answer(position) != null
-            val flagged: Boolean get() = training.answer(position)?.flagged == true
+            val flagged: Boolean get() = flaggedAt(position)
             val canCheck: Boolean get() = TrainingRules.isComplete(question, selection)
             val missing: List<Int> get() = TrainingRules.missingGroups(question, selection)
             val result: TrainingResult? get() = if (training.isFinished) TrainingRules.result(training) else null
@@ -85,6 +89,7 @@ class SessionViewModel
             val english: Boolean? = null,
             val whyNotOpen: Boolean = false,
             val now: Long = 0,
+            val flags: Map<Int, Boolean> = emptyMap(),
         )
 
         private val local = MutableStateFlow(Local(now = clock.millis()))
@@ -119,6 +124,7 @@ class SessionViewModel
                 overview = l.overview,
                 english = l.english,
                 whyNotOpen = l.whyNotOpen,
+                flags = l.flags,
             )
         }
 
@@ -149,7 +155,7 @@ class SessionViewModel
                         if (training.isFinished) {
                             timer?.cancel()
                         } else if (TrainingRules.remainingSeconds(training, now) == 0) {
-                            repository.finish(trainingId, timedOut = true)
+                            repository.recordFinish(trainingId, timedOut = true)
                         }
                     }
                 }
@@ -185,15 +191,15 @@ class SessionViewModel
             val s = screen() ?: return
             if (s.training.isCheck || s.revealed) return
             local.update { it.copy(selection = emptyList(), whyNotOpen = false) }
-            viewModelScope.launch {
-                repository.answer(trainingId, s.position, emptyList(), dontKnow = true, elapsedMs = elapsed())
-            }
+            repository.recordAnswer(trainingId, s.position, emptyList(), dontKnow = true, elapsedMs = elapsed())
         }
 
         fun toggleFlag() {
             val s = screen() ?: return
             if (!s.training.isCheck || s.training.isFinished) return
-            save(s.position, s.selection, flagged = !s.flagged)
+            val flagged = !s.flagged
+            local.update { it.copy(flags = it.flags + (s.position to flagged)) }
+            save(s.position, s.selection, flagged = flagged)
         }
 
         private fun save(
@@ -201,10 +207,7 @@ class SessionViewModel
             selection: List<String>,
             flagged: Boolean,
         ) {
-            val elapsed = elapsed()
-            viewModelScope.launch {
-                repository.answer(trainingId, position, selection, flagged = flagged, elapsedMs = elapsed)
-            }
+            repository.recordAnswer(trainingId, position, selection, flagged = flagged, elapsedMs = elapsed())
         }
 
         /** «Дальше» и «Пропустить»: на последнем вопросе «Практика» заканчивается, «Проверка» — к списку. */
@@ -238,16 +241,14 @@ class SessionViewModel
                     whyNotOpen = false,
                 )
             }
-            viewModelScope.launch { repository.moveTo(trainingId, position) }
+            repository.recordPosition(trainingId, position)
         }
 
         fun openOverview() = local.update { it.copy(overview = true) }
 
         fun closeOverview() = local.update { it.copy(overview = false) }
 
-        fun finish() {
-            viewModelScope.launch { repository.finish(trainingId, timedOut = false) }
-        }
+        fun finish() = repository.recordFinish(trainingId, timedOut = false)
 
         fun setEnglish(english: Boolean) = local.update { it.copy(english = english) }
 

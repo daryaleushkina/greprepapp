@@ -157,6 +157,16 @@ class BuilderViewModelTest {
         }
 
     @Test
+    fun aDoubleTapStartsOneTraining() =
+        runTest(main.dispatcher) {
+            val vm = builder()
+            vm.start()
+            vm.start()
+            advanceUntilIdle()
+            assertEquals(1, graph.trainingsApi.starts.size)
+        }
+
+    @Test
     fun withoutNetworkTheBuilderSaysSoAndRetries() =
         runTest(main.dispatcher) {
             graph = TestGraph(this, main.dispatcher, folder.root, token = "token-1").also { it.settle() }

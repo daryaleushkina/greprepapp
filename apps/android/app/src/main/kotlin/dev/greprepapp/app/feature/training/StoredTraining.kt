@@ -9,6 +9,8 @@ import dev.greprepapp.api.models.TrainingSession
 import kotlinx.serialization.Serializable
 import java.time.Instant
 import java.time.format.DateTimeParseException
+import kotlin.math.ceil
+import kotlin.math.roundToInt
 
 /**
  * Тренировка на устройстве: сессия с сервера как есть (задания, ключи, разборы — чтобы дожить без сети) и то,
@@ -161,6 +163,18 @@ object TrainingRules {
         )
     }
 
+    /** Минуты для итога: сколько шла и (у «Проверки») из скольких. */
+    fun summaryMinutes(
+        durationSeconds: Int,
+        limitSeconds: Int?,
+    ): Pair<Int, Int?> {
+        // Лимит — вверх, как «~12 мин» в конструкторе; прошло — по округлению, но не больше лимита: «8 минут из 7»
+        // при честном ограничении времени быть не может.
+        val limit = limitSeconds?.let { ceil(it / SECONDS_PER_MINUTE).toInt() }
+        val minutes = (durationSeconds / SECONDS_PER_MINUTE).roundToInt().coerceAtLeast(1)
+        return (if (limit != null) minutes.coerceAtMost(limit) else minutes) to limit
+    }
+
     /** Сколько шла тренировка: от начала на устройстве до конца; у «Проверки» — не больше её времени. */
     fun durationSeconds(training: StoredTraining): Int {
         val end = training.finish?.let { parseMillis(it.finishedAt) } ?: return 0
@@ -177,4 +191,5 @@ object TrainingRules {
         }
 
     private const val MILLIS = 1000L
+    private const val SECONDS_PER_MINUTE = 60.0
 }

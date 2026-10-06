@@ -183,6 +183,7 @@
     <string name="summary_done">Готово</string>
     <string name="summary_repeat">Повторить · %1$s</string>
     <string name="summary_perfect">Без ошибок — повторять нечего.</string>
+    <string name="summary_ran_out">Ошибок нет, но не успели %1$s.</string>
     <string name="review_title_practice">Разбор тренировки</string>
     <string name="review_title_check">Разбор проверки</string>
     <string name="review_all">Все · %1$d</string>
