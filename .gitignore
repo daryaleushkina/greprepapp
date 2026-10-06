@@ -29,4 +29,7 @@ screenshots/
 # Черновые проверки агентов gp-explorer и gp-click-path: падающие сценарии, снимки, вывод прогонов
 e2e/_explore/
 
+# Вывод Playwright MCP (снимки страниц, логи консоли) при исследовании в браузере
+.playwright-mcp/
+
 .DS_Store
