@@ -178,6 +178,7 @@ cd apps/apple
 sh scripts/generate-project.sh        # GrePrep.xcodeproj из project.yml (в git его нет) + версии пакетов
 open GrePrep.xcodeproj                # схема GrePrep — iPhone и iPad, GrePrepMac — тесты на Mac
 sh scripts/run-sim.sh iphone          # собрать и запустить на своём симуляторе (iphone | ipad | iphone-ios18)
+sh scripts/run-sim.sh stop iphone     # посмотрел — выключить: сам симулятор не гаснет (CLAUDE.md, «Виртуальные телефоны»)
 sh scripts/generate-api.sh            # после правки api/openapi.yaml: клиент в Packages/GPAPI, закоммитить
 sh scripts/generate-project.sh --update   # обновить версии пакетов (Package.resolved)
 sh ../../scripts/hooks/gate-apple     # всё, что проверит pre-push
@@ -232,6 +233,11 @@ sh ../../scripts/hooks/gate-apple     # всё, что проверит pre-push
   (`glassEnabled`): оно преломляет то, что под ним, и кадр каждый раз чуть другой. Допуск — 0,01 % пикселей;
   0,5 % — только у кадров с системной панелью вкладок и с крутилкой (они живые). Записать недостающие —
   прогнать тесты (запишутся и упадут один раз); гейт не записывает (`SNAPSHOT_TESTING_RECORD=never`).
+- **Симуляторы в гейте:** включаются по одному, прямо перед своими тестами (iPhone — после сборки для тестов,
+  iPad — перед снимками), и гаснут сразу после них, а при ошибке или Ctrl-C — в `cleanup`. Гасит гейт только
+  те, что включил сам: уже включённый (смотрят глазами) берёт как есть и не трогает. Перед включением считает
+  телефоны всего Мака (`simctl … booted` и эмуляторы в `adb devices`); пять уже есть — ждёт по 10 с, через
+  15 минут красный с подсказкой, что погасить.
 - **Логотипы Telegram и Google** — фигуры SwiftUI из `scripts/logos/*.svg` (`scripts/svg2swift.py`):
   SVG из каталога система растрирует то чётко, то мыльно, и снимки расходились.
 
@@ -244,12 +250,29 @@ Kotlin 2.4 и Jetpack Compose (Material 3), Android 8+ (minSdk 26), targetSdk 37
 
 ```bash
 cd apps/android
-./gradlew :app:installDebug                # собрать и поставить на запущенный эмулятор (сервер — 10.0.2.2:8090)
 ./gradlew :core:api:generateApi            # после правки api/openapi.yaml: клиент в core/api/src/main/generated, закоммитить
 ./gradlew :app:testDebugUnitTest           # тесты, сценарии через интерфейс и снимки (без сверки)
 ./gradlew :app:recordRoborazziDebug        # переснять эталоны снимков — только при намеренной правке вида
 ./gradlew ktlintFormat                     # стиль кода
 sh ../../scripts/hooks/gate-android        # всё, что проверит pre-push
+```
+
+**Посмотреть глазами — на своей копии эмулятора**, и погасить её сразу после: эмуляторы и симуляторы общие на
+весь Мак, их не больше пяти разом (CLAUDE.md, «Виртуальные телефоны»). AVD проекта — `GrePrep_Pixel_9` и
+`GrePrep_Pixel_Tablet`. С `-read-only` копий одного AVD может быть несколько разом, а всё, что сделано внутри,
+при выключении пропадает; порт — свой, чётный, 5554–5584, по нему устройство зовётся в `adb`. Из сессии Claude
+Code эмулятор запускается только вне песочницы («Грабли», «Android и Robolectric»). Человеку, который смотрит
+сам, `-no-window` не нужен, гасить — так же.
+
+```bash
+adb devices; xcrun simctl list devices booted               # включённых на Маке должно быть меньше пяти
+emulator -avd GrePrep_Pixel_9 -read-only -no-window -no-boot-anim -no-snapshot-save -port 5570 &
+adb -s emulator-5570 wait-for-device
+adb -s emulator-5570 shell 'while [ "$(getprop sys.boot_completed)" != 1 ]; do sleep 1; done'
+ANDROID_SERIAL=emulator-5570 ./gradlew :app:installDebug    # отладочная сборка, сервер — 10.0.2.2:8090
+adb -s emulator-5570 shell am start -n dev.greprepapp.app/.MainActivity
+adb -s emulator-5570 exec-out screencap -p > screen.png
+adb -s emulator-5570 emu kill                               # всегда, и когда что-то упало
 ```
 
 | Путь | Что |
@@ -294,6 +317,10 @@ sh ../../scripts/hooks/gate-android        # всё, что проверит pre
   поверх подменных частей договора); сценарии — Hilt с `TestAppModule` вместо `AppModule` (устройство
   подменено, сеть и разбор ответов — настоящие); снимки — `SnapshotBase`. Покрытие — Kover, порог — в гейте.
   Эмулятор в гейт не входит (решение Даши 06.10.2026); инструментальные тесты — #14.
+- **Память сборки:** демон Gradle — 4 ГБ (`gradle.properties`), процессов тестов — не больше трёх
+  (`maxParallelForks` в `app/build.gradle.kts`; каждый — своя JVM с Robolectric и графикой NATIVE). Потоки,
+  простой демона и Kotlin-демон ограничены для всех проектов Мака в `~/.gradle/gradle.properties` — в проекте
+  их не перекрывать.
 
 ## Токены дизайна
 
@@ -392,9 +419,12 @@ pnpm --dir design/tokens test    # контраст WCAG AA пар «текст 
 
 ### Android и Robolectric
 
-- **Эмулятор из сессии Claude Code не получает аппаратную виртуализацию** («hvf is not enabled», устройство
-  offline) — запускать его из Android Studio, дальше `adb` из сессии работает (#14). Эмулятор в SDK может
-  быть старым (32.x) и не поднимать Android 16 — обновить Emulator в SDK Manager.
+- **Эмулятор в песочнице Bash Claude Code не получает аппаратную виртуализацию**: «hvf is not enabled on this
+  aarch64 host», графика — SwiftShader, устройство так и висит `offline`. Вне песочницы получает (графика
+  Metal, загрузка около 20 с): из сессии — та же команда без песочницы, на это нужно разрешение (авто-режим
+  Claude Code его отклоняет), иначе человек запускает её в Терминале (#14). Android Studio для этого не
+  нужна: эмулятор, запущенный из неё для сессии, живёт без хозяина — сессия кончилась, а он включён.
+  Эмулятор в SDK может быть старым (32.x) и не поднимать Android 16 — обновить Emulator в SDK Manager.
 - **Robolectric на Android 16+ и JDK 21** падает на `jdk.internal.access` — в `testOptions` нужен
   `--add-opens=java.base/jdk.internal.access=ALL-UNNAMED`.
 - **Espresso 3.5** (его тянет Compose UI-test) на Android 17 падает: нет `InputManager.getInstance()` —

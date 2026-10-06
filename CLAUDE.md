@@ -123,7 +123,8 @@ initData, подмена Telegram — `apps/web/src/telegram/mockEnv.ts`) и
   `golangci-lint` (в том числе непроверенные ошибки) → `go test -race` и порог
   покрытия; приложение Apple — клиент API свежий → `swift format` → релизная
   сборка iOS и Mac → юнит-тесты, снимки и сценарии на симуляторах и Mac и порог
-  покрытия; приложение Android — клиент API свежий → ktlint → Android lint →
+  покрытия (симуляторы гейт включает по одному, ждёт места в общей пятёрке и
+  гасит сам, и при ошибке тоже); приложение Android — клиент API свежий → ktlint → Android lint →
   тесты, сценарии и снимки на Robolectric и порог покрытия → релизная сборка без
   входа подменой; затем деплой на сервер. Часть Apple идёт, когда в пуше задеты приложение,
   договор, токены, сервер или сам гейт; часть Android — приложение, договор,
@@ -250,7 +251,8 @@ iPhone, iPad и Mac и Kotlin (Jetpack Compose) для Android. Скиллы
   `GrePrepTests/Snapshots` — iPhone и iPad в обеих темах, широкие экраны и на
   Mac; логика — Swift Testing рядом, сеть — через подменный сервер
   (`StubServer`), без пауз (`eventually`). Новый экран проверяется глазами на
-  своих симуляторах, включая iOS 18 (`scripts/run-sim.sh`). Как устроено —
+  своих симуляторах, включая iOS 18 (`scripts/run-sim.sh`), и симулятор после
+  этого гасится (`scripts/run-sim.sh stop <устройство>`). Как устроено —
   `docs/HANDOFF.md`, «Приложение Apple».
 - **Kotlin:** видимая фича — сценарий через интерфейс в
   `apps/android/app/src/test/.../flow` (Hilt, подменный сервер по договору) и
@@ -259,3 +261,13 @@ iPhone, iPad и Mac и Kotlin (Jetpack Compose) для Android. Скиллы
   (`TestGraph`), без пауз (`advanceUntilIdle`, `waitUntil…`). Компоненты Material
   в наших токенах, иконки — Material Symbols. Как устроено — `docs/HANDOFF.md`,
   «Приложение Android».
+- **Виртуальные телефоны — общие на весь Мак** (правило Даши в глобальном
+  `~/.claude/CLAUDE.md`): эмуляторы и симуляторы всех проектов делят 36 ГБ, а
+  сами не выключаются. Включённых разом — **не больше пяти**, Android и iOS
+  вместе; перед запуском посчитать (`adb devices`,
+  `xcrun simctl list devices booted`), пять есть — ждать. **Своё гасить сразу
+  после проверки, всегда**, и при ошибке тоже; чужое не трогать. Android для
+  своих прогонов — отдельная копия без окна на своём порту (чётный, 5554–5584):
+  `emulator -avd <AVD> -read-only -no-window -no-boot-anim -port <порт>`, после —
+  `adb -s emulator-<порт> emu kill`. Команды — `docs/HANDOFF.md`, «Приложение
+  Android».
