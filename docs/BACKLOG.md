@@ -18,7 +18,6 @@ tools/dev/backlog.sh           # пересобрать это зеркало
 
 ## Ждёт Дарью — сам сделать не могу
 
-- [#1](https://github.com/daryaleushkina/greprepapp/issues/1) telegram-mini-app: найти недостающие файлы скилла
 - [#5](https://github.com/daryaleushkina/greprepapp/issues/5) Вход через Google в приложении Apple: где менять код на id_token
 - [#6](https://github.com/daryaleushkina/greprepapp/issues/6) Аккаунт Apple Developer: подключить к приложению
 - [#7](https://github.com/daryaleushkina/greprepapp/issues/7) Экран входа: ссылки на условия и политику конфиденциальности
@@ -38,3 +37,6 @@ tools/dev/backlog.sh           # пересобрать это зеркало
 - [#8](https://github.com/daryaleushkina/greprepapp/issues/8) Язык приложения и язык плана с сервера могут разойтись
 - [#13](https://github.com/daryaleushkina/greprepapp/issues/13) Приложение Apple: сеть пропала без запроса — нет строки «Нет сети», план не обновляется после
 - [#16](https://github.com/daryaleushkina/greprepapp/issues/16) Android: два тихих случая в кэше плана (после ревью каркаса)
+- [#17](https://github.com/daryaleushkina/greprepapp/issues/17) Сайт: после входа и конца сессии теряется адрес, с которого пришли
+- [#18](https://github.com/daryaleushkina/greprepapp/issues/18) Приложения Apple и Android: дисклеймер ETS в настройках
+- [#19](https://github.com/daryaleushkina/greprepapp/issues/19) Приложение Apple: передавать язык системы при входе (поле locale)
