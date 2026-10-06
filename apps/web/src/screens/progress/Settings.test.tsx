@@ -74,7 +74,7 @@ describe('мини-апп: вход по initData', () => {
       'GET /api/today': () => json(STARTER),
     });
     const { screen } = await renderApp({ path: '/tg/', shell: 'telegram', launch });
-    await expect.element(screen.getByText('Не получилось войти. Попробуйте ещё раз.')).toBeVisible();
+    await expect.element(screen.getByRole('heading', { name: 'Не получилось войти' })).toBeVisible();
     reject = false;
     await screen.getByRole('button', { name: 'Повторить' }).click();
     await expect.element(screen.getByText('Три шага · около 25 минут')).toBeVisible();
@@ -107,7 +107,7 @@ describe('мини-апп: вход по initData', () => {
       },
     });
     const { screen } = await renderApp({ path: '/tg/', shell: 'telegram', launch });
-    await expect.element(screen.getByText('Не получилось войти. Попробуйте ещё раз.')).toBeVisible();
+    await expect.element(screen.getByRole('heading', { name: 'Не получилось войти' })).toBeVisible();
     expect(signIns).toBe(2);
     expect(todayCalls).toBe(1);
   });
@@ -130,13 +130,28 @@ describe('мини-апп: вход по initData', () => {
     await expect.element(screen.getByRole('heading', { level: 1, name: 'Сегодня' })).toBeVisible();
   });
 
+  it.each([
+    [() => apiError(429, 'too_many_requests'), 'Слишком много попыток подряд — подождите минуту.'],
+    [
+      () => {
+        throw new TypeError('Failed to fetch');
+      },
+      'Нет сети — войти получится, когда она появится.',
+    ],
+  ])('вход мини-аппа не прошёл — причина на экране', async (reply, text) => {
+    fakeServer({ 'POST /api/auth/telegram-mini-app': reply });
+    const { screen } = await renderApp({ path: '/tg/', shell: 'telegram', launch });
+    await expect.element(screen.getByText(text)).toBeVisible();
+    await expect.element(screen.getByRole('button', { name: 'Повторить' })).toBeVisible();
+  });
+
   it('ответ входа без токена — ошибка договора: «Не получилось войти» и отчёт', async () => {
     const { requests } = fakeServer({
       'POST /api/auth/telegram-mini-app': () => json({ expiresAt: '2026-11-05T10:00:00Z', user: user() }),
       'POST /api/client-errors': () => new Response(null, { status: 204 }),
     });
     const { screen } = await renderApp({ path: '/tg/', shell: 'telegram', launch });
-    await expect.element(screen.getByText('Не получилось войти. Попробуйте ещё раз.')).toBeVisible();
+    await expect.element(screen.getByRole('heading', { name: 'Не получилось войти' })).toBeVisible();
     await expect.poll(() => requests.some((r) => r.url.endsWith('/api/client-errors'))).toBe(true);
   });
 });

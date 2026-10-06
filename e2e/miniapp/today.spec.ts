@@ -57,7 +57,7 @@ test('подделанная initData — сервер отказывает, «�
   const url = new URL(miniAppUrl(user, { tgTheme, tgPlatform, tgInsets }), 'https://x');
   url.searchParams.set('tgInitData', forged.toString());
   await page.goto(url.pathname + url.search);
-  await expect(page.getByText('Не получилось войти. Попробуйте ещё раз.')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Не получилось войти' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Повторить' })).toBeVisible();
 });
 

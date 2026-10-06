@@ -4,6 +4,7 @@ import { isApiError, signInWithAuthorizationCode } from '@greprep/api-client';
 import { useNavigate, useRouterState } from '@tanstack/react-router';
 import { useEffect, useRef, type ReactNode } from 'react';
 import { finishSignIn } from '../../auth/oidc';
+import { reportError } from '../../errors/report';
 import { StatusScreen } from '../../components/StatusScreen';
 import { useI18n } from '../../i18n/i18n';
 import type { SignInReason } from '../../router';
@@ -55,6 +56,8 @@ export function AuthCallback(): ReactNode {
       })
       .catch((e: unknown) => {
         console.error(e);
+        // Ответ сервера не по договору — ошибка у нас: в отчёт (вход сломан, а человек видит только «не получилось»).
+        if (isApiError(e) && e.kind === 'contract') reportError(e);
         if (isApiError(e) && e.kind === 'network') fail('offline');
         else if (isApiError(e) && e.code === 'too_many_requests') fail('tooMany');
         else fail('failed');

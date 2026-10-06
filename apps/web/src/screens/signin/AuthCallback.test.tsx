@@ -69,6 +69,18 @@ describe('возврат от провайдера', () => {
     await expect.element(screen.getByRole('alert')).toHaveTextContent(text);
   });
 
+  it('ответ на обмен кода не по договору — «Не получилось» и отчёт об ошибке', async () => {
+    storeAttempt();
+    const { requests } = fakeServer({
+      ...signedOut,
+      'POST /api/auth/oidc/code': () => json({ expiresAt: 'not-a-date', user: {} }),
+      'POST /api/client-errors': () => new Response(null, { status: 204 }),
+    });
+    const { screen } = await renderApp({ path: '/auth/callback?code=c-1&state=state-1' });
+    await expect.element(screen.getByRole('alert')).toHaveTextContent('Не получилось войти. Попробуйте ещё раз.');
+    await expect.poll(() => requests.some((r) => r.url.endsWith('/api/client-errors'))).toBe(true);
+  });
+
   it('нет сети на обмене кода — «Нет сети»', async () => {
     storeAttempt();
     fakeServer({

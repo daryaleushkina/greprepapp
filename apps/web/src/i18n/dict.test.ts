@@ -55,3 +55,21 @@ describe('словари совпадают по составу', () => {
     for (const s of strings(dictionaries.ru)) expect(s).not.toMatch(/[„“”"]/u);
   });
 });
+
+describe('все строки-функции отвечают текстом на обоих языках', () => {
+  // Сломанная строка (пустая, с «undefined» или «#» без подстановки) видна здесь, а не на экране человека.
+  const fns = (o: object, prefix = ''): [string, (x: never) => unknown][] =>
+    Object.entries(o).flatMap(([k, v]) =>
+      typeof v === 'function' ? [[`${prefix}${k}`, v as (x: never) => unknown]] : v && typeof v === 'object' ? fns(v, `${prefix}${k}.`) : [],
+    );
+  for (const locale of ['ru', 'en'] as const) {
+    it(locale, () => {
+      const all = fns(dictionaries[locale]);
+      expect(all.length).toBeGreaterThan(5);
+      for (const [name, fn] of all) {
+        const out = String(fn((name.endsWith('now') || name.endsWith('version') ? 'X' : 3) as never));
+        expect(out, name).not.toMatch(/undefined|NaN|#|^\s*$/);
+      }
+    });
+  }
+});

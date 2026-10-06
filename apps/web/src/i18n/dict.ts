@@ -66,6 +66,8 @@ export interface Dict {
     offline: string;
     tooMany: string;
     failed: string;
+    /** Заголовок экрана, когда войти не вышло совсем (мини-апп): коротко, совет — строкой ниже. */
+    failedTitle: string;
     cancelled: string;
     expired: string;
     devTitle: string;
@@ -135,6 +137,7 @@ const dictRu: Dict = {
     offline: 'Нет сети — войти получится, когда она появится.',
     tooMany: 'Слишком много попыток подряд — подождите минуту.',
     failed: 'Не получилось войти. Попробуйте ещё раз.',
+    failedTitle: 'Не получилось войти',
     cancelled: 'Вход отменён — можно попробовать снова.',
     expired: 'Вход закончился — войдите снова.',
     devTitle: 'Для разработки — вход подменой',
@@ -211,6 +214,7 @@ const dictEn: Dict = {
     offline: 'No connection — you can sign in once it’s back.',
     tooMany: 'Too many attempts in a row — please wait a minute.',
     failed: 'Couldn’t sign in. Please try again.',
+    failedTitle: 'Couldn’t sign in',
     cancelled: 'Sign-in was cancelled — you can try again.',
     expired: 'You were signed out — please sign in again.',
     devTitle: 'Development only — fake sign-in',

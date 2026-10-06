@@ -9,10 +9,7 @@ import { installGlobalReporter, configureReporter, reportError } from './errors/
 import { makeRouter } from './router';
 import { makeQueryClient } from './queryClient';
 import { detectShell } from './shell';
-import { FullScreenStatus } from './components/FullScreenStatus';
-import { dictionaries } from './i18n/dict';
-import { I18nProvider } from './i18n/i18n';
-import { browserLocale } from './i18n/locale';
+import { StartFailure } from './components/StartFailure';
 import { followTelegramTheme, startTelegram, type TelegramLaunch } from './telegram/sdk';
 
 async function bootstrap(): Promise<void> {
@@ -53,18 +50,7 @@ async function bootstrap(): Promise<void> {
 
 /** Приложение не запустилось — экран с причиной и «Обновить», а не пустой лист. */
 function renderStartFailure(container: HTMLElement, cause: 'telegram' | 'crash'): void {
-  const locale = browserLocale(navigator.languages);
-  const t = dictionaries[locale];
-  createRoot(container).render(
-    <I18nProvider locale={locale}>
-      <FullScreenStatus
-        live
-        title={cause === 'telegram' ? t.telegramFailed.title : t.crash.title}
-        text={cause === 'telegram' ? t.telegramFailed.text : t.crash.text}
-        action={{ label: t.crash.reload, onClick: () => location.reload() }}
-      />
-    </I18nProvider>,
-  );
+  createRoot(container).render(<StartFailure cause={cause} />);
 }
 
 bootstrap().catch((e: unknown) => {

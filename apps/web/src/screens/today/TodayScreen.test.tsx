@@ -76,14 +76,24 @@ describe('«Сегодня»', () => {
     await expect.poll(() => router.state.location.pathname).toBe('/step/words');
   });
 
-  it('с Shift или повтором Enter ничего не начинает', async () => {
+  it('с Shift, повтором или фокусом на ссылке Enter шаг не начинает; простой Enter — один переход', async () => {
     fakeServer({ ...signedIn, 'GET /api/today': () => json(STARTER) });
     const { screen, router } = await renderApp({ path: '/' });
     await expect.element(screen.getByRole('button', { name: 'Начать' })).toBeVisible();
+    const visited: string[] = [];
+    const stop = router.history.subscribe(() => visited.push(router.history.location.pathname));
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', shiftKey: true, bubbles: true }));
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', repeat: true, bubbles: true }));
-    await new Promise((r) => setTimeout(r, 100));
-    expect(router.state.location.pathname).toBe('/');
+    const link = screen.getByRole('link', { name: /Шаг verbal/ }).element();
+    if (!(link instanceof HTMLElement)) throw new Error('no step link');
+    link.focus();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    link.blur();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    await expect.poll(() => router.state.location.pathname).toBe('/step/words');
+    stop();
+    // Был ровно один переход — от простого Enter без фокуса; Shift, повтор и Enter на ссылке ничего не начали.
+    expect(visited).toEqual(['/step/words']);
   });
 
   it('сеть вернулась — объяснение «нужна сеть» у шага пропадает само', async () => {
@@ -121,6 +131,33 @@ describe('«Сегодня»', () => {
     const report = requests.find((r) => new URL(r.url).pathname === '/api/client-errors');
     const body: unknown = await report?.json();
     expect(body).toMatchObject({ clientKind: 'web', route: '/', message: expect.stringContaining('does not match the contract') });
+  });
+
+  it('запрос плана рвётся (нет сети на деле, хотя браузер «в сети») — после повторов «Нет сети»', async () => {
+    let calls = 0;
+    fakeServer({
+      ...signedIn,
+      'GET /api/today': () => {
+        calls++;
+        throw new TypeError('Failed to fetch');
+      },
+    });
+    const { screen } = await renderApp({ path: '/' });
+    await expect.element(screen.getByText('План на сегодня загрузится, когда появится сеть.')).toBeVisible();
+    // Повтор лечит только сеть: первая попытка и три повтора.
+    expect(calls).toBe(4);
+  });
+
+  it('сайт: сессия кончилась, когда план уже был на экране, — план стёрт, на вход', async () => {
+    let expired = false;
+    fakeServer({ ...signedIn, 'GET /api/today': () => (expired ? apiError(401, 'unauthorized') : json(STARTER)) });
+    const { screen, router, queryClient } = await renderApp({ path: '/' });
+    await expect.element(screen.getByText('Три шага · около 25 минут')).toBeVisible();
+    expired = true;
+    await queryClient.refetchQueries({ queryKey: ['/api/today'] });
+    await expect.element(screen.getByText('Вход закончился — войдите снова.')).toBeVisible();
+    expect(router.state.location.pathname).toBe('/signin');
+    expect(queryClient.getQueryData(['/api/today'])).toBeUndefined();
   });
 
   it('сессия кончилась посреди работы — на вход с «Вход закончился»', async () => {

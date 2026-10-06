@@ -29,12 +29,13 @@ export function redact(text: string): string {
 export function reportError(error: unknown): void {
   const err = error instanceof Error ? error : new Error(String(error));
   const message = redact(`${err.name}: ${err.message}`).slice(0, 2000);
+  // В консоль — всегда; ограничения ниже — только для отчётов на сервер.
+  console.error(err);
   const now = Date.now();
   const last = recent.get(message);
   if (sent >= MAX_PER_PAGE || (last !== undefined && now - last < REPEAT_MS)) return;
   recent.set(message, now);
   sent++;
-  console.error(err);
   const requestId = lastSeenRequestId();
   reportClientError({
     message,

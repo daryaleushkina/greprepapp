@@ -37,7 +37,7 @@ export function AppGate(): ReactNode {
     return (
       <FullScreenStatus
         live
-        title={offline ? t.today.offlineTitle : t.signIn.failed}
+        title={offline ? t.today.offlineTitle : t.signIn.failedTitle}
         text={offline ? t.signIn.offline : tooMany ? t.signIn.tooMany : t.today.failedText}
         action={{ label: t.today.retry, onClick: session.retry }}
       />

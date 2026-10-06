@@ -52,6 +52,9 @@ export function fakeServer(handlers: Record<string, Handler>) {
 export async function renderApp(opts: { path: string; shell?: Shell; launch?: TelegramLaunch | null }) {
   const shell = opts.shell ?? 'site';
   const queryClient = makeQueryClient(shell);
+  // Повторы при нехватке сети — без пауз между попытками: правило то же, тест не ждёт секунды.
+  const defaults = queryClient.getDefaultOptions();
+  queryClient.setDefaultOptions({ ...defaults, queries: { ...defaults.queries, retryDelay: 0 } });
   const router = makeRouter({ queryClient, shell }, createMemoryHistory({ initialEntries: [opts.path] }));
   const screen = await render(<App queryClient={queryClient} router={router} shell={shell} launch={opts.launch ?? null} />);
   return { screen, router, queryClient };

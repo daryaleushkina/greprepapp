@@ -1,6 +1,6 @@
 // Каждый экран мини-аппа: вёрстка (ничего не наезжает на капсулу, не шире экрана, последнее видно, листается) и
 // эталонный снимок. Новый экран или состояние — новая строка здесь (CLAUDE.md, «Тесты»).
-import { checkScreen, expect, miniAppUrl, navLink, test } from '../fixtures';
+import { checkScreen, expect, miniAppUrl, navLink, signInitData, test } from '../fixtures';
 
 test('«Сегодня»', async ({ miniApp: page }) => {
   await expect(page.getByText('Три шага · около 25 минут')).toBeVisible();
@@ -64,4 +64,15 @@ test('Telegram сообщил высоту больше видимой — ка�
   await page.goto(`${miniAppUrl(tgUser, { tgTheme, tgPlatform, tgInsets })}&tgViewportExtra=120`);
   await expect(page.getByText('Три шага · около 25 минут')).toBeVisible();
   await checkScreen(page, 'today-tall-viewport');
+});
+
+test('вход не прошёл (initData подделана) — «Не получилось войти» во весь экран', async ({ page, watch, tgUser, tgTheme, tgPlatform, tgInsets }) => {
+  watch(page);
+  const forged = new URLSearchParams(signInitData(tgUser));
+  forged.set('user', JSON.stringify({ ...tgUser, id: tgUser.id + 1 }));
+  const url = new URL(miniAppUrl(tgUser, { tgTheme, tgPlatform, tgInsets }), 'https://x');
+  url.searchParams.set('tgInitData', forged.toString());
+  await page.goto(url.pathname + url.search);
+  await expect(page.getByRole('heading', { name: 'Не получилось войти' })).toBeVisible();
+  await checkScreen(page, 'signin-failed');
 });
