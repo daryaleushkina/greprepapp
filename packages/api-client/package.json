@@ -1,0 +1,19 @@
+{
+  "name": "@greprep/api-client",
+  "private": true,
+  "type": "module",
+  "description": "Клиент API для веба и админки: сгенерирован Orval из api/openapi.yaml, каждый ответ проверяется по Zod",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "generate": "orval --config orval.config.ts"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.104.1",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "orval": "^8.40.0"
+  }
+}

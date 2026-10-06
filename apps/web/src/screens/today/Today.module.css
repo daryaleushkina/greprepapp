@@ -1,0 +1,368 @@
+/* «Сегодня» — по макетам T1–T5 (телефон) и web-T1 (компьютер); значения — из токенов. */
+
+.screen {
+  display: flex;
+  flex-direction: column;
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.title {
+  font: var(--font-title-1);
+  letter-spacing: var(--tracking-title-1);
+}
+
+.summary {
+  font: var(--font-subhead);
+  letter-spacing: var(--tracking-subhead);
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.stale {
+  margin-top: var(--space-12);
+  font: var(--font-subhead);
+  color: var(--color-text-secondary);
+}
+
+/* ── лента ── */
+
+.ribbon {
+  --node-column: var(--size-step-node-current);
+  --ribbon-gap: var(--space-24);
+  margin-top: var(--space-28);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ribbon-gap);
+}
+
+.item {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--node-column) minmax(0, 1fr);
+  column-gap: var(--space-14);
+  align-items: start;
+}
+
+/* Нить — от низа узла до следующего шага; у конца ленты её нет. */
+.line {
+  position: absolute;
+  left: calc((var(--node-column) - var(--size-step-line)) / 2);
+  top: var(--size-step-node);
+  bottom: calc(-1 * var(--ribbon-gap));
+  width: var(--size-step-line);
+  background: var(--color-line);
+}
+
+.item[data-state='current'] .line {
+  top: calc(var(--space-16) + var(--size-step-node-current));
+}
+
+.node {
+  --section-color: var(--color-verbal);
+  --section-tint: var(--color-verbal-tint);
+  position: relative;
+  justify-self: center;
+  width: var(--size-step-node);
+  height: var(--size-step-node);
+  border-radius: var(--radius-full);
+  border: var(--size-hairline) solid var(--color-line);
+  background: var(--color-surface);
+  color: var(--section-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.node svg {
+  width: var(--space-14);
+  height: var(--space-14);
+}
+
+.node[data-section='quant'],
+.section[data-section='quant'] {
+  --section-color: var(--color-quant);
+  --section-tint: var(--color-quant-tint);
+}
+
+.node[data-section='words'],
+.section[data-section='words'] {
+  --section-color: var(--color-words);
+  --section-tint: var(--color-words-tint);
+}
+
+.node[data-section='essay'],
+.section[data-section='essay'] {
+  --section-color: var(--color-essay);
+  --section-tint: var(--color-essay-tint);
+}
+
+/* Текущий шаг: заливка цвета раздела и кольцо его подложки (DESIGN.md, step-node-current). */
+.item[data-state='current'] .node {
+  margin-top: var(--space-16);
+  width: var(--size-step-node-current);
+  height: var(--size-step-node-current);
+  border: 0;
+  background: var(--section-color);
+  color: var(--color-surface);
+  box-shadow: 0 0 0 var(--size-step-ring) var(--section-tint);
+}
+
+.item[data-state='current'] .node svg {
+  width: var(--space-16);
+  height: var(--space-16);
+}
+
+/* Пройденный — галочка цветом раздела. */
+.item[data-state='done'] .node {
+  border-color: transparent;
+  background: var(--section-tint);
+}
+
+.card {
+  border-radius: var(--radius-xxl);
+  padding: var(--space-16) var(--space-16) var(--space-16);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.cardText {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.cardHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-12);
+}
+
+.cardTitle {
+  font: var(--font-title-3);
+  letter-spacing: var(--tracking-title-3);
+}
+
+.minutes {
+  flex: none;
+  font: var(--font-subhead);
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.cardSub {
+  font: var(--font-subhead);
+  color: var(--color-text-secondary);
+}
+
+.cardSubMinutes {
+  display: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.section {
+  --section-color: var(--color-verbal);
+  font: var(--font-subhead);
+  font-weight: var(--font-weight-medium);
+  color: var(--section-color);
+}
+
+/* Главная кнопка экрана — одна, графитовая капсула (DESIGN.md, button-main). */
+.start {
+  margin-top: var(--space-12);
+  height: var(--size-button);
+  padding: 0 var(--space-24);
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font: var(--font-callout);
+  font-weight: var(--font-weight-semibold);
+}
+
+.blocked {
+  font: var(--font-footnote);
+  color: var(--color-text-secondary);
+}
+
+.rowWrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.row {
+  min-height: var(--size-tap-target);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-12);
+  color: var(--color-text);
+  text-decoration: none;
+  border-radius: var(--radius-lg);
+}
+
+.rowText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.rowTitle {
+  font: var(--font-body);
+  font-weight: var(--font-weight-medium);
+}
+
+.row .section {
+  font-weight: var(--font-weight-regular);
+}
+
+/* Конец ленты: маленькая точка и «На сегодня всё.» — день виден целиком. */
+.end {
+  display: grid;
+  grid-template-columns: var(--node-column) minmax(0, 1fr);
+  column-gap: var(--space-14);
+  align-items: center;
+}
+
+.end[data-done] {
+  align-items: start;
+}
+
+.endDot {
+  justify-self: center;
+  width: var(--size-step-end);
+  height: var(--size-step-end);
+  border-radius: var(--radius-full);
+  background: var(--color-line);
+}
+
+.end[data-done] .endDot {
+  margin-top: var(--space-8);
+}
+
+.endText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.endTitle {
+  font: var(--font-body);
+  font-weight: var(--font-weight-semibold);
+}
+
+.endNote {
+  font: var(--font-subhead);
+  color: var(--color-text-secondary);
+}
+
+/* ── скелет загрузки (T5) ── */
+
+.sk {
+  background: var(--color-fill);
+  animation: pulse var(--motion-duration-pulse) ease-in-out infinite;
+}
+
+.node.sk {
+  border: 0;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sk {
+    animation: none;
+  }
+}
+
+.skLine {
+  display: block;
+  height: var(--space-14);
+  border-radius: var(--radius-sm);
+}
+
+.skLine[data-w='summary'] {
+  width: 40%;
+  margin-top: var(--space-6);
+}
+
+.skLine[data-w='title'] {
+  width: 62%;
+  height: var(--space-20);
+}
+
+.skLine[data-w='sub'] {
+  width: 44%;
+}
+
+.skLine[data-w='row'] {
+  width: 70%;
+  height: var(--space-16);
+}
+
+.skLine[data-w='short'] {
+  width: 34%;
+  height: var(--space-16);
+}
+
+.skButton {
+  display: block;
+  margin-top: var(--space-12);
+  height: var(--size-button);
+  border-radius: var(--radius-full);
+}
+
+/* ── компьютер (шире 900 px, layout.breakpoint-wide): карточка шире, кнопка справа (web-T1) ── */
+
+@media (min-width: 900px) {
+  .ribbon {
+    --ribbon-gap: var(--space-28);
+    margin-top: var(--space-40);
+  }
+
+  .item {
+    column-gap: var(--space-20);
+  }
+
+  .card {
+    padding: var(--space-24);
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-16) var(--space-24);
+  }
+
+  .cardText {
+    flex: 1 1 var(--layout-tagline-max);
+  }
+
+  .cardHead .minutes {
+    display: none;
+  }
+
+  .cardSubMinutes {
+    display: inline;
+  }
+
+  .start {
+    margin-top: 0;
+  }
+
+  .blocked {
+    flex-basis: 100%;
+  }
+}

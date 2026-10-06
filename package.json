@@ -1,0 +1,35 @@
+{
+  "name": "greprep",
+  "private": true,
+  "type": "module",
+  "description": "Рабочее пространство pnpm: веб (мини-апп и сайт), клиент API, токены дизайна; сквозные тесты — e2e/",
+  "scripts": {
+    "dev": "pnpm --filter @greprep/web dev",
+    "build": "pnpm --filter @greprep/web build",
+    "generate": "pnpm --filter @greprep/api-client generate",
+    "typecheck": "tsc -p packages/api-client && tsc -p apps/web && tsc -p tsconfig.json",
+    "lint": "oxlint apps packages e2e",
+    "test": "vitest run",
+    "coverage": "vitest run --coverage",
+    "e2e": "playwright test",
+    "tokens": "pnpm --filter @greprep/tokens build"
+  },
+  "packageManager": "pnpm@12.10.0",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "1.63.0",
+    "@types/node": "^24.19.1",
+    "@vitejs/plugin-react": "^6.1.1",
+    "@vitest/browser-playwright": "5.0.3",
+    "@vitest/coverage-v8": "5.0.3",
+    "oxlint": "1.87.0",
+    "oxlint-tsgolint": "^7.0.2003",
+    "playwright": "1.63.0",
+    "typescript": "7.0.2",
+    "vitest": "5.0.3",
+    "vitest-browser-react": "^2.3.0"
+  }
+}

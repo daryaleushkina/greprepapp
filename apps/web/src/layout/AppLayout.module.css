@@ -1,0 +1,304 @@
+/*
+ * Раскладка экранов после входа. Ширины: телефон и мини-апп — капсула вкладок снизу; сайт 600–899 px — строка
+ * разделов сверху; сайт шире 900 px — боковая панель (решение Даши 06.10.2026; токены layout.breakpoint-narrow и
+ * layout.breakpoint-wide — числа в @media повторяют их, var() там не работает).
+ */
+
+.frame {
+  --glow-strong: var(--color-glow-verbal-strong);
+  --glow-soft: var(--color-glow-verbal-soft);
+  position: relative;
+  height: var(--app-height);
+  display: flex;
+  flex-direction: column;
+  /* Свет сверху — как на холсте (T1-Today): мягкий радиальный градиент цвета раздела уходит в нейтральный фон. */
+  background:
+    radial-gradient(120% 52% at 50% -10%, var(--glow-strong) 0%, var(--glow-soft) 48%, transparent 74%),
+    var(--color-bg);
+}
+
+.frame[data-glow='quant'] {
+  --glow-strong: var(--color-glow-quant-strong);
+  --glow-soft: var(--color-glow-quant-soft);
+}
+
+.frame[data-glow='words'] {
+  --glow-strong: var(--color-glow-words-strong);
+  --glow-soft: var(--color-glow-words-soft);
+}
+
+.frame[data-glow='essay'] {
+  --glow-strong: var(--color-glow-essay-strong);
+  --glow-soft: var(--color-glow-essay-soft);
+}
+
+.frame[data-glow='exam'] {
+  --glow-strong: var(--color-glow-exam-strong);
+  --glow-soft: var(--color-glow-exam-soft);
+}
+
+/* Единственный контейнер прокрутки (styles/base.css). */
+.main {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  padding: calc(var(--app-inset-top) + var(--space-20)) calc(var(--app-inset-right) + var(--layout-gutter)) 0
+    calc(var(--app-inset-left) + var(--layout-gutter));
+}
+
+/*
+ * Место под капсулой вкладок — псевдоэлементом, а не padding-bottom: WKWebView на iPhone не учитывает нижний
+ * отступ контейнера прокрутки (docs/HANDOFF.md, «Telegram»), и последнее пряталось бы под капсулой.
+ */
+.main::after {
+  content: '';
+  display: block;
+  height: calc(var(--size-tab-bar-height) + var(--size-tab-bar-bottom) + var(--app-inset-bottom) + var(--space-24));
+}
+
+.frame[data-nested] .main::after {
+  height: calc(var(--app-inset-bottom) + var(--space-32));
+}
+
+.column {
+  width: 100%;
+  max-width: var(--layout-content-max);
+  margin: 0 auto;
+}
+
+/* ── капсула вкладок ── */
+
+.tabBar {
+  position: absolute;
+  z-index: 5;
+  left: 50%;
+  bottom: calc(var(--size-tab-bar-bottom) + var(--app-inset-bottom));
+  transform: translateX(-50%);
+  width: min(var(--size-tab-bar-width), calc(100% - 2 * var(--layout-gutter-bar)));
+  height: var(--size-tab-bar-height);
+  padding: var(--space-4);
+  border-radius: var(--radius-full);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.tab {
+  min-width: 0;
+  border-radius: var(--radius-full);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font: var(--font-tab-label);
+  letter-spacing: var(--tracking-tab-label);
+}
+
+.tab svg {
+  width: var(--space-24);
+  height: var(--space-24);
+}
+
+.tab[aria-current='page'] {
+  background: var(--color-tab-selected);
+  color: var(--color-text);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* Край прокрутки: содержимое мягко уходит под капсулу. */
+.fade {
+  position: absolute;
+  z-index: 4;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(var(--size-tab-bar-height) + var(--size-tab-bar-bottom) + var(--app-inset-bottom) + var(--size-fade));
+  background: linear-gradient(transparent, var(--color-bg) 78%);
+  pointer-events: none;
+}
+
+.frame[data-nested] .tabBar,
+.frame[data-nested] .fade {
+  display: none;
+}
+
+/* ── сайт: строка сверху и боковая панель ── */
+
+.sideWrap {
+  display: none;
+}
+
+.side {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  min-height: var(--size-tap-target);
+  color: var(--color-text);
+  text-decoration: none;
+  font: var(--font-body);
+  font-weight: var(--font-weight-semibold);
+}
+
+.brandTile {
+  flex: none;
+  width: var(--space-32);
+  height: var(--space-32);
+  border-radius: var(--radius-sm);
+  background: var(--color-verbal);
+  color: var(--color-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brandTile svg {
+  width: var(--space-20);
+  height: var(--space-20);
+}
+
+.navItem {
+  min-height: var(--size-tap-target);
+  padding: 0 var(--space-12);
+  border-radius: var(--radius-full);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  font: var(--font-subhead);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+}
+
+.navItem svg {
+  flex: none;
+  width: var(--space-20);
+  height: var(--space-20);
+}
+
+.navItem[aria-current='page'] {
+  background: var(--color-tab-selected);
+  color: var(--color-text);
+  font-weight: var(--font-weight-semibold);
+}
+
+.spacer {
+  flex: 1;
+}
+
+@media (min-width: 600px) {
+  .frame[data-shell='site'] .tabBar,
+  .frame[data-shell='site'] .fade {
+    display: none;
+  }
+
+  .frame[data-shell='site'] .main::after {
+    height: var(--space-48);
+  }
+
+  .frame[data-shell='site'] .sideWrap {
+    display: flex;
+    padding: var(--space-12) var(--space-12) 0;
+  }
+
+  .frame[data-shell='site'] .side {
+    flex: 1;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: var(--space-8);
+    border-radius: var(--radius-xxl);
+  }
+
+  .frame[data-shell='site'] .brand {
+    padding: 0 var(--space-8);
+  }
+
+  /* В строке сверху места на подпись «Настройки» нет — остаётся шестерёнка, подпись слышна диктору. */
+  .frame[data-shell='site'] .settingsLabel {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .frame[data-shell='site'] .settingsItem {
+    padding: 0 var(--space-12);
+  }
+}
+
+@media (min-width: 900px) {
+  .frame[data-shell='site'] {
+    flex-direction: row;
+  }
+
+  .frame[data-shell='site'] .main {
+    padding: var(--space-64) clamp(var(--space-16), 4vw, var(--space-48)) 0;
+  }
+
+  .frame[data-shell='site'] .main::after {
+    height: var(--space-64);
+  }
+
+  .frame[data-shell='site'] .sideWrap {
+    flex: 1 1 var(--layout-sidebar-min);
+    max-width: var(--layout-sidebar-max);
+    padding: var(--space-16) 0 var(--space-16) var(--space-16);
+  }
+
+  .frame[data-shell='site'] .side {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    padding: var(--space-20) var(--space-12);
+  }
+
+  .frame[data-shell='site'] .brand {
+    padding: 0 var(--space-12) var(--space-20);
+  }
+
+  .frame[data-shell='site'] .settingsLabel {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+  }
+}
+
+/* ── «назад» на сайте ── */
+
+.back {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: var(--size-tap-target);
+  margin: 0 0 var(--space-8) calc(-1 * var(--space-8));
+  padding: 0 var(--space-8);
+  border-radius: var(--radius-full);
+  color: var(--color-text);
+  text-decoration: none;
+  font: var(--font-callout);
+}
+
+.back svg {
+  width: var(--space-20);
+  height: var(--space-20);
+}
+
+/* Настройки на сайте шире 600 px — пункт панели, «назад» там не нужен. */
+@media (min-width: 600px) {
+  .narrowOnly {
+    display: none;
+  }
+}

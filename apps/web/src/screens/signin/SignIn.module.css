@@ -1,0 +1,230 @@
+/* Вход: телефон — макет T4 (во всю высоту, кнопки внизу), компьютер — web-T4 (стеклянная карточка по центру). */
+
+.page {
+  height: var(--app-height);
+  background:
+    radial-gradient(120% 52% at 50% -10%, var(--color-glow-verbal-strong) 0%, var(--color-glow-verbal-soft) 48%, transparent 74%),
+    var(--color-bg);
+}
+
+.scroll {
+  height: 100%;
+  overflow-y: auto;
+  padding: calc(var(--app-inset-top) + var(--space-24)) calc(var(--app-inset-right) + var(--space-24))
+    calc(var(--app-inset-bottom) + var(--space-28)) calc(var(--app-inset-left) + var(--space-24));
+  display: flex;
+  flex-direction: column;
+}
+
+/* На телефоне карточки нет: стекло — только у плитки знака, остальное лежит на свете. */
+.panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-32);
+  background: none;
+  border: 0;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.intro {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-10);
+}
+
+.mark {
+  width: var(--size-brand-mark);
+  height: var(--size-brand-mark);
+  margin-bottom: var(--space-12);
+  border-radius: var(--radius-xl);
+  color: var(--color-verbal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.glyph {
+  width: var(--size-brand-glyph);
+  height: var(--size-brand-glyph);
+}
+
+.title {
+  font: var(--font-title-1);
+  letter-spacing: var(--tracking-title-1);
+}
+
+.tagline {
+  max-width: var(--layout-tagline-max);
+  font: var(--font-body-long);
+  color: var(--color-text-secondary);
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+}
+
+.message {
+  font: var(--font-subhead);
+  color: var(--color-text);
+}
+
+.buttons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+}
+
+/* ── официальные кнопки: размеры и шрифты — по правилам Telegram, Apple и Google, не наши ── */
+
+.provider {
+  height: var(--size-button-compact);
+  border: 0;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.provider:disabled {
+  opacity: 0.6;
+}
+
+.telegram {
+  gap: var(--space-4);
+  background: var(--sign-in-telegram-bg);
+  color: var(--sign-in-telegram-text);
+  font: var(--font-callout);
+  font-family: var(--font-family-system);
+  font-weight: var(--font-weight-semibold);
+}
+
+.logoTelegram {
+  width: var(--space-24);
+  height: var(--space-24);
+}
+
+.apple {
+  gap: var(--space-6);
+  background: var(--sign-in-apple-bg);
+  color: var(--sign-in-apple-text);
+  font: var(--font-body);
+  font-family: var(--font-family-system);
+  font-weight: var(--font-weight-medium);
+}
+
+.logoApple {
+  width: var(--space-16);
+  height: var(--space-20);
+}
+
+/* Google: Roboto 14/500 и разрядка 0,25 px — из его правил оформления кнопки. */
+.google {
+  gap: var(--space-10);
+  padding: 0 var(--space-12);
+  border: var(--size-hairline) solid var(--sign-in-google-stroke);
+  background: var(--sign-in-google-bg);
+  color: var(--sign-in-google-text);
+  font: var(--font-footnote);
+  font-family: Roboto, Arial, sans-serif;
+  letter-spacing: 0.25px;
+}
+
+.logoGoogle {
+  width: var(--space-20);
+  height: var(--space-20);
+}
+
+.legal {
+  margin-top: var(--space-6);
+  font: var(--font-caption);
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+.legal + .legal {
+  margin-top: 0;
+}
+
+/* ── вход подменой (разработка, e2e, стенд) ── */
+
+.dev {
+  margin-top: var(--space-10);
+  padding: var(--space-12);
+  border: var(--size-hairline) dashed var(--color-line);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.devLabel {
+  font: var(--font-footnote);
+  color: var(--color-text-secondary);
+}
+
+.devRow {
+  display: flex;
+  gap: var(--space-8);
+}
+
+.devInput {
+  flex: 1;
+  min-width: 0;
+  height: var(--size-button-compact);
+  padding: 0 var(--space-16);
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--color-fill);
+  /* 16 px и больше — иначе Safari на iPhone приближает страницу при фокусе (навык mobile-native). */
+  font: var(--font-body);
+}
+
+.devSubmit {
+  height: var(--size-button-compact);
+  padding: 0 var(--space-16);
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font: var(--font-callout);
+}
+
+.devSubmit:disabled {
+  opacity: 0.5;
+}
+
+/* ── компьютер и планшет: карточка-стекло по центру ── */
+
+@media (min-width: 600px) {
+  .scroll {
+    padding: var(--space-48) var(--space-16);
+    align-items: center;
+    justify-content: center;
+  }
+
+  .panel {
+    flex: none;
+    width: 100%;
+    max-width: var(--layout-auth-column-max);
+    padding: var(--space-40) var(--space-32) var(--space-32);
+    border-radius: var(--radius-xxl);
+    background: var(--glass-fill-regular);
+    border: var(--size-hairline) solid var(--color-glass-edge);
+    box-shadow:
+      inset 0 var(--size-hairline) 0 var(--color-glass-rim),
+      var(--shadow-glass);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  }
+
+  .intro {
+    flex: none;
+  }
+}

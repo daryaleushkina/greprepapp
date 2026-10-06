@@ -1,0 +1,44 @@
+.status {
+  min-height: 60%;
+  padding: var(--space-48) 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  text-align: center;
+}
+
+.icon {
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-4);
+}
+
+.icon svg {
+  width: var(--space-28);
+  height: var(--space-28);
+}
+
+.title {
+  font: var(--font-title-3);
+  letter-spacing: var(--tracking-title-3);
+}
+
+.text {
+  max-width: var(--layout-tagline-max);
+  font: var(--font-subhead);
+  letter-spacing: var(--tracking-subhead);
+  color: var(--color-text-secondary);
+}
+
+/* Вторичная кнопка (DESIGN.md, button-secondary): главная на экране состояния не нужна. */
+.action {
+  margin-top: var(--space-12);
+  min-height: var(--size-button-compact);
+  padding: 0 var(--space-16);
+  border: var(--size-hairline) solid var(--color-line);
+  border-radius: var(--radius-full);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: var(--font-callout);
+}

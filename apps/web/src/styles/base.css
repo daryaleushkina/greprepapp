@@ -1,0 +1,128 @@
+/*
+ * Основа страницы: сброс, шрифт, высота и отступы оболочки. Значения — только из токенов
+ * (design/tokens/generated/web/tokens.css); правила применения — DESIGN.md.
+ *
+ * Оболочка одна на мини-апп и сайт: документ не прокручивается, прокручивается main (.app-shell). Так в мини-аппе
+ * резиновый отскок не тянет весь WebView и прижатое к низу не уезжает за видимую часть шторки (навык
+ * telegram-mini-app, safe-area-and-viewport.md); на сайте та же модель — одна вёрстка и одни проверки.
+ */
+
+:root {
+  /* Видимая высота: в мини-аппе — от Telegram (по stableHeight, навык), на сайте — 100dvh. */
+  --app-height: var(--tg-viewport-stable-height, 100dvh);
+  /*
+   * Отступы = системные (вырез, полоска «домой») + интерфейс Telegram поверх содержимого (кнопки шапки в
+   * полноэкранном режиме). Сумма — практика сообщества, документация Telegram её явно не описывает (навык).
+   * Вне Telegram переменных нет — работает env().
+   */
+  --app-inset-top: calc(var(--tg-viewport-safe-area-inset-top, env(safe-area-inset-top, 0px)) + var(--tg-viewport-content-safe-area-inset-top, 0px));
+  --app-inset-bottom: calc(var(--tg-viewport-safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) + var(--tg-viewport-content-safe-area-inset-bottom, 0px));
+  --app-inset-left: calc(var(--tg-viewport-safe-area-inset-left, env(safe-area-inset-left, 0px)) + var(--tg-viewport-content-safe-area-inset-left, 0px));
+  --app-inset-right: calc(var(--tg-viewport-safe-area-inset-right, env(safe-area-inset-right, 0px)) + var(--tg-viewport-content-safe-area-inset-right, 0px));
+  /* Свет сверху экрана — цвет раздела текущего шага; без света стекла не видно (DESIGN.md, «Elevation»). */
+  --glow-strong: var(--color-glow-verbal-strong);
+  --glow-soft: var(--color-glow-verbal-soft);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font: var(--font-body);
+  letter-spacing: var(--tracking-body);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  height: var(--app-height);
+}
+
+h1,
+h2,
+h3,
+p,
+ol,
+ul {
+  margin: 0;
+}
+
+ol,
+ul {
+  padding: 0;
+  list-style: none;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+}
+
+/* Нажатие — лёгкое сжатие (DESIGN.md, «Движение»), без анимации при «уменьшить движение». */
+button,
+a {
+  transition: transform var(--motion-duration-press) var(--motion-easing-out);
+  -webkit-touch-callout: none;
+}
+
+button:active:not(:disabled),
+a:active {
+  transform: scale(var(--motion-press-scale));
+}
+
+:focus-visible {
+  outline: calc(var(--size-hairline) * 2) solid var(--color-focus);
+  outline-offset: var(--space-2);
+}
+
+::selection {
+  background: var(--color-verbal-tint);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button,
+  a {
+    transition: none;
+  }
+
+  button:active:not(:disabled),
+  a:active {
+    transform: none;
+  }
+}
+
+/* Скрыто глазами, но слышно экранному диктору. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

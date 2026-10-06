@@ -1,0 +1,78 @@
+/* Общее для простых экранов: заголовок раздела, круглая стеклянная кнопка, группа строк настроек. */
+
+.screen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.title {
+  font: var(--font-title-1);
+  letter-spacing: var(--tracking-title-1);
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-12);
+}
+
+/* Стеклянный круг шапки (DESIGN.md, «Шапка Telegram»): тот же размер, что у кругов клиента. */
+.circle {
+  flex: none;
+  width: var(--size-header-button);
+  height: var(--size-header-button);
+  border-radius: var(--radius-full);
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.circle svg {
+  width: var(--space-20);
+  height: var(--space-20);
+}
+
+@media (min-width: 600px) {
+  .narrowOnly {
+    display: none;
+  }
+}
+
+/* Секция настроек — плотная поверхность (стекло — только у управления поверх содержимого). */
+.group {
+  margin-top: var(--space-24);
+  border-radius: var(--radius-xxl);
+  background: var(--color-surface);
+  overflow: hidden;
+}
+
+.groupRow {
+  width: 100%;
+  min-height: var(--size-row);
+  padding: 0 var(--space-16);
+  border: 0;
+  background: none;
+  color: var(--color-text);
+  font: var(--font-body);
+  text-align: left;
+}
+
+.groupRow:disabled {
+  color: var(--color-text-secondary);
+}
+
+.error {
+  margin-top: var(--space-8);
+  font: var(--font-subhead);
+  color: var(--color-text);
+}
+
+.footnote {
+  margin-top: var(--space-16);
+  font: var(--font-footnote);
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+}

@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <!-- viewport-fit=cover: без него env(safe-area-inset-*) вне Telegram — нули (навык telegram-mini-app) -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <!-- Сайт и мини-апп не индексируются, пока нет бренда и публичных страниц -->
+    <meta name="robots" content="noindex" />
+    <!-- Знак — лента шагов (components/BrandMark.tsx) на фиолетовом Verbal: --color-verbal светлой темы -->
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>GrePrepApp</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,28 @@
+/*
+ * Стекло — только слой управления: вкладки, панель, текущий шаг, плитка знака (DESIGN.md, «Правило стекла для
+ * управления»). Задание и разбор — на плотной поверхности. При «уменьшить прозрачность» стекло становится
+ * плотной поверхностью.
+ */
+.glass {
+  background: var(--glass-fill-regular);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: var(--size-hairline) solid var(--color-glass-edge);
+  box-shadow:
+    inset 0 var(--size-hairline) 0 var(--color-glass-rim),
+    var(--shadow-glass);
+}
+
+.strong {
+  composes: glass;
+  background: var(--glass-fill-strong);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass,
+  .strong {
+    background: var(--color-surface);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
