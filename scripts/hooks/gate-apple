@@ -1,0 +1,149 @@
+#!/bin/sh
+# Гейт приложения Apple (iPhone, iPad, Mac). Его зовёт scripts/hooks/gate, когда в пуше задеты приложение,
+# договор, токены, сервер или сам гейт (apple-touched; решение Даши 06.10.2026); руками — sh scripts/hooks/gate-apple.
+#
+#   клиент API свежий → swift format → проект из project.yml → релизная сборка iOS и Mac →
+#   на iPhone: юнит-тесты, снимки, сценарии UI против своего сервера и порог покрытия →
+#   снимки на iPad → юнит-тесты и снимки на Mac.
+#
+# Порог покрытия — здесь, а правка этой папки — только с согласия Даши (.claude/hooks/protect-gates.mjs):
+# CLAUDE.md, «Порог не опускать; подняли покрытие — поднять и порог».
+
+set -eu
+
+# Покрытие кода приложения (цель GrePrep.app; клиент договора — отдельный пакет, не считается), %.
+APPLE_COVERAGE_MIN=94.0
+
+# Свой порт и своя база для сценариев UI: сервер разработки на 8090 и его данные гейт не трогает.
+UI_PORT=8091
+UI_DB=greprep_apple_ui
+
+root="$(git rev-parse --show-toplevel)"
+app="$root/apps/apple"
+cd "$app"
+
+work="$(mktemp -d)"
+server_pid=""
+cleanup() {
+  if [ -n "$server_pid" ]; then kill "$server_pid" 2>/dev/null || true; fi
+  rm -rf "$work"
+}
+trap cleanup EXIT
+
+need() {
+  command -v "$1" >/dev/null 2>&1 || { echo "gate: Apple — нет $1: $2" >&2; exit 1; }
+}
+need xcodebuild "Xcode 27"
+need xcodegen "brew install xcodegen"
+need go "Go — для сервера сценариев UI"
+need docker "Docker — Postgres для сервера сценариев UI"
+
+# xcodebuild с потолком по времени (на Маке нет timeout — perl alarm): зависший прогон — красный гейт, а не
+# вечный пуш. -collect-test-diagnostics never — со сбором диагностики xcodebuild зависает после упавшего
+# теста (Xcode 27, docs/HANDOFF.md, «Xcode и симуляторы»).
+xb() {
+  limit="$1"
+  shift
+  perl -e 'alarm shift; exec @ARGV' "$limit" xcodebuild -project GrePrep.xcodeproj -derivedDataPath build/gate \
+    -disableAutomaticPackageResolution "$@"
+}
+
+# Сборка: лог — в файл, при ошибке — ошибки на экран.
+build_step() {
+  name="$1"
+  shift
+  log="$work/$name.log"
+  if ! xb 1500 "$@" >"$log" 2>&1; then
+    grep -E 'error:|warning:' "$log" | grep -v UnusedImportAccess | head -40 >&2
+    echo "gate: Apple — сборка «$name» не прошла" >&2
+    exit 1
+  fi
+}
+
+# Прогон тестов: лог — в файл, на экран — только итог, а при падении — что упало.
+run_tests() {
+  name="$1"
+  shift
+  log="$work/$name.log"
+  if ! xb 1500 -collect-test-diagnostics never "$@" >"$log" 2>&1; then
+    grep -E '✘|error:|failed|does not match|Test run with|Executed' "$log" | grep -v UnusedImportAccess | head -60 >&2
+    echo "gate: Apple — $name красный" >&2
+    exit 1
+  fi
+  grep -E 'Test run with|Executed [0-9]+ tests?' "$log" | tail -2 >&2
+}
+
+echo "gate: Apple — клиент API свежий?" >&2
+sh scripts/generate-api.sh 2>/dev/null
+if [ -n "$(git status --porcelain -- Packages/GPAPI)" ]; then
+  git status --porcelain -- Packages/GPAPI >&2
+  echo "gate: клиент Swift разошёлся с api/openapi.yaml — sh apps/apple/scripts/generate-api.sh и закоммитить" >&2
+  exit 1
+fi
+
+echo "gate: Apple — swift format" >&2
+swift format lint --strict -r GrePrep GrePrepTests GrePrepUITests Packages/GPAPI/Sources/GPAPI/Support
+
+echo "gate: Apple — проект из project.yml, версии пакетов из Package.resolved" >&2
+sh scripts/generate-project.sh
+
+echo "gate: Apple — релизная сборка iOS и Mac (предупреждение — ошибка)" >&2
+build_step release-ios -scheme GrePrep -configuration Release -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO build
+build_step release-mac -scheme GrePrep -configuration Release -destination 'generic/platform=macOS' build
+
+echo "gate: Apple — сервер для сценариев UI (127.0.0.1:$UI_PORT, база $UI_DB)" >&2
+if lsof -nP -iTCP:"$UI_PORT" -sTCP:LISTEN >/dev/null 2>&1; then
+  echo "gate: порт $UI_PORT занят — сценарии UI пошли бы не на тот сервер" >&2
+  exit 1
+fi
+(cd "$root" && docker compose up -d --wait postgres >&2)
+(cd "$root" && docker compose exec -T postgres psql -v ON_ERROR_STOP=1 -q -U greprep -d greprep \
+  -c "drop database if exists $UI_DB with (force)" -c "create database $UI_DB") >/dev/null
+db="postgres://greprep:greprep@127.0.0.1:55432/$UI_DB?sslmode=disable"
+(cd "$root/server" && go build -o "$work/greprep" ./cmd/greprep)
+DATABASE_URL="$db" APP_ENV=test "$work/greprep" migrate up >"$work/migrate.log" 2>&1
+DATABASE_URL="$db" APP_ENV=test HTTP_ADDR="127.0.0.1:$UI_PORT" DEV_AUTH=1 "$work/greprep" serve >"$work/server.log" 2>&1 &
+server_pid=$!
+tries=0
+until curl -sf "http://127.0.0.1:$UI_PORT/api/health" >/dev/null 2>&1; do
+  tries=$((tries + 1))
+  if [ "$tries" -gt 100 ] || ! kill -0 "$server_pid" 2>/dev/null; then
+    tail -20 "$work/server.log" >&2
+    echo "gate: сервер для сценариев UI не поднялся" >&2
+    exit 1
+  fi
+  sleep 0.2
+done
+
+# Свои симуляторы GrePrep (scripts/simulator.sh создаёт их, если нет), заранее загруженные.
+iphone="$(sh scripts/simulator.sh iphone)"
+ipad="$(sh scripts/simulator.sh ipad)"
+for udid in "$iphone" "$ipad"; do
+  xcrun simctl boot "$udid" 2>/dev/null || true
+  xcrun simctl bootstatus "$udid" -b >/dev/null
+done
+
+# Эталоны снимков гейт не записывает: нет эталона — тест красный.
+export TEST_RUNNER_SNAPSHOT_TESTING_RECORD=never
+export TEST_RUNNER_GP_UI_SERVER="http://127.0.0.1:$UI_PORT"
+
+echo "gate: Apple — iPhone: юнит-тесты, снимки, сценарии UI, покрытие ≥ ${APPLE_COVERAGE_MIN}%" >&2
+build_step tests-ios -scheme GrePrep -destination "id=$iphone" build-for-testing
+run_tests iphone -scheme GrePrep -destination "id=$iphone" -enableCodeCoverage YES \
+  -resultBundlePath "$work/iphone.xcresult" test-without-building
+total="$(xcrun xccov view --report --json "$work/iphone.xcresult" | /usr/bin/python3 -c '
+import json, sys
+targets = [t for t in json.load(sys.stdin)["targets"] if t["name"] == "GrePrep.app"]
+print(round(targets[0]["lineCoverage"] * 100, 1) if targets else -1)
+')"
+if ! awk -v t="$total" -v m="$APPLE_COVERAGE_MIN" 'BEGIN { exit !(t + 0 >= m + 0) }'; then
+  echo "gate: покрытие приложения Apple ${total}% ниже порога ${APPLE_COVERAGE_MIN}% — дописать тесты, порог не опускать" >&2
+  exit 1
+fi
+echo "gate: покрытие приложения Apple ${total}%" >&2
+
+echo "gate: Apple — iPad: снимки" >&2
+run_tests ipad -scheme GrePrep -destination "id=$ipad" -only-testing:GrePrepTests/ScreenSnapshotTests test-without-building
+
+echo "gate: Apple — Mac: юнит-тесты и снимки" >&2
+run_tests mac -scheme GrePrepMac -destination 'platform=macOS' test

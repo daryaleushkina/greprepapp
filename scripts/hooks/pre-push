@@ -3,12 +3,19 @@
 # который уходит. Хуки включает .claude/hooks/session-git.sh в начале сессии Claude Code
 # (или руками: git config core.hooksPath scripts/hooks).
 #
-# Деплоя отсюда пока нет: сервера ещё нет (docs/ROADMAP.md §2, часть 7). Когда появится — вливание в main
-# выкладывает сначала на стенд, после зелёных автотестов на нём — в бой (PRODUCT.md, «Stack»).
+# Деплоя отсюда пока нет: сервера ещё нет (docs/ROADMAP.md §2, «сервер, стенд…»). Когда появится — вливание в
+# main выкладывает сначала на стенд, после зелёных автотестов на нём — в бой (PRODUCT.md, «Stack»).
+#
+# База гейта (GATE_BASE) — коммит, который уже лежит в main на GitHub: по разнице с ней гейт решает, нужна ли
+# долгая часть Apple (scripts/hooks/apple-touched).
 
 sha=""
-while read -r _local_ref local_sha remote_ref _remote_sha; do
-  [ "$remote_ref" = "refs/heads/main" ] && sha="$local_sha"
+base=""
+while read -r _local_ref local_sha remote_ref remote_sha; do
+  if [ "$remote_ref" = "refs/heads/main" ]; then
+    sha="$local_sha"
+    base="$remote_sha"
+  fi
 done
 [ -z "$sha" ] && exit 0
 # Удаление ветки — проверять нечего.
@@ -30,7 +37,7 @@ if [ -n "$dirty" ]; then
 fi
 
 echo "pre-push: гейт для $sha…" >&2
-if ! sh "$(dirname "$0")/gate"; then
+if ! GATE_BASE="$base" sh "$(dirname "$0")/gate"; then
   echo "pre-push: гейт красный — пуш отменён. Чинить код, а не обходить (--no-verify)." >&2
   exit 1
 fi

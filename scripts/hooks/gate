@@ -2,7 +2,9 @@
 # Гейт перед продом — одни и те же проверки для хука pre-push и GitHub Actions, чтобы они не расходились.
 # Каждая часть включается, когда она есть в репозитории (каркас собирается частями, docs/ROADMAP.md §2).
 #
-#   бэкенд (server/go.mod): сгенерированное свежее → go vet → golangci-lint → go test -race → порог покрытия.
+#   бэкенд (server/go.mod): сгенерированное свежее → go vet → golangci-lint → go test -race → порог покрытия;
+#   приложение Apple (apps/apple/project.yml): gate-apple — только когда пуш задевает приложение, договор, токены,
+#   сервер или гейт (apple-touched; база — GATE_BASE, её даёт pre-push; решение Даши 06.10.2026).
 #
 # Порог покрытия — здесь, а правка этой папки — только с согласия Даши (.claude/hooks/protect-gates.mjs):
 # CLAUDE.md, «Порог не опускать; подняли покрытие — поднять и порог».
@@ -13,9 +15,11 @@ set -eu
 # Покрытие ручного кода бэкенда, % (сгенерированное ogen и sqlc и помощники тестов не считаются).
 GO_COVERAGE_MIN=93.0
 
+hooks="$(cd "$(dirname "$0")" && pwd)"
 root="$(git rev-parse --show-toplevel)"
 cd "$root"
 ran=""
+skipped=""
 
 if [ -f server/go.mod ]; then
   ran="$ran бэкенд"
@@ -62,8 +66,20 @@ if [ -f server/go.mod ]; then
   echo "gate: покрытие бэкенда ${total}%" >&2
 fi
 
-if [ -z "$ran" ]; then
-  echo "gate: каркаса нет (ни server/go.mod, ни package.json) — проверять нечего" >&2
-else
+if [ -f apps/apple/project.yml ]; then
+  if sh "$hooks/apple-touched" "${GATE_BASE:-}"; then
+    ran="$ran Apple"
+    sh "$hooks/gate-apple"
+  else
+    skipped="$skipped Apple"
+    echo "gate: Apple — пропущен: в пуше нет правок приложения, договора, токенов, сервера и гейта" >&2
+  fi
+fi
+
+if [ -n "$ran" ]; then
   echo "gate: зелёный —$ran" >&2
+elif [ -n "$skipped" ]; then
+  echo "gate: зелёный — проверять нечего (пропущено:$skipped)" >&2
+else
+  echo "gate: каркаса нет (ни server/go.mod, ни apps/apple, ни package.json) — проверять нечего" >&2
 fi

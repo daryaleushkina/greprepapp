@@ -1,0 +1,13 @@
+#!/bin/sh
+# Нужна ли в гейте часть Apple: да, если между базой (что уже лежит в main на GitHub) и HEAD задеты приложение,
+# договор API, токены дизайна, сервер или сам гейт. Пуш только с документами её пропускает — она идёт минуты
+# (решение Даши 06.10.2026). Нет базы (первый пуш, запуск руками, Actions без неё) — проверять всё.
+#   sh scripts/hooks/apple-touched [база] — код 0: проверять, 1: можно пропустить.
+
+set -eu
+
+base="${1:-}"
+[ -z "$base" ] && exit 0
+[ "$base" = "0000000000000000000000000000000000000000" ] && exit 0
+git cat-file -e "$base^{commit}" 2>/dev/null || exit 0
+[ -n "$(git diff --name-only "$base" HEAD -- apps/apple api design/tokens server scripts/hooks compose.yaml)" ]
