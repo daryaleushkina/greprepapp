@@ -13,6 +13,15 @@ type UnimplementedHandler struct{}
 
 var _ Handler = UnimplementedHandler{}
 
+// FinishTraining implements finishTraining operation.
+//
+// Повторный вызов возвращает тот же итог.
+//
+// POST /api/trainings/{trainingId}/finish
+func (UnimplementedHandler) FinishTraining(ctx context.Context, req *TrainingFinish, params FinishTrainingParams) (r *TrainingSummary, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
 // GetHealth implements getHealth operation.
 //
 // Жив ли сервер и какая сборка (сверка после выкладки).
@@ -49,6 +58,28 @@ func (UnimplementedHandler) GetToday(ctx context.Context) (r *Today, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
+// GetTraining implements getTraining operation.
+//
+// Чужая или несуществующая — 404 not_found, не 403, чтобы id чужих
+// сессий не подтверждались.
+//
+// GET /api/trainings/{trainingId}
+func (UnimplementedHandler) GetTraining(ctx context.Context, params GetTrainingParams) (r *TrainingSession, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// GetTrainingOptions implements getTrainingOptions operation.
+//
+// Типы заданий с темами и числом доступных заданий
+// (пустую выборку не собрать), готовые наборы и прошлая
+// тренировка — чтобы «Начать» было видно сразу. Только
+// проверенные задания.
+//
+// GET /api/trainings/options
+func (UnimplementedHandler) GetTrainingOptions(ctx context.Context, params GetTrainingOptionsParams) (r *TrainingOptions, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
 // ReportClientError implements reportClientError operation.
 //
 // Можно без входа (ошибка до входа тоже важна). Размер
@@ -56,6 +87,15 @@ func (UnimplementedHandler) GetToday(ctx context.Context) (r *Today, _ error) {
 //
 // POST /api/client-errors
 func (UnimplementedHandler) ReportClientError(ctx context.Context, req *ClientError) error {
+	return ht.ErrNotImplemented
+}
+
+// ReportQuestion implements reportQuestion operation.
+//
+// «Сообщить об ошибке» в задании — в очередь админки.
+//
+// POST /api/questions/{questionId}/reports
+func (UnimplementedHandler) ReportQuestion(ctx context.Context, req *QuestionReport, params ReportQuestionParams) error {
 	return ht.ErrNotImplemented
 }
 
@@ -110,6 +150,34 @@ func (UnimplementedHandler) SignInWithTelegramMiniApp(ctx context.Context, req *
 // POST /api/auth/logout
 func (UnimplementedHandler) SignOut(ctx context.Context) (r *SignOutNoContent, _ error) {
 	return r, ht.ErrNotImplemented
+}
+
+// StartTraining implements startTraining operation.
+//
+// Всё нужное для сессии приходит одним ответом, чтобы
+// начатая тренировка дожила без сети (PRODUCT.md, «Operating
+// Context»). Задания — только проверенные, сначала те, что
+// человек ещё не решал. Нет ни одного подходящего — 409
+// no_questions. Нет доступа к тренировкам — 403 forbidden.
+//
+// POST /api/trainings
+func (UnimplementedHandler) StartTraining(ctx context.Context, req *TrainingRequest) (r *TrainingSession, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// SubmitTrainingAnswers implements submitTrainingAnswers operation.
+//
+// Повторная отправка безопасна: ответ на позицию
+// заменяется, а не дублируется. В «Практике» остаётся
+// первый ответ (разбор уже показан), в «Проверке» — самый
+// поздний по answeredAt (очередь без сети может прийти не по
+// порядку). Сервер сам проверяет ответ по ключу —
+// клиенту для статистики не верит. После завершения
+// сессии ответы не принимаются (409 training_finished).
+//
+// POST /api/trainings/{trainingId}/answers
+func (UnimplementedHandler) SubmitTrainingAnswers(ctx context.Context, req *AnswerBatch, params SubmitTrainingAnswersParams) error {
+	return ht.ErrNotImplemented
 }
 
 // NewError creates *ErrorStatusCode from error returned by handler.

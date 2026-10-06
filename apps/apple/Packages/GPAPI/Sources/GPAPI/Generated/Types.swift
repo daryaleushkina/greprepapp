@@ -57,6 +57,46 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `GET /api/today`.
     /// - Remark: Generated from `#/paths//api/today/get(getToday)`.
     func getToday(_ input: Operations.GetToday.Input) async throws -> Operations.GetToday.Output
+    /// Что можно собрать в конструкторе тренировки (макеты R1, R2)
+    ///
+    /// Типы заданий с темами и числом доступных заданий (пустую выборку не собрать), готовые наборы и прошлая тренировка — чтобы «Начать» было видно сразу. Только проверенные задания.
+    ///
+    /// - Remark: HTTP `GET /api/trainings/options`.
+    /// - Remark: Generated from `#/paths//api/trainings/options/get(getTrainingOptions)`.
+    func getTrainingOptions(_ input: Operations.GetTrainingOptions.Input) async throws -> Operations.GetTrainingOptions.Output
+    /// Начать тренировку — сессия со всеми заданиями и разборами сразу
+    ///
+    /// Всё нужное для сессии приходит одним ответом, чтобы начатая тренировка дожила без сети (PRODUCT.md, «Operating Context»). Задания — только проверенные, сначала те, что человек ещё не решал. Нет ни одного подходящего — 409 no_questions. Нет доступа к тренировкам — 403 forbidden.
+    ///
+    /// - Remark: HTTP `POST /api/trainings`.
+    /// - Remark: Generated from `#/paths//api/trainings/post(startTraining)`.
+    func startTraining(_ input: Operations.StartTraining.Input) async throws -> Operations.StartTraining.Output
+    /// Своя тренировка — продолжить с того же вопроса или посмотреть разбор
+    ///
+    /// Чужая или несуществующая — 404 not_found, не 403, чтобы id чужих сессий не подтверждались.
+    ///
+    /// - Remark: HTTP `GET /api/trainings/{trainingId}`.
+    /// - Remark: Generated from `#/paths//api/trainings/{trainingId}/get(getTraining)`.
+    func getTraining(_ input: Operations.GetTraining.Input) async throws -> Operations.GetTraining.Output
+    /// Ответы, накопленные на устройстве (в том числе без сети)
+    ///
+    /// Повторная отправка безопасна: ответ на позицию заменяется, а не дублируется. В «Практике» остаётся первый ответ (разбор уже показан), в «Проверке» — самый поздний по answeredAt (очередь без сети может прийти не по порядку). Сервер сам проверяет ответ по ключу — клиенту для статистики не верит. После завершения сессии ответы не принимаются (409 training_finished).
+    ///
+    /// - Remark: HTTP `POST /api/trainings/{trainingId}/answers`.
+    /// - Remark: Generated from `#/paths//api/trainings/{trainingId}/answers/post(submitTrainingAnswers)`.
+    func submitTrainingAnswers(_ input: Operations.SubmitTrainingAnswers.Input) async throws -> Operations.SubmitTrainingAnswers.Output
+    /// Закончить тренировку — итог и что повторить (макет R15)
+    ///
+    /// Повторный вызов возвращает тот же итог.
+    ///
+    /// - Remark: HTTP `POST /api/trainings/{trainingId}/finish`.
+    /// - Remark: Generated from `#/paths//api/trainings/{trainingId}/finish/post(finishTraining)`.
+    func finishTraining(_ input: Operations.FinishTraining.Input) async throws -> Operations.FinishTraining.Output
+    /// «Сообщить об ошибке» в задании — в очередь админки
+    ///
+    /// - Remark: HTTP `POST /api/questions/{questionId}/reports`.
+    /// - Remark: Generated from `#/paths//api/questions/{questionId}/reports/post(reportQuestion)`.
+    func reportQuestion(_ input: Operations.ReportQuestion.Input) async throws -> Operations.ReportQuestion.Output
     /// Ошибка на клиенте — в таблицу client_errors
     ///
     /// Можно без входа (ошибка до входа тоже важна). Размер тела и частота ограничены на сервере.
@@ -160,6 +200,100 @@ extension APIProtocol {
     /// - Remark: Generated from `#/paths//api/today/get(getToday)`.
     public func getToday(headers: Operations.GetToday.Input.Headers = .init()) async throws -> Operations.GetToday.Output {
         try await getToday(Operations.GetToday.Input(headers: headers))
+    }
+    /// Что можно собрать в конструкторе тренировки (макеты R1, R2)
+    ///
+    /// Типы заданий с темами и числом доступных заданий (пустую выборку не собрать), готовые наборы и прошлая тренировка — чтобы «Начать» было видно сразу. Только проверенные задания.
+    ///
+    /// - Remark: HTTP `GET /api/trainings/options`.
+    /// - Remark: Generated from `#/paths//api/trainings/options/get(getTrainingOptions)`.
+    public func getTrainingOptions(
+        query: Operations.GetTrainingOptions.Input.Query,
+        headers: Operations.GetTrainingOptions.Input.Headers = .init()
+    ) async throws -> Operations.GetTrainingOptions.Output {
+        try await getTrainingOptions(Operations.GetTrainingOptions.Input(
+            query: query,
+            headers: headers
+        ))
+    }
+    /// Начать тренировку — сессия со всеми заданиями и разборами сразу
+    ///
+    /// Всё нужное для сессии приходит одним ответом, чтобы начатая тренировка дожила без сети (PRODUCT.md, «Operating Context»). Задания — только проверенные, сначала те, что человек ещё не решал. Нет ни одного подходящего — 409 no_questions. Нет доступа к тренировкам — 403 forbidden.
+    ///
+    /// - Remark: HTTP `POST /api/trainings`.
+    /// - Remark: Generated from `#/paths//api/trainings/post(startTraining)`.
+    public func startTraining(
+        headers: Operations.StartTraining.Input.Headers = .init(),
+        body: Operations.StartTraining.Input.Body
+    ) async throws -> Operations.StartTraining.Output {
+        try await startTraining(Operations.StartTraining.Input(
+            headers: headers,
+            body: body
+        ))
+    }
+    /// Своя тренировка — продолжить с того же вопроса или посмотреть разбор
+    ///
+    /// Чужая или несуществующая — 404 not_found, не 403, чтобы id чужих сессий не подтверждались.
+    ///
+    /// - Remark: HTTP `GET /api/trainings/{trainingId}`.
+    /// - Remark: Generated from `#/paths//api/trainings/{trainingId}/get(getTraining)`.
+    public func getTraining(
+        path: Operations.GetTraining.Input.Path,
+        headers: Operations.GetTraining.Input.Headers = .init()
+    ) async throws -> Operations.GetTraining.Output {
+        try await getTraining(Operations.GetTraining.Input(
+            path: path,
+            headers: headers
+        ))
+    }
+    /// Ответы, накопленные на устройстве (в том числе без сети)
+    ///
+    /// Повторная отправка безопасна: ответ на позицию заменяется, а не дублируется. В «Практике» остаётся первый ответ (разбор уже показан), в «Проверке» — самый поздний по answeredAt (очередь без сети может прийти не по порядку). Сервер сам проверяет ответ по ключу — клиенту для статистики не верит. После завершения сессии ответы не принимаются (409 training_finished).
+    ///
+    /// - Remark: HTTP `POST /api/trainings/{trainingId}/answers`.
+    /// - Remark: Generated from `#/paths//api/trainings/{trainingId}/answers/post(submitTrainingAnswers)`.
+    public func submitTrainingAnswers(
+        path: Operations.SubmitTrainingAnswers.Input.Path,
+        headers: Operations.SubmitTrainingAnswers.Input.Headers = .init(),
+        body: Operations.SubmitTrainingAnswers.Input.Body
+    ) async throws -> Operations.SubmitTrainingAnswers.Output {
+        try await submitTrainingAnswers(Operations.SubmitTrainingAnswers.Input(
+            path: path,
+            headers: headers,
+            body: body
+        ))
+    }
+    /// Закончить тренировку — итог и что повторить (макет R15)
+    ///
+    /// Повторный вызов возвращает тот же итог.
+    ///
+    /// - Remark: HTTP `POST /api/trainings/{trainingId}/finish`.
+    /// - Remark: Generated from `#/paths//api/trainings/{trainingId}/finish/post(finishTraining)`.
+    public func finishTraining(
+        path: Operations.FinishTraining.Input.Path,
+        headers: Operations.FinishTraining.Input.Headers = .init(),
+        body: Operations.FinishTraining.Input.Body
+    ) async throws -> Operations.FinishTraining.Output {
+        try await finishTraining(Operations.FinishTraining.Input(
+            path: path,
+            headers: headers,
+            body: body
+        ))
+    }
+    /// «Сообщить об ошибке» в задании — в очередь админки
+    ///
+    /// - Remark: HTTP `POST /api/questions/{questionId}/reports`.
+    /// - Remark: Generated from `#/paths//api/questions/{questionId}/reports/post(reportQuestion)`.
+    public func reportQuestion(
+        path: Operations.ReportQuestion.Input.Path,
+        headers: Operations.ReportQuestion.Input.Headers = .init(),
+        body: Operations.ReportQuestion.Input.Body
+    ) async throws -> Operations.ReportQuestion.Output {
+        try await reportQuestion(Operations.ReportQuestion.Input(
+            path: path,
+            headers: headers,
+            body: body
+        ))
     }
     /// Ошибка на клиенте — в таблицу client_errors
     ///

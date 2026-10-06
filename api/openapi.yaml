@@ -166,6 +166,137 @@ paths:
               schema: { $ref: '#/components/schemas/Today' }
         default: { $ref: '#/components/responses/Error' }
 
+  /api/trainings/options:
+    get:
+      operationId: getTrainingOptions
+      summary: Что можно собрать в конструкторе тренировки (макеты R1, R2)
+      description: >-
+        Типы заданий с темами и числом доступных заданий (пустую выборку не собрать), готовые наборы и прошлая
+        тренировка — чтобы «Начать» было видно сразу. Только проверенные задания.
+      tags: [trainings]
+      parameters:
+        - name: types
+          in: query
+          required: true
+          description: >-
+            Типы заданий, которые клиент умеет показывать. Других сервер не присылает ни в списке, ни в наборах:
+            новый тип на сервере не ломает уже установленные версии приложений.
+          schema:
+            type: array
+            minItems: 1
+            maxItems: 20
+            items: { $ref: '#/components/schemas/QuestionType' }
+      responses:
+        '200':
+          description: Варианты конструктора
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TrainingOptions' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /api/trainings:
+    post:
+      operationId: startTraining
+      summary: Начать тренировку — сессия со всеми заданиями и разборами сразу
+      description: >-
+        Всё нужное для сессии приходит одним ответом, чтобы начатая тренировка дожила без сети (PRODUCT.md,
+        «Operating Context»). Задания — только проверенные, сначала те, что человек ещё не решал. Нет ни
+        одного подходящего — 409 no_questions. Нет доступа к тренировкам — 403 forbidden.
+      tags: [trainings]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TrainingRequest' }
+      responses:
+        '201':
+          description: Сессия создана
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TrainingSession' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /api/trainings/{trainingId}:
+    get:
+      operationId: getTraining
+      summary: Своя тренировка — продолжить с того же вопроса или посмотреть разбор
+      description: Чужая или несуществующая — 404 not_found, не 403, чтобы id чужих сессий не подтверждались.
+      tags: [trainings]
+      parameters:
+        - $ref: '#/components/parameters/TrainingId'
+      responses:
+        '200':
+          description: Сессия с ответами, которые уже дошли до сервера
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TrainingSession' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /api/trainings/{trainingId}/answers:
+    post:
+      operationId: submitTrainingAnswers
+      summary: Ответы, накопленные на устройстве (в том числе без сети)
+      description: >-
+        Повторная отправка безопасна: ответ на позицию заменяется, а не дублируется. В «Практике» остаётся первый
+        ответ (разбор уже показан), в «Проверке» — самый поздний по answeredAt (очередь без сети может прийти не
+        по порядку). Сервер сам проверяет ответ по ключу — клиенту для статистики не верит. После завершения
+        сессии ответы не принимаются (409 training_finished).
+      tags: [trainings]
+      parameters:
+        - $ref: '#/components/parameters/TrainingId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AnswerBatch' }
+      responses:
+        '204':
+          description: Записано
+        default: { $ref: '#/components/responses/Error' }
+
+  /api/trainings/{trainingId}/finish:
+    post:
+      operationId: finishTraining
+      summary: Закончить тренировку — итог и что повторить (макет R15)
+      description: Повторный вызов возвращает тот же итог.
+      tags: [trainings]
+      parameters:
+        - $ref: '#/components/parameters/TrainingId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TrainingFinish' }
+      responses:
+        '200':
+          description: Итог
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TrainingSummary' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /api/questions/{questionId}/reports:
+    post:
+      operationId: reportQuestion
+      summary: «Сообщить об ошибке» в задании — в очередь админки
+      tags: [trainings]
+      parameters:
+        - name: questionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/QuestionReport' }
+      responses:
+        '204':
+          description: Принято
+        default: { $ref: '#/components/responses/Error' }
+
   /api/client-errors:
     post:
       operationId: reportClientError
@@ -217,6 +348,15 @@ components:
       name: __Host-session
       description: Токен сессии — сайт и админка
 
+  parameters:
+    TrainingId:
+      name: trainingId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
   responses:
     Error:
       description: Любая ошибка — машинный код, текст для журнала, id запроса
@@ -234,7 +374,7 @@ components:
           type: string
           description: >-
             Машинный код: bad_request, unauthorized, forbidden, not_found, too_many_requests,
-            invalid_init_data, invalid_id_token, internal. Клиент показывает текст по коду, а не message.
+            invalid_init_data, invalid_id_token, no_questions, training_finished, internal. Клиент показывает текст по коду, а не message.
           examples: [unauthorized]
         message:
           type: string
@@ -499,3 +639,339 @@ components:
           enum: [question, word, theory, essay_prompt]
         title:
           type: string
+
+    # ---------- Тренировки ----------
+
+    QuestionType:
+      type: string
+      enum: [text_completion, sentence_equivalence, quantitative_comparison, multiple_choice]
+      description: >-
+        Первый срез тренировок — задания с выбором ответа (решение Даши 06.10.2026): Text Completion (1–3
+        пропуска), Sentence Equivalence (два ответа из шести), Quantitative Comparison, обычный выбор в
+        математике. Reading Comprehension, ввод числа и несколько верных — следующими срезами.
+
+    Difficulty:
+      type: string
+      enum: [easy, medium, hard]
+
+    TrainingMode:
+      type: string
+      enum: [practice, check]
+      description: >-
+        practice — разбор после каждого вопроса, без таймера, вместо пропуска «Не знаю»; check — разбор в
+        конце, таймер темпа экзамена, пропустить и вернуться можно, время вышло — сессия кончилась.
+
+    LocalizedText:
+      type: object
+      additionalProperties: false
+      required: [ru, en]
+      properties:
+        ru: { type: string }
+        en: { type: string }
+
+    DifficultyCounts:
+      type: object
+      additionalProperties: false
+      required: [easy, medium, hard]
+      description: Сколько проверенных заданий каждой сложности
+      properties:
+        easy: { type: integer, minimum: 0 }
+        medium: { type: integer, minimum: 0 }
+        hard: { type: integer, minimum: 0 }
+
+    TrainingTopic:
+      type: object
+      additionalProperties: false
+      required: [id, title, available]
+      properties:
+        id: { type: string, maxLength: 64 }
+        title: { $ref: '#/components/schemas/LocalizedText' }
+        available: { $ref: '#/components/schemas/DifficultyCounts' }
+
+    TrainingType:
+      type: object
+      additionalProperties: false
+      required: [section, questionType, paceSeconds, topics]
+      properties:
+        section: { $ref: '#/components/schemas/Section' }
+        questionType: { $ref: '#/components/schemas/QuestionType' }
+        paceSeconds:
+          type: integer
+          minimum: 1
+          description: >-
+            Темп экзамена на вопрос (Verbal — 90 с, Quant — 105 с): время «Проверки» и оценка «~12 мин» на кнопке
+        topics:
+          type: array
+          maxItems: 100
+          items: { $ref: '#/components/schemas/TrainingTopic' }
+
+    TrainingPreset:
+      type: object
+      additionalProperties: false
+      required: [kind, request]
+      properties:
+        kind:
+          type: string
+          maxLength: 32
+          description: >-
+            Открытый список, не enum: новые виды появятся без обновления приложений, а клиент пропускает
+            незнакомые. Сейчас — last («Как в прошлый раз») и timed («Проверка на время»: все доступные типы
+            раздела, 12 вопросов, как секция экзамена); «Мои ошибки» и «Слабая тема» — с фичей «что повторить».
+        request: { $ref: '#/components/schemas/TrainingRequest' }
+
+    TrainingOptions:
+      type: object
+      additionalProperties: false
+      required: [types, presets, maxQuestions]
+      properties:
+        types:
+          type: array
+          maxItems: 20
+          items: { $ref: '#/components/schemas/TrainingType' }
+        presets:
+          type: array
+          maxItems: 10
+          items: { $ref: '#/components/schemas/TrainingPreset' }
+        maxQuestions:
+          type: integer
+          minimum: 1
+          description: Больше этого числа вопросов в одной тренировке не бывает
+
+    TrainingRequest:
+      type: object
+      additionalProperties: false
+      required: [section, questionTypes, count, mode]
+      properties:
+        section: { $ref: '#/components/schemas/Section' }
+        questionTypes:
+          type: array
+          minItems: 1
+          maxItems: 4
+          uniqueItems: true
+          items: { $ref: '#/components/schemas/QuestionType' }
+          description: Конструктор даёт один тип; «Проверка на время» — все типы раздела вперемешку (макет R16)
+        topicIds:
+          type: array
+          maxItems: 50
+          items: { type: string, maxLength: 64 }
+          description: Пусто или нет — все темы
+        difficulty: { $ref: '#/components/schemas/Difficulty' }
+        count:
+          type: integer
+          minimum: 1
+          maximum: 50
+        mode: { $ref: '#/components/schemas/TrainingMode' }
+
+    QuestionOption:
+      type: object
+      additionalProperties: false
+      required: [id, text]
+      properties:
+        id: { type: string, maxLength: 16 }
+        text: { type: string, maxLength: 500 }
+
+    OptionGroup:
+      type: object
+      additionalProperties: false
+      required: [options]
+      properties:
+        options:
+          type: array
+          minItems: 2
+          maxItems: 6
+          items: { $ref: '#/components/schemas/QuestionOption' }
+
+    OptionExplanation:
+      type: object
+      additionalProperties: false
+      required: [optionId, text]
+      properties:
+        optionId: { type: string, maxLength: 16 }
+        text:
+          $ref: '#/components/schemas/LocalizedText'
+          description: Почему соблазняет и чем плох
+
+    Explanation:
+      type: object
+      additionalProperties: false
+      required: [solution, options]
+      description: >-
+        Разбор пишется заранее (PRODUCT.md, «Разбор ошибок»): почему верен ключ и почему соблазняет и не подходит
+        каждый неверный вариант. Текст простой; *слово* — выделение (английские слова в русском тексте).
+      properties:
+        solution:
+          $ref: '#/components/schemas/LocalizedText'
+          description: Почему верен ключ — под «Верно / Неверно. Верный ответ — A» (макеты R4, R6)
+        options:
+          type: array
+          maxItems: 18
+          items: { $ref: '#/components/schemas/OptionExplanation' }
+          description: «Почему не …?» — по неверным вариантам
+
+    Question:
+      type: object
+      additionalProperties: false
+      required: [id, questionType, section, topicId, topicTitle, difficulty, prompt, groups, selectCount, answer, explanation]
+      properties:
+        id: { type: string, format: uuid }
+        questionType: { $ref: '#/components/schemas/QuestionType' }
+        section: { $ref: '#/components/schemas/Section' }
+        topicId: { type: string, maxLength: 64 }
+        topicTitle: { $ref: '#/components/schemas/LocalizedText' }
+        difficulty: { $ref: '#/components/schemas/Difficulty' }
+        prompt:
+          type: string
+          maxLength: 4000
+          description: >-
+            Текст задания на английском. Пропуски Text Completion и Sentence Equivalence — «___» по порядку
+            групп вариантов.
+        condition:
+          type: string
+          maxLength: 500
+          description: Условие над величинами Quantitative Comparison (например, «0 < x < 1»)
+        quantityA: { type: string, maxLength: 500 }
+        quantityB: { type: string, maxLength: 500 }
+        groups:
+          type: array
+          minItems: 1
+          maxItems: 3
+          items: { $ref: '#/components/schemas/OptionGroup' }
+          description: Группа — один пропуск Text Completion; у остальных типов одна группа
+        selectCount:
+          type: integer
+          minimum: 1
+          maximum: 2
+          description: Сколько вариантов выбрать в группе (Sentence Equivalence — 2)
+        answer:
+          type: array
+          minItems: 1
+          maxItems: 3
+          items: { type: string, maxLength: 16 }
+          description: >-
+            Верные варианты. Приходит вместе с заданием: проверка без сети идёт на устройстве; сервер
+            проверяет ответ сам и статистику клиенту не доверяет.
+        explanation: { $ref: '#/components/schemas/Explanation' }
+
+    GivenAnswer:
+      type: object
+      additionalProperties: false
+      required: [position, optionIds, dontKnow, flagged, answeredAt, elapsedMs]
+      properties:
+        position: { type: integer, minimum: 0, maximum: 49 }
+        optionIds:
+          type: array
+          maxItems: 3
+          items: { type: string, maxLength: 16 }
+          description: Пусто — не ответил (пропустил или «Не знаю»)
+        dontKnow:
+          type: boolean
+          description: «Не знаю» в «Практике» — для «что повторить» это ошибка; только с пустым optionIds
+        flagged:
+          type: boolean
+          description: Отметка «вернуться» в «Проверке»
+        answeredAt: { type: string, format: date-time }
+        elapsedMs:
+          type: integer
+          minimum: 0
+          maximum: 86400000
+
+    TrainingItem:
+      type: object
+      additionalProperties: false
+      required: [position, question]
+      properties:
+        position: { type: integer, minimum: 0, maximum: 49 }
+        question: { $ref: '#/components/schemas/Question' }
+        answer: { $ref: '#/components/schemas/GivenAnswer' }
+        correct:
+          type: boolean
+          description: Проверка сервера; нет — ответа нет или он ещё не дошёл
+
+    TrainingSession:
+      type: object
+      additionalProperties: false
+      required: [id, mode, section, questionTypes, startedAt, items]
+      properties:
+        id: { type: string, format: uuid }
+        mode: { $ref: '#/components/schemas/TrainingMode' }
+        section: { $ref: '#/components/schemas/Section' }
+        questionTypes:
+          type: array
+          minItems: 1
+          maxItems: 4
+          items: { $ref: '#/components/schemas/QuestionType' }
+        startedAt: { type: string, format: date-time }
+        timeLimitSeconds:
+          type: integer
+          minimum: 1
+          description: Только у «Проверки» — темп секции экзамена
+        finishedAt: { type: string, format: date-time }
+        items:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items: { $ref: '#/components/schemas/TrainingItem' }
+
+    AnswerBatch:
+      type: object
+      additionalProperties: false
+      required: [answers]
+      properties:
+        answers:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items: { $ref: '#/components/schemas/GivenAnswer' }
+
+    TrainingFinish:
+      type: object
+      additionalProperties: false
+      required: [finishedAt, timedOut]
+      properties:
+        finishedAt: { type: string, format: date-time }
+        timedOut:
+          type: boolean
+          description: Время «Проверки» вышло — оставшиеся вопросы «не успел»
+
+    TopicToReview:
+      type: object
+      additionalProperties: false
+      required: [topicId, title, mistakes, positions]
+      properties:
+        topicId: { type: string, maxLength: 64 }
+        title: { $ref: '#/components/schemas/LocalizedText' }
+        mistakes: { type: integer, minimum: 1 }
+        positions:
+          type: array
+          maxItems: 50
+          items: { type: integer, minimum: 0 }
+
+    TrainingSummary:
+      type: object
+      additionalProperties: false
+      required: [correct, total, unanswered, durationSeconds, review]
+      properties:
+        correct: { type: integer, minimum: 0 }
+        total: { type: integer, minimum: 1 }
+        unanswered:
+          type: integer
+          minimum: 0
+          description: Без ответа — «Не знаю», пропущенные и не успел
+        durationSeconds: { type: integer, minimum: 0 }
+        review:
+          type: array
+          maxItems: 3
+          items: { $ref: '#/components/schemas/TopicToReview' }
+          description: 1–3 темы, где больше всего ошибок, — «Что повторить»
+
+    QuestionReport:
+      type: object
+      additionalProperties: false
+      required: [kind]
+      properties:
+        kind:
+          type: string
+          enum: [question, answer, explanation, translation, other]
+          description: Где ошибка — в задании, в ответе, в разборе, в переводе, другое (макет R17)
+        text: { type: string, maxLength: 2000 }
+        trainingId: { type: string, format: uuid }

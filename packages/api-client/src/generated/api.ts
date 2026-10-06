@@ -29,15 +29,23 @@ import {
   ReviewQueue,
   Session,
   Today,
+  TrainingOptions,
+  TrainingSession,
+  TrainingSummary,
   User
 } from './model/index.zod';
 import type {
+  AnswerBatch,
   AuthorizationCodeSignIn,
   ClientError,
   DevSignIn,
   Error,
+  GetTrainingOptionsParams,
   IdTokenSignIn,
-  TelegramMiniAppSignIn
+  QuestionReport,
+  TelegramMiniAppSignIn,
+  TrainingFinish,
+  TrainingRequest
 } from './model/index.zod';
 
 import { http } from '../http';
@@ -804,6 +812,585 @@ export function useGetToday<TData = Awaited<ReturnType<typeof getToday>>, TError
 
 
 
+
+export const getGetTrainingOptionsUrl = (params: GetTrainingOptionsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    const explodeParameters = ["types"];
+
+    if (Array.isArray(value) && explodeParameters.includes(key)) {
+      value.forEach((v) => {
+        normalizedParams.append(key, v === null ? 'null' : String(v));
+      });
+      return;
+    }
+
+
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/trainings/options?${stringifiedParams}` : `/api/trainings/options`
+}
+
+/**
+ * Типы заданий с темами и числом доступных заданий (пустую выборку не собрать), готовые наборы и прошлая тренировка — чтобы «Начать» было видно сразу. Только проверенные задания.
+ * @summary Что можно собрать в конструкторе тренировки (макеты R1, R2)
+ */
+export const getTrainingOptions = async (params: GetTrainingOptionsParams, options?: Parameters<typeof http>[1]): Promise<TrainingOptions> => {
+
+  return http<TrainingOptions>(getGetTrainingOptionsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+    ,
+    schema: TrainingOptions
+  }
+);}
+
+
+
+
+
+export const getGetTrainingOptionsQueryKey = (params?: GetTrainingOptionsParams,) => {
+    return [
+    `/api/trainings/options`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetTrainingOptionsQueryOptions = <TData = Awaited<ReturnType<typeof getTrainingOptions>>, TError = ErrorType<Error>>(params: GetTrainingOptionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTrainingOptions>>, TError, TData>>, request?: SecondParameter<typeof http>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTrainingOptionsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTrainingOptions>>> = ({ signal }) => getTrainingOptions(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTrainingOptions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetTrainingOptionsQueryResult = NonNullable<Awaited<ReturnType<typeof getTrainingOptions>>>
+export type GetTrainingOptionsQueryError = ErrorType<Error>
+
+
+export function useGetTrainingOptions<TData = Awaited<ReturnType<typeof getTrainingOptions>>, TError = ErrorType<Error>>(
+ params: GetTrainingOptionsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTrainingOptions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTrainingOptions>>,
+          TError,
+          Awaited<ReturnType<typeof getTrainingOptions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof http>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTrainingOptions<TData = Awaited<ReturnType<typeof getTrainingOptions>>, TError = ErrorType<Error>>(
+ params: GetTrainingOptionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTrainingOptions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTrainingOptions>>,
+          TError,
+          Awaited<ReturnType<typeof getTrainingOptions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof http>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTrainingOptions<TData = Awaited<ReturnType<typeof getTrainingOptions>>, TError = ErrorType<Error>>(
+ params: GetTrainingOptionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTrainingOptions>>, TError, TData>>, request?: SecondParameter<typeof http>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Что можно собрать в конструкторе тренировки (макеты R1, R2)
+ */
+
+export function useGetTrainingOptions<TData = Awaited<ReturnType<typeof getTrainingOptions>>, TError = ErrorType<Error>>(
+ params: GetTrainingOptionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTrainingOptions>>, TError, TData>>, request?: SecondParameter<typeof http>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetTrainingOptionsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getStartTrainingUrl = () => {
+
+
+
+
+  return `/api/trainings`
+}
+
+/**
+ * Всё нужное для сессии приходит одним ответом, чтобы начатая тренировка дожила без сети (PRODUCT.md, «Operating Context»). Задания — только проверенные, сначала те, что человек ещё не решал. Нет ни одного подходящего — 409 no_questions. Нет доступа к тренировкам — 403 forbidden.
+ * @summary Начать тренировку — сессия со всеми заданиями и разборами сразу
+ */
+export const startTraining = async (trainingRequest: TrainingRequest, options?: Parameters<typeof http>[1]): Promise<TrainingSession> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<TrainingSession>(getStartTrainingUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(trainingRequest),
+    schema: TrainingSession
+  }
+);}
+
+
+
+
+
+export const getStartTrainingMutationKey = () => ['startTraining'] as const;
+
+export const getStartTrainingMutationOptions = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startTraining>>, TError,StartTrainingMutationVariables, TContext>, request?: SecondParameter<typeof http>}
+): UseMutationOptions<Awaited<ReturnType<typeof startTraining>>, TError,StartTrainingMutationVariables, TContext> => {
+
+const mutationKey = getStartTrainingMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof startTraining>>, StartTrainingMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  startTraining(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StartTrainingMutationResult = NonNullable<Awaited<ReturnType<typeof startTraining>>>
+    export type StartTrainingMutationBody = TrainingRequest
+    export type StartTrainingMutationError = ErrorType<Error>
+    export type StartTrainingMutationVariables = {data: TrainingRequest}
+
+    /**
+ * @summary Начать тренировку — сессия со всеми заданиями и разборами сразу
+ */
+export const useStartTraining = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startTraining>>, TError,StartTrainingMutationVariables, TContext>, request?: SecondParameter<typeof http>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof startTraining>>,
+        TError,
+        StartTrainingMutationVariables,
+        TContext
+      > => {
+      return useMutation(getStartTrainingMutationOptions(options), queryClient);
+    }
+
+export const getGetTrainingUrl = (trainingId: string,) => {
+
+
+
+
+  return `/api/trainings/${trainingId}`
+}
+
+/**
+ * Чужая или несуществующая — 404 not_found, не 403, чтобы id чужих сессий не подтверждались.
+ * @summary Своя тренировка — продолжить с того же вопроса или посмотреть разбор
+ */
+export const getTraining = async (trainingId: string, options?: Parameters<typeof http>[1]): Promise<TrainingSession> => {
+
+  return http<TrainingSession>(getGetTrainingUrl(trainingId),
+  {
+    ...options,
+    method: 'GET'
+
+    ,
+    schema: TrainingSession
+  }
+);}
+
+
+
+
+
+export const getGetTrainingQueryKey = (trainingId: string,) => {
+    return [
+    `/api/trainings/${trainingId}`
+    ] as const;
+    }
+
+
+export const getGetTrainingQueryOptions = <TData = Awaited<ReturnType<typeof getTraining>>, TError = ErrorType<Error>>(trainingId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTraining>>, TError, TData>>, request?: SecondParameter<typeof http>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTrainingQueryKey(trainingId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTraining>>> = ({ signal }) => getTraining(trainingId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: trainingId !== null && trainingId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTraining>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetTrainingQueryResult = NonNullable<Awaited<ReturnType<typeof getTraining>>>
+export type GetTrainingQueryError = ErrorType<Error>
+
+
+export function useGetTraining<TData = Awaited<ReturnType<typeof getTraining>>, TError = ErrorType<Error>>(
+ trainingId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTraining>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTraining>>,
+          TError,
+          Awaited<ReturnType<typeof getTraining>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof http>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTraining<TData = Awaited<ReturnType<typeof getTraining>>, TError = ErrorType<Error>>(
+ trainingId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTraining>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTraining>>,
+          TError,
+          Awaited<ReturnType<typeof getTraining>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof http>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTraining<TData = Awaited<ReturnType<typeof getTraining>>, TError = ErrorType<Error>>(
+ trainingId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTraining>>, TError, TData>>, request?: SecondParameter<typeof http>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Своя тренировка — продолжить с того же вопроса или посмотреть разбор
+ */
+
+export function useGetTraining<TData = Awaited<ReturnType<typeof getTraining>>, TError = ErrorType<Error>>(
+ trainingId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTraining>>, TError, TData>>, request?: SecondParameter<typeof http>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetTrainingQueryOptions(trainingId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSubmitTrainingAnswersUrl = (trainingId: string,) => {
+
+
+
+
+  return `/api/trainings/${trainingId}/answers`
+}
+
+/**
+ * Повторная отправка безопасна: ответ на позицию заменяется, а не дублируется. В «Практике» остаётся первый ответ (разбор уже показан), в «Проверке» — самый поздний по answeredAt (очередь без сети может прийти не по порядку). Сервер сам проверяет ответ по ключу — клиенту для статистики не верит. После завершения сессии ответы не принимаются (409 training_finished).
+ * @summary Ответы, накопленные на устройстве (в том числе без сети)
+ */
+export const submitTrainingAnswers = async (trainingId: string,
+    answerBatch: AnswerBatch, options?: Parameters<typeof http>[1]): Promise<void> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<void>(getSubmitTrainingAnswersUrl(trainingId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(answerBatch)
+  }
+);}
+
+
+
+
+
+export const getSubmitTrainingAnswersMutationKey = () => ['submitTrainingAnswers'] as const;
+
+export const getSubmitTrainingAnswersMutationOptions = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitTrainingAnswers>>, TError,SubmitTrainingAnswersMutationVariables, TContext>, request?: SecondParameter<typeof http>}
+): UseMutationOptions<Awaited<ReturnType<typeof submitTrainingAnswers>>, TError,SubmitTrainingAnswersMutationVariables, TContext> => {
+
+const mutationKey = getSubmitTrainingAnswersMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof submitTrainingAnswers>>, SubmitTrainingAnswersMutationVariables> = (props) => {
+          const {trainingId,data} = props ?? {};
+
+          return  submitTrainingAnswers(trainingId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SubmitTrainingAnswersMutationResult = NonNullable<Awaited<ReturnType<typeof submitTrainingAnswers>>>
+    export type SubmitTrainingAnswersMutationBody = AnswerBatch
+    export type SubmitTrainingAnswersMutationError = ErrorType<Error>
+    export type SubmitTrainingAnswersMutationVariables = {trainingId: string;data: AnswerBatch}
+
+    /**
+ * @summary Ответы, накопленные на устройстве (в том числе без сети)
+ */
+export const useSubmitTrainingAnswers = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitTrainingAnswers>>, TError,SubmitTrainingAnswersMutationVariables, TContext>, request?: SecondParameter<typeof http>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof submitTrainingAnswers>>,
+        TError,
+        SubmitTrainingAnswersMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSubmitTrainingAnswersMutationOptions(options), queryClient);
+    }
+
+export const getFinishTrainingUrl = (trainingId: string,) => {
+
+
+
+
+  return `/api/trainings/${trainingId}/finish`
+}
+
+/**
+ * Повторный вызов возвращает тот же итог.
+ * @summary Закончить тренировку — итог и что повторить (макет R15)
+ */
+export const finishTraining = async (trainingId: string,
+    trainingFinish: TrainingFinish, options?: Parameters<typeof http>[1]): Promise<TrainingSummary> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<TrainingSummary>(getFinishTrainingUrl(trainingId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(trainingFinish),
+    schema: TrainingSummary
+  }
+);}
+
+
+
+
+
+export const getFinishTrainingMutationKey = () => ['finishTraining'] as const;
+
+export const getFinishTrainingMutationOptions = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof finishTraining>>, TError,FinishTrainingMutationVariables, TContext>, request?: SecondParameter<typeof http>}
+): UseMutationOptions<Awaited<ReturnType<typeof finishTraining>>, TError,FinishTrainingMutationVariables, TContext> => {
+
+const mutationKey = getFinishTrainingMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof finishTraining>>, FinishTrainingMutationVariables> = (props) => {
+          const {trainingId,data} = props ?? {};
+
+          return  finishTraining(trainingId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type FinishTrainingMutationResult = NonNullable<Awaited<ReturnType<typeof finishTraining>>>
+    export type FinishTrainingMutationBody = TrainingFinish
+    export type FinishTrainingMutationError = ErrorType<Error>
+    export type FinishTrainingMutationVariables = {trainingId: string;data: TrainingFinish}
+
+    /**
+ * @summary Закончить тренировку — итог и что повторить (макет R15)
+ */
+export const useFinishTraining = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof finishTraining>>, TError,FinishTrainingMutationVariables, TContext>, request?: SecondParameter<typeof http>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof finishTraining>>,
+        TError,
+        FinishTrainingMutationVariables,
+        TContext
+      > => {
+      return useMutation(getFinishTrainingMutationOptions(options), queryClient);
+    }
+
+export const getReportQuestionUrl = (questionId: string,) => {
+
+
+
+
+  return `/api/questions/${questionId}/reports`
+}
+
+/**
+ * @summary «Сообщить об ошибке» в задании — в очередь админки
+ */
+export const reportQuestion = async (questionId: string,
+    questionReport: QuestionReport, options?: Parameters<typeof http>[1]): Promise<void> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<void>(getReportQuestionUrl(questionId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(questionReport)
+  }
+);}
+
+
+
+
+
+export const getReportQuestionMutationKey = () => ['reportQuestion'] as const;
+
+export const getReportQuestionMutationOptions = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reportQuestion>>, TError,ReportQuestionMutationVariables, TContext>, request?: SecondParameter<typeof http>}
+): UseMutationOptions<Awaited<ReturnType<typeof reportQuestion>>, TError,ReportQuestionMutationVariables, TContext> => {
+
+const mutationKey = getReportQuestionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reportQuestion>>, ReportQuestionMutationVariables> = (props) => {
+          const {questionId,data} = props ?? {};
+
+          return  reportQuestion(questionId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReportQuestionMutationResult = NonNullable<Awaited<ReturnType<typeof reportQuestion>>>
+    export type ReportQuestionMutationBody = QuestionReport
+    export type ReportQuestionMutationError = ErrorType<Error>
+    export type ReportQuestionMutationVariables = {questionId: string;data: QuestionReport}
+
+    /**
+ * @summary «Сообщить об ошибке» в задании — в очередь админки
+ */
+export const useReportQuestion = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reportQuestion>>, TError,ReportQuestionMutationVariables, TContext>, request?: SecondParameter<typeof http>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reportQuestion>>,
+        TError,
+        ReportQuestionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getReportQuestionMutationOptions(options), queryClient);
+    }
 
 export const getReportClientErrorUrl = () => {
 

@@ -1153,6 +1153,888 @@ public enum Operations {
             }
         }
     }
+    /// Что можно собрать в конструкторе тренировки (макеты R1, R2)
+    ///
+    /// Типы заданий с темами и числом доступных заданий (пустую выборку не собрать), готовые наборы и прошлая тренировка — чтобы «Начать» было видно сразу. Только проверенные задания.
+    ///
+    /// - Remark: HTTP `GET /api/trainings/options`.
+    /// - Remark: Generated from `#/paths//api/trainings/options/get(getTrainingOptions)`.
+    public enum GetTrainingOptions {
+        public static let id: Swift.String = "getTrainingOptions"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/api/trainings/options/GET/query`.
+            public struct Query: Sendable, Hashable {
+                /// Типы заданий, которые клиент умеет показывать. Других сервер не присылает ни в списке, ни в наборах: новый тип на сервере не ломает уже установленные версии приложений.
+                ///
+                /// - Remark: Generated from `#/paths/api/trainings/options/GET/query/types`.
+                public var types: [Components.Schemas.QuestionType]
+                /// Creates a new `Query`.
+                ///
+                /// - Parameters:
+                ///   - types: Типы заданий, которые клиент умеет показывать. Других сервер не присылает ни в списке, ни в наборах: новый тип на сервере не ломает уже установленные версии приложений.
+                public init(types: [Components.Schemas.QuestionType]) {
+                    self.types = types
+                }
+            }
+            public var query: Operations.GetTrainingOptions.Input.Query
+            /// - Remark: Generated from `#/paths/api/trainings/options/GET/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetTrainingOptions.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetTrainingOptions.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.GetTrainingOptions.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - query:
+            ///   - headers:
+            public init(
+                query: Operations.GetTrainingOptions.Input.Query,
+                headers: Operations.GetTrainingOptions.Input.Headers = .init()
+            ) {
+                self.query = query
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/trainings/options/GET/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/api/trainings/options/GET/responses/200/content/application\/json`.
+                    case json(Components.Schemas.TrainingOptions)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.TrainingOptions {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetTrainingOptions.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetTrainingOptions.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Варианты конструктора
+            ///
+            /// - Remark: Generated from `#/paths//api/trainings/options/get(getTrainingOptions)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.GetTrainingOptions.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.GetTrainingOptions.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Любая ошибка — машинный код, текст для журнала, id запроса
+            ///
+            /// - Remark: Generated from `#/paths//api/trainings/options/get(getTrainingOptions)/responses/default`.
+            ///
+            /// HTTP response code: `default`.
+            case `default`(statusCode: Swift.Int, Components.Responses._Error)
+            /// The associated value of the enum case if `self` is `.`default``.
+            ///
+            /// - Throws: An error if `self` is not `.`default``.
+            /// - SeeAlso: `.`default``.
+            public var `default`: Components.Responses._Error {
+                get throws {
+                    switch self {
+                    case let .`default`(_, response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "default",
+                            response: self
+                        )
+                    }
+                }
+            }
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Начать тренировку — сессия со всеми заданиями и разборами сразу
+    ///
+    /// Всё нужное для сессии приходит одним ответом, чтобы начатая тренировка дожила без сети (PRODUCT.md, «Operating Context»). Задания — только проверенные, сначала те, что человек ещё не решал. Нет ни одного подходящего — 409 no_questions. Нет доступа к тренировкам — 403 forbidden.
+    ///
+    /// - Remark: HTTP `POST /api/trainings`.
+    /// - Remark: Generated from `#/paths//api/trainings/post(startTraining)`.
+    public enum StartTraining {
+        public static let id: Swift.String = "startTraining"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/api/trainings/POST/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.StartTraining.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.StartTraining.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.StartTraining.Input.Headers
+            /// - Remark: Generated from `#/paths/api/trainings/POST/requestBody`.
+            @frozen public enum Body: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/trainings/POST/requestBody/content/application\/json`.
+                case json(Components.Schemas.TrainingRequest)
+            }
+            public var body: Operations.StartTraining.Input.Body
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - headers:
+            ///   - body:
+            public init(
+                headers: Operations.StartTraining.Input.Headers = .init(),
+                body: Operations.StartTraining.Input.Body
+            ) {
+                self.headers = headers
+                self.body = body
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Created: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/trainings/POST/responses/201/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/api/trainings/POST/responses/201/content/application\/json`.
+                    case json(Components.Schemas.TrainingSession)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.TrainingSession {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.StartTraining.Output.Created.Body
+                /// Creates a new `Created`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.StartTraining.Output.Created.Body) {
+                    self.body = body
+                }
+            }
+            /// Сессия создана
+            ///
+            /// - Remark: Generated from `#/paths//api/trainings/post(startTraining)/responses/201`.
+            ///
+            /// HTTP response code: `201 created`.
+            case created(Operations.StartTraining.Output.Created)
+            /// The associated value of the enum case if `self` is `.created`.
+            ///
+            /// - Throws: An error if `self` is not `.created`.
+            /// - SeeAlso: `.created`.
+            public var created: Operations.StartTraining.Output.Created {
+                get throws {
+                    switch self {
+                    case let .created(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "created",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Любая ошибка — машинный код, текст для журнала, id запроса
+            ///
+            /// - Remark: Generated from `#/paths//api/trainings/post(startTraining)/responses/default`.
+            ///
+            /// HTTP response code: `default`.
+            case `default`(statusCode: Swift.Int, Components.Responses._Error)
+            /// The associated value of the enum case if `self` is `.`default``.
+            ///
+            /// - Throws: An error if `self` is not `.`default``.
+            /// - SeeAlso: `.`default``.
+            public var `default`: Components.Responses._Error {
+                get throws {
+                    switch self {
+                    case let .`default`(_, response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "default",
+                            response: self
+                        )
+                    }
+                }
+            }
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Своя тренировка — продолжить с того же вопроса или посмотреть разбор
+    ///
+    /// Чужая или несуществующая — 404 not_found, не 403, чтобы id чужих сессий не подтверждались.
+    ///
+    /// - Remark: HTTP `GET /api/trainings/{trainingId}`.
+    /// - Remark: Generated from `#/paths//api/trainings/{trainingId}/get(getTraining)`.
+    public enum GetTraining {
+        public static let id: Swift.String = "getTraining"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/api/trainings/{trainingId}/GET/path`.
+            public struct Path: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/trainings/{trainingId}/GET/path/trainingId`.
+                public var trainingId: Components.Parameters.TrainingId
+                /// Creates a new `Path`.
+                ///
+                /// - Parameters:
+                ///   - trainingId:
+                public init(trainingId: Components.Parameters.TrainingId) {
+                    self.trainingId = trainingId
+                }
+            }
+            public var path: Operations.GetTraining.Input.Path
+            /// - Remark: Generated from `#/paths/api/trainings/{trainingId}/GET/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetTraining.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetTraining.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.GetTraining.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - path:
+            ///   - headers:
+            public init(
+                path: Operations.GetTraining.Input.Path,
+                headers: Operations.GetTraining.Input.Headers = .init()
+            ) {
+                self.path = path
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/trainings/{trainingId}/GET/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/api/trainings/{trainingId}/GET/responses/200/content/application\/json`.
+                    case json(Components.Schemas.TrainingSession)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.TrainingSession {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetTraining.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetTraining.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Сессия с ответами, которые уже дошли до сервера
+            ///
+            /// - Remark: Generated from `#/paths//api/trainings/{trainingId}/get(getTraining)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.GetTraining.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.GetTraining.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Любая ошибка — машинный код, текст для журнала, id запроса
+            ///
+            /// - Remark: Generated from `#/paths//api/trainings/{trainingId}/get(getTraining)/responses/default`.
+            ///
+            /// HTTP response code: `default`.
+            case `default`(statusCode: Swift.Int, Components.Responses._Error)
+            /// The associated value of the enum case if `self` is `.`default``.
+            ///
+            /// - Throws: An error if `self` is not `.`default``.
+            /// - SeeAlso: `.`default``.
+            public var `default`: Components.Responses._Error {
+                get throws {
+                    switch self {
+                    case let .`default`(_, response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "default",
+                            response: self
+                        )
+                    }
+                }
+            }
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Ответы, накопленные на устройстве (в том числе без сети)
+    ///
+    /// Повторная отправка безопасна: ответ на позицию заменяется, а не дублируется. В «Практике» остаётся первый ответ (разбор уже показан), в «Проверке» — самый поздний по answeredAt (очередь без сети может прийти не по порядку). Сервер сам проверяет ответ по ключу — клиенту для статистики не верит. После завершения сессии ответы не принимаются (409 training_finished).
+    ///
+    /// - Remark: HTTP `POST /api/trainings/{trainingId}/answers`.
+    /// - Remark: Generated from `#/paths//api/trainings/{trainingId}/answers/post(submitTrainingAnswers)`.
+    public enum SubmitTrainingAnswers {
+        public static let id: Swift.String = "submitTrainingAnswers"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/api/trainings/{trainingId}/answers/POST/path`.
+            public struct Path: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/trainings/{trainingId}/answers/POST/path/trainingId`.
+                public var trainingId: Components.Parameters.TrainingId
+                /// Creates a new `Path`.
+                ///
+                /// - Parameters:
+                ///   - trainingId:
+                public init(trainingId: Components.Parameters.TrainingId) {
+                    self.trainingId = trainingId
+                }
+            }
+            public var path: Operations.SubmitTrainingAnswers.Input.Path
+            /// - Remark: Generated from `#/paths/api/trainings/{trainingId}/answers/POST/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.SubmitTrainingAnswers.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.SubmitTrainingAnswers.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.SubmitTrainingAnswers.Input.Headers
+            /// - Remark: Generated from `#/paths/api/trainings/{trainingId}/answers/POST/requestBody`.
+            @frozen public enum Body: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/trainings/{trainingId}/answers/POST/requestBody/content/application\/json`.
+                case json(Components.Schemas.AnswerBatch)
+            }
+            public var body: Operations.SubmitTrainingAnswers.Input.Body
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - path:
+            ///   - headers:
+            ///   - body:
+            public init(
+                path: Operations.SubmitTrainingAnswers.Input.Path,
+                headers: Operations.SubmitTrainingAnswers.Input.Headers = .init(),
+                body: Operations.SubmitTrainingAnswers.Input.Body
+            ) {
+                self.path = path
+                self.headers = headers
+                self.body = body
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct NoContent: Sendable, Hashable {
+                /// Creates a new `NoContent`.
+                public init() {}
+            }
+            /// Записано
+            ///
+            /// - Remark: Generated from `#/paths//api/trainings/{trainingId}/answers/post(submitTrainingAnswers)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            case noContent(Operations.SubmitTrainingAnswers.Output.NoContent)
+            /// Записано
+            ///
+            /// - Remark: Generated from `#/paths//api/trainings/{trainingId}/answers/post(submitTrainingAnswers)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            public static var noContent: Self {
+                .noContent(.init())
+            }
+            /// The associated value of the enum case if `self` is `.noContent`.
+            ///
+            /// - Throws: An error if `self` is not `.noContent`.
+            /// - SeeAlso: `.noContent`.
+            public var noContent: Operations.SubmitTrainingAnswers.Output.NoContent {
+                get throws {
+                    switch self {
+                    case let .noContent(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "noContent",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Любая ошибка — машинный код, текст для журнала, id запроса
+            ///
+            /// - Remark: Generated from `#/paths//api/trainings/{trainingId}/answers/post(submitTrainingAnswers)/responses/default`.
+            ///
+            /// HTTP response code: `default`.
+            case `default`(statusCode: Swift.Int, Components.Responses._Error)
+            /// The associated value of the enum case if `self` is `.`default``.
+            ///
+            /// - Throws: An error if `self` is not `.`default``.
+            /// - SeeAlso: `.`default``.
+            public var `default`: Components.Responses._Error {
+                get throws {
+                    switch self {
+                    case let .`default`(_, response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "default",
+                            response: self
+                        )
+                    }
+                }
+            }
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Закончить тренировку — итог и что повторить (макет R15)
+    ///
+    /// Повторный вызов возвращает тот же итог.
+    ///
+    /// - Remark: HTTP `POST /api/trainings/{trainingId}/finish`.
+    /// - Remark: Generated from `#/paths//api/trainings/{trainingId}/finish/post(finishTraining)`.
+    public enum FinishTraining {
+        public static let id: Swift.String = "finishTraining"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/api/trainings/{trainingId}/finish/POST/path`.
+            public struct Path: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/trainings/{trainingId}/finish/POST/path/trainingId`.
+                public var trainingId: Components.Parameters.TrainingId
+                /// Creates a new `Path`.
+                ///
+                /// - Parameters:
+                ///   - trainingId:
+                public init(trainingId: Components.Parameters.TrainingId) {
+                    self.trainingId = trainingId
+                }
+            }
+            public var path: Operations.FinishTraining.Input.Path
+            /// - Remark: Generated from `#/paths/api/trainings/{trainingId}/finish/POST/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.FinishTraining.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.FinishTraining.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.FinishTraining.Input.Headers
+            /// - Remark: Generated from `#/paths/api/trainings/{trainingId}/finish/POST/requestBody`.
+            @frozen public enum Body: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/trainings/{trainingId}/finish/POST/requestBody/content/application\/json`.
+                case json(Components.Schemas.TrainingFinish)
+            }
+            public var body: Operations.FinishTraining.Input.Body
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - path:
+            ///   - headers:
+            ///   - body:
+            public init(
+                path: Operations.FinishTraining.Input.Path,
+                headers: Operations.FinishTraining.Input.Headers = .init(),
+                body: Operations.FinishTraining.Input.Body
+            ) {
+                self.path = path
+                self.headers = headers
+                self.body = body
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/trainings/{trainingId}/finish/POST/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/api/trainings/{trainingId}/finish/POST/responses/200/content/application\/json`.
+                    case json(Components.Schemas.TrainingSummary)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.TrainingSummary {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.FinishTraining.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.FinishTraining.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Итог
+            ///
+            /// - Remark: Generated from `#/paths//api/trainings/{trainingId}/finish/post(finishTraining)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.FinishTraining.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.FinishTraining.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Любая ошибка — машинный код, текст для журнала, id запроса
+            ///
+            /// - Remark: Generated from `#/paths//api/trainings/{trainingId}/finish/post(finishTraining)/responses/default`.
+            ///
+            /// HTTP response code: `default`.
+            case `default`(statusCode: Swift.Int, Components.Responses._Error)
+            /// The associated value of the enum case if `self` is `.`default``.
+            ///
+            /// - Throws: An error if `self` is not `.`default``.
+            /// - SeeAlso: `.`default``.
+            public var `default`: Components.Responses._Error {
+                get throws {
+                    switch self {
+                    case let .`default`(_, response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "default",
+                            response: self
+                        )
+                    }
+                }
+            }
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// «Сообщить об ошибке» в задании — в очередь админки
+    ///
+    /// - Remark: HTTP `POST /api/questions/{questionId}/reports`.
+    /// - Remark: Generated from `#/paths//api/questions/{questionId}/reports/post(reportQuestion)`.
+    public enum ReportQuestion {
+        public static let id: Swift.String = "reportQuestion"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/api/questions/{questionId}/reports/POST/path`.
+            public struct Path: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/questions/{questionId}/reports/POST/path/questionId`.
+                public var questionId: Swift.String
+                /// Creates a new `Path`.
+                ///
+                /// - Parameters:
+                ///   - questionId:
+                public init(questionId: Swift.String) {
+                    self.questionId = questionId
+                }
+            }
+            public var path: Operations.ReportQuestion.Input.Path
+            /// - Remark: Generated from `#/paths/api/questions/{questionId}/reports/POST/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.ReportQuestion.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.ReportQuestion.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.ReportQuestion.Input.Headers
+            /// - Remark: Generated from `#/paths/api/questions/{questionId}/reports/POST/requestBody`.
+            @frozen public enum Body: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/questions/{questionId}/reports/POST/requestBody/content/application\/json`.
+                case json(Components.Schemas.QuestionReport)
+            }
+            public var body: Operations.ReportQuestion.Input.Body
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - path:
+            ///   - headers:
+            ///   - body:
+            public init(
+                path: Operations.ReportQuestion.Input.Path,
+                headers: Operations.ReportQuestion.Input.Headers = .init(),
+                body: Operations.ReportQuestion.Input.Body
+            ) {
+                self.path = path
+                self.headers = headers
+                self.body = body
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct NoContent: Sendable, Hashable {
+                /// Creates a new `NoContent`.
+                public init() {}
+            }
+            /// Принято
+            ///
+            /// - Remark: Generated from `#/paths//api/questions/{questionId}/reports/post(reportQuestion)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            case noContent(Operations.ReportQuestion.Output.NoContent)
+            /// Принято
+            ///
+            /// - Remark: Generated from `#/paths//api/questions/{questionId}/reports/post(reportQuestion)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            public static var noContent: Self {
+                .noContent(.init())
+            }
+            /// The associated value of the enum case if `self` is `.noContent`.
+            ///
+            /// - Throws: An error if `self` is not `.noContent`.
+            /// - SeeAlso: `.noContent`.
+            public var noContent: Operations.ReportQuestion.Output.NoContent {
+                get throws {
+                    switch self {
+                    case let .noContent(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "noContent",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Любая ошибка — машинный код, текст для журнала, id запроса
+            ///
+            /// - Remark: Generated from `#/paths//api/questions/{questionId}/reports/post(reportQuestion)/responses/default`.
+            ///
+            /// HTTP response code: `default`.
+            case `default`(statusCode: Swift.Int, Components.Responses._Error)
+            /// The associated value of the enum case if `self` is `.`default``.
+            ///
+            /// - Throws: An error if `self` is not `.`default``.
+            /// - SeeAlso: `.`default``.
+            public var `default`: Components.Responses._Error {
+                get throws {
+                    switch self {
+                    case let .`default`(_, response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "default",
+                            response: self
+                        )
+                    }
+                }
+            }
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
     /// Ошибка на клиенте — в таблицу client_errors
     ///
     /// Можно без входа (ошибка до входа тоже важна). Размер тела и частота ограничены на сервере.

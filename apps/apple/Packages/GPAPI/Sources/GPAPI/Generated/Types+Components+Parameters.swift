@@ -11,5 +11,8 @@ public import struct Foundation.Date
 #endif
 extension Components {
     /// Types generated from the `#/components/parameters` section of the OpenAPI document.
-    public enum Parameters {}
+    public enum Parameters {
+        /// - Remark: Generated from `#/components/parameters/TrainingId`.
+        public typealias TrainingId = Swift.String
+    }
 }

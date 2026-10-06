@@ -12,6 +12,19 @@ import (
 	"github.com/ogen-go/ogen/uri"
 )
 
+func encodeFinishTrainingResponse(response *TrainingSummary, w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(200)
+
+	e := new(jx.Encoder)
+	response.Encode(e)
+	if _, err := e.WriteTo(w); err != nil {
+		return errors.Wrap(err, "write")
+	}
+
+	return nil
+}
+
 func encodeGetHealthResponse(response *Health, w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(200)
@@ -64,7 +77,39 @@ func encodeGetTodayResponse(response *Today, w http.ResponseWriter) error {
 	return nil
 }
 
+func encodeGetTrainingResponse(response *TrainingSession, w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(200)
+
+	e := new(jx.Encoder)
+	response.Encode(e)
+	if _, err := e.WriteTo(w); err != nil {
+		return errors.Wrap(err, "write")
+	}
+
+	return nil
+}
+
+func encodeGetTrainingOptionsResponse(response *TrainingOptions, w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(200)
+
+	e := new(jx.Encoder)
+	response.Encode(e)
+	if _, err := e.WriteTo(w); err != nil {
+		return errors.Wrap(err, "write")
+	}
+
+	return nil
+}
+
 func encodeReportClientErrorResponse(response *ReportClientErrorNoContent, w http.ResponseWriter) error {
+	w.WriteHeader(204)
+
+	return nil
+}
+
+func encodeReportQuestionResponse(response *ReportQuestionNoContent, w http.ResponseWriter) error {
 	w.WriteHeader(204)
 
 	return nil
@@ -203,6 +248,25 @@ func encodeSignOutResponse(response *SignOutNoContent, w http.ResponseWriter) er
 			}
 		}
 	}
+	w.WriteHeader(204)
+
+	return nil
+}
+
+func encodeStartTrainingResponse(response *TrainingSession, w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(201)
+
+	e := new(jx.Encoder)
+	response.Encode(e)
+	if _, err := e.WriteTo(w); err != nil {
+		return errors.Wrap(err, "write")
+	}
+
+	return nil
+}
+
+func encodeSubmitTrainingAnswersResponse(response *SubmitTrainingAnswersNoContent, w http.ResponseWriter) error {
 	w.WriteHeader(204)
 
 	return nil

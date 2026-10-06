@@ -8,7 +8,7 @@
 import * as zod from 'zod';
 
 export const Error = zod.object({
-  "code": zod.string().describe('Машинный код: bad_request, unauthorized, forbidden, not_found, too_many_requests, invalid_init_data, invalid_id_token, internal. Клиент показывает текст по коду, а не message.'),
+  "code": zod.string().describe('Машинный код: bad_request, unauthorized, forbidden, not_found, too_many_requests, invalid_init_data, invalid_id_token, no_questions, training_finished, internal. Клиент показывает текст по коду, а не message.'),
   "message": zod.string().describe('Для журнала и разработчика, не для экрана'),
   "requestId": zod.string()
 })
@@ -254,6 +254,680 @@ export const ReviewQueue = zod.object({
 
 export type ReviewQueue = zod.input<typeof ReviewQueue>;
 export type ReviewQueueOutput = zod.output<typeof ReviewQueue>;
+
+export const QuestionType = zod.enum(['text_completion', 'sentence_equivalence', 'quantitative_comparison', 'multiple_choice']).describe('Первый срез тренировок — задания с выбором ответа (решение Даши 06.10.2026): Text Completion (1–3 пропуска), Sentence Equivalence (два ответа из шести), Quantitative Comparison, обычный выбор в математике. Reading Comprehension, ввод числа и несколько верных — следующими срезами.')
+
+export type QuestionType = zod.input<typeof QuestionType>;
+export type QuestionTypeOutput = zod.output<typeof QuestionType>;
+
+export const Difficulty = zod.enum(['easy', 'medium', 'hard'])
+
+export type Difficulty = zod.input<typeof Difficulty>;
+export type DifficultyOutput = zod.output<typeof Difficulty>;
+
+export const TrainingMode = zod.enum(['practice', 'check']).describe('practice — разбор после каждого вопроса, без таймера, вместо пропуска «Не знаю»; check — разбор в конце, таймер темпа экзамена, пропустить и вернуться можно, время вышло — сессия кончилась.')
+
+export type TrainingMode = zod.input<typeof TrainingMode>;
+export type TrainingModeOutput = zod.output<typeof TrainingMode>;
+
+export const LocalizedText = zod.object({
+  "ru": zod.string(),
+  "en": zod.string()
+})
+
+export type LocalizedText = zod.input<typeof LocalizedText>;
+export type LocalizedTextOutput = zod.output<typeof LocalizedText>;
+
+export const difficultyCountsEasyMin = 0;
+
+export const difficultyCountsMediumMin = 0;
+
+export const difficultyCountsHardMin = 0;
+
+
+export const DifficultyCounts = zod.object({
+  "easy": zod.int().min(difficultyCountsEasyMin),
+  "medium": zod.int().min(difficultyCountsMediumMin),
+  "hard": zod.int().min(difficultyCountsHardMin)
+}).describe('Сколько проверенных заданий каждой сложности')
+
+export type DifficultyCounts = zod.input<typeof DifficultyCounts>;
+export type DifficultyCountsOutput = zod.output<typeof DifficultyCounts>;
+
+export const trainingTopicIdMax = 64;
+
+export const trainingTopicAvailableEasyMin = 0;
+
+export const trainingTopicAvailableMediumMin = 0;
+
+export const trainingTopicAvailableHardMin = 0;
+
+
+export const TrainingTopic = zod.object({
+  "id": zod.string().max(trainingTopicIdMax),
+  "title": zod.object({
+  "ru": zod.string(),
+  "en": zod.string()
+}),
+  "available": zod.object({
+  "easy": zod.int().min(trainingTopicAvailableEasyMin),
+  "medium": zod.int().min(trainingTopicAvailableMediumMin),
+  "hard": zod.int().min(trainingTopicAvailableHardMin)
+}).describe('Сколько проверенных заданий каждой сложности')
+})
+
+export type TrainingTopic = zod.input<typeof TrainingTopic>;
+export type TrainingTopicOutput = zod.output<typeof TrainingTopic>;
+
+
+export const trainingTypeTopicsItemIdMax = 64;
+
+export const trainingTypeTopicsItemAvailableEasyMin = 0;
+
+export const trainingTypeTopicsItemAvailableMediumMin = 0;
+
+export const trainingTypeTopicsItemAvailableHardMin = 0;
+
+export const trainingTypeTopicsMax = 100;
+
+
+export const TrainingType = zod.object({
+  "section": zod.enum(['verbal', 'quant', 'words', 'essay']),
+  "questionType": zod.enum(['text_completion', 'sentence_equivalence', 'quantitative_comparison', 'multiple_choice']).describe('Первый срез тренировок — задания с выбором ответа (решение Даши 06.10.2026): Text Completion (1–3 пропуска), Sentence Equivalence (два ответа из шести), Quantitative Comparison, обычный выбор в математике. Reading Comprehension, ввод числа и несколько верных — следующими срезами.'),
+  "paceSeconds": zod.int().min(1).describe('Темп экзамена на вопрос (Verbal — 90 с, Quant — 105 с): время «Проверки» и оценка «~12 мин» на кнопке'),
+  "topics": zod.array(zod.object({
+  "id": zod.string().max(trainingTypeTopicsItemIdMax),
+  "title": zod.object({
+  "ru": zod.string(),
+  "en": zod.string()
+}),
+  "available": zod.object({
+  "easy": zod.int().min(trainingTypeTopicsItemAvailableEasyMin),
+  "medium": zod.int().min(trainingTypeTopicsItemAvailableMediumMin),
+  "hard": zod.int().min(trainingTypeTopicsItemAvailableHardMin)
+}).describe('Сколько проверенных заданий каждой сложности')
+})).max(trainingTypeTopicsMax)
+})
+
+export type TrainingType = zod.input<typeof TrainingType>;
+export type TrainingTypeOutput = zod.output<typeof TrainingType>;
+
+export const trainingRequestQuestionTypesMax = 4;
+
+export const trainingRequestTopicIdsItemMax = 64;
+
+export const trainingRequestTopicIdsMax = 50;
+
+export const trainingRequestCountMax = 50;
+
+
+export const TrainingRequest = zod.object({
+  "section": zod.enum(['verbal', 'quant', 'words', 'essay']),
+  "questionTypes": zod.array(zod.enum(['text_completion', 'sentence_equivalence', 'quantitative_comparison', 'multiple_choice']).describe('Первый срез тренировок — задания с выбором ответа (решение Даши 06.10.2026): Text Completion (1–3 пропуска), Sentence Equivalence (два ответа из шести), Quantitative Comparison, обычный выбор в математике. Reading Comprehension, ввод числа и несколько верных — следующими срезами.')).min(1).max(trainingRequestQuestionTypesMax).describe('Конструктор даёт один тип; «Проверка на время» — все типы раздела вперемешку (макет R16)'),
+  "topicIds": zod.array(zod.string().max(trainingRequestTopicIdsItemMax)).max(trainingRequestTopicIdsMax).optional().describe('Пусто или нет — все темы'),
+  "difficulty": zod.enum(['easy', 'medium', 'hard']).optional(),
+  "count": zod.int().min(1).max(trainingRequestCountMax),
+  "mode": zod.enum(['practice', 'check']).describe('practice — разбор после каждого вопроса, без таймера, вместо пропуска «Не знаю»; check — разбор в конце, таймер темпа экзамена, пропустить и вернуться можно, время вышло — сессия кончилась.')
+})
+
+export type TrainingRequest = zod.input<typeof TrainingRequest>;
+export type TrainingRequestOutput = zod.output<typeof TrainingRequest>;
+
+export const trainingPresetKindMax = 32;
+
+export const trainingPresetRequestQuestionTypesMax = 4;
+
+export const trainingPresetRequestTopicIdsItemMax = 64;
+
+export const trainingPresetRequestTopicIdsMax = 50;
+
+export const trainingPresetRequestCountMax = 50;
+
+
+export const TrainingPreset = zod.object({
+  "kind": zod.string().max(trainingPresetKindMax).describe('Открытый список, не enum: новые виды появятся без обновления приложений, а клиент пропускает незнакомые. Сейчас — last («Как в прошлый раз») и timed («Проверка на время»: все доступные типы раздела, 12 вопросов, как секция экзамена); «Мои ошибки» и «Слабая тема» — с фичей «что повторить».'),
+  "request": zod.object({
+  "section": zod.enum(['verbal', 'quant', 'words', 'essay']),
+  "questionTypes": zod.array(zod.enum(['text_completion', 'sentence_equivalence', 'quantitative_comparison', 'multiple_choice']).describe('Первый срез тренировок — задания с выбором ответа (решение Даши 06.10.2026): Text Completion (1–3 пропуска), Sentence Equivalence (два ответа из шести), Quantitative Comparison, обычный выбор в математике. Reading Comprehension, ввод числа и несколько верных — следующими срезами.')).min(1).max(trainingPresetRequestQuestionTypesMax).describe('Конструктор даёт один тип; «Проверка на время» — все типы раздела вперемешку (макет R16)'),
+  "topicIds": zod.array(zod.string().max(trainingPresetRequestTopicIdsItemMax)).max(trainingPresetRequestTopicIdsMax).optional().describe('Пусто или нет — все темы'),
+  "difficulty": zod.enum(['easy', 'medium', 'hard']).optional(),
+  "count": zod.int().min(1).max(trainingPresetRequestCountMax),
+  "mode": zod.enum(['practice', 'check']).describe('practice — разбор после каждого вопроса, без таймера, вместо пропуска «Не знаю»; check — разбор в конце, таймер темпа экзамена, пропустить и вернуться можно, время вышло — сессия кончилась.')
+})
+})
+
+export type TrainingPreset = zod.input<typeof TrainingPreset>;
+export type TrainingPresetOutput = zod.output<typeof TrainingPreset>;
+
+
+export const trainingOptionsTypesItemTopicsItemIdMax = 64;
+
+export const trainingOptionsTypesItemTopicsItemAvailableEasyMin = 0;
+
+export const trainingOptionsTypesItemTopicsItemAvailableMediumMin = 0;
+
+export const trainingOptionsTypesItemTopicsItemAvailableHardMin = 0;
+
+export const trainingOptionsTypesItemTopicsMax = 100;
+
+export const trainingOptionsTypesMax = 20;
+
+export const trainingOptionsPresetsItemKindMax = 32;
+
+export const trainingOptionsPresetsItemRequestQuestionTypesMax = 4;
+
+export const trainingOptionsPresetsItemRequestTopicIdsItemMax = 64;
+
+export const trainingOptionsPresetsItemRequestTopicIdsMax = 50;
+
+export const trainingOptionsPresetsItemRequestCountMax = 50;
+
+export const trainingOptionsPresetsMax = 10;
+
+
+
+export const TrainingOptions = zod.object({
+  "types": zod.array(zod.object({
+  "section": zod.enum(['verbal', 'quant', 'words', 'essay']),
+  "questionType": zod.enum(['text_completion', 'sentence_equivalence', 'quantitative_comparison', 'multiple_choice']).describe('Первый срез тренировок — задания с выбором ответа (решение Даши 06.10.2026): Text Completion (1–3 пропуска), Sentence Equivalence (два ответа из шести), Quantitative Comparison, обычный выбор в математике. Reading Comprehension, ввод числа и несколько верных — следующими срезами.'),
+  "paceSeconds": zod.int().min(1).describe('Темп экзамена на вопрос (Verbal — 90 с, Quant — 105 с): время «Проверки» и оценка «~12 мин» на кнопке'),
+  "topics": zod.array(zod.object({
+  "id": zod.string().max(trainingOptionsTypesItemTopicsItemIdMax),
+  "title": zod.object({
+  "ru": zod.string(),
+  "en": zod.string()
+}),
+  "available": zod.object({
+  "easy": zod.int().min(trainingOptionsTypesItemTopicsItemAvailableEasyMin),
+  "medium": zod.int().min(trainingOptionsTypesItemTopicsItemAvailableMediumMin),
+  "hard": zod.int().min(trainingOptionsTypesItemTopicsItemAvailableHardMin)
+}).describe('Сколько проверенных заданий каждой сложности')
+})).max(trainingOptionsTypesItemTopicsMax)
+})).max(trainingOptionsTypesMax),
+  "presets": zod.array(zod.object({
+  "kind": zod.string().max(trainingOptionsPresetsItemKindMax).describe('Открытый список, не enum: новые виды появятся без обновления приложений, а клиент пропускает незнакомые. Сейчас — last («Как в прошлый раз») и timed («Проверка на время»: все доступные типы раздела, 12 вопросов, как секция экзамена); «Мои ошибки» и «Слабая тема» — с фичей «что повторить».'),
+  "request": zod.object({
+  "section": zod.enum(['verbal', 'quant', 'words', 'essay']),
+  "questionTypes": zod.array(zod.enum(['text_completion', 'sentence_equivalence', 'quantitative_comparison', 'multiple_choice']).describe('Первый срез тренировок — задания с выбором ответа (решение Даши 06.10.2026): Text Completion (1–3 пропуска), Sentence Equivalence (два ответа из шести), Quantitative Comparison, обычный выбор в математике. Reading Comprehension, ввод числа и несколько верных — следующими срезами.')).min(1).max(trainingOptionsPresetsItemRequestQuestionTypesMax).describe('Конструктор даёт один тип; «Проверка на время» — все типы раздела вперемешку (макет R16)'),
+  "topicIds": zod.array(zod.string().max(trainingOptionsPresetsItemRequestTopicIdsItemMax)).max(trainingOptionsPresetsItemRequestTopicIdsMax).optional().describe('Пусто или нет — все темы'),
+  "difficulty": zod.enum(['easy', 'medium', 'hard']).optional(),
+  "count": zod.int().min(1).max(trainingOptionsPresetsItemRequestCountMax),
+  "mode": zod.enum(['practice', 'check']).describe('practice — разбор после каждого вопроса, без таймера, вместо пропуска «Не знаю»; check — разбор в конце, таймер темпа экзамена, пропустить и вернуться можно, время вышло — сессия кончилась.')
+})
+})).max(trainingOptionsPresetsMax),
+  "maxQuestions": zod.int().min(1).describe('Больше этого числа вопросов в одной тренировке не бывает')
+})
+
+export type TrainingOptions = zod.input<typeof TrainingOptions>;
+export type TrainingOptionsOutput = zod.output<typeof TrainingOptions>;
+
+export const questionOptionIdMax = 16;
+
+export const questionOptionTextMax = 500;
+
+
+export const QuestionOption = zod.object({
+  "id": zod.string().max(questionOptionIdMax),
+  "text": zod.string().max(questionOptionTextMax)
+})
+
+export type QuestionOption = zod.input<typeof QuestionOption>;
+export type QuestionOptionOutput = zod.output<typeof QuestionOption>;
+
+export const optionGroupOptionsItemIdMax = 16;
+
+export const optionGroupOptionsItemTextMax = 500;
+
+export const optionGroupOptionsMin = 2;
+export const optionGroupOptionsMax = 6;
+
+
+export const OptionGroup = zod.object({
+  "options": zod.array(zod.object({
+  "id": zod.string().max(optionGroupOptionsItemIdMax),
+  "text": zod.string().max(optionGroupOptionsItemTextMax)
+})).min(optionGroupOptionsMin).max(optionGroupOptionsMax)
+})
+
+export type OptionGroup = zod.input<typeof OptionGroup>;
+export type OptionGroupOutput = zod.output<typeof OptionGroup>;
+
+export const optionExplanationOptionIdMax = 16;
+
+
+export const OptionExplanation = zod.object({
+  "optionId": zod.string().max(optionExplanationOptionIdMax),
+  "text": zod.object({
+  "ru": zod.string(),
+  "en": zod.string()
+}).describe('Почему соблазняет и чем плох')
+})
+
+export type OptionExplanation = zod.input<typeof OptionExplanation>;
+export type OptionExplanationOutput = zod.output<typeof OptionExplanation>;
+
+export const explanationOptionsItemOptionIdMax = 16;
+
+export const explanationOptionsMax = 18;
+
+
+export const Explanation = zod.object({
+  "solution": zod.object({
+  "ru": zod.string(),
+  "en": zod.string()
+}).describe('Почему верен ключ — под «Верно / Неверно. Верный ответ — A» (макеты R4, R6)'),
+  "options": zod.array(zod.object({
+  "optionId": zod.string().max(explanationOptionsItemOptionIdMax),
+  "text": zod.object({
+  "ru": zod.string(),
+  "en": zod.string()
+}).describe('Почему соблазняет и чем плох')
+})).max(explanationOptionsMax).describe('«Почему не …?» — по неверным вариантам')
+}).describe('Разбор пишется заранее (PRODUCT.md, «Разбор ошибок»): почему верен ключ и почему соблазняет и не подходит каждый неверный вариант. Текст простой; *слово* — выделение (английские слова в русском тексте).')
+
+export type Explanation = zod.input<typeof Explanation>;
+export type ExplanationOutput = zod.output<typeof Explanation>;
+
+export const questionTopicIdMax = 64;
+
+export const questionPromptMax = 4000;
+
+export const questionConditionMax = 500;
+
+export const questionQuantityAMax = 500;
+
+export const questionQuantityBMax = 500;
+
+export const questionGroupsItemOptionsItemIdMax = 16;
+
+export const questionGroupsItemOptionsItemTextMax = 500;
+
+export const questionGroupsItemOptionsMin = 2;
+export const questionGroupsItemOptionsMax = 6;
+
+export const questionGroupsMax = 3;
+
+export const questionSelectCountMax = 2;
+
+export const questionAnswerItemMax = 16;
+
+export const questionAnswerMax = 3;
+
+export const questionExplanationOptionsItemOptionIdMax = 16;
+
+export const questionExplanationOptionsMax = 18;
+
+
+export const Question = zod.object({
+  "id": zod.uuid(),
+  "questionType": zod.enum(['text_completion', 'sentence_equivalence', 'quantitative_comparison', 'multiple_choice']).describe('Первый срез тренировок — задания с выбором ответа (решение Даши 06.10.2026): Text Completion (1–3 пропуска), Sentence Equivalence (два ответа из шести), Quantitative Comparison, обычный выбор в математике. Reading Comprehension, ввод числа и несколько верных — следующими срезами.'),
+  "section": zod.enum(['verbal', 'quant', 'words', 'essay']),
+  "topicId": zod.string().max(questionTopicIdMax),
+  "topicTitle": zod.object({
+  "ru": zod.string(),
+  "en": zod.string()
+}),
+  "difficulty": zod.enum(['easy', 'medium', 'hard']),
+  "prompt": zod.string().max(questionPromptMax).describe('Текст задания на английском. Пропуски Text Completion и Sentence Equivalence — «___» по порядку групп вариантов.'),
+  "condition": zod.string().max(questionConditionMax).optional().describe('Условие над величинами Quantitative Comparison (например, «0 < x < 1»)'),
+  "quantityA": zod.string().max(questionQuantityAMax).optional(),
+  "quantityB": zod.string().max(questionQuantityBMax).optional(),
+  "groups": zod.array(zod.object({
+  "options": zod.array(zod.object({
+  "id": zod.string().max(questionGroupsItemOptionsItemIdMax),
+  "text": zod.string().max(questionGroupsItemOptionsItemTextMax)
+})).min(questionGroupsItemOptionsMin).max(questionGroupsItemOptionsMax)
+})).min(1).max(questionGroupsMax).describe('Группа — один пропуск Text Completion; у остальных типов одна группа'),
+  "selectCount": zod.int().min(1).max(questionSelectCountMax).describe('Сколько вариантов выбрать в группе (Sentence Equivalence — 2)'),
+  "answer": zod.array(zod.string().max(questionAnswerItemMax)).min(1).max(questionAnswerMax).describe('Верные варианты. Приходит вместе с заданием: проверка без сети идёт на устройстве; сервер проверяет ответ сам и статистику клиенту не доверяет.'),
+  "explanation": zod.object({
+  "solution": zod.object({
+  "ru": zod.string(),
+  "en": zod.string()
+}).describe('Почему верен ключ — под «Верно / Неверно. Верный ответ — A» (макеты R4, R6)'),
+  "options": zod.array(zod.object({
+  "optionId": zod.string().max(questionExplanationOptionsItemOptionIdMax),
+  "text": zod.object({
+  "ru": zod.string(),
+  "en": zod.string()
+}).describe('Почему соблазняет и чем плох')
+})).max(questionExplanationOptionsMax).describe('«Почему не …?» — по неверным вариантам')
+}).describe('Разбор пишется заранее (PRODUCT.md, «Разбор ошибок»): почему верен ключ и почему соблазняет и не подходит каждый неверный вариант. Текст простой; *слово* — выделение (английские слова в русском тексте).')
+})
+
+export type Question = zod.input<typeof Question>;
+export type QuestionOutput = zod.output<typeof Question>;
+
+export const givenAnswerPositionMin = 0;
+export const givenAnswerPositionMax = 49;
+
+export const givenAnswerOptionIdsItemMax = 16;
+
+export const givenAnswerOptionIdsMax = 3;
+
+export const givenAnswerElapsedMsMin = 0;
+export const givenAnswerElapsedMsMax = 86400000;
+
+
+export const GivenAnswer = zod.object({
+  "position": zod.int().min(givenAnswerPositionMin).max(givenAnswerPositionMax),
+  "optionIds": zod.array(zod.string().max(givenAnswerOptionIdsItemMax)).max(givenAnswerOptionIdsMax).describe('Пусто — не ответил (пропустил или «Не знаю»)'),
+  "dontKnow": zod.boolean().describe('«Не знаю» в «Практике» — для «что повторить» это ошибка; только с пустым optionIds'),
+  "flagged": zod.boolean().describe('Отметка «вернуться» в «Проверке»'),
+  "answeredAt": zod.iso.datetime({"offset":true}),
+  "elapsedMs": zod.int().min(givenAnswerElapsedMsMin).max(givenAnswerElapsedMsMax)
+})
+
+export type GivenAnswer = zod.input<typeof GivenAnswer>;
+export type GivenAnswerOutput = zod.output<typeof GivenAnswer>;
+
+export const trainingItemPositionMin = 0;
+export const trainingItemPositionMax = 49;
+
+export const trainingItemQuestionTopicIdMax = 64;
+
+export const trainingItemQuestionPromptMax = 4000;
+
+export const trainingItemQuestionConditionMax = 500;
+
+export const trainingItemQuestionQuantityAMax = 500;
+
+export const trainingItemQuestionQuantityBMax = 500;
+
+export const trainingItemQuestionGroupsItemOptionsItemIdMax = 16;
+
+export const trainingItemQuestionGroupsItemOptionsItemTextMax = 500;
+
+export const trainingItemQuestionGroupsItemOptionsMin = 2;
+export const trainingItemQuestionGroupsItemOptionsMax = 6;
+
+export const trainingItemQuestionGroupsMax = 3;
+
+export const trainingItemQuestionSelectCountMax = 2;
+
+export const trainingItemQuestionAnswerItemMax = 16;
+
+export const trainingItemQuestionAnswerMax = 3;
+
+export const trainingItemQuestionExplanationOptionsItemOptionIdMax = 16;
+
+export const trainingItemQuestionExplanationOptionsMax = 18;
+
+export const trainingItemAnswerPositionMin = 0;
+export const trainingItemAnswerPositionMax = 49;
+
+export const trainingItemAnswerOptionIdsItemMax = 16;
+
+export const trainingItemAnswerOptionIdsMax = 3;
+
+export const trainingItemAnswerElapsedMsMin = 0;
+export const trainingItemAnswerElapsedMsMax = 86400000;
+
+
+export const TrainingItem = zod.object({
+  "position": zod.int().min(trainingItemPositionMin).max(trainingItemPositionMax),
+  "question": zod.object({
+  "id": zod.uuid(),
+  "questionType": zod.enum(['text_completion', 'sentence_equivalence', 'quantitative_comparison', 'multiple_choice']).describe('Первый срез тренировок — задания с выбором ответа (решение Даши 06.10.2026): Text Completion (1–3 пропуска), Sentence Equivalence (два ответа из шести), Quantitative Comparison, обычный выбор в математике. Reading Comprehension, ввод числа и несколько верных — следующими срезами.'),
+  "section": zod.enum(['verbal', 'quant', 'words', 'essay']),
+  "topicId": zod.string().max(trainingItemQuestionTopicIdMax),
+  "topicTitle": zod.object({
+  "ru": zod.string(),
+  "en": zod.string()
+}),
+  "difficulty": zod.enum(['easy', 'medium', 'hard']),
+  "prompt": zod.string().max(trainingItemQuestionPromptMax).describe('Текст задания на английском. Пропуски Text Completion и Sentence Equivalence — «___» по порядку групп вариантов.'),
+  "condition": zod.string().max(trainingItemQuestionConditionMax).optional().describe('Условие над величинами Quantitative Comparison (например, «0 < x < 1»)'),
+  "quantityA": zod.string().max(trainingItemQuestionQuantityAMax).optional(),
+  "quantityB": zod.string().max(trainingItemQuestionQuantityBMax).optional(),
+  "groups": zod.array(zod.object({
+  "options": zod.array(zod.object({
+  "id": zod.string().max(trainingItemQuestionGroupsItemOptionsItemIdMax),
+  "text": zod.string().max(trainingItemQuestionGroupsItemOptionsItemTextMax)
+})).min(trainingItemQuestionGroupsItemOptionsMin).max(trainingItemQuestionGroupsItemOptionsMax)
+})).min(1).max(trainingItemQuestionGroupsMax).describe('Группа — один пропуск Text Completion; у остальных типов одна группа'),
+  "selectCount": zod.int().min(1).max(trainingItemQuestionSelectCountMax).describe('Сколько вариантов выбрать в группе (Sentence Equivalence — 2)'),
+  "answer": zod.array(zod.string().max(trainingItemQuestionAnswerItemMax)).min(1).max(trainingItemQuestionAnswerMax).describe('Верные варианты. Приходит вместе с заданием: проверка без сети идёт на устройстве; сервер проверяет ответ сам и статистику клиенту не доверяет.'),
+  "explanation": zod.object({
+  "solution": zod.object({
+  "ru": zod.string(),
+  "en": zod.string()
+}).describe('Почему верен ключ — под «Верно / Неверно. Верный ответ — A» (макеты R4, R6)'),
+  "options": zod.array(zod.object({
+  "optionId": zod.string().max(trainingItemQuestionExplanationOptionsItemOptionIdMax),
+  "text": zod.object({
+  "ru": zod.string(),
+  "en": zod.string()
+}).describe('Почему соблазняет и чем плох')
+})).max(trainingItemQuestionExplanationOptionsMax).describe('«Почему не …?» — по неверным вариантам')
+}).describe('Разбор пишется заранее (PRODUCT.md, «Разбор ошибок»): почему верен ключ и почему соблазняет и не подходит каждый неверный вариант. Текст простой; *слово* — выделение (английские слова в русском тексте).')
+}),
+  "answer": zod.object({
+  "position": zod.int().min(trainingItemAnswerPositionMin).max(trainingItemAnswerPositionMax),
+  "optionIds": zod.array(zod.string().max(trainingItemAnswerOptionIdsItemMax)).max(trainingItemAnswerOptionIdsMax).describe('Пусто — не ответил (пропустил или «Не знаю»)'),
+  "dontKnow": zod.boolean().describe('«Не знаю» в «Практике» — для «что повторить» это ошибка; только с пустым optionIds'),
+  "flagged": zod.boolean().describe('Отметка «вернуться» в «Проверке»'),
+  "answeredAt": zod.iso.datetime({"offset":true}),
+  "elapsedMs": zod.int().min(trainingItemAnswerElapsedMsMin).max(trainingItemAnswerElapsedMsMax)
+}).optional(),
+  "correct": zod.boolean().optional().describe('Проверка сервера; нет — ответа нет или он ещё не дошёл')
+})
+
+export type TrainingItem = zod.input<typeof TrainingItem>;
+export type TrainingItemOutput = zod.output<typeof TrainingItem>;
+
+export const trainingSessionQuestionTypesMax = 4;
+
+
+export const trainingSessionItemsItemPositionMin = 0;
+export const trainingSessionItemsItemPositionMax = 49;
+
+export const trainingSessionItemsItemQuestionTopicIdMax = 64;
+
+export const trainingSessionItemsItemQuestionPromptMax = 4000;
+
+export const trainingSessionItemsItemQuestionConditionMax = 500;
+
+export const trainingSessionItemsItemQuestionQuantityAMax = 500;
+
+export const trainingSessionItemsItemQuestionQuantityBMax = 500;
+
+export const trainingSessionItemsItemQuestionGroupsItemOptionsItemIdMax = 16;
+
+export const trainingSessionItemsItemQuestionGroupsItemOptionsItemTextMax = 500;
+
+export const trainingSessionItemsItemQuestionGroupsItemOptionsMin = 2;
+export const trainingSessionItemsItemQuestionGroupsItemOptionsMax = 6;
+
+export const trainingSessionItemsItemQuestionGroupsMax = 3;
+
+export const trainingSessionItemsItemQuestionSelectCountMax = 2;
+
+export const trainingSessionItemsItemQuestionAnswerItemMax = 16;
+
+export const trainingSessionItemsItemQuestionAnswerMax = 3;
+
+export const trainingSessionItemsItemQuestionExplanationOptionsItemOptionIdMax = 16;
+
+export const trainingSessionItemsItemQuestionExplanationOptionsMax = 18;
+
+export const trainingSessionItemsItemAnswerPositionMin = 0;
+export const trainingSessionItemsItemAnswerPositionMax = 49;
+
+export const trainingSessionItemsItemAnswerOptionIdsItemMax = 16;
+
+export const trainingSessionItemsItemAnswerOptionIdsMax = 3;
+
+export const trainingSessionItemsItemAnswerElapsedMsMin = 0;
+export const trainingSessionItemsItemAnswerElapsedMsMax = 86400000;
+
+export const trainingSessionItemsMax = 50;
+
+
+export const TrainingSession = zod.object({
+  "id": zod.uuid(),
+  "mode": zod.enum(['practice', 'check']).describe('practice — разбор после каждого вопроса, без таймера, вместо пропуска «Не знаю»; check — разбор в конце, таймер темпа экзамена, пропустить и вернуться можно, время вышло — сессия кончилась.'),
+  "section": zod.enum(['verbal', 'quant', 'words', 'essay']),
+  "questionTypes": zod.array(zod.enum(['text_completion', 'sentence_equivalence', 'quantitative_comparison', 'multiple_choice']).describe('Первый срез тренировок — задания с выбором ответа (решение Даши 06.10.2026): Text Completion (1–3 пропуска), Sentence Equivalence (два ответа из шести), Quantitative Comparison, обычный выбор в математике. Reading Comprehension, ввод числа и несколько верных — следующими срезами.')).min(1).max(trainingSessionQuestionTypesMax),
+  "startedAt": zod.iso.datetime({"offset":true}),
+  "timeLimitSeconds": zod.int().min(1).optional().describe('Только у «Проверки» — темп секции экзамена'),
+  "finishedAt": zod.iso.datetime({"offset":true}).optional(),
+  "items": zod.array(zod.object({
+  "position": zod.int().min(trainingSessionItemsItemPositionMin).max(trainingSessionItemsItemPositionMax),
+  "question": zod.object({
+  "id": zod.uuid(),
+  "questionType": zod.enum(['text_completion', 'sentence_equivalence', 'quantitative_comparison', 'multiple_choice']).describe('Первый срез тренировок — задания с выбором ответа (решение Даши 06.10.2026): Text Completion (1–3 пропуска), Sentence Equivalence (два ответа из шести), Quantitative Comparison, обычный выбор в математике. Reading Comprehension, ввод числа и несколько верных — следующими срезами.'),
+  "section": zod.enum(['verbal', 'quant', 'words', 'essay']),
+  "topicId": zod.string().max(trainingSessionItemsItemQuestionTopicIdMax),
+  "topicTitle": zod.object({
+  "ru": zod.string(),
+  "en": zod.string()
+}),
+  "difficulty": zod.enum(['easy', 'medium', 'hard']),
+  "prompt": zod.string().max(trainingSessionItemsItemQuestionPromptMax).describe('Текст задания на английском. Пропуски Text Completion и Sentence Equivalence — «___» по порядку групп вариантов.'),
+  "condition": zod.string().max(trainingSessionItemsItemQuestionConditionMax).optional().describe('Условие над величинами Quantitative Comparison (например, «0 < x < 1»)'),
+  "quantityA": zod.string().max(trainingSessionItemsItemQuestionQuantityAMax).optional(),
+  "quantityB": zod.string().max(trainingSessionItemsItemQuestionQuantityBMax).optional(),
+  "groups": zod.array(zod.object({
+  "options": zod.array(zod.object({
+  "id": zod.string().max(trainingSessionItemsItemQuestionGroupsItemOptionsItemIdMax),
+  "text": zod.string().max(trainingSessionItemsItemQuestionGroupsItemOptionsItemTextMax)
+})).min(trainingSessionItemsItemQuestionGroupsItemOptionsMin).max(trainingSessionItemsItemQuestionGroupsItemOptionsMax)
+})).min(1).max(trainingSessionItemsItemQuestionGroupsMax).describe('Группа — один пропуск Text Completion; у остальных типов одна группа'),
+  "selectCount": zod.int().min(1).max(trainingSessionItemsItemQuestionSelectCountMax).describe('Сколько вариантов выбрать в группе (Sentence Equivalence — 2)'),
+  "answer": zod.array(zod.string().max(trainingSessionItemsItemQuestionAnswerItemMax)).min(1).max(trainingSessionItemsItemQuestionAnswerMax).describe('Верные варианты. Приходит вместе с заданием: проверка без сети идёт на устройстве; сервер проверяет ответ сам и статистику клиенту не доверяет.'),
+  "explanation": zod.object({
+  "solution": zod.object({
+  "ru": zod.string(),
+  "en": zod.string()
+}).describe('Почему верен ключ — под «Верно / Неверно. Верный ответ — A» (макеты R4, R6)'),
+  "options": zod.array(zod.object({
+  "optionId": zod.string().max(trainingSessionItemsItemQuestionExplanationOptionsItemOptionIdMax),
+  "text": zod.object({
+  "ru": zod.string(),
+  "en": zod.string()
+}).describe('Почему соблазняет и чем плох')
+})).max(trainingSessionItemsItemQuestionExplanationOptionsMax).describe('«Почему не …?» — по неверным вариантам')
+}).describe('Разбор пишется заранее (PRODUCT.md, «Разбор ошибок»): почему верен ключ и почему соблазняет и не подходит каждый неверный вариант. Текст простой; *слово* — выделение (английские слова в русском тексте).')
+}),
+  "answer": zod.object({
+  "position": zod.int().min(trainingSessionItemsItemAnswerPositionMin).max(trainingSessionItemsItemAnswerPositionMax),
+  "optionIds": zod.array(zod.string().max(trainingSessionItemsItemAnswerOptionIdsItemMax)).max(trainingSessionItemsItemAnswerOptionIdsMax).describe('Пусто — не ответил (пропустил или «Не знаю»)'),
+  "dontKnow": zod.boolean().describe('«Не знаю» в «Практике» — для «что повторить» это ошибка; только с пустым optionIds'),
+  "flagged": zod.boolean().describe('Отметка «вернуться» в «Проверке»'),
+  "answeredAt": zod.iso.datetime({"offset":true}),
+  "elapsedMs": zod.int().min(trainingSessionItemsItemAnswerElapsedMsMin).max(trainingSessionItemsItemAnswerElapsedMsMax)
+}).optional(),
+  "correct": zod.boolean().optional().describe('Проверка сервера; нет — ответа нет или он ещё не дошёл')
+})).min(1).max(trainingSessionItemsMax)
+})
+
+export type TrainingSession = zod.input<typeof TrainingSession>;
+export type TrainingSessionOutput = zod.output<typeof TrainingSession>;
+
+export const answerBatchAnswersItemPositionMin = 0;
+export const answerBatchAnswersItemPositionMax = 49;
+
+export const answerBatchAnswersItemOptionIdsItemMax = 16;
+
+export const answerBatchAnswersItemOptionIdsMax = 3;
+
+export const answerBatchAnswersItemElapsedMsMin = 0;
+export const answerBatchAnswersItemElapsedMsMax = 86400000;
+
+export const answerBatchAnswersMax = 50;
+
+
+export const AnswerBatch = zod.object({
+  "answers": zod.array(zod.object({
+  "position": zod.int().min(answerBatchAnswersItemPositionMin).max(answerBatchAnswersItemPositionMax),
+  "optionIds": zod.array(zod.string().max(answerBatchAnswersItemOptionIdsItemMax)).max(answerBatchAnswersItemOptionIdsMax).describe('Пусто — не ответил (пропустил или «Не знаю»)'),
+  "dontKnow": zod.boolean().describe('«Не знаю» в «Практике» — для «что повторить» это ошибка; только с пустым optionIds'),
+  "flagged": zod.boolean().describe('Отметка «вернуться» в «Проверке»'),
+  "answeredAt": zod.iso.datetime({"offset":true}),
+  "elapsedMs": zod.int().min(answerBatchAnswersItemElapsedMsMin).max(answerBatchAnswersItemElapsedMsMax)
+})).min(1).max(answerBatchAnswersMax)
+})
+
+export type AnswerBatch = zod.input<typeof AnswerBatch>;
+export type AnswerBatchOutput = zod.output<typeof AnswerBatch>;
+
+export const TrainingFinish = zod.object({
+  "finishedAt": zod.iso.datetime({"offset":true}),
+  "timedOut": zod.boolean().describe('Время «Проверки» вышло — оставшиеся вопросы «не успел»')
+})
+
+export type TrainingFinish = zod.input<typeof TrainingFinish>;
+export type TrainingFinishOutput = zod.output<typeof TrainingFinish>;
+
+export const topicToReviewTopicIdMax = 64;
+
+
+export const topicToReviewPositionsItemMin = 0;
+
+export const topicToReviewPositionsMax = 50;
+
+
+export const TopicToReview = zod.object({
+  "topicId": zod.string().max(topicToReviewTopicIdMax),
+  "title": zod.object({
+  "ru": zod.string(),
+  "en": zod.string()
+}),
+  "mistakes": zod.int().min(1),
+  "positions": zod.array(zod.int().min(topicToReviewPositionsItemMin)).max(topicToReviewPositionsMax)
+})
+
+export type TopicToReview = zod.input<typeof TopicToReview>;
+export type TopicToReviewOutput = zod.output<typeof TopicToReview>;
+
+export const trainingSummaryCorrectMin = 0;
+
+
+export const trainingSummaryUnansweredMin = 0;
+
+export const trainingSummaryDurationSecondsMin = 0;
+
+export const trainingSummaryReviewItemTopicIdMax = 64;
+
+
+export const trainingSummaryReviewItemPositionsItemMin = 0;
+
+export const trainingSummaryReviewItemPositionsMax = 50;
+
+export const trainingSummaryReviewMax = 3;
+
+
+export const TrainingSummary = zod.object({
+  "correct": zod.int().min(trainingSummaryCorrectMin),
+  "total": zod.int().min(1),
+  "unanswered": zod.int().min(trainingSummaryUnansweredMin).describe('Без ответа — «Не знаю», пропущенные и не успел'),
+  "durationSeconds": zod.int().min(trainingSummaryDurationSecondsMin),
+  "review": zod.array(zod.object({
+  "topicId": zod.string().max(trainingSummaryReviewItemTopicIdMax),
+  "title": zod.object({
+  "ru": zod.string(),
+  "en": zod.string()
+}),
+  "mistakes": zod.int().min(1),
+  "positions": zod.array(zod.int().min(trainingSummaryReviewItemPositionsItemMin)).max(trainingSummaryReviewItemPositionsMax)
+})).max(trainingSummaryReviewMax).describe('1–3 темы, где больше всего ошибок, — «Что повторить»')
+})
+
+export type TrainingSummary = zod.input<typeof TrainingSummary>;
+export type TrainingSummaryOutput = zod.output<typeof TrainingSummary>;
+
+export const questionReportTextMax = 2000;
+
+
+export const QuestionReport = zod.object({
+  "kind": zod.enum(['question', 'answer', 'explanation', 'translation', 'other']).describe('Где ошибка — в задании, в ответе, в разборе, в переводе, другое (макет R17)'),
+  "text": zod.string().max(questionReportTextMax).optional(),
+  "trainingId": zod.uuid().optional()
+})
+
+export type QuestionReport = zod.input<typeof QuestionReport>;
+export type QuestionReportOutput = zod.output<typeof QuestionReport>;
 export const signInWithTelegramMiniAppBodyInitDataMax = 4096;
 
 
@@ -323,6 +997,84 @@ export const SignInForDevelopmentBody = zod.object({
 
 export type SignInForDevelopmentBody = zod.input<typeof SignInForDevelopmentBody>;
 export type SignInForDevelopmentBodyOutput = zod.output<typeof SignInForDevelopmentBody>;
+
+export const getTrainingOptionsParamsTypesMax = 20;
+
+
+export const GetTrainingOptionsParams = zod.object({
+  "types": zod.array(zod.enum(['text_completion', 'sentence_equivalence', 'quantitative_comparison', 'multiple_choice']).describe('Первый срез тренировок — задания с выбором ответа (решение Даши 06.10.2026): Text Completion (1–3 пропуска), Sentence Equivalence (два ответа из шести), Quantitative Comparison, обычный выбор в математике. Reading Comprehension, ввод числа и несколько верных — следующими срезами.')).min(1).max(getTrainingOptionsParamsTypesMax)
+})
+
+export type GetTrainingOptionsParams = zod.input<typeof GetTrainingOptionsParams>;
+export type GetTrainingOptionsParamsOutput = zod.output<typeof GetTrainingOptionsParams>;
+
+export const startTrainingBodyQuestionTypesMax = 4;
+
+export const startTrainingBodyTopicIdsItemMax = 64;
+
+export const startTrainingBodyTopicIdsMax = 50;
+
+export const startTrainingBodyCountMax = 50;
+
+
+export const StartTrainingBody = zod.object({
+  "section": zod.enum(['verbal', 'quant', 'words', 'essay']),
+  "questionTypes": zod.array(zod.enum(['text_completion', 'sentence_equivalence', 'quantitative_comparison', 'multiple_choice']).describe('Первый срез тренировок — задания с выбором ответа (решение Даши 06.10.2026): Text Completion (1–3 пропуска), Sentence Equivalence (два ответа из шести), Quantitative Comparison, обычный выбор в математике. Reading Comprehension, ввод числа и несколько верных — следующими срезами.')).min(1).max(startTrainingBodyQuestionTypesMax).describe('Конструктор даёт один тип; «Проверка на время» — все типы раздела вперемешку (макет R16)'),
+  "topicIds": zod.array(zod.string().max(startTrainingBodyTopicIdsItemMax)).max(startTrainingBodyTopicIdsMax).optional().describe('Пусто или нет — все темы'),
+  "difficulty": zod.enum(['easy', 'medium', 'hard']).optional(),
+  "count": zod.int().min(1).max(startTrainingBodyCountMax),
+  "mode": zod.enum(['practice', 'check']).describe('practice — разбор после каждого вопроса, без таймера, вместо пропуска «Не знаю»; check — разбор в конце, таймер темпа экзамена, пропустить и вернуться можно, время вышло — сессия кончилась.')
+})
+
+export type StartTrainingBody = zod.input<typeof StartTrainingBody>;
+export type StartTrainingBodyOutput = zod.output<typeof StartTrainingBody>;
+
+export const submitTrainingAnswersBodyAnswersItemPositionMin = 0;
+export const submitTrainingAnswersBodyAnswersItemPositionMax = 49;
+
+export const submitTrainingAnswersBodyAnswersItemOptionIdsItemMax = 16;
+
+export const submitTrainingAnswersBodyAnswersItemOptionIdsMax = 3;
+
+export const submitTrainingAnswersBodyAnswersItemElapsedMsMin = 0;
+export const submitTrainingAnswersBodyAnswersItemElapsedMsMax = 86400000;
+
+export const submitTrainingAnswersBodyAnswersMax = 50;
+
+
+export const SubmitTrainingAnswersBody = zod.object({
+  "answers": zod.array(zod.object({
+  "position": zod.int().min(submitTrainingAnswersBodyAnswersItemPositionMin).max(submitTrainingAnswersBodyAnswersItemPositionMax),
+  "optionIds": zod.array(zod.string().max(submitTrainingAnswersBodyAnswersItemOptionIdsItemMax)).max(submitTrainingAnswersBodyAnswersItemOptionIdsMax).describe('Пусто — не ответил (пропустил или «Не знаю»)'),
+  "dontKnow": zod.boolean().describe('«Не знаю» в «Практике» — для «что повторить» это ошибка; только с пустым optionIds'),
+  "flagged": zod.boolean().describe('Отметка «вернуться» в «Проверке»'),
+  "answeredAt": zod.iso.datetime({"offset":true}),
+  "elapsedMs": zod.int().min(submitTrainingAnswersBodyAnswersItemElapsedMsMin).max(submitTrainingAnswersBodyAnswersItemElapsedMsMax)
+})).min(1).max(submitTrainingAnswersBodyAnswersMax)
+})
+
+export type SubmitTrainingAnswersBody = zod.input<typeof SubmitTrainingAnswersBody>;
+export type SubmitTrainingAnswersBodyOutput = zod.output<typeof SubmitTrainingAnswersBody>;
+
+export const FinishTrainingBody = zod.object({
+  "finishedAt": zod.iso.datetime({"offset":true}),
+  "timedOut": zod.boolean().describe('Время «Проверки» вышло — оставшиеся вопросы «не успел»')
+})
+
+export type FinishTrainingBody = zod.input<typeof FinishTrainingBody>;
+export type FinishTrainingBodyOutput = zod.output<typeof FinishTrainingBody>;
+
+export const reportQuestionBodyTextMax = 2000;
+
+
+export const ReportQuestionBody = zod.object({
+  "kind": zod.enum(['question', 'answer', 'explanation', 'translation', 'other']).describe('Где ошибка — в задании, в ответе, в разборе, в переводе, другое (макет R17)'),
+  "text": zod.string().max(reportQuestionBodyTextMax).optional(),
+  "trainingId": zod.uuid().optional()
+})
+
+export type ReportQuestionBody = zod.input<typeof ReportQuestionBody>;
+export type ReportQuestionBodyOutput = zod.output<typeof ReportQuestionBody>;
 
 export const reportClientErrorBodyMessageMax = 2000;
 

@@ -31,7 +31,7 @@ import kotlinx.serialization.Contextual
 /**
  * 
  *
- * @param code Машинный код: bad_request, unauthorized, forbidden, not_found, too_many_requests, invalid_init_data, invalid_id_token, internal. Клиент показывает текст по коду, а не message.
+ * @param code Машинный код: bad_request, unauthorized, forbidden, not_found, too_many_requests, invalid_init_data, invalid_id_token, no_questions, training_finished, internal. Клиент показывает текст по коду, а не message.
  * @param message Для журнала и разработчика, не для экрана
  * @param requestId 
  */
@@ -39,7 +39,7 @@ import kotlinx.serialization.Contextual
 
 data class Error (
 
-    /* Машинный код: bad_request, unauthorized, forbidden, not_found, too_many_requests, invalid_init_data, invalid_id_token, internal. Клиент показывает текст по коду, а не message. */
+    /* Машинный код: bad_request, unauthorized, forbidden, not_found, too_many_requests, invalid_init_data, invalid_id_token, no_questions, training_finished, internal. Клиент показывает текст по коду, а не message. */
     @SerialName(value = "code")
     val code: kotlin.String,
 

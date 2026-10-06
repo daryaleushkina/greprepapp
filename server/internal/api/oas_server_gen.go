@@ -8,6 +8,12 @@ import (
 
 // Handler handles operations described by OpenAPI v3 specification.
 type Handler interface {
+	// FinishTraining implements finishTraining operation.
+	//
+	// Повторный вызов возвращает тот же итог.
+	//
+	// POST /api/trainings/{trainingId}/finish
+	FinishTraining(ctx context.Context, req *TrainingFinish, params FinishTrainingParams) (*TrainingSummary, error)
 	// GetHealth implements getHealth operation.
 	//
 	// Жив ли сервер и какая сборка (сверка после выкладки).
@@ -32,6 +38,22 @@ type Handler interface {
 	//
 	// GET /api/today
 	GetToday(ctx context.Context) (*Today, error)
+	// GetTraining implements getTraining operation.
+	//
+	// Чужая или несуществующая — 404 not_found, не 403, чтобы id чужих
+	// сессий не подтверждались.
+	//
+	// GET /api/trainings/{trainingId}
+	GetTraining(ctx context.Context, params GetTrainingParams) (*TrainingSession, error)
+	// GetTrainingOptions implements getTrainingOptions operation.
+	//
+	// Типы заданий с темами и числом доступных заданий
+	// (пустую выборку не собрать), готовые наборы и прошлая
+	// тренировка — чтобы «Начать» было видно сразу. Только
+	// проверенные задания.
+	//
+	// GET /api/trainings/options
+	GetTrainingOptions(ctx context.Context, params GetTrainingOptionsParams) (*TrainingOptions, error)
 	// ReportClientError implements reportClientError operation.
 	//
 	// Можно без входа (ошибка до входа тоже важна). Размер
@@ -39,6 +61,12 @@ type Handler interface {
 	//
 	// POST /api/client-errors
 	ReportClientError(ctx context.Context, req *ClientError) error
+	// ReportQuestion implements reportQuestion operation.
+	//
+	// «Сообщить об ошибке» в задании — в очередь админки.
+	//
+	// POST /api/questions/{questionId}/reports
+	ReportQuestion(ctx context.Context, req *QuestionReport, params ReportQuestionParams) error
 	// SignInForDevelopment implements signInForDevelopment operation.
 	//
 	// Включается переменной DEV_AUTH=1, которую сервер
@@ -77,6 +105,28 @@ type Handler interface {
 	//
 	// POST /api/auth/logout
 	SignOut(ctx context.Context) (*SignOutNoContent, error)
+	// StartTraining implements startTraining operation.
+	//
+	// Всё нужное для сессии приходит одним ответом, чтобы
+	// начатая тренировка дожила без сети (PRODUCT.md, «Operating
+	// Context»). Задания — только проверенные, сначала те, что
+	// человек ещё не решал. Нет ни одного подходящего — 409
+	// no_questions. Нет доступа к тренировкам — 403 forbidden.
+	//
+	// POST /api/trainings
+	StartTraining(ctx context.Context, req *TrainingRequest) (*TrainingSession, error)
+	// SubmitTrainingAnswers implements submitTrainingAnswers operation.
+	//
+	// Повторная отправка безопасна: ответ на позицию
+	// заменяется, а не дублируется. В «Практике» остаётся
+	// первый ответ (разбор уже показан), в «Проверке» — самый
+	// поздний по answeredAt (очередь без сети может прийти не по
+	// порядку). Сервер сам проверяет ответ по ключу —
+	// клиенту для статистики не верит. После завершения
+	// сессии ответы не принимаются (409 training_finished).
+	//
+	// POST /api/trainings/{trainingId}/answers
+	SubmitTrainingAnswers(ctx context.Context, req *AnswerBatch, params SubmitTrainingAnswersParams) error
 	// NewError creates *ErrorStatusCode from error returned by handler.
 	//
 	// Used for common default response.

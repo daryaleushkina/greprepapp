@@ -14,7 +14,7 @@ extension Components {
     public enum Schemas {
         /// - Remark: Generated from `#/components/schemas/Error`.
         public struct _Error: Codable, Hashable, Sendable {
-            /// Машинный код: bad_request, unauthorized, forbidden, not_found, too_many_requests, invalid_init_data, invalid_id_token, internal. Клиент показывает текст по коду, а не message.
+            /// Машинный код: bad_request, unauthorized, forbidden, not_found, too_many_requests, invalid_init_data, invalid_id_token, no_questions, training_finished, internal. Клиент показывает текст по коду, а не message.
             ///
             /// - Remark: Generated from `#/components/schemas/Error/code`.
             public var code: Swift.String
@@ -27,7 +27,7 @@ extension Components {
             /// Creates a new `_Error`.
             ///
             /// - Parameters:
-            ///   - code: Машинный код: bad_request, unauthorized, forbidden, not_found, too_many_requests, invalid_init_data, invalid_id_token, internal. Клиент показывает текст по коду, а не message.
+            ///   - code: Машинный код: bad_request, unauthorized, forbidden, not_found, too_many_requests, invalid_init_data, invalid_id_token, no_questions, training_finished, internal. Клиент показывает текст по коду, а не message.
             ///   - message: Для журнала и разработчика, не для экрана
             ///   - requestId:
             public init(
@@ -574,6 +574,764 @@ extension Components {
                 case id
                 case kind
                 case title
+            }
+        }
+        /// Первый срез тренировок — задания с выбором ответа (решение Даши 06.10.2026): Text Completion (1–3 пропуска), Sentence Equivalence (два ответа из шести), Quantitative Comparison, обычный выбор в математике. Reading Comprehension, ввод числа и несколько верных — следующими срезами.
+        ///
+        /// - Remark: Generated from `#/components/schemas/QuestionType`.
+        @frozen public enum QuestionType: String, Codable, Hashable, Sendable, CaseIterable {
+            case textCompletion = "text_completion"
+            case sentenceEquivalence = "sentence_equivalence"
+            case quantitativeComparison = "quantitative_comparison"
+            case multipleChoice = "multiple_choice"
+        }
+        /// - Remark: Generated from `#/components/schemas/Difficulty`.
+        @frozen public enum Difficulty: String, Codable, Hashable, Sendable, CaseIterable {
+            case easy = "easy"
+            case medium = "medium"
+            case hard = "hard"
+        }
+        /// practice — разбор после каждого вопроса, без таймера, вместо пропуска «Не знаю»; check — разбор в конце, таймер темпа экзамена, пропустить и вернуться можно, время вышло — сессия кончилась.
+        ///
+        /// - Remark: Generated from `#/components/schemas/TrainingMode`.
+        @frozen public enum TrainingMode: String, Codable, Hashable, Sendable, CaseIterable {
+            case practice = "practice"
+            case check = "check"
+        }
+        /// - Remark: Generated from `#/components/schemas/LocalizedText`.
+        public struct LocalizedText: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/LocalizedText/ru`.
+            public var ru: Swift.String
+            /// - Remark: Generated from `#/components/schemas/LocalizedText/en`.
+            public var en: Swift.String
+            /// Creates a new `LocalizedText`.
+            ///
+            /// - Parameters:
+            ///   - ru:
+            ///   - en:
+            public init(
+                ru: Swift.String,
+                en: Swift.String
+            ) {
+                self.ru = ru
+                self.en = en
+            }
+            public enum CodingKeys: String, CodingKey {
+                case ru
+                case en
+            }
+        }
+        /// Сколько проверенных заданий каждой сложности
+        ///
+        /// - Remark: Generated from `#/components/schemas/DifficultyCounts`.
+        public struct DifficultyCounts: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/DifficultyCounts/easy`.
+            public var easy: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/DifficultyCounts/medium`.
+            public var medium: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/DifficultyCounts/hard`.
+            public var hard: Swift.Int
+            /// Creates a new `DifficultyCounts`.
+            ///
+            /// - Parameters:
+            ///   - easy:
+            ///   - medium:
+            ///   - hard:
+            public init(
+                easy: Swift.Int,
+                medium: Swift.Int,
+                hard: Swift.Int
+            ) {
+                self.easy = easy
+                self.medium = medium
+                self.hard = hard
+            }
+            public enum CodingKeys: String, CodingKey {
+                case easy
+                case medium
+                case hard
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/TrainingTopic`.
+        public struct TrainingTopic: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/TrainingTopic/id`.
+            public var id: Swift.String
+            /// - Remark: Generated from `#/components/schemas/TrainingTopic/title`.
+            public var title: Components.Schemas.LocalizedText
+            /// - Remark: Generated from `#/components/schemas/TrainingTopic/available`.
+            public var available: Components.Schemas.DifficultyCounts
+            /// Creates a new `TrainingTopic`.
+            ///
+            /// - Parameters:
+            ///   - id:
+            ///   - title:
+            ///   - available:
+            public init(
+                id: Swift.String,
+                title: Components.Schemas.LocalizedText,
+                available: Components.Schemas.DifficultyCounts
+            ) {
+                self.id = id
+                self.title = title
+                self.available = available
+            }
+            public enum CodingKeys: String, CodingKey {
+                case id
+                case title
+                case available
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/TrainingType`.
+        public struct TrainingType: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/TrainingType/section`.
+            public var section: Components.Schemas.Section
+            /// - Remark: Generated from `#/components/schemas/TrainingType/questionType`.
+            public var questionType: Components.Schemas.QuestionType
+            /// Темп экзамена на вопрос (Verbal — 90 с, Quant — 105 с): время «Проверки» и оценка «~12 мин» на кнопке
+            ///
+            /// - Remark: Generated from `#/components/schemas/TrainingType/paceSeconds`.
+            public var paceSeconds: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/TrainingType/topics`.
+            public var topics: [Components.Schemas.TrainingTopic]
+            /// Creates a new `TrainingType`.
+            ///
+            /// - Parameters:
+            ///   - section:
+            ///   - questionType:
+            ///   - paceSeconds: Темп экзамена на вопрос (Verbal — 90 с, Quant — 105 с): время «Проверки» и оценка «~12 мин» на кнопке
+            ///   - topics:
+            public init(
+                section: Components.Schemas.Section,
+                questionType: Components.Schemas.QuestionType,
+                paceSeconds: Swift.Int,
+                topics: [Components.Schemas.TrainingTopic]
+            ) {
+                self.section = section
+                self.questionType = questionType
+                self.paceSeconds = paceSeconds
+                self.topics = topics
+            }
+            public enum CodingKeys: String, CodingKey {
+                case section
+                case questionType
+                case paceSeconds
+                case topics
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/TrainingPreset`.
+        public struct TrainingPreset: Codable, Hashable, Sendable {
+            /// Открытый список, не enum: новые виды появятся без обновления приложений, а клиент пропускает незнакомые. Сейчас — last («Как в прошлый раз») и timed («Проверка на время»: все доступные типы раздела, 12 вопросов, как секция экзамена); «Мои ошибки» и «Слабая тема» — с фичей «что повторить».
+            ///
+            /// - Remark: Generated from `#/components/schemas/TrainingPreset/kind`.
+            public var kind: Swift.String
+            /// - Remark: Generated from `#/components/schemas/TrainingPreset/request`.
+            public var request: Components.Schemas.TrainingRequest
+            /// Creates a new `TrainingPreset`.
+            ///
+            /// - Parameters:
+            ///   - kind: Открытый список, не enum: новые виды появятся без обновления приложений, а клиент пропускает незнакомые. Сейчас — last («Как в прошлый раз») и timed («Проверка на время»: все доступные типы раздела, 12 вопросов, как секция экзамена); «Мои ошибки» и «Слабая тема» — с фичей «что повторить».
+            ///   - request:
+            public init(
+                kind: Swift.String,
+                request: Components.Schemas.TrainingRequest
+            ) {
+                self.kind = kind
+                self.request = request
+            }
+            public enum CodingKeys: String, CodingKey {
+                case kind
+                case request
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/TrainingOptions`.
+        public struct TrainingOptions: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/TrainingOptions/types`.
+            public var types: [Components.Schemas.TrainingType]
+            /// - Remark: Generated from `#/components/schemas/TrainingOptions/presets`.
+            public var presets: [Components.Schemas.TrainingPreset]
+            /// Больше этого числа вопросов в одной тренировке не бывает
+            ///
+            /// - Remark: Generated from `#/components/schemas/TrainingOptions/maxQuestions`.
+            public var maxQuestions: Swift.Int
+            /// Creates a new `TrainingOptions`.
+            ///
+            /// - Parameters:
+            ///   - types:
+            ///   - presets:
+            ///   - maxQuestions: Больше этого числа вопросов в одной тренировке не бывает
+            public init(
+                types: [Components.Schemas.TrainingType],
+                presets: [Components.Schemas.TrainingPreset],
+                maxQuestions: Swift.Int
+            ) {
+                self.types = types
+                self.presets = presets
+                self.maxQuestions = maxQuestions
+            }
+            public enum CodingKeys: String, CodingKey {
+                case types
+                case presets
+                case maxQuestions
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/TrainingRequest`.
+        public struct TrainingRequest: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/TrainingRequest/section`.
+            public var section: Components.Schemas.Section
+            /// Конструктор даёт один тип; «Проверка на время» — все типы раздела вперемешку (макет R16)
+            ///
+            /// - Remark: Generated from `#/components/schemas/TrainingRequest/questionTypes`.
+            public var questionTypes: [Components.Schemas.QuestionType]
+            /// Пусто или нет — все темы
+            ///
+            /// - Remark: Generated from `#/components/schemas/TrainingRequest/topicIds`.
+            public var topicIds: [Swift.String]?
+            /// - Remark: Generated from `#/components/schemas/TrainingRequest/difficulty`.
+            public var difficulty: Components.Schemas.Difficulty?
+            /// - Remark: Generated from `#/components/schemas/TrainingRequest/count`.
+            public var count: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/TrainingRequest/mode`.
+            public var mode: Components.Schemas.TrainingMode
+            /// Creates a new `TrainingRequest`.
+            ///
+            /// - Parameters:
+            ///   - section:
+            ///   - questionTypes: Конструктор даёт один тип; «Проверка на время» — все типы раздела вперемешку (макет R16)
+            ///   - topicIds: Пусто или нет — все темы
+            ///   - difficulty:
+            ///   - count:
+            ///   - mode:
+            public init(
+                section: Components.Schemas.Section,
+                questionTypes: [Components.Schemas.QuestionType],
+                topicIds: [Swift.String]? = nil,
+                difficulty: Components.Schemas.Difficulty? = nil,
+                count: Swift.Int,
+                mode: Components.Schemas.TrainingMode
+            ) {
+                self.section = section
+                self.questionTypes = questionTypes
+                self.topicIds = topicIds
+                self.difficulty = difficulty
+                self.count = count
+                self.mode = mode
+            }
+            public enum CodingKeys: String, CodingKey {
+                case section
+                case questionTypes
+                case topicIds
+                case difficulty
+                case count
+                case mode
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/QuestionOption`.
+        public struct QuestionOption: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/QuestionOption/id`.
+            public var id: Swift.String
+            /// - Remark: Generated from `#/components/schemas/QuestionOption/text`.
+            public var text: Swift.String
+            /// Creates a new `QuestionOption`.
+            ///
+            /// - Parameters:
+            ///   - id:
+            ///   - text:
+            public init(
+                id: Swift.String,
+                text: Swift.String
+            ) {
+                self.id = id
+                self.text = text
+            }
+            public enum CodingKeys: String, CodingKey {
+                case id
+                case text
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/OptionGroup`.
+        public struct OptionGroup: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/OptionGroup/options`.
+            public var options: [Components.Schemas.QuestionOption]
+            /// Creates a new `OptionGroup`.
+            ///
+            /// - Parameters:
+            ///   - options:
+            public init(options: [Components.Schemas.QuestionOption]) {
+                self.options = options
+            }
+            public enum CodingKeys: String, CodingKey {
+                case options
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/OptionExplanation`.
+        public struct OptionExplanation: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/OptionExplanation/optionId`.
+            public var optionId: Swift.String
+            /// Почему соблазняет и чем плох
+            ///
+            /// - Remark: Generated from `#/components/schemas/OptionExplanation/text`.
+            public var text: Components.Schemas.LocalizedText
+            /// Creates a new `OptionExplanation`.
+            ///
+            /// - Parameters:
+            ///   - optionId:
+            ///   - text: Почему соблазняет и чем плох
+            public init(
+                optionId: Swift.String,
+                text: Components.Schemas.LocalizedText
+            ) {
+                self.optionId = optionId
+                self.text = text
+            }
+            public enum CodingKeys: String, CodingKey {
+                case optionId
+                case text
+            }
+        }
+        /// Разбор пишется заранее (PRODUCT.md, «Разбор ошибок»): почему верен ключ и почему соблазняет и не подходит каждый неверный вариант. Текст простой; *слово* — выделение (английские слова в русском тексте).
+        ///
+        /// - Remark: Generated from `#/components/schemas/Explanation`.
+        public struct Explanation: Codable, Hashable, Sendable {
+            /// Почему верен ключ — под «Верно / Неверно. Верный ответ — A» (макеты R4, R6)
+            ///
+            /// - Remark: Generated from `#/components/schemas/Explanation/solution`.
+            public var solution: Components.Schemas.LocalizedText
+            /// «Почему не …?» — по неверным вариантам
+            ///
+            /// - Remark: Generated from `#/components/schemas/Explanation/options`.
+            public var options: [Components.Schemas.OptionExplanation]
+            /// Creates a new `Explanation`.
+            ///
+            /// - Parameters:
+            ///   - solution: Почему верен ключ — под «Верно / Неверно. Верный ответ — A» (макеты R4, R6)
+            ///   - options: «Почему не …?» — по неверным вариантам
+            public init(
+                solution: Components.Schemas.LocalizedText,
+                options: [Components.Schemas.OptionExplanation]
+            ) {
+                self.solution = solution
+                self.options = options
+            }
+            public enum CodingKeys: String, CodingKey {
+                case solution
+                case options
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/Question`.
+        public struct Question: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/Question/id`.
+            public var id: Swift.String
+            /// - Remark: Generated from `#/components/schemas/Question/questionType`.
+            public var questionType: Components.Schemas.QuestionType
+            /// - Remark: Generated from `#/components/schemas/Question/section`.
+            public var section: Components.Schemas.Section
+            /// - Remark: Generated from `#/components/schemas/Question/topicId`.
+            public var topicId: Swift.String
+            /// - Remark: Generated from `#/components/schemas/Question/topicTitle`.
+            public var topicTitle: Components.Schemas.LocalizedText
+            /// - Remark: Generated from `#/components/schemas/Question/difficulty`.
+            public var difficulty: Components.Schemas.Difficulty
+            /// Текст задания на английском. Пропуски Text Completion и Sentence Equivalence — «___» по порядку групп вариантов.
+            ///
+            /// - Remark: Generated from `#/components/schemas/Question/prompt`.
+            public var prompt: Swift.String
+            /// Условие над величинами Quantitative Comparison (например, «0 < x < 1»)
+            ///
+            /// - Remark: Generated from `#/components/schemas/Question/condition`.
+            public var condition: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/Question/quantityA`.
+            public var quantityA: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/Question/quantityB`.
+            public var quantityB: Swift.String?
+            /// Группа — один пропуск Text Completion; у остальных типов одна группа
+            ///
+            /// - Remark: Generated from `#/components/schemas/Question/groups`.
+            public var groups: [Components.Schemas.OptionGroup]
+            /// Сколько вариантов выбрать в группе (Sentence Equivalence — 2)
+            ///
+            /// - Remark: Generated from `#/components/schemas/Question/selectCount`.
+            public var selectCount: Swift.Int
+            /// Верные варианты. Приходит вместе с заданием: проверка без сети идёт на устройстве; сервер проверяет ответ сам и статистику клиенту не доверяет.
+            ///
+            /// - Remark: Generated from `#/components/schemas/Question/answer`.
+            public var answer: [Swift.String]
+            /// - Remark: Generated from `#/components/schemas/Question/explanation`.
+            public var explanation: Components.Schemas.Explanation
+            /// Creates a new `Question`.
+            ///
+            /// - Parameters:
+            ///   - id:
+            ///   - questionType:
+            ///   - section:
+            ///   - topicId:
+            ///   - topicTitle:
+            ///   - difficulty:
+            ///   - prompt: Текст задания на английском. Пропуски Text Completion и Sentence Equivalence — «___» по порядку групп вариантов.
+            ///   - condition: Условие над величинами Quantitative Comparison (например, «0 < x < 1»)
+            ///   - quantityA:
+            ///   - quantityB:
+            ///   - groups: Группа — один пропуск Text Completion; у остальных типов одна группа
+            ///   - selectCount: Сколько вариантов выбрать в группе (Sentence Equivalence — 2)
+            ///   - answer: Верные варианты. Приходит вместе с заданием: проверка без сети идёт на устройстве; сервер проверяет ответ сам и статистику клиенту не доверяет.
+            ///   - explanation:
+            public init(
+                id: Swift.String,
+                questionType: Components.Schemas.QuestionType,
+                section: Components.Schemas.Section,
+                topicId: Swift.String,
+                topicTitle: Components.Schemas.LocalizedText,
+                difficulty: Components.Schemas.Difficulty,
+                prompt: Swift.String,
+                condition: Swift.String? = nil,
+                quantityA: Swift.String? = nil,
+                quantityB: Swift.String? = nil,
+                groups: [Components.Schemas.OptionGroup],
+                selectCount: Swift.Int,
+                answer: [Swift.String],
+                explanation: Components.Schemas.Explanation
+            ) {
+                self.id = id
+                self.questionType = questionType
+                self.section = section
+                self.topicId = topicId
+                self.topicTitle = topicTitle
+                self.difficulty = difficulty
+                self.prompt = prompt
+                self.condition = condition
+                self.quantityA = quantityA
+                self.quantityB = quantityB
+                self.groups = groups
+                self.selectCount = selectCount
+                self.answer = answer
+                self.explanation = explanation
+            }
+            public enum CodingKeys: String, CodingKey {
+                case id
+                case questionType
+                case section
+                case topicId
+                case topicTitle
+                case difficulty
+                case prompt
+                case condition
+                case quantityA
+                case quantityB
+                case groups
+                case selectCount
+                case answer
+                case explanation
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/GivenAnswer`.
+        public struct GivenAnswer: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/GivenAnswer/position`.
+            public var position: Swift.Int
+            /// Пусто — не ответил (пропустил или «Не знаю»)
+            ///
+            /// - Remark: Generated from `#/components/schemas/GivenAnswer/optionIds`.
+            public var optionIds: [Swift.String]
+            /// «Не знаю» в «Практике» — для «что повторить» это ошибка; только с пустым optionIds
+            ///
+            /// - Remark: Generated from `#/components/schemas/GivenAnswer/dontKnow`.
+            public var dontKnow: Swift.Bool
+            /// Отметка «вернуться» в «Проверке»
+            ///
+            /// - Remark: Generated from `#/components/schemas/GivenAnswer/flagged`.
+            public var flagged: Swift.Bool
+            /// - Remark: Generated from `#/components/schemas/GivenAnswer/answeredAt`.
+            public var answeredAt: Foundation.Date
+            /// - Remark: Generated from `#/components/schemas/GivenAnswer/elapsedMs`.
+            public var elapsedMs: Swift.Int
+            /// Creates a new `GivenAnswer`.
+            ///
+            /// - Parameters:
+            ///   - position:
+            ///   - optionIds: Пусто — не ответил (пропустил или «Не знаю»)
+            ///   - dontKnow: «Не знаю» в «Практике» — для «что повторить» это ошибка; только с пустым optionIds
+            ///   - flagged: Отметка «вернуться» в «Проверке»
+            ///   - answeredAt:
+            ///   - elapsedMs:
+            public init(
+                position: Swift.Int,
+                optionIds: [Swift.String],
+                dontKnow: Swift.Bool,
+                flagged: Swift.Bool,
+                answeredAt: Foundation.Date,
+                elapsedMs: Swift.Int
+            ) {
+                self.position = position
+                self.optionIds = optionIds
+                self.dontKnow = dontKnow
+                self.flagged = flagged
+                self.answeredAt = answeredAt
+                self.elapsedMs = elapsedMs
+            }
+            public enum CodingKeys: String, CodingKey {
+                case position
+                case optionIds
+                case dontKnow
+                case flagged
+                case answeredAt
+                case elapsedMs
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/TrainingItem`.
+        public struct TrainingItem: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/TrainingItem/position`.
+            public var position: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/TrainingItem/question`.
+            public var question: Components.Schemas.Question
+            /// - Remark: Generated from `#/components/schemas/TrainingItem/answer`.
+            public var answer: Components.Schemas.GivenAnswer?
+            /// Проверка сервера; нет — ответа нет или он ещё не дошёл
+            ///
+            /// - Remark: Generated from `#/components/schemas/TrainingItem/correct`.
+            public var correct: Swift.Bool?
+            /// Creates a new `TrainingItem`.
+            ///
+            /// - Parameters:
+            ///   - position:
+            ///   - question:
+            ///   - answer:
+            ///   - correct: Проверка сервера; нет — ответа нет или он ещё не дошёл
+            public init(
+                position: Swift.Int,
+                question: Components.Schemas.Question,
+                answer: Components.Schemas.GivenAnswer? = nil,
+                correct: Swift.Bool? = nil
+            ) {
+                self.position = position
+                self.question = question
+                self.answer = answer
+                self.correct = correct
+            }
+            public enum CodingKeys: String, CodingKey {
+                case position
+                case question
+                case answer
+                case correct
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/TrainingSession`.
+        public struct TrainingSession: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/TrainingSession/id`.
+            public var id: Swift.String
+            /// - Remark: Generated from `#/components/schemas/TrainingSession/mode`.
+            public var mode: Components.Schemas.TrainingMode
+            /// - Remark: Generated from `#/components/schemas/TrainingSession/section`.
+            public var section: Components.Schemas.Section
+            /// - Remark: Generated from `#/components/schemas/TrainingSession/questionTypes`.
+            public var questionTypes: [Components.Schemas.QuestionType]
+            /// - Remark: Generated from `#/components/schemas/TrainingSession/startedAt`.
+            public var startedAt: Foundation.Date
+            /// Только у «Проверки» — темп секции экзамена
+            ///
+            /// - Remark: Generated from `#/components/schemas/TrainingSession/timeLimitSeconds`.
+            public var timeLimitSeconds: Swift.Int?
+            /// - Remark: Generated from `#/components/schemas/TrainingSession/finishedAt`.
+            public var finishedAt: Foundation.Date?
+            /// - Remark: Generated from `#/components/schemas/TrainingSession/items`.
+            public var items: [Components.Schemas.TrainingItem]
+            /// Creates a new `TrainingSession`.
+            ///
+            /// - Parameters:
+            ///   - id:
+            ///   - mode:
+            ///   - section:
+            ///   - questionTypes:
+            ///   - startedAt:
+            ///   - timeLimitSeconds: Только у «Проверки» — темп секции экзамена
+            ///   - finishedAt:
+            ///   - items:
+            public init(
+                id: Swift.String,
+                mode: Components.Schemas.TrainingMode,
+                section: Components.Schemas.Section,
+                questionTypes: [Components.Schemas.QuestionType],
+                startedAt: Foundation.Date,
+                timeLimitSeconds: Swift.Int? = nil,
+                finishedAt: Foundation.Date? = nil,
+                items: [Components.Schemas.TrainingItem]
+            ) {
+                self.id = id
+                self.mode = mode
+                self.section = section
+                self.questionTypes = questionTypes
+                self.startedAt = startedAt
+                self.timeLimitSeconds = timeLimitSeconds
+                self.finishedAt = finishedAt
+                self.items = items
+            }
+            public enum CodingKeys: String, CodingKey {
+                case id
+                case mode
+                case section
+                case questionTypes
+                case startedAt
+                case timeLimitSeconds
+                case finishedAt
+                case items
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/AnswerBatch`.
+        public struct AnswerBatch: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/AnswerBatch/answers`.
+            public var answers: [Components.Schemas.GivenAnswer]
+            /// Creates a new `AnswerBatch`.
+            ///
+            /// - Parameters:
+            ///   - answers:
+            public init(answers: [Components.Schemas.GivenAnswer]) {
+                self.answers = answers
+            }
+            public enum CodingKeys: String, CodingKey {
+                case answers
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/TrainingFinish`.
+        public struct TrainingFinish: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/TrainingFinish/finishedAt`.
+            public var finishedAt: Foundation.Date
+            /// Время «Проверки» вышло — оставшиеся вопросы «не успел»
+            ///
+            /// - Remark: Generated from `#/components/schemas/TrainingFinish/timedOut`.
+            public var timedOut: Swift.Bool
+            /// Creates a new `TrainingFinish`.
+            ///
+            /// - Parameters:
+            ///   - finishedAt:
+            ///   - timedOut: Время «Проверки» вышло — оставшиеся вопросы «не успел»
+            public init(
+                finishedAt: Foundation.Date,
+                timedOut: Swift.Bool
+            ) {
+                self.finishedAt = finishedAt
+                self.timedOut = timedOut
+            }
+            public enum CodingKeys: String, CodingKey {
+                case finishedAt
+                case timedOut
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/TopicToReview`.
+        public struct TopicToReview: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/TopicToReview/topicId`.
+            public var topicId: Swift.String
+            /// - Remark: Generated from `#/components/schemas/TopicToReview/title`.
+            public var title: Components.Schemas.LocalizedText
+            /// - Remark: Generated from `#/components/schemas/TopicToReview/mistakes`.
+            public var mistakes: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/TopicToReview/positions`.
+            public var positions: [Swift.Int]
+            /// Creates a new `TopicToReview`.
+            ///
+            /// - Parameters:
+            ///   - topicId:
+            ///   - title:
+            ///   - mistakes:
+            ///   - positions:
+            public init(
+                topicId: Swift.String,
+                title: Components.Schemas.LocalizedText,
+                mistakes: Swift.Int,
+                positions: [Swift.Int]
+            ) {
+                self.topicId = topicId
+                self.title = title
+                self.mistakes = mistakes
+                self.positions = positions
+            }
+            public enum CodingKeys: String, CodingKey {
+                case topicId
+                case title
+                case mistakes
+                case positions
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/TrainingSummary`.
+        public struct TrainingSummary: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/TrainingSummary/correct`.
+            public var correct: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/TrainingSummary/total`.
+            public var total: Swift.Int
+            /// Без ответа — «Не знаю», пропущенные и не успел
+            ///
+            /// - Remark: Generated from `#/components/schemas/TrainingSummary/unanswered`.
+            public var unanswered: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/TrainingSummary/durationSeconds`.
+            public var durationSeconds: Swift.Int
+            /// 1–3 темы, где больше всего ошибок, — «Что повторить»
+            ///
+            /// - Remark: Generated from `#/components/schemas/TrainingSummary/review`.
+            public var review: [Components.Schemas.TopicToReview]
+            /// Creates a new `TrainingSummary`.
+            ///
+            /// - Parameters:
+            ///   - correct:
+            ///   - total:
+            ///   - unanswered: Без ответа — «Не знаю», пропущенные и не успел
+            ///   - durationSeconds:
+            ///   - review: 1–3 темы, где больше всего ошибок, — «Что повторить»
+            public init(
+                correct: Swift.Int,
+                total: Swift.Int,
+                unanswered: Swift.Int,
+                durationSeconds: Swift.Int,
+                review: [Components.Schemas.TopicToReview]
+            ) {
+                self.correct = correct
+                self.total = total
+                self.unanswered = unanswered
+                self.durationSeconds = durationSeconds
+                self.review = review
+            }
+            public enum CodingKeys: String, CodingKey {
+                case correct
+                case total
+                case unanswered
+                case durationSeconds
+                case review
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/QuestionReport`.
+        public struct QuestionReport: Codable, Hashable, Sendable {
+            /// Где ошибка — в задании, в ответе, в разборе, в переводе, другое (макет R17)
+            ///
+            /// - Remark: Generated from `#/components/schemas/QuestionReport/kind`.
+            @frozen public enum KindPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                case question = "question"
+                case answer = "answer"
+                case explanation = "explanation"
+                case translation = "translation"
+                case other = "other"
+            }
+            /// Где ошибка — в задании, в ответе, в разборе, в переводе, другое (макет R17)
+            ///
+            /// - Remark: Generated from `#/components/schemas/QuestionReport/kind`.
+            public var kind: Components.Schemas.QuestionReport.KindPayload
+            /// - Remark: Generated from `#/components/schemas/QuestionReport/text`.
+            public var text: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/QuestionReport/trainingId`.
+            public var trainingId: Swift.String?
+            /// Creates a new `QuestionReport`.
+            ///
+            /// - Parameters:
+            ///   - kind: Где ошибка — в задании, в ответе, в разборе, в переводе, другое (макет R17)
+            ///   - text:
+            ///   - trainingId:
+            public init(
+                kind: Components.Schemas.QuestionReport.KindPayload,
+                text: Swift.String? = nil,
+                trainingId: Swift.String? = nil
+            ) {
+                self.kind = kind
+                self.text = text
+                self.trainingId = trainingId
+            }
+            public enum CodingKeys: String, CodingKey {
+                case kind
+                case text
+                case trainingId
             }
         }
     }

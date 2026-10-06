@@ -14,6 +14,21 @@ func (s *ErrorStatusCode) Error() string {
 	return fmt.Sprintf("code %d: %+v", s.StatusCode, s.Response)
 }
 
+// Ref: #/components/schemas/AnswerBatch
+type AnswerBatch struct {
+	Answers []GivenAnswer `json:"answers"`
+}
+
+// GetAnswers returns the value of Answers.
+func (s *AnswerBatch) GetAnswers() []GivenAnswer {
+	return s.Answers
+}
+
+// SetAnswers sets the value of Answers.
+func (s *AnswerBatch) SetAnswers(val []GivenAnswer) {
+	s.Answers = val
+}
+
 // Ref: #/components/schemas/AuthorizationCodeSignIn
 type AuthorizationCodeSignIn struct {
 	Provider IdentityProvider `json:"provider"`
@@ -380,11 +395,98 @@ func (s *DevSignIn) SetLocale(val OptLocale) {
 	s.Locale = val
 }
 
+// Ref: #/components/schemas/Difficulty
+type Difficulty string
+
+const (
+	DifficultyEasy   Difficulty = "easy"
+	DifficultyMedium Difficulty = "medium"
+	DifficultyHard   Difficulty = "hard"
+)
+
+// AllValues returns all Difficulty values.
+func (Difficulty) AllValues() []Difficulty {
+	return []Difficulty{
+		DifficultyEasy,
+		DifficultyMedium,
+		DifficultyHard,
+	}
+}
+
+// MarshalText implements encoding.TextMarshaler.
+func (s Difficulty) MarshalText() ([]byte, error) {
+	switch s {
+	case DifficultyEasy:
+		return []byte(s), nil
+	case DifficultyMedium:
+		return []byte(s), nil
+	case DifficultyHard:
+		return []byte(s), nil
+	default:
+		return nil, errors.Errorf("invalid value: %q", s)
+	}
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (s *Difficulty) UnmarshalText(data []byte) error {
+	switch Difficulty(data) {
+	case DifficultyEasy:
+		*s = DifficultyEasy
+		return nil
+	case DifficultyMedium:
+		*s = DifficultyMedium
+		return nil
+	case DifficultyHard:
+		*s = DifficultyHard
+		return nil
+	default:
+		return errors.Errorf("invalid value: %q", data)
+	}
+}
+
+// Сколько проверенных заданий каждой сложности.
+// Ref: #/components/schemas/DifficultyCounts
+type DifficultyCounts struct {
+	Easy   int `json:"easy"`
+	Medium int `json:"medium"`
+	Hard   int `json:"hard"`
+}
+
+// GetEasy returns the value of Easy.
+func (s *DifficultyCounts) GetEasy() int {
+	return s.Easy
+}
+
+// GetMedium returns the value of Medium.
+func (s *DifficultyCounts) GetMedium() int {
+	return s.Medium
+}
+
+// GetHard returns the value of Hard.
+func (s *DifficultyCounts) GetHard() int {
+	return s.Hard
+}
+
+// SetEasy sets the value of Easy.
+func (s *DifficultyCounts) SetEasy(val int) {
+	s.Easy = val
+}
+
+// SetMedium sets the value of Medium.
+func (s *DifficultyCounts) SetMedium(val int) {
+	s.Medium = val
+}
+
+// SetHard sets the value of Hard.
+func (s *DifficultyCounts) SetHard(val int) {
+	s.Hard = val
+}
+
 // Ref: #/components/schemas/Error
 type Error struct {
 	// Машинный код: bad_request, unauthorized, forbidden, not_found, too_many_requests,
-	// invalid_init_data, invalid_id_token, internal. Клиент показывает текст по
-	// коду, а не message.
+	// invalid_init_data, invalid_id_token, no_questions, training_finished, internal. Клиент
+	// показывает текст по коду, а не message.
 	Code string `json:"code"`
 	// Для журнала и разработчика, не для экрана.
 	Message   string `json:"message"`
@@ -445,6 +547,113 @@ func (s *ErrorStatusCode) SetStatusCode(val int) {
 // SetResponse sets the value of Response.
 func (s *ErrorStatusCode) SetResponse(val Error) {
 	s.Response = val
+}
+
+// Разбор пишется заранее (PRODUCT.md, «Разбор ошибок»): почему
+// верен ключ и почему соблазняет и не подходит каждый
+// неверный вариант. Текст простой; слово — выделение
+// (английские слова в русском тексте).
+// Ref: #/components/schemas/Explanation
+type Explanation struct {
+	// Почему верен ключ — под «Верно / Неверно. Верный ответ
+	// — A» (макеты R4, R6).
+	Solution LocalizedText `json:"solution"`
+	// «Почему не …?» — по неверным вариантам.
+	Options []OptionExplanation `json:"options"`
+}
+
+// GetSolution returns the value of Solution.
+func (s *Explanation) GetSolution() LocalizedText {
+	return s.Solution
+}
+
+// GetOptions returns the value of Options.
+func (s *Explanation) GetOptions() []OptionExplanation {
+	return s.Options
+}
+
+// SetSolution sets the value of Solution.
+func (s *Explanation) SetSolution(val LocalizedText) {
+	s.Solution = val
+}
+
+// SetOptions sets the value of Options.
+func (s *Explanation) SetOptions(val []OptionExplanation) {
+	s.Options = val
+}
+
+// Ref: #/components/schemas/GivenAnswer
+type GivenAnswer struct {
+	Position int `json:"position"`
+	// Пусто — не ответил (пропустил или «Не знаю»).
+	OptionIds []string `json:"optionIds"`
+	// «Не знаю» в «Практике» — для «что повторить» это
+	// ошибка; только с пустым optionIds.
+	DontKnow bool `json:"dontKnow"`
+	// Отметка «вернуться» в «Проверке».
+	Flagged    bool      `json:"flagged"`
+	AnsweredAt time.Time `json:"answeredAt"`
+	ElapsedMs  int       `json:"elapsedMs"`
+}
+
+// GetPosition returns the value of Position.
+func (s *GivenAnswer) GetPosition() int {
+	return s.Position
+}
+
+// GetOptionIds returns the value of OptionIds.
+func (s *GivenAnswer) GetOptionIds() []string {
+	return s.OptionIds
+}
+
+// GetDontKnow returns the value of DontKnow.
+func (s *GivenAnswer) GetDontKnow() bool {
+	return s.DontKnow
+}
+
+// GetFlagged returns the value of Flagged.
+func (s *GivenAnswer) GetFlagged() bool {
+	return s.Flagged
+}
+
+// GetAnsweredAt returns the value of AnsweredAt.
+func (s *GivenAnswer) GetAnsweredAt() time.Time {
+	return s.AnsweredAt
+}
+
+// GetElapsedMs returns the value of ElapsedMs.
+func (s *GivenAnswer) GetElapsedMs() int {
+	return s.ElapsedMs
+}
+
+// SetPosition sets the value of Position.
+func (s *GivenAnswer) SetPosition(val int) {
+	s.Position = val
+}
+
+// SetOptionIds sets the value of OptionIds.
+func (s *GivenAnswer) SetOptionIds(val []string) {
+	s.OptionIds = val
+}
+
+// SetDontKnow sets the value of DontKnow.
+func (s *GivenAnswer) SetDontKnow(val bool) {
+	s.DontKnow = val
+}
+
+// SetFlagged sets the value of Flagged.
+func (s *GivenAnswer) SetFlagged(val bool) {
+	s.Flagged = val
+}
+
+// SetAnsweredAt sets the value of AnsweredAt.
+func (s *GivenAnswer) SetAnsweredAt(val time.Time) {
+	s.AnsweredAt = val
+}
+
+// SetElapsedMs sets the value of ElapsedMs.
+func (s *GivenAnswer) SetElapsedMs(val int) {
+	s.ElapsedMs = val
 }
 
 // Ref: #/components/schemas/Health
@@ -714,6 +923,78 @@ func (s *Locale) UnmarshalText(data []byte) error {
 	}
 }
 
+// Ref: #/components/schemas/LocalizedText
+type LocalizedText struct {
+	Ru string `json:"ru"`
+	En string `json:"en"`
+}
+
+// GetRu returns the value of Ru.
+func (s *LocalizedText) GetRu() string {
+	return s.Ru
+}
+
+// GetEn returns the value of En.
+func (s *LocalizedText) GetEn() string {
+	return s.En
+}
+
+// SetRu sets the value of Ru.
+func (s *LocalizedText) SetRu(val string) {
+	s.Ru = val
+}
+
+// SetEn sets the value of En.
+func (s *LocalizedText) SetEn(val string) {
+	s.En = val
+}
+
+// NewOptBool returns new OptBool with value set to v.
+func NewOptBool(v bool) OptBool {
+	return OptBool{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptBool is optional bool.
+type OptBool struct {
+	Value bool
+	Set   bool
+}
+
+// IsSet returns true if OptBool was set.
+func (o OptBool) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptBool) Reset() {
+	var v bool
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptBool) SetTo(v bool) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptBool) Get() (v bool, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptBool) Or(d bool) bool {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
 // NewOptClientKind returns new OptClientKind with value set to v.
 func NewOptClientKind(v ClientKind) OptClientKind {
 	return OptClientKind{
@@ -754,6 +1035,190 @@ func (o OptClientKind) Get() (v ClientKind, ok bool) {
 
 // Or returns value if set, or given parameter if does not.
 func (o OptClientKind) Or(d ClientKind) ClientKind {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptDateTime returns new OptDateTime with value set to v.
+func NewOptDateTime(v time.Time) OptDateTime {
+	return OptDateTime{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptDateTime is optional time.Time.
+type OptDateTime struct {
+	Value time.Time
+	Set   bool
+}
+
+// IsSet returns true if OptDateTime was set.
+func (o OptDateTime) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptDateTime) Reset() {
+	var v time.Time
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptDateTime) SetTo(v time.Time) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptDateTime) Get() (v time.Time, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptDateTime) Or(d time.Time) time.Time {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptDifficulty returns new OptDifficulty with value set to v.
+func NewOptDifficulty(v Difficulty) OptDifficulty {
+	return OptDifficulty{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptDifficulty is optional Difficulty.
+type OptDifficulty struct {
+	Value Difficulty
+	Set   bool
+}
+
+// IsSet returns true if OptDifficulty was set.
+func (o OptDifficulty) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptDifficulty) Reset() {
+	var v Difficulty
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptDifficulty) SetTo(v Difficulty) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptDifficulty) Get() (v Difficulty, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptDifficulty) Or(d Difficulty) Difficulty {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptGivenAnswer returns new OptGivenAnswer with value set to v.
+func NewOptGivenAnswer(v GivenAnswer) OptGivenAnswer {
+	return OptGivenAnswer{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptGivenAnswer is optional GivenAnswer.
+type OptGivenAnswer struct {
+	Value GivenAnswer
+	Set   bool
+}
+
+// IsSet returns true if OptGivenAnswer was set.
+func (o OptGivenAnswer) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptGivenAnswer) Reset() {
+	var v GivenAnswer
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptGivenAnswer) SetTo(v GivenAnswer) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptGivenAnswer) Get() (v GivenAnswer, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptGivenAnswer) Or(d GivenAnswer) GivenAnswer {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptInt returns new OptInt with value set to v.
+func NewOptInt(v int) OptInt {
+	return OptInt{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptInt is optional int.
+type OptInt struct {
+	Value int
+	Set   bool
+}
+
+// IsSet returns true if OptInt was set.
+func (o OptInt) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptInt) Reset() {
+	var v int
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptInt) SetTo(v int) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptInt) Get() (v int, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptInt) Or(d int) int {
 	if v, ok := o.Get(); ok {
 		return v
 	}
@@ -898,8 +1363,456 @@ func (o OptString) Or(d string) string {
 	return d
 }
 
+// NewOptUUID returns new OptUUID with value set to v.
+func NewOptUUID(v uuid.UUID) OptUUID {
+	return OptUUID{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptUUID is optional uuid.UUID.
+type OptUUID struct {
+	Value uuid.UUID
+	Set   bool
+}
+
+// IsSet returns true if OptUUID was set.
+func (o OptUUID) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptUUID) Reset() {
+	var v uuid.UUID
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptUUID) SetTo(v uuid.UUID) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptUUID) Get() (v uuid.UUID, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptUUID) Or(d uuid.UUID) uuid.UUID {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// Ref: #/components/schemas/OptionExplanation
+type OptionExplanation struct {
+	OptionId string `json:"optionId"`
+	// Почему соблазняет и чем плох.
+	Text LocalizedText `json:"text"`
+}
+
+// GetOptionId returns the value of OptionId.
+func (s *OptionExplanation) GetOptionId() string {
+	return s.OptionId
+}
+
+// GetText returns the value of Text.
+func (s *OptionExplanation) GetText() LocalizedText {
+	return s.Text
+}
+
+// SetOptionId sets the value of OptionId.
+func (s *OptionExplanation) SetOptionId(val string) {
+	s.OptionId = val
+}
+
+// SetText sets the value of Text.
+func (s *OptionExplanation) SetText(val LocalizedText) {
+	s.Text = val
+}
+
+// Ref: #/components/schemas/OptionGroup
+type OptionGroup struct {
+	Options []QuestionOption `json:"options"`
+}
+
+// GetOptions returns the value of Options.
+func (s *OptionGroup) GetOptions() []QuestionOption {
+	return s.Options
+}
+
+// SetOptions sets the value of Options.
+func (s *OptionGroup) SetOptions(val []QuestionOption) {
+	s.Options = val
+}
+
+// Ref: #/components/schemas/Question
+type Question struct {
+	ID           uuid.UUID     `json:"id"`
+	QuestionType QuestionType  `json:"questionType"`
+	Section      Section       `json:"section"`
+	TopicId      string        `json:"topicId"`
+	TopicTitle   LocalizedText `json:"topicTitle"`
+	Difficulty   Difficulty    `json:"difficulty"`
+	// Текст задания на английском. Пропуски Text Completion и Sentence
+	// Equivalence — «___» по порядку групп вариантов.
+	Prompt string `json:"prompt"`
+	// Условие над величинами Quantitative Comparison (например, «0 < x < 1»).
+	Condition OptString `json:"condition"`
+	QuantityA OptString `json:"quantityA"`
+	QuantityB OptString `json:"quantityB"`
+	// Группа — один пропуск Text Completion; у остальных типов одна
+	// группа.
+	Groups []OptionGroup `json:"groups"`
+	// Сколько вариантов выбрать в группе (Sentence Equivalence — 2).
+	SelectCount int `json:"selectCount"`
+	// Верные варианты. Приходит вместе с заданием: проверка
+	// без сети идёт на устройстве; сервер проверяет ответ
+	// сам и статистику клиенту не доверяет.
+	Answer      []string    `json:"answer"`
+	Explanation Explanation `json:"explanation"`
+}
+
+// GetID returns the value of ID.
+func (s *Question) GetID() uuid.UUID {
+	return s.ID
+}
+
+// GetQuestionType returns the value of QuestionType.
+func (s *Question) GetQuestionType() QuestionType {
+	return s.QuestionType
+}
+
+// GetSection returns the value of Section.
+func (s *Question) GetSection() Section {
+	return s.Section
+}
+
+// GetTopicId returns the value of TopicId.
+func (s *Question) GetTopicId() string {
+	return s.TopicId
+}
+
+// GetTopicTitle returns the value of TopicTitle.
+func (s *Question) GetTopicTitle() LocalizedText {
+	return s.TopicTitle
+}
+
+// GetDifficulty returns the value of Difficulty.
+func (s *Question) GetDifficulty() Difficulty {
+	return s.Difficulty
+}
+
+// GetPrompt returns the value of Prompt.
+func (s *Question) GetPrompt() string {
+	return s.Prompt
+}
+
+// GetCondition returns the value of Condition.
+func (s *Question) GetCondition() OptString {
+	return s.Condition
+}
+
+// GetQuantityA returns the value of QuantityA.
+func (s *Question) GetQuantityA() OptString {
+	return s.QuantityA
+}
+
+// GetQuantityB returns the value of QuantityB.
+func (s *Question) GetQuantityB() OptString {
+	return s.QuantityB
+}
+
+// GetGroups returns the value of Groups.
+func (s *Question) GetGroups() []OptionGroup {
+	return s.Groups
+}
+
+// GetSelectCount returns the value of SelectCount.
+func (s *Question) GetSelectCount() int {
+	return s.SelectCount
+}
+
+// GetAnswer returns the value of Answer.
+func (s *Question) GetAnswer() []string {
+	return s.Answer
+}
+
+// GetExplanation returns the value of Explanation.
+func (s *Question) GetExplanation() Explanation {
+	return s.Explanation
+}
+
+// SetID sets the value of ID.
+func (s *Question) SetID(val uuid.UUID) {
+	s.ID = val
+}
+
+// SetQuestionType sets the value of QuestionType.
+func (s *Question) SetQuestionType(val QuestionType) {
+	s.QuestionType = val
+}
+
+// SetSection sets the value of Section.
+func (s *Question) SetSection(val Section) {
+	s.Section = val
+}
+
+// SetTopicId sets the value of TopicId.
+func (s *Question) SetTopicId(val string) {
+	s.TopicId = val
+}
+
+// SetTopicTitle sets the value of TopicTitle.
+func (s *Question) SetTopicTitle(val LocalizedText) {
+	s.TopicTitle = val
+}
+
+// SetDifficulty sets the value of Difficulty.
+func (s *Question) SetDifficulty(val Difficulty) {
+	s.Difficulty = val
+}
+
+// SetPrompt sets the value of Prompt.
+func (s *Question) SetPrompt(val string) {
+	s.Prompt = val
+}
+
+// SetCondition sets the value of Condition.
+func (s *Question) SetCondition(val OptString) {
+	s.Condition = val
+}
+
+// SetQuantityA sets the value of QuantityA.
+func (s *Question) SetQuantityA(val OptString) {
+	s.QuantityA = val
+}
+
+// SetQuantityB sets the value of QuantityB.
+func (s *Question) SetQuantityB(val OptString) {
+	s.QuantityB = val
+}
+
+// SetGroups sets the value of Groups.
+func (s *Question) SetGroups(val []OptionGroup) {
+	s.Groups = val
+}
+
+// SetSelectCount sets the value of SelectCount.
+func (s *Question) SetSelectCount(val int) {
+	s.SelectCount = val
+}
+
+// SetAnswer sets the value of Answer.
+func (s *Question) SetAnswer(val []string) {
+	s.Answer = val
+}
+
+// SetExplanation sets the value of Explanation.
+func (s *Question) SetExplanation(val Explanation) {
+	s.Explanation = val
+}
+
+// Ref: #/components/schemas/QuestionOption
+type QuestionOption struct {
+	ID   string `json:"id"`
+	Text string `json:"text"`
+}
+
+// GetID returns the value of ID.
+func (s *QuestionOption) GetID() string {
+	return s.ID
+}
+
+// GetText returns the value of Text.
+func (s *QuestionOption) GetText() string {
+	return s.Text
+}
+
+// SetID sets the value of ID.
+func (s *QuestionOption) SetID(val string) {
+	s.ID = val
+}
+
+// SetText sets the value of Text.
+func (s *QuestionOption) SetText(val string) {
+	s.Text = val
+}
+
+// Ref: #/components/schemas/QuestionReport
+type QuestionReport struct {
+	// Где ошибка — в задании, в ответе, в разборе, в переводе,
+	// другое (макет R17).
+	Kind       QuestionReportKind `json:"kind"`
+	Text       OptString          `json:"text"`
+	TrainingId OptUUID            `json:"trainingId"`
+}
+
+// GetKind returns the value of Kind.
+func (s *QuestionReport) GetKind() QuestionReportKind {
+	return s.Kind
+}
+
+// GetText returns the value of Text.
+func (s *QuestionReport) GetText() OptString {
+	return s.Text
+}
+
+// GetTrainingId returns the value of TrainingId.
+func (s *QuestionReport) GetTrainingId() OptUUID {
+	return s.TrainingId
+}
+
+// SetKind sets the value of Kind.
+func (s *QuestionReport) SetKind(val QuestionReportKind) {
+	s.Kind = val
+}
+
+// SetText sets the value of Text.
+func (s *QuestionReport) SetText(val OptString) {
+	s.Text = val
+}
+
+// SetTrainingId sets the value of TrainingId.
+func (s *QuestionReport) SetTrainingId(val OptUUID) {
+	s.TrainingId = val
+}
+
+// Где ошибка — в задании, в ответе, в разборе, в переводе,
+// другое (макет R17).
+type QuestionReportKind string
+
+const (
+	QuestionReportKindQuestion    QuestionReportKind = "question"
+	QuestionReportKindAnswer      QuestionReportKind = "answer"
+	QuestionReportKindExplanation QuestionReportKind = "explanation"
+	QuestionReportKindTranslation QuestionReportKind = "translation"
+	QuestionReportKindOther       QuestionReportKind = "other"
+)
+
+// AllValues returns all QuestionReportKind values.
+func (QuestionReportKind) AllValues() []QuestionReportKind {
+	return []QuestionReportKind{
+		QuestionReportKindQuestion,
+		QuestionReportKindAnswer,
+		QuestionReportKindExplanation,
+		QuestionReportKindTranslation,
+		QuestionReportKindOther,
+	}
+}
+
+// MarshalText implements encoding.TextMarshaler.
+func (s QuestionReportKind) MarshalText() ([]byte, error) {
+	switch s {
+	case QuestionReportKindQuestion:
+		return []byte(s), nil
+	case QuestionReportKindAnswer:
+		return []byte(s), nil
+	case QuestionReportKindExplanation:
+		return []byte(s), nil
+	case QuestionReportKindTranslation:
+		return []byte(s), nil
+	case QuestionReportKindOther:
+		return []byte(s), nil
+	default:
+		return nil, errors.Errorf("invalid value: %q", s)
+	}
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (s *QuestionReportKind) UnmarshalText(data []byte) error {
+	switch QuestionReportKind(data) {
+	case QuestionReportKindQuestion:
+		*s = QuestionReportKindQuestion
+		return nil
+	case QuestionReportKindAnswer:
+		*s = QuestionReportKindAnswer
+		return nil
+	case QuestionReportKindExplanation:
+		*s = QuestionReportKindExplanation
+		return nil
+	case QuestionReportKindTranslation:
+		*s = QuestionReportKindTranslation
+		return nil
+	case QuestionReportKindOther:
+		*s = QuestionReportKindOther
+		return nil
+	default:
+		return errors.Errorf("invalid value: %q", data)
+	}
+}
+
+// Первый срез тренировок — задания с выбором ответа
+// (решение Даши 06.10.2026): Text Completion (1–3 пропуска), Sentence Equivalence
+// (два ответа из шести), Quantitative Comparison, обычный выбор в
+// математике. Reading Comprehension, ввод числа и несколько верных
+// — следующими срезами.
+// Ref: #/components/schemas/QuestionType
+type QuestionType string
+
+const (
+	QuestionTypeTextCompletion         QuestionType = "text_completion"
+	QuestionTypeSentenceEquivalence    QuestionType = "sentence_equivalence"
+	QuestionTypeQuantitativeComparison QuestionType = "quantitative_comparison"
+	QuestionTypeMultipleChoice         QuestionType = "multiple_choice"
+)
+
+// AllValues returns all QuestionType values.
+func (QuestionType) AllValues() []QuestionType {
+	return []QuestionType{
+		QuestionTypeTextCompletion,
+		QuestionTypeSentenceEquivalence,
+		QuestionTypeQuantitativeComparison,
+		QuestionTypeMultipleChoice,
+	}
+}
+
+// MarshalText implements encoding.TextMarshaler.
+func (s QuestionType) MarshalText() ([]byte, error) {
+	switch s {
+	case QuestionTypeTextCompletion:
+		return []byte(s), nil
+	case QuestionTypeSentenceEquivalence:
+		return []byte(s), nil
+	case QuestionTypeQuantitativeComparison:
+		return []byte(s), nil
+	case QuestionTypeMultipleChoice:
+		return []byte(s), nil
+	default:
+		return nil, errors.Errorf("invalid value: %q", s)
+	}
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (s *QuestionType) UnmarshalText(data []byte) error {
+	switch QuestionType(data) {
+	case QuestionTypeTextCompletion:
+		*s = QuestionTypeTextCompletion
+		return nil
+	case QuestionTypeSentenceEquivalence:
+		*s = QuestionTypeSentenceEquivalence
+		return nil
+	case QuestionTypeQuantitativeComparison:
+		*s = QuestionTypeQuantitativeComparison
+		return nil
+	case QuestionTypeMultipleChoice:
+		*s = QuestionTypeMultipleChoice
+		return nil
+	default:
+		return errors.Errorf("invalid value: %q", data)
+	}
+}
+
 // ReportClientErrorNoContent is response for ReportClientError operation.
 type ReportClientErrorNoContent struct{}
+
+// ReportQuestionNoContent is response for ReportQuestion operation.
+type ReportQuestionNoContent struct{}
 
 // Ref: #/components/schemas/ReviewItem
 type ReviewItem struct {
@@ -1280,6 +2193,9 @@ func (s *StepState) UnmarshalText(data []byte) error {
 	}
 }
 
+// SubmitTrainingAnswersNoContent is response for SubmitTrainingAnswers operation.
+type SubmitTrainingAnswersNoContent struct{}
+
 // Ref: #/components/schemas/TelegramMiniAppSignIn
 type TelegramMiniAppSignIn struct {
 	// Сырая строка initData от Telegram.
@@ -1380,6 +2296,562 @@ func (s *TodayStep) SetMinutes(val int) {
 // SetState sets the value of State.
 func (s *TodayStep) SetState(val StepState) {
 	s.State = val
+}
+
+// Ref: #/components/schemas/TopicToReview
+type TopicToReview struct {
+	TopicId   string        `json:"topicId"`
+	Title     LocalizedText `json:"title"`
+	Mistakes  int           `json:"mistakes"`
+	Positions []int         `json:"positions"`
+}
+
+// GetTopicId returns the value of TopicId.
+func (s *TopicToReview) GetTopicId() string {
+	return s.TopicId
+}
+
+// GetTitle returns the value of Title.
+func (s *TopicToReview) GetTitle() LocalizedText {
+	return s.Title
+}
+
+// GetMistakes returns the value of Mistakes.
+func (s *TopicToReview) GetMistakes() int {
+	return s.Mistakes
+}
+
+// GetPositions returns the value of Positions.
+func (s *TopicToReview) GetPositions() []int {
+	return s.Positions
+}
+
+// SetTopicId sets the value of TopicId.
+func (s *TopicToReview) SetTopicId(val string) {
+	s.TopicId = val
+}
+
+// SetTitle sets the value of Title.
+func (s *TopicToReview) SetTitle(val LocalizedText) {
+	s.Title = val
+}
+
+// SetMistakes sets the value of Mistakes.
+func (s *TopicToReview) SetMistakes(val int) {
+	s.Mistakes = val
+}
+
+// SetPositions sets the value of Positions.
+func (s *TopicToReview) SetPositions(val []int) {
+	s.Positions = val
+}
+
+// Ref: #/components/schemas/TrainingFinish
+type TrainingFinish struct {
+	FinishedAt time.Time `json:"finishedAt"`
+	// Время «Проверки» вышло — оставшиеся вопросы «не
+	// успел».
+	TimedOut bool `json:"timedOut"`
+}
+
+// GetFinishedAt returns the value of FinishedAt.
+func (s *TrainingFinish) GetFinishedAt() time.Time {
+	return s.FinishedAt
+}
+
+// GetTimedOut returns the value of TimedOut.
+func (s *TrainingFinish) GetTimedOut() bool {
+	return s.TimedOut
+}
+
+// SetFinishedAt sets the value of FinishedAt.
+func (s *TrainingFinish) SetFinishedAt(val time.Time) {
+	s.FinishedAt = val
+}
+
+// SetTimedOut sets the value of TimedOut.
+func (s *TrainingFinish) SetTimedOut(val bool) {
+	s.TimedOut = val
+}
+
+// Ref: #/components/schemas/TrainingItem
+type TrainingItem struct {
+	Position int            `json:"position"`
+	Question Question       `json:"question"`
+	Answer   OptGivenAnswer `json:"answer"`
+	// Проверка сервера; нет — ответа нет или он ещё не дошёл.
+	Correct OptBool `json:"correct"`
+}
+
+// GetPosition returns the value of Position.
+func (s *TrainingItem) GetPosition() int {
+	return s.Position
+}
+
+// GetQuestion returns the value of Question.
+func (s *TrainingItem) GetQuestion() Question {
+	return s.Question
+}
+
+// GetAnswer returns the value of Answer.
+func (s *TrainingItem) GetAnswer() OptGivenAnswer {
+	return s.Answer
+}
+
+// GetCorrect returns the value of Correct.
+func (s *TrainingItem) GetCorrect() OptBool {
+	return s.Correct
+}
+
+// SetPosition sets the value of Position.
+func (s *TrainingItem) SetPosition(val int) {
+	s.Position = val
+}
+
+// SetQuestion sets the value of Question.
+func (s *TrainingItem) SetQuestion(val Question) {
+	s.Question = val
+}
+
+// SetAnswer sets the value of Answer.
+func (s *TrainingItem) SetAnswer(val OptGivenAnswer) {
+	s.Answer = val
+}
+
+// SetCorrect sets the value of Correct.
+func (s *TrainingItem) SetCorrect(val OptBool) {
+	s.Correct = val
+}
+
+// Practice — разбор после каждого вопроса, без таймера,
+// вместо пропуска «Не знаю»; check — разбор в конце, таймер
+// темпа экзамена, пропустить и вернуться можно, время
+// вышло — сессия кончилась.
+// Ref: #/components/schemas/TrainingMode
+type TrainingMode string
+
+const (
+	TrainingModePractice TrainingMode = "practice"
+	TrainingModeCheck    TrainingMode = "check"
+)
+
+// AllValues returns all TrainingMode values.
+func (TrainingMode) AllValues() []TrainingMode {
+	return []TrainingMode{
+		TrainingModePractice,
+		TrainingModeCheck,
+	}
+}
+
+// MarshalText implements encoding.TextMarshaler.
+func (s TrainingMode) MarshalText() ([]byte, error) {
+	switch s {
+	case TrainingModePractice:
+		return []byte(s), nil
+	case TrainingModeCheck:
+		return []byte(s), nil
+	default:
+		return nil, errors.Errorf("invalid value: %q", s)
+	}
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (s *TrainingMode) UnmarshalText(data []byte) error {
+	switch TrainingMode(data) {
+	case TrainingModePractice:
+		*s = TrainingModePractice
+		return nil
+	case TrainingModeCheck:
+		*s = TrainingModeCheck
+		return nil
+	default:
+		return errors.Errorf("invalid value: %q", data)
+	}
+}
+
+// Ref: #/components/schemas/TrainingOptions
+type TrainingOptions struct {
+	Types   []TrainingType   `json:"types"`
+	Presets []TrainingPreset `json:"presets"`
+	// Больше этого числа вопросов в одной тренировке не
+	// бывает.
+	MaxQuestions int `json:"maxQuestions"`
+}
+
+// GetTypes returns the value of Types.
+func (s *TrainingOptions) GetTypes() []TrainingType {
+	return s.Types
+}
+
+// GetPresets returns the value of Presets.
+func (s *TrainingOptions) GetPresets() []TrainingPreset {
+	return s.Presets
+}
+
+// GetMaxQuestions returns the value of MaxQuestions.
+func (s *TrainingOptions) GetMaxQuestions() int {
+	return s.MaxQuestions
+}
+
+// SetTypes sets the value of Types.
+func (s *TrainingOptions) SetTypes(val []TrainingType) {
+	s.Types = val
+}
+
+// SetPresets sets the value of Presets.
+func (s *TrainingOptions) SetPresets(val []TrainingPreset) {
+	s.Presets = val
+}
+
+// SetMaxQuestions sets the value of MaxQuestions.
+func (s *TrainingOptions) SetMaxQuestions(val int) {
+	s.MaxQuestions = val
+}
+
+// Ref: #/components/schemas/TrainingPreset
+type TrainingPreset struct {
+	// Открытый список, не enum: новые виды появятся без
+	// обновления приложений, а клиент пропускает
+	// незнакомые. Сейчас — last («Как в прошлый раз») и timed
+	// («Проверка на время»: все доступные типы раздела, 12
+	// вопросов, как секция экзамена); «Мои ошибки» и «Слабая
+	// тема» — с фичей «что повторить».
+	Kind    string          `json:"kind"`
+	Request TrainingRequest `json:"request"`
+}
+
+// GetKind returns the value of Kind.
+func (s *TrainingPreset) GetKind() string {
+	return s.Kind
+}
+
+// GetRequest returns the value of Request.
+func (s *TrainingPreset) GetRequest() TrainingRequest {
+	return s.Request
+}
+
+// SetKind sets the value of Kind.
+func (s *TrainingPreset) SetKind(val string) {
+	s.Kind = val
+}
+
+// SetRequest sets the value of Request.
+func (s *TrainingPreset) SetRequest(val TrainingRequest) {
+	s.Request = val
+}
+
+// Ref: #/components/schemas/TrainingRequest
+type TrainingRequest struct {
+	Section Section `json:"section"`
+	// Конструктор даёт один тип; «Проверка на время» — все
+	// типы раздела вперемешку (макет R16).
+	QuestionTypes []QuestionType `json:"questionTypes"`
+	// Пусто или нет — все темы.
+	TopicIds   []string      `json:"topicIds"`
+	Difficulty OptDifficulty `json:"difficulty"`
+	Count      int           `json:"count"`
+	Mode       TrainingMode  `json:"mode"`
+}
+
+// GetSection returns the value of Section.
+func (s *TrainingRequest) GetSection() Section {
+	return s.Section
+}
+
+// GetQuestionTypes returns the value of QuestionTypes.
+func (s *TrainingRequest) GetQuestionTypes() []QuestionType {
+	return s.QuestionTypes
+}
+
+// GetTopicIds returns the value of TopicIds.
+func (s *TrainingRequest) GetTopicIds() []string {
+	return s.TopicIds
+}
+
+// GetDifficulty returns the value of Difficulty.
+func (s *TrainingRequest) GetDifficulty() OptDifficulty {
+	return s.Difficulty
+}
+
+// GetCount returns the value of Count.
+func (s *TrainingRequest) GetCount() int {
+	return s.Count
+}
+
+// GetMode returns the value of Mode.
+func (s *TrainingRequest) GetMode() TrainingMode {
+	return s.Mode
+}
+
+// SetSection sets the value of Section.
+func (s *TrainingRequest) SetSection(val Section) {
+	s.Section = val
+}
+
+// SetQuestionTypes sets the value of QuestionTypes.
+func (s *TrainingRequest) SetQuestionTypes(val []QuestionType) {
+	s.QuestionTypes = val
+}
+
+// SetTopicIds sets the value of TopicIds.
+func (s *TrainingRequest) SetTopicIds(val []string) {
+	s.TopicIds = val
+}
+
+// SetDifficulty sets the value of Difficulty.
+func (s *TrainingRequest) SetDifficulty(val OptDifficulty) {
+	s.Difficulty = val
+}
+
+// SetCount sets the value of Count.
+func (s *TrainingRequest) SetCount(val int) {
+	s.Count = val
+}
+
+// SetMode sets the value of Mode.
+func (s *TrainingRequest) SetMode(val TrainingMode) {
+	s.Mode = val
+}
+
+// Ref: #/components/schemas/TrainingSession
+type TrainingSession struct {
+	ID            uuid.UUID      `json:"id"`
+	Mode          TrainingMode   `json:"mode"`
+	Section       Section        `json:"section"`
+	QuestionTypes []QuestionType `json:"questionTypes"`
+	StartedAt     time.Time      `json:"startedAt"`
+	// Только у «Проверки» — темп секции экзамена.
+	TimeLimitSeconds OptInt         `json:"timeLimitSeconds"`
+	FinishedAt       OptDateTime    `json:"finishedAt"`
+	Items            []TrainingItem `json:"items"`
+}
+
+// GetID returns the value of ID.
+func (s *TrainingSession) GetID() uuid.UUID {
+	return s.ID
+}
+
+// GetMode returns the value of Mode.
+func (s *TrainingSession) GetMode() TrainingMode {
+	return s.Mode
+}
+
+// GetSection returns the value of Section.
+func (s *TrainingSession) GetSection() Section {
+	return s.Section
+}
+
+// GetQuestionTypes returns the value of QuestionTypes.
+func (s *TrainingSession) GetQuestionTypes() []QuestionType {
+	return s.QuestionTypes
+}
+
+// GetStartedAt returns the value of StartedAt.
+func (s *TrainingSession) GetStartedAt() time.Time {
+	return s.StartedAt
+}
+
+// GetTimeLimitSeconds returns the value of TimeLimitSeconds.
+func (s *TrainingSession) GetTimeLimitSeconds() OptInt {
+	return s.TimeLimitSeconds
+}
+
+// GetFinishedAt returns the value of FinishedAt.
+func (s *TrainingSession) GetFinishedAt() OptDateTime {
+	return s.FinishedAt
+}
+
+// GetItems returns the value of Items.
+func (s *TrainingSession) GetItems() []TrainingItem {
+	return s.Items
+}
+
+// SetID sets the value of ID.
+func (s *TrainingSession) SetID(val uuid.UUID) {
+	s.ID = val
+}
+
+// SetMode sets the value of Mode.
+func (s *TrainingSession) SetMode(val TrainingMode) {
+	s.Mode = val
+}
+
+// SetSection sets the value of Section.
+func (s *TrainingSession) SetSection(val Section) {
+	s.Section = val
+}
+
+// SetQuestionTypes sets the value of QuestionTypes.
+func (s *TrainingSession) SetQuestionTypes(val []QuestionType) {
+	s.QuestionTypes = val
+}
+
+// SetStartedAt sets the value of StartedAt.
+func (s *TrainingSession) SetStartedAt(val time.Time) {
+	s.StartedAt = val
+}
+
+// SetTimeLimitSeconds sets the value of TimeLimitSeconds.
+func (s *TrainingSession) SetTimeLimitSeconds(val OptInt) {
+	s.TimeLimitSeconds = val
+}
+
+// SetFinishedAt sets the value of FinishedAt.
+func (s *TrainingSession) SetFinishedAt(val OptDateTime) {
+	s.FinishedAt = val
+}
+
+// SetItems sets the value of Items.
+func (s *TrainingSession) SetItems(val []TrainingItem) {
+	s.Items = val
+}
+
+// Ref: #/components/schemas/TrainingSummary
+type TrainingSummary struct {
+	Correct int `json:"correct"`
+	Total   int `json:"total"`
+	// Без ответа — «Не знаю», пропущенные и не успел.
+	Unanswered      int `json:"unanswered"`
+	DurationSeconds int `json:"durationSeconds"`
+	// 1–3 темы, где больше всего ошибок, — «Что повторить».
+	Review []TopicToReview `json:"review"`
+}
+
+// GetCorrect returns the value of Correct.
+func (s *TrainingSummary) GetCorrect() int {
+	return s.Correct
+}
+
+// GetTotal returns the value of Total.
+func (s *TrainingSummary) GetTotal() int {
+	return s.Total
+}
+
+// GetUnanswered returns the value of Unanswered.
+func (s *TrainingSummary) GetUnanswered() int {
+	return s.Unanswered
+}
+
+// GetDurationSeconds returns the value of DurationSeconds.
+func (s *TrainingSummary) GetDurationSeconds() int {
+	return s.DurationSeconds
+}
+
+// GetReview returns the value of Review.
+func (s *TrainingSummary) GetReview() []TopicToReview {
+	return s.Review
+}
+
+// SetCorrect sets the value of Correct.
+func (s *TrainingSummary) SetCorrect(val int) {
+	s.Correct = val
+}
+
+// SetTotal sets the value of Total.
+func (s *TrainingSummary) SetTotal(val int) {
+	s.Total = val
+}
+
+// SetUnanswered sets the value of Unanswered.
+func (s *TrainingSummary) SetUnanswered(val int) {
+	s.Unanswered = val
+}
+
+// SetDurationSeconds sets the value of DurationSeconds.
+func (s *TrainingSummary) SetDurationSeconds(val int) {
+	s.DurationSeconds = val
+}
+
+// SetReview sets the value of Review.
+func (s *TrainingSummary) SetReview(val []TopicToReview) {
+	s.Review = val
+}
+
+// Ref: #/components/schemas/TrainingTopic
+type TrainingTopic struct {
+	ID        string           `json:"id"`
+	Title     LocalizedText    `json:"title"`
+	Available DifficultyCounts `json:"available"`
+}
+
+// GetID returns the value of ID.
+func (s *TrainingTopic) GetID() string {
+	return s.ID
+}
+
+// GetTitle returns the value of Title.
+func (s *TrainingTopic) GetTitle() LocalizedText {
+	return s.Title
+}
+
+// GetAvailable returns the value of Available.
+func (s *TrainingTopic) GetAvailable() DifficultyCounts {
+	return s.Available
+}
+
+// SetID sets the value of ID.
+func (s *TrainingTopic) SetID(val string) {
+	s.ID = val
+}
+
+// SetTitle sets the value of Title.
+func (s *TrainingTopic) SetTitle(val LocalizedText) {
+	s.Title = val
+}
+
+// SetAvailable sets the value of Available.
+func (s *TrainingTopic) SetAvailable(val DifficultyCounts) {
+	s.Available = val
+}
+
+// Ref: #/components/schemas/TrainingType
+type TrainingType struct {
+	Section      Section      `json:"section"`
+	QuestionType QuestionType `json:"questionType"`
+	// Темп экзамена на вопрос (Verbal — 90 с, Quant — 105 с): время
+	// «Проверки» и оценка «~12 мин» на кнопке.
+	PaceSeconds int             `json:"paceSeconds"`
+	Topics      []TrainingTopic `json:"topics"`
+}
+
+// GetSection returns the value of Section.
+func (s *TrainingType) GetSection() Section {
+	return s.Section
+}
+
+// GetQuestionType returns the value of QuestionType.
+func (s *TrainingType) GetQuestionType() QuestionType {
+	return s.QuestionType
+}
+
+// GetPaceSeconds returns the value of PaceSeconds.
+func (s *TrainingType) GetPaceSeconds() int {
+	return s.PaceSeconds
+}
+
+// GetTopics returns the value of Topics.
+func (s *TrainingType) GetTopics() []TrainingTopic {
+	return s.Topics
+}
+
+// SetSection sets the value of Section.
+func (s *TrainingType) SetSection(val Section) {
+	s.Section = val
+}
+
+// SetQuestionType sets the value of QuestionType.
+func (s *TrainingType) SetQuestionType(val QuestionType) {
+	s.QuestionType = val
+}
+
+// SetPaceSeconds sets the value of PaceSeconds.
+func (s *TrainingType) SetPaceSeconds(val int) {
+	s.PaceSeconds = val
+}
+
+// SetTopics sets the value of Topics.
+func (s *TrainingType) SetTopics(val []TrainingTopic) {
+	s.Topics = val
 }
 
 // Ref: #/components/schemas/User

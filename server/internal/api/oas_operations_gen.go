@@ -6,14 +6,20 @@ package api
 type OperationName = string
 
 const (
+	FinishTrainingOperation              OperationName = "FinishTraining"
 	GetHealthOperation                   OperationName = "GetHealth"
 	GetMeOperation                       OperationName = "GetMe"
 	GetReviewQueueOperation              OperationName = "GetReviewQueue"
 	GetTodayOperation                    OperationName = "GetToday"
+	GetTrainingOperation                 OperationName = "GetTraining"
+	GetTrainingOptionsOperation          OperationName = "GetTrainingOptions"
 	ReportClientErrorOperation           OperationName = "ReportClientError"
+	ReportQuestionOperation              OperationName = "ReportQuestion"
 	SignInForDevelopmentOperation        OperationName = "SignInForDevelopment"
 	SignInWithAuthorizationCodeOperation OperationName = "SignInWithAuthorizationCode"
 	SignInWithIdTokenOperation           OperationName = "SignInWithIdToken"
 	SignInWithTelegramMiniAppOperation   OperationName = "SignInWithTelegramMiniApp"
 	SignOutOperation                     OperationName = "SignOut"
+	StartTrainingOperation               OperationName = "StartTraining"
+	SubmitTrainingAnswersOperation       OperationName = "SubmitTrainingAnswers"
 )

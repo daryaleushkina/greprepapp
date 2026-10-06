@@ -20,7 +20,11 @@ const (
 	InvalidInitData     Code = "invalid_init_data"
 	InvalidIDToken      Code = "invalid_id_token"
 	ProviderUnavailable Code = "provider_unavailable"
-	Internal            Code = "internal"
+	// NoQuestions — под выбор конструктора нет ни одного проверенного задания.
+	NoQuestions Code = "no_questions"
+	// TrainingFinished — тренировка закончена, ответы больше не принимаются.
+	TrainingFinished Code = "training_finished"
+	Internal         Code = "internal"
 )
 
 // Error — ошибка с кодом для клиента и причиной для журнала.

@@ -1,0 +1,2134 @@
+{
+  "topics": [
+    {
+      "id": "contrast-signals",
+      "section": "verbal",
+      "title": {
+        "ru": "Слова-сигналы контраста",
+        "en": "Contrast signal words"
+      },
+      "position": 0
+    },
+    {
+      "id": "similarity-signals",
+      "section": "verbal",
+      "title": {
+        "ru": "Сигналы сходства и следствия",
+        "en": "Similarity and consequence signals"
+      },
+      "position": 1
+    },
+    {
+      "id": "cause-effect",
+      "section": "verbal",
+      "title": {
+        "ru": "Причина и следствие",
+        "en": "Cause and effect"
+      },
+      "position": 2
+    },
+    {
+      "id": "tone-attitude",
+      "section": "verbal",
+      "title": {
+        "ru": "Тон и отношение автора",
+        "en": "Tone and attitude"
+      },
+      "position": 3
+    },
+    {
+      "id": "close-synonyms",
+      "section": "verbal",
+      "title": {
+        "ru": "Близкие синонимы",
+        "en": "Close synonyms"
+      },
+      "position": 4
+    },
+    {
+      "id": "inequalities",
+      "section": "quant",
+      "title": {
+        "ru": "Неравенства",
+        "en": "Inequalities"
+      },
+      "position": 5
+    },
+    {
+      "id": "percents",
+      "section": "quant",
+      "title": {
+        "ru": "Проценты и доли",
+        "en": "Percents and fractions"
+      },
+      "position": 6
+    },
+    {
+      "id": "exponents-roots",
+      "section": "quant",
+      "title": {
+        "ru": "Степени и корни",
+        "en": "Exponents and roots"
+      },
+      "position": 7
+    },
+    {
+      "id": "number-properties",
+      "section": "quant",
+      "title": {
+        "ru": "Свойства чисел",
+        "en": "Number properties"
+      },
+      "position": 8
+    },
+    {
+      "id": "geometry",
+      "section": "quant",
+      "title": {
+        "ru": "Геометрия",
+        "en": "Geometry"
+      },
+      "position": 9
+    }
+  ],
+  "questions": [
+    {
+      "id": "d3f00000-0000-4000-8000-000000000001",
+      "type": "text_completion",
+      "topic": "contrast-signals",
+      "difficulty": "medium",
+      "body": {
+        "prompt": "Although the committee’s report was praised for its thoroughness, critics noted that its conclusions were oddly ___, hedging on nearly every recommendation it made.",
+        "groups": [
+          {
+            "options": [
+              {
+                "id": "A",
+                "text": "equivocal"
+              },
+              {
+                "id": "B",
+                "text": "incisive"
+              },
+              {
+                "id": "C",
+                "text": "exhaustive"
+              },
+              {
+                "id": "D",
+                "text": "dogmatic"
+              },
+              {
+                "id": "E",
+                "text": "lucid"
+              }
+            ]
+          }
+        ],
+        "selectCount": 1
+      },
+      "answer": [
+        "A"
+      ],
+      "explanation": {
+        "solution": {
+          "ru": "Подсказка — *hedging on nearly every recommendation*: выводы уклончивы. Это и есть *equivocal* — двусмысленный, уклончивый.",
+          "en": "The clue is *hedging on nearly every recommendation*: the conclusions avoided commitment. That is what *equivocal* means — deliberately ambiguous."
+        },
+        "options": [
+          {
+            "optionId": "B",
+            "text": {
+              "ru": "*incisive* — «острый, чёткий»: прямая противоположность уклончивости.",
+              "en": "*incisive* (sharp, decisive) is the opposite of hedging."
+            }
+          },
+          {
+            "optionId": "C",
+            "text": {
+              "ru": "*exhaustive* — «исчерпывающий». Соблазняет, потому что рядом стоит *thoroughness*. Но *although* требует контраста с похвалой, а не её повтора.",
+              "en": "*exhaustive* (covering everything) is tempting because *thoroughness* appears nearby. But *although* signals a contrast with the praise, not a repeat of it."
+            }
+          },
+          {
+            "optionId": "D",
+            "text": {
+              "ru": "*dogmatic* — «безапелляционный». Кто оговаривается в каждой рекомендации, тот не догматичен.",
+              "en": "*dogmatic* (rigidly certain) clashes with hedging on every point."
+            }
+          },
+          {
+            "optionId": "E",
+            "text": {
+              "ru": "*lucid* — «ясный»: это похвала, а уклончивые выводы ясными не бывают.",
+              "en": "*lucid* (clear) is praise, and hedged conclusions are anything but clear."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "d3f00000-0000-4000-8000-000000000002",
+      "type": "text_completion",
+      "topic": "contrast-signals",
+      "difficulty": "easy",
+      "body": {
+        "prompt": "The professor’s lectures were usually ___, but her final talk was so lively that students stayed long after it ended.",
+        "groups": [
+          {
+            "options": [
+              {
+                "id": "A",
+                "text": "tedious"
+              },
+              {
+                "id": "B",
+                "text": "animated"
+              },
+              {
+                "id": "C",
+                "text": "brief"
+              },
+              {
+                "id": "D",
+                "text": "popular"
+              },
+              {
+                "id": "E",
+                "text": "rigorous"
+              }
+            ]
+          }
+        ],
+        "selectCount": 1
+      },
+      "answer": [
+        "A"
+      ],
+      "explanation": {
+        "solution": {
+          "ru": "*but* противопоставляет обычные лекции последней, *so lively*. Значит, обычно они были скучными — *tedious*.",
+          "en": "*but* contrasts the usual lectures with the last one, which was *so lively*. So they were usually dull — *tedious*."
+        },
+        "options": [
+          {
+            "optionId": "B",
+            "text": {
+              "ru": "*animated* — «живой»: то же, что *lively*, а нужен контраст.",
+              "en": "*animated* means the same as *lively*; the sentence needs a contrast."
+            }
+          },
+          {
+            "optionId": "C",
+            "text": {
+              "ru": "*brief* — «короткий». Студенты задержались после лекции, а не из-за её длины; живости это не противоречит.",
+              "en": "*brief* is about length; it does not oppose *lively*."
+            }
+          },
+          {
+            "optionId": "D",
+            "text": {
+              "ru": "*popular* — «популярный». То, что студенты остались, говорит скорее о популярности: контраста нет.",
+              "en": "*popular* agrees with students staying; there is no contrast."
+            }
+          },
+          {
+            "optionId": "E",
+            "text": {
+              "ru": "*rigorous* — «строгий». Строгая лекция может быть и живой: противоположности нет.",
+              "en": "*rigorous* is not the opposite of lively; a rigorous talk can be lively."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "d3f00000-0000-4000-8000-000000000003",
+      "type": "text_completion",
+      "topic": "contrast-signals",
+      "difficulty": "medium",
+      "body": {
+        "prompt": "The novelist’s later work, far from the ___ prose of her early stories, is spare and unadorned.",
+        "groups": [
+          {
+            "options": [
+              {
+                "id": "A",
+                "text": "ornate"
+              },
+              {
+                "id": "B",
+                "text": "laconic"
+              },
+              {
+                "id": "C",
+                "text": "lucid"
+              },
+              {
+                "id": "D",
+                "text": "terse"
+              },
+              {
+                "id": "E",
+                "text": "plain"
+              }
+            ]
+          }
+        ],
+        "selectCount": 1
+      },
+      "answer": [
+        "A"
+      ],
+      "explanation": {
+        "solution": {
+          "ru": "*far from* — сигнал противопоставления: ранняя проза была противоположна *spare and unadorned*, то есть пышной — *ornate*.",
+          "en": "*far from* signals opposition: the early prose was the opposite of *spare and unadorned* — *ornate*."
+        },
+        "options": [
+          {
+            "optionId": "B",
+            "text": {
+              "ru": "*laconic* — «немногословный»: это и есть *spare*, а нужна противоположность.",
+              "en": "*laconic* (using few words) matches *spare* instead of opposing it."
+            }
+          },
+          {
+            "optionId": "C",
+            "text": {
+              "ru": "*lucid* — «ясный». Ясность не противоположна простоте.",
+              "en": "*lucid* (clear) is not the opposite of plain prose."
+            }
+          },
+          {
+            "optionId": "D",
+            "text": {
+              "ru": "*terse* — «сжатый»: снова синоним *spare*.",
+              "en": "*terse* is another synonym of *spare*."
+            }
+          },
+          {
+            "optionId": "E",
+            "text": {
+              "ru": "*plain* — «простой»: то же, что *unadorned*.",
+              "en": "*plain* repeats *unadorned*."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "d3f00000-0000-4000-8000-000000000004",
+      "type": "text_completion",
+      "topic": "cause-effect",
+      "difficulty": "medium",
+      "body": {
+        "prompt": "Because the new vaccine had been tested on only a few hundred volunteers, regulators considered the evidence of its safety ___.",
+        "groups": [
+          {
+            "options": [
+              {
+                "id": "A",
+                "text": "preliminary"
+              },
+              {
+                "id": "B",
+                "text": "conclusive"
+              },
+              {
+                "id": "C",
+                "text": "fabricated"
+              },
+              {
+                "id": "D",
+                "text": "irrelevant"
+              },
+              {
+                "id": "E",
+                "text": "overwhelming"
+              }
+            ]
+          }
+        ],
+        "selectCount": 1
+      },
+      "answer": [
+        "A"
+      ],
+      "explanation": {
+        "solution": {
+          "ru": "*Because … only a few hundred volunteers* — причина: испытаний мало. Следствие — данные о безопасности пока предварительные, *preliminary*.",
+          "en": "*Because … only a few hundred volunteers* gives the cause: a small trial. The result is that the safety evidence is only *preliminary*."
+        },
+        "options": [
+          {
+            "optionId": "B",
+            "text": {
+              "ru": "*conclusive* — «окончательный»: малое испытание к такому выводу не ведёт.",
+              "en": "*conclusive* is the opposite of what a small trial supports."
+            }
+          },
+          {
+            "optionId": "C",
+            "text": {
+              "ru": "*fabricated* — «сфабрикованный». О подлоге в предложении ни слова.",
+              "en": "*fabricated* implies fraud, which the sentence never suggests."
+            }
+          },
+          {
+            "optionId": "D",
+            "text": {
+              "ru": "*irrelevant* — «не относящийся к делу». Данные относятся к делу, их просто мало.",
+              "en": "*irrelevant*: the evidence is relevant, just limited."
+            }
+          },
+          {
+            "optionId": "E",
+            "text": {
+              "ru": "*overwhelming* — «подавляющий»: противоположно смыслу.",
+              "en": "*overwhelming* contradicts the small sample."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "d3f00000-0000-4000-8000-000000000005",
+      "type": "text_completion",
+      "topic": "similarity-signals",
+      "difficulty": "medium",
+      "body": {
+        "prompt": "The mayor was known for her ___: she rarely made a decision without first consulting dozens of advisers and reading every available report.",
+        "groups": [
+          {
+            "options": [
+              {
+                "id": "A",
+                "text": "impetuosity"
+              },
+              {
+                "id": "B",
+                "text": "circumspection"
+              },
+              {
+                "id": "C",
+                "text": "charisma"
+              },
+              {
+                "id": "D",
+                "text": "frugality"
+              },
+              {
+                "id": "E",
+                "text": "obstinacy"
+              }
+            ]
+          }
+        ],
+        "selectCount": 1
+      },
+      "answer": [
+        "B"
+      ],
+      "explanation": {
+        "solution": {
+          "ru": "Двоеточие обещает пояснение: советы десятков людей и все отчёты — это осмотрительность, *circumspection*.",
+          "en": "The colon promises an explanation: consulting dozens of advisers and every report is *circumspection* — careful deliberation."
+        },
+        "options": [
+          {
+            "optionId": "A",
+            "text": {
+              "ru": "*impetuosity* — «порывистость»: прямо противоположно.",
+              "en": "*impetuosity* (acting rashly) is the opposite."
+            }
+          },
+          {
+            "optionId": "C",
+            "text": {
+              "ru": "*charisma* — «обаяние»: пояснение после двоеточия не про него.",
+              "en": "*charisma* is not what the explanation describes."
+            }
+          },
+          {
+            "optionId": "D",
+            "text": {
+              "ru": "*frugality* — «бережливость»: про деньги, а не про решения.",
+              "en": "*frugality* is about money, not decisions."
+            }
+          },
+          {
+            "optionId": "E",
+            "text": {
+              "ru": "*obstinacy* — «упрямство». Кто советуется с десятками людей, тот не упрям.",
+              "en": "*obstinacy*: someone who consults dozens of advisers is not stubborn."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "d3f00000-0000-4000-8000-000000000006",
+      "type": "text_completion",
+      "topic": "cause-effect",
+      "difficulty": "hard",
+      "body": {
+        "prompt": "So ___ was the critic’s review, acknowledging both the film’s flaws and its strengths, that even the director, who had braced for harsh words, conceded it was fair.",
+        "groups": [
+          {
+            "options": [
+              {
+                "id": "A",
+                "text": "scathing"
+              },
+              {
+                "id": "B",
+                "text": "evenhanded"
+              },
+              {
+                "id": "C",
+                "text": "perfunctory"
+              },
+              {
+                "id": "D",
+                "text": "effusive"
+              },
+              {
+                "id": "E",
+                "text": "cryptic"
+              }
+            ]
+          }
+        ],
+        "selectCount": 1
+      },
+      "answer": [
+        "B"
+      ],
+      "explanation": {
+        "solution": {
+          "ru": "*So … that*: рецензия была такой, что режиссёр признал её справедливой. Отмечены и недостатки, и достоинства — она взвешенная, *evenhanded*.",
+          "en": "*So … that*: the review was such that the director called it fair. It weighed both flaws and strengths — *evenhanded*."
+        },
+        "options": [
+          {
+            "optionId": "A",
+            "text": {
+              "ru": "*scathing* — «разгромный»: режиссёр ждал резкости, а рецензия оказалась честной.",
+              "en": "*scathing* is what the director feared, not what he got."
+            }
+          },
+          {
+            "optionId": "C",
+            "text": {
+              "ru": "*perfunctory* — «поверхностный». Разбор и сильных, и слабых сторон — не поверхностный.",
+              "en": "*perfunctory*: weighing flaws and strengths is not superficial."
+            }
+          },
+          {
+            "optionId": "D",
+            "text": {
+              "ru": "*effusive* — «восторженный». Соблазняет, раз режиссёр доволен, но рецензия говорит и о недостатках.",
+              "en": "*effusive* is tempting because the director is satisfied, but the review also names flaws."
+            }
+          },
+          {
+            "optionId": "E",
+            "text": {
+              "ru": "*cryptic* — «загадочный»: ничто в предложении на это не указывает.",
+              "en": "*cryptic*: nothing suggests the review was obscure."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "d3f00000-0000-4000-8000-000000000007",
+      "type": "text_completion",
+      "topic": "contrast-signals",
+      "difficulty": "medium",
+      "body": {
+        "prompt": "Though the senator’s public statements were ___, carefully avoiding any firm position, her private letters reveal a far more ___ view: she called the proposal a disaster.",
+        "groups": [
+          {
+            "options": [
+              {
+                "id": "A",
+                "text": "guarded"
+              },
+              {
+                "id": "B",
+                "text": "candid"
+              },
+              {
+                "id": "C",
+                "text": "enthusiastic"
+              }
+            ]
+          },
+          {
+            "options": [
+              {
+                "id": "D",
+                "text": "forthright"
+              },
+              {
+                "id": "E",
+                "text": "ambivalent"
+              },
+              {
+                "id": "F",
+                "text": "favorable"
+              }
+            ]
+          }
+        ],
+        "selectCount": 1
+      },
+      "answer": [
+        "A",
+        "D"
+      ],
+      "explanation": {
+        "solution": {
+          "ru": "*carefully avoiding any firm position* — публично она осторожна, *guarded*. *Though* противопоставляет письма: назвать предложение катастрофой — прямо, *forthright*.",
+          "en": "*carefully avoiding any firm position* makes her public stance *guarded*. *Though* sets the letters against it: calling the proposal a disaster is *forthright*."
+        },
+        "options": [
+          {
+            "optionId": "B",
+            "text": {
+              "ru": "*candid* — «откровенный»: противоречит тому, что она избегала твёрдой позиции.",
+              "en": "*candid* contradicts avoiding any firm position."
+            }
+          },
+          {
+            "optionId": "C",
+            "text": {
+              "ru": "*enthusiastic* — «восторженный»: без твёрдой позиции восторга не бывает.",
+              "en": "*enthusiastic* needs a firm position, which she avoided."
+            }
+          },
+          {
+            "optionId": "E",
+            "text": {
+              "ru": "*ambivalent* — «двойственный». Назвать предложение катастрофой — не двойственность.",
+              "en": "*ambivalent*: calling it a disaster is not mixed feelings."
+            }
+          },
+          {
+            "optionId": "F",
+            "text": {
+              "ru": "*favorable* — «одобрительный»: катастрофа — обратное.",
+              "en": "*favorable* is the opposite of calling it a disaster."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "d3f00000-0000-4000-8000-000000000008",
+      "type": "text_completion",
+      "topic": "cause-effect",
+      "difficulty": "hard",
+      "body": {
+        "prompt": "The historian’s account, though ___ in its detail, was ultimately ___ because it relied almost entirely on the memoirs of a single, notoriously self-serving general.",
+        "groups": [
+          {
+            "options": [
+              {
+                "id": "A",
+                "text": "meticulous"
+              },
+              {
+                "id": "B",
+                "text": "sparse"
+              },
+              {
+                "id": "C",
+                "text": "fanciful"
+              }
+            ]
+          },
+          {
+            "options": [
+              {
+                "id": "D",
+                "text": "unreliable"
+              },
+              {
+                "id": "E",
+                "text": "definitive"
+              },
+              {
+                "id": "F",
+                "text": "engaging"
+              }
+            ]
+          }
+        ],
+        "selectCount": 1
+      },
+      "answer": [
+        "A",
+        "D"
+      ],
+      "explanation": {
+        "solution": {
+          "ru": "*because* объясняет второй пропуск: один пристрастный источник делает рассказ ненадёжным, *unreliable*. *though* противопоставляет этому достоинство — тщательность, *meticulous*.",
+          "en": "*because* explains the second blank: one self-serving source makes the account *unreliable*. *though* sets a virtue against that flaw — *meticulous* detail."
+        },
+        "options": [
+          {
+            "optionId": "B",
+            "text": {
+              "ru": "*sparse* — «скудный»: это недостаток, а *though* требует противопоставить недостатку достоинство.",
+              "en": "*sparse* is a flaw; *though* needs a virtue to contrast with the flaw."
+            }
+          },
+          {
+            "optionId": "C",
+            "text": {
+              "ru": "*fanciful* — «фантазийный»: тоже недостаток, контраста нет.",
+              "en": "*fanciful* is also a flaw, so there is no contrast."
+            }
+          },
+          {
+            "optionId": "E",
+            "text": {
+              "ru": "*definitive* — «авторитетный, окончательный»: один пристрастный источник ведёт к обратному.",
+              "en": "*definitive* is the opposite of what one biased source produces."
+            }
+          },
+          {
+            "optionId": "F",
+            "text": {
+              "ru": "*engaging* — «увлекательный». Пристрастный источник не объясняет, почему рассказ увлекателен.",
+              "en": "*engaging*: a self-serving source does not explain why the account is engaging."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "d3f00000-0000-4000-8000-000000000009",
+      "type": "text_completion",
+      "topic": "similarity-signals",
+      "difficulty": "hard",
+      "body": {
+        "prompt": "Far from being ___, the new biography is ___: the author cites letters, ledgers and diaries on nearly every page, so that even skeptical reviewers concede its ___.",
+        "groups": [
+          {
+            "options": [
+              {
+                "id": "A",
+                "text": "speculative"
+              },
+              {
+                "id": "B",
+                "text": "meticulous"
+              },
+              {
+                "id": "C",
+                "text": "exhaustive"
+              }
+            ]
+          },
+          {
+            "options": [
+              {
+                "id": "D",
+                "text": "scrupulously documented"
+              },
+              {
+                "id": "E",
+                "text": "hastily assembled"
+              },
+              {
+                "id": "F",
+                "text": "deliberately vague"
+              }
+            ]
+          },
+          {
+            "options": [
+              {
+                "id": "G",
+                "text": "authority"
+              },
+              {
+                "id": "H",
+                "text": "brevity"
+              },
+              {
+                "id": "I",
+                "text": "whimsy"
+              }
+            ]
+          }
+        ],
+        "selectCount": 1
+      },
+      "answer": [
+        "A",
+        "D",
+        "G"
+      ],
+      "explanation": {
+        "solution": {
+          "ru": "После двоеточия — пояснение: источники на каждой странице. Значит, книга тщательно документирована (*scrupulously documented*), *far from* — далека от домыслов (*speculative*), и скептики признают её авторитет (*authority*).",
+          "en": "The colon explains: sources on nearly every page. So the book is *scrupulously documented*, *far from* *speculative*, and even skeptics concede its *authority*."
+        },
+        "options": [
+          {
+            "optionId": "B",
+            "text": {
+              "ru": "*meticulous* — «тщательный»: «далека от тщательности» противоречит ссылкам на каждой странице.",
+              "en": "*Far from meticulous* contradicts citations on every page."
+            }
+          },
+          {
+            "optionId": "C",
+            "text": {
+              "ru": "*exhaustive* — «исчерпывающий»: та же ошибка, что с *meticulous*.",
+              "en": "*Far from exhaustive* clashes with the dense citations, like *meticulous*."
+            }
+          },
+          {
+            "optionId": "E",
+            "text": {
+              "ru": "*hastily assembled* — «собрана наспех»: противоречит пояснению после двоеточия.",
+              "en": "*hastily assembled* contradicts the explanation after the colon."
+            }
+          },
+          {
+            "optionId": "F",
+            "text": {
+              "ru": "*deliberately vague* — «нарочито расплывчата»: противоречит ссылкам на источники.",
+              "en": "*deliberately vague* contradicts the cited sources."
+            }
+          },
+          {
+            "optionId": "H",
+            "text": {
+              "ru": "*brevity* — «краткость»: о длине книги ничего не сказано.",
+              "en": "*brevity*: nothing is said about length."
+            }
+          },
+          {
+            "optionId": "I",
+            "text": {
+              "ru": "*whimsy* — «причудливость»: скептиков убеждают источники, а не причуды.",
+              "en": "*whimsy*: skeptics are won over by sources, not whimsy."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "d3f00000-0000-4000-8000-000000000010",
+      "type": "text_completion",
+      "topic": "cause-effect",
+      "difficulty": "hard",
+      "body": {
+        "prompt": "The startup’s early success was less a product of ___ than of luck: its founders, by their own admission, had no ___ plan and simply happened to launch the week a ___ competitor went bankrupt.",
+        "groups": [
+          {
+            "options": [
+              {
+                "id": "A",
+                "text": "foresight"
+              },
+              {
+                "id": "B",
+                "text": "chance"
+              },
+              {
+                "id": "C",
+                "text": "publicity"
+              }
+            ]
+          },
+          {
+            "options": [
+              {
+                "id": "D",
+                "text": "coherent"
+              },
+              {
+                "id": "E",
+                "text": "profitable"
+              },
+              {
+                "id": "F",
+                "text": "covert"
+              }
+            ]
+          },
+          {
+            "options": [
+              {
+                "id": "G",
+                "text": "dominant"
+              },
+              {
+                "id": "H",
+                "text": "fledgling"
+              },
+              {
+                "id": "I",
+                "text": "fictional"
+              }
+            ]
+          }
+        ],
+        "selectCount": 1
+      },
+      "answer": [
+        "A",
+        "D",
+        "G"
+      ],
+      "explanation": {
+        "solution": {
+          "ru": "*less a product of … than of luck* — нужен антоним удачи: предвидение, *foresight*. Внятного плана (*coherent*) не было, а повезло потому, что разорился крупный конкурент — *dominant*.",
+          "en": "*less a product of … than of luck* calls for the opposite of luck: *foresight*. There was no *coherent* plan, and the luck was that a *dominant* competitor failed."
+        },
+        "options": [
+          {
+            "optionId": "B",
+            "text": {
+              "ru": "*chance* — «случай»: это и есть удача, а нужна противоположность.",
+              "en": "*chance* is luck itself; the sentence contrasts the two."
+            }
+          },
+          {
+            "optionId": "C",
+            "text": {
+              "ru": "*publicity* — «реклама»: противопоставления удаче не даёт.",
+              "en": "*publicity* does not stand in contrast to luck."
+            }
+          },
+          {
+            "optionId": "E",
+            "text": {
+              "ru": "*profitable* — «прибыльный»: речь о том, что плана не было вовсе, а не о прибыли.",
+              "en": "*profitable*: the point is having no plan at all, not profit."
+            }
+          },
+          {
+            "optionId": "F",
+            "text": {
+              "ru": "*covert* — «тайный»: тайна плана к удаче отношения не имеет.",
+              "en": "*covert*: secrecy has nothing to do with luck."
+            }
+          },
+          {
+            "optionId": "H",
+            "text": {
+              "ru": "*fledgling* — «начинающий»: разорение мелкого конкурента не было бы удачей.",
+              "en": "*fledgling*: a small rival failing would not be a stroke of luck."
+            }
+          },
+          {
+            "optionId": "I",
+            "text": {
+              "ru": "*fictional* — «вымышленный»: вымышленный конкурент не разоряется.",
+              "en": "*fictional* competitors do not go bankrupt."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "d3f00000-0000-4000-8000-000000000011",
+      "type": "sentence_equivalence",
+      "topic": "contrast-signals",
+      "difficulty": "medium",
+      "body": {
+        "prompt": "Although she had a reputation for being ___, the diplomat proved surprisingly flexible in the final round of negotiations.",
+        "groups": [
+          {
+            "options": [
+              {
+                "id": "A",
+                "text": "intransigent"
+              },
+              {
+                "id": "B",
+                "text": "affable"
+              },
+              {
+                "id": "C",
+                "text": "obdurate"
+              },
+              {
+                "id": "D",
+                "text": "loquacious"
+              },
+              {
+                "id": "E",
+                "text": "pliant"
+              },
+              {
+                "id": "F",
+                "text": "candid"
+              }
+            ]
+          }
+        ],
+        "selectCount": 2
+      },
+      "answer": [
+        "A",
+        "C"
+      ],
+      "explanation": {
+        "solution": {
+          "ru": "Оба слова значат «несговорчивый, непреклонный» — контраст с *flexible*, на который указывает *although*.",
+          "en": "Both words mean unwilling to compromise — a contrast with *flexible*, signalled by *although*."
+        },
+        "options": [
+          {
+            "optionId": "B",
+            "text": {
+              "ru": "*affable* — «приветливый»: не противоположность гибкости.",
+              "en": "*affable* (friendly) is not the opposite of flexible."
+            }
+          },
+          {
+            "optionId": "D",
+            "text": {
+              "ru": "*loquacious* — «болтливый»: к гибкости отношения не имеет.",
+              "en": "*loquacious* (talkative) is unrelated to flexibility."
+            }
+          },
+          {
+            "optionId": "E",
+            "text": {
+              "ru": "*pliant* — «уступчивый»: это и есть *flexible*, контраста нет.",
+              "en": "*pliant* means flexible, so there is no contrast."
+            }
+          },
+          {
+            "optionId": "F",
+            "text": {
+              "ru": "*candid* — «откровенный»: не противоположность гибкости.",
+              "en": "*candid* (frank) does not oppose flexible."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "d3f00000-0000-4000-8000-000000000012",
+      "type": "sentence_equivalence",
+      "topic": "close-synonyms",
+      "difficulty": "easy",
+      "body": {
+        "prompt": "The museum’s new director remained ___ about the budget cuts, insisting publicly that the collection would emerge stronger than ever.",
+        "groups": [
+          {
+            "options": [
+              {
+                "id": "A",
+                "text": "sanguine"
+              },
+              {
+                "id": "B",
+                "text": "optimistic"
+              },
+              {
+                "id": "C",
+                "text": "despondent"
+              },
+              {
+                "id": "D",
+                "text": "indifferent"
+              },
+              {
+                "id": "E",
+                "text": "furious"
+              },
+              {
+                "id": "F",
+                "text": "secretive"
+              }
+            ]
+          }
+        ],
+        "selectCount": 2
+      },
+      "answer": [
+        "A",
+        "B"
+      ],
+      "explanation": {
+        "solution": {
+          "ru": "*insisting … would emerge stronger than ever* — директор полон надежд: *sanguine* и *optimistic* дают одинаковый смысл.",
+          "en": "*insisting … would emerge stronger than ever* shows hope: *sanguine* and *optimistic* give the same meaning."
+        },
+        "options": [
+          {
+            "optionId": "C",
+            "text": {
+              "ru": "*despondent* — «унылый»: противоположно уверенности в будущем.",
+              "en": "*despondent* is the opposite of confidence."
+            }
+          },
+          {
+            "optionId": "D",
+            "text": {
+              "ru": "*indifferent* — «равнодушный»: кто публично настаивает, тот не равнодушен.",
+              "en": "*indifferent*: someone insisting publicly is not indifferent."
+            }
+          },
+          {
+            "optionId": "E",
+            "text": {
+              "ru": "*furious* — «в ярости»: ничто на это не указывает.",
+              "en": "*furious*: nothing suggests anger."
+            }
+          },
+          {
+            "optionId": "F",
+            "text": {
+              "ru": "*secretive* — «скрытный»: он говорит публично.",
+              "en": "*secretive*: he speaks publicly."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "d3f00000-0000-4000-8000-000000000013",
+      "type": "sentence_equivalence",
+      "topic": "cause-effect",
+      "difficulty": "medium",
+      "body": {
+        "prompt": "The memo was so ___ that employees spent an entire meeting debating what it actually required of them.",
+        "groups": [
+          {
+            "options": [
+              {
+                "id": "A",
+                "text": "ambiguous"
+              },
+              {
+                "id": "B",
+                "text": "concise"
+              },
+              {
+                "id": "C",
+                "text": "opaque"
+              },
+              {
+                "id": "D",
+                "text": "lengthy"
+              },
+              {
+                "id": "E",
+                "text": "urgent"
+              },
+              {
+                "id": "F",
+                "text": "polite"
+              }
+            ]
+          }
+        ],
+        "selectCount": 2
+      },
+      "answer": [
+        "A",
+        "C"
+      ],
+      "explanation": {
+        "solution": {
+          "ru": "*so … that*: целое совещание спорили, чего от них хотят. Значит, записка непонятная — *ambiguous* и *opaque*.",
+          "en": "*so … that*: a whole meeting spent decoding it means the memo was unclear — *ambiguous* and *opaque*."
+        },
+        "options": [
+          {
+            "optionId": "B",
+            "text": {
+              "ru": "*concise* — «краткий»: краткость не объясняет споров.",
+              "en": "*concise* does not explain the confusion."
+            }
+          },
+          {
+            "optionId": "D",
+            "text": {
+              "ru": "*lengthy* — «длинный». Соблазняет, но длинная записка может быть понятной, и пары у слова нет.",
+              "en": "*lengthy* is tempting, but a long memo can be clear, and no other option matches it."
+            }
+          },
+          {
+            "optionId": "E",
+            "text": {
+              "ru": "*urgent* — «срочный»: срочность не порождает споров о смысле.",
+              "en": "*urgent* does not cause debate over meaning."
+            }
+          },
+          {
+            "optionId": "F",
+            "text": {
+              "ru": "*polite* — «вежливый»: к непонятности отношения не имеет.",
+              "en": "*polite* is unrelated to unclear meaning."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "d3f00000-0000-4000-8000-000000000014",
+      "type": "sentence_equivalence",
+      "topic": "tone-attitude",
+      "difficulty": "hard",
+      "body": {
+        "prompt": "Critics who expected the memoir to be ___ were surprised by its restraint: the author recounts even her bitterest feuds without a trace of rancor.",
+        "groups": [
+          {
+            "options": [
+              {
+                "id": "A",
+                "text": "vindictive"
+              },
+              {
+                "id": "B",
+                "text": "spiteful"
+              },
+              {
+                "id": "C",
+                "text": "restrained"
+              },
+              {
+                "id": "D",
+                "text": "humorous"
+              },
+              {
+                "id": "E",
+                "text": "tedious"
+              },
+              {
+                "id": "F",
+                "text": "nostalgic"
+              }
+            ]
+          }
+        ],
+        "selectCount": 2
+      },
+      "answer": [
+        "A",
+        "B"
+      ],
+      "explanation": {
+        "solution": {
+          "ru": "Критиков удивила сдержанность: ждали обратного — мстительности. *vindictive* и *spiteful* оба значат «злопамятный, мстительный».",
+          "en": "The critics were surprised by restraint, so they expected the opposite: *vindictive* and *spiteful* both mean full of malice."
+        },
+        "options": [
+          {
+            "optionId": "C",
+            "text": {
+              "ru": "*restrained* — «сдержанный»: это то, чем книга оказалась, а не то, чего ждали.",
+              "en": "*restrained* is what the memoir turned out to be, not what was expected."
+            }
+          },
+          {
+            "optionId": "D",
+            "text": {
+              "ru": "*humorous* — «смешной»: юмор не противоположность сдержанности.",
+              "en": "*humorous* is not the opposite of restraint."
+            }
+          },
+          {
+            "optionId": "E",
+            "text": {
+              "ru": "*tedious* — «скучный»: ничто в предложении на это не указывает.",
+              "en": "*tedious*: nothing in the sentence suggests it."
+            }
+          },
+          {
+            "optionId": "F",
+            "text": {
+              "ru": "*nostalgic* — «ностальгический»: связи с *rancor* нет.",
+              "en": "*nostalgic* has nothing to do with *rancor*."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "d3f00000-0000-4000-8000-000000000015",
+      "type": "sentence_equivalence",
+      "topic": "close-synonyms",
+      "difficulty": "medium",
+      "body": {
+        "prompt": "Despite his ___ manner in interviews, the scientist was known among colleagues as generous with his time and quick to share credit.",
+        "groups": [
+          {
+            "options": [
+              {
+                "id": "A",
+                "text": "brusque"
+              },
+              {
+                "id": "B",
+                "text": "curt"
+              },
+              {
+                "id": "C",
+                "text": "gracious"
+              },
+              {
+                "id": "D",
+                "text": "modest"
+              },
+              {
+                "id": "E",
+                "text": "nervous"
+              },
+              {
+                "id": "F",
+                "text": "verbose"
+              }
+            ]
+          }
+        ],
+        "selectCount": 2
+      },
+      "answer": [
+        "A",
+        "B"
+      ],
+      "explanation": {
+        "solution": {
+          "ru": "*Despite* противопоставляет манеру щедрости к коллегам: на интервью он резок — *brusque*, *curt*.",
+          "en": "*Despite* sets his manner against his generosity: in interviews he is abrupt — *brusque*, *curt*."
+        },
+        "options": [
+          {
+            "optionId": "C",
+            "text": {
+              "ru": "*gracious* — «любезный»: совпадает со щедростью, контраста нет.",
+              "en": "*gracious* agrees with his generosity, so there is no contrast."
+            }
+          },
+          {
+            "optionId": "D",
+            "text": {
+              "ru": "*modest* — «скромный»: тоже не противоречит щедрости.",
+              "en": "*modest* does not contrast with generosity either."
+            }
+          },
+          {
+            "optionId": "E",
+            "text": {
+              "ru": "*nervous* — «нервный»: не противоположность щедрости, и пары у слова нет.",
+              "en": "*nervous* is not the opposite of generous, and nothing pairs with it."
+            }
+          },
+          {
+            "optionId": "F",
+            "text": {
+              "ru": "*verbose* — «многословный»: к щедрости отношения не имеет.",
+              "en": "*verbose* is unrelated to generosity."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "d3f00000-0000-4000-8000-000000000016",
+      "type": "sentence_equivalence",
+      "topic": "similarity-signals",
+      "difficulty": "easy",
+      "body": {
+        "prompt": "The once-___ neighborhood, now full of cafés and galleries, had been almost deserted a decade earlier.",
+        "groups": [
+          {
+            "options": [
+              {
+                "id": "A",
+                "text": "desolate"
+              },
+              {
+                "id": "B",
+                "text": "abandoned"
+              },
+              {
+                "id": "C",
+                "text": "bustling"
+              },
+              {
+                "id": "D",
+                "text": "affluent"
+              },
+              {
+                "id": "E",
+                "text": "historic"
+              },
+              {
+                "id": "F",
+                "text": "crowded"
+              }
+            ]
+          }
+        ],
+        "selectCount": 2
+      },
+      "answer": [
+        "A",
+        "B"
+      ],
+      "explanation": {
+        "solution": {
+          "ru": "*had been almost deserted* пересказывает пропуск: когда-то район был пустынным — *desolate*, *abandoned*.",
+          "en": "*had been almost deserted* restates the blank: the area was once *desolate*, *abandoned*."
+        },
+        "options": [
+          {
+            "optionId": "C",
+            "text": {
+              "ru": "*bustling* — «оживлённый»: так сейчас, а не тогда.",
+              "en": "*bustling* describes now, not then."
+            }
+          },
+          {
+            "optionId": "D",
+            "text": {
+              "ru": "*affluent* — «зажиточный»: о богатстве ничего не сказано.",
+              "en": "*affluent*: nothing is said about wealth."
+            }
+          },
+          {
+            "optionId": "E",
+            "text": {
+              "ru": "*historic* — «исторический»: не связано с пустотой.",
+              "en": "*historic* has nothing to do with being deserted."
+            }
+          },
+          {
+            "optionId": "F",
+            "text": {
+              "ru": "*crowded* — «многолюдный»: противоположно *deserted*.",
+              "en": "*crowded* is the opposite of *deserted*."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "d3f00000-0000-4000-8000-000000000017",
+      "type": "quantitative_comparison",
+      "topic": "exponents-roots",
+      "difficulty": "medium",
+      "body": {
+        "prompt": "Compare Quantity A and Quantity B.",
+        "groups": [
+          {
+            "options": [
+              {
+                "id": "A",
+                "text": "Quantity A is greater."
+              },
+              {
+                "id": "B",
+                "text": "Quantity B is greater."
+              },
+              {
+                "id": "C",
+                "text": "The two quantities are equal."
+              },
+              {
+                "id": "D",
+                "text": "The relationship cannot be determined from the information given."
+              }
+            ]
+          }
+        ],
+        "selectCount": 1,
+        "condition": "0 < x < 1",
+        "quantityA": "x²",
+        "quantityB": "√x"
+      },
+      "answer": [
+        "B"
+      ],
+      "explanation": {
+        "solution": {
+          "ru": "Для числа между 0 и 1 квадрат его уменьшает, а корень увеличивает: x² < x < √x. Например, x = 0,25: x² = 0,0625, √x = 0,5. Больше величина B.",
+          "en": "For a number between 0 and 1, squaring makes it smaller and the square root makes it larger: x² < x < √x. With x = 0.25: x² = 0.0625, √x = 0.5. Quantity B is greater."
+        },
+        "options": [
+          {
+            "optionId": "A",
+            "text": {
+              "ru": "Так было бы при x > 1: там квадрат больше корня. Но условие 0 < x < 1.",
+              "en": "That holds for x > 1, where the square beats the root. Here 0 < x < 1."
+            }
+          },
+          {
+            "optionId": "C",
+            "text": {
+              "ru": "Равны они только при x = 0 и x = 1, а условие их исключает.",
+              "en": "They are equal only at x = 0 and x = 1, which the condition rules out."
+            }
+          },
+          {
+            "optionId": "D",
+            "text": {
+              "ru": "Кажется, что ответ зависит от x, но на всём промежутке 0 < x < 1 он один и тот же.",
+              "en": "It seems to depend on x, but the result is the same for every x between 0 and 1."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "d3f00000-0000-4000-8000-000000000018",
+      "type": "quantitative_comparison",
+      "topic": "percents",
+      "difficulty": "medium",
+      "body": {
+        "prompt": "Compare Quantity A and Quantity B.",
+        "groups": [
+          {
+            "options": [
+              {
+                "id": "A",
+                "text": "Quantity A is greater."
+              },
+              {
+                "id": "B",
+                "text": "Quantity B is greater."
+              },
+              {
+                "id": "C",
+                "text": "The two quantities are equal."
+              },
+              {
+                "id": "D",
+                "text": "The relationship cannot be determined from the information given."
+              }
+            ]
+          }
+        ],
+        "selectCount": 1,
+        "condition": "The original price of a jacket is $50.",
+        "quantityA": "The price after a 20% increase followed by a 20% decrease",
+        "quantityB": "$50"
+      },
+      "answer": [
+        "B"
+      ],
+      "explanation": {
+        "solution": {
+          "ru": "Рост и снижение на 20% не гасят друг друга: 50 × 1,2 = 60, затем 60 × 0,8 = 48. Скидка считается от большей суммы, поэтому 48 < 50.",
+          "en": "A 20% rise and a 20% fall do not cancel: 50 × 1.2 = 60, then 60 × 0.8 = 48. The cut is taken from the larger amount, so 48 < 50."
+        },
+        "options": [
+          {
+            "optionId": "A",
+            "text": {
+              "ru": "Соблазняет то, что сначала цена растёт. Но 20% от 60 — это 12, больше прибавленных 10.",
+              "en": "Tempting because the price rises first, but 20% of 60 is 12, more than the 10 added."
+            }
+          },
+          {
+            "optionId": "C",
+            "text": {
+              "ru": "Главная ловушка: +20% и −20% кажутся взаимно уничтожающимися. Но проценты берутся от разных сумм.",
+              "en": "The classic trap: +20% and −20% seem to cancel, but they apply to different amounts."
+            }
+          },
+          {
+            "optionId": "D",
+            "text": {
+              "ru": "Цена известна — $50, обе величины считаются точно.",
+              "en": "The price is given as $50, so both quantities are exact."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "d3f00000-0000-4000-8000-000000000019",
+      "type": "quantitative_comparison",
+      "topic": "number-properties",
+      "difficulty": "hard",
+      "body": {
+        "prompt": "Compare Quantity A and Quantity B.",
+        "groups": [
+          {
+            "options": [
+              {
+                "id": "A",
+                "text": "Quantity A is greater."
+              },
+              {
+                "id": "B",
+                "text": "Quantity B is greater."
+              },
+              {
+                "id": "C",
+                "text": "The two quantities are equal."
+              },
+              {
+                "id": "D",
+                "text": "The relationship cannot be determined from the information given."
+              }
+            ]
+          }
+        ],
+        "selectCount": 1,
+        "condition": "n is a positive integer.",
+        "quantityA": "The remainder when n² is divided by 4",
+        "quantityB": "1"
+      },
+      "answer": [
+        "D"
+      ],
+      "explanation": {
+        "solution": {
+          "ru": "Квадрат чётного числа делится на 4 (остаток 0), квадрат нечётного даёт остаток 1. n = 2: 0 < 1; n = 3: 1 = 1. Ответ зависит от n.",
+          "en": "An even square is divisible by 4 (remainder 0); an odd square leaves remainder 1. n = 2 gives 0 < 1; n = 3 gives 1 = 1. The answer depends on n."
+        },
+        "options": [
+          {
+            "optionId": "A",
+            "text": {
+              "ru": "Остаток от деления квадрата на 4 бывает только 0 или 1 — больше 1 он не бывает.",
+              "en": "A square divided by 4 leaves only 0 or 1, never more than 1."
+            }
+          },
+          {
+            "optionId": "B",
+            "text": {
+              "ru": "Верно для чётных n, но для нечётных остаток равен 1.",
+              "en": "True for even n, but odd n leave remainder 1."
+            }
+          },
+          {
+            "optionId": "C",
+            "text": {
+              "ru": "Верно для нечётных n, но для чётных остаток 0.",
+              "en": "True for odd n, but even n leave remainder 0."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "d3f00000-0000-4000-8000-000000000020",
+      "type": "quantitative_comparison",
+      "topic": "geometry",
+      "difficulty": "easy",
+      "body": {
+        "prompt": "Compare Quantity A and Quantity B.",
+        "groups": [
+          {
+            "options": [
+              {
+                "id": "A",
+                "text": "Quantity A is greater."
+              },
+              {
+                "id": "B",
+                "text": "Quantity B is greater."
+              },
+              {
+                "id": "C",
+                "text": "The two quantities are equal."
+              },
+              {
+                "id": "D",
+                "text": "The relationship cannot be determined from the information given."
+              }
+            ]
+          }
+        ],
+        "selectCount": 1,
+        "condition": "A circle has radius 3.",
+        "quantityA": "The circumference of the circle",
+        "quantityB": "The area of the circle"
+      },
+      "answer": [
+        "B"
+      ],
+      "explanation": {
+        "solution": {
+          "ru": "Длина окружности 2πr = 6π, площадь πr² = 9π. 9π > 6π — больше B.",
+          "en": "The circumference is 2πr = 6π and the area is πr² = 9π. 9π > 6π, so B is greater."
+        },
+        "options": [
+          {
+            "optionId": "A",
+            "text": {
+              "ru": "Было бы так при r < 2: тогда длина окружности больше площади.",
+              "en": "That would be true for r < 2, where the circumference exceeds the area."
+            }
+          },
+          {
+            "optionId": "C",
+            "text": {
+              "ru": "Равны они только при r = 2.",
+              "en": "They are equal only when r = 2."
+            }
+          },
+          {
+            "optionId": "D",
+            "text": {
+              "ru": "Радиус дан, обе величины считаются точно; сравнивать длину и площадь можно — это просто числа.",
+              "en": "The radius is given, so both values are exact numbers and can be compared."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "d3f00000-0000-4000-8000-000000000021",
+      "type": "quantitative_comparison",
+      "topic": "inequalities",
+      "difficulty": "hard",
+      "body": {
+        "prompt": "Compare Quantity A and Quantity B.",
+        "groups": [
+          {
+            "options": [
+              {
+                "id": "A",
+                "text": "Quantity A is greater."
+              },
+              {
+                "id": "B",
+                "text": "Quantity B is greater."
+              },
+              {
+                "id": "C",
+                "text": "The two quantities are equal."
+              },
+              {
+                "id": "D",
+                "text": "The relationship cannot be determined from the information given."
+              }
+            ]
+          }
+        ],
+        "selectCount": 1,
+        "condition": "x < y < 0",
+        "quantityA": "x / y",
+        "quantityB": "1"
+      },
+      "answer": [
+        "A"
+      ],
+      "explanation": {
+        "solution": {
+          "ru": "Оба числа отрицательные, значит x / y положительно. x левее y, поэтому |x| > |y|, и частное больше 1. Например, x = −4, y = −2: x / y = 2.",
+          "en": "Both numbers are negative, so x / y is positive. x lies left of y, so |x| > |y| and the quotient exceeds 1. For example, x = −4, y = −2 gives 2."
+        },
+        "options": [
+          {
+            "optionId": "B",
+            "text": {
+              "ru": "Так было бы для положительных x < y: тогда x / y < 1. Здесь оба отрицательны, и порядок модулей обратный.",
+              "en": "That holds for positive x < y. With negatives, the order of absolute values flips."
+            }
+          },
+          {
+            "optionId": "C",
+            "text": {
+              "ru": "x / y = 1 только при x = y, а условие говорит x < y.",
+              "en": "x / y = 1 needs x = y, but x < y."
+            }
+          },
+          {
+            "optionId": "D",
+            "text": {
+              "ru": "Кажется, что знаки делают ответ неопределённым, но оба числа всегда отрицательны, и вывод верен при любых таких x и y.",
+              "en": "The signs look risky, but both numbers are always negative, so the result holds for every such pair."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "d3f00000-0000-4000-8000-000000000022",
+      "type": "multiple_choice",
+      "topic": "percents",
+      "difficulty": "easy",
+      "body": {
+        "prompt": "A shirt costs $40. During a sale, its price is reduced by 15%. What is the sale price?",
+        "groups": [
+          {
+            "options": [
+              {
+                "id": "A",
+                "text": "$25"
+              },
+              {
+                "id": "B",
+                "text": "$34"
+              },
+              {
+                "id": "C",
+                "text": "$35"
+              },
+              {
+                "id": "D",
+                "text": "$36"
+              },
+              {
+                "id": "E",
+                "text": "$46"
+              }
+            ]
+          }
+        ],
+        "selectCount": 1
+      },
+      "answer": [
+        "B"
+      ],
+      "explanation": {
+        "solution": {
+          "ru": "15% от 40 — это 0,15 × 40 = 6. 40 − 6 = 34.",
+          "en": "15% of 40 is 0.15 × 40 = 6, and 40 − 6 = 34."
+        },
+        "options": [
+          {
+            "optionId": "A",
+            "text": {
+              "ru": "Вычли 15 долларов вместо 15%.",
+              "en": "This subtracts $15 instead of 15%."
+            }
+          },
+          {
+            "optionId": "C",
+            "text": {
+              "ru": "15% от 40 — ровно 6, а не 5.",
+              "en": "15% of 40 is exactly 6, not 5."
+            }
+          },
+          {
+            "optionId": "D",
+            "text": {
+              "ru": "Это скидка 10%: 40 − 4.",
+              "en": "This is a 10% discount: 40 − 4."
+            }
+          },
+          {
+            "optionId": "E",
+            "text": {
+              "ru": "Это цена с наценкой 15%: 40 + 6.",
+              "en": "This is a 15% markup: 40 + 6."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "d3f00000-0000-4000-8000-000000000023",
+      "type": "multiple_choice",
+      "topic": "exponents-roots",
+      "difficulty": "medium",
+      "body": {
+        "prompt": "If 2ˣ⁺¹ = 32, what is the value of x?",
+        "groups": [
+          {
+            "options": [
+              {
+                "id": "A",
+                "text": "3"
+              },
+              {
+                "id": "B",
+                "text": "4"
+              },
+              {
+                "id": "C",
+                "text": "5"
+              },
+              {
+                "id": "D",
+                "text": "6"
+              },
+              {
+                "id": "E",
+                "text": "16"
+              }
+            ]
+          }
+        ],
+        "selectCount": 1
+      },
+      "answer": [
+        "B"
+      ],
+      "explanation": {
+        "solution": {
+          "ru": "32 = 2⁵, значит x + 1 = 5 и x = 4.",
+          "en": "32 = 2⁵, so x + 1 = 5 and x = 4."
+        },
+        "options": [
+          {
+            "optionId": "A",
+            "text": {
+              "ru": "Так было бы при 2ˣ⁺¹ = 16.",
+              "en": "That would solve 2ˣ⁺¹ = 16."
+            }
+          },
+          {
+            "optionId": "C",
+            "text": {
+              "ru": "5 — это показатель x + 1, а не сам x.",
+              "en": "5 is the exponent x + 1, not x."
+            }
+          },
+          {
+            "optionId": "D",
+            "text": {
+              "ru": "Ошибка в знаке: решили x − 1 = 5.",
+              "en": "A sign slip: this solves x − 1 = 5."
+            }
+          },
+          {
+            "optionId": "E",
+            "text": {
+              "ru": "Разделили 32 на 2, но показатель так не находят.",
+              "en": "Halving 32 does not give the exponent."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "d3f00000-0000-4000-8000-000000000024",
+      "type": "multiple_choice",
+      "topic": "number-properties",
+      "difficulty": "medium",
+      "body": {
+        "prompt": "What is the sum of all positive divisors of 12?",
+        "groups": [
+          {
+            "options": [
+              {
+                "id": "A",
+                "text": "16"
+              },
+              {
+                "id": "B",
+                "text": "22"
+              },
+              {
+                "id": "C",
+                "text": "27"
+              },
+              {
+                "id": "D",
+                "text": "28"
+              },
+              {
+                "id": "E",
+                "text": "36"
+              }
+            ]
+          }
+        ],
+        "selectCount": 1
+      },
+      "answer": [
+        "D"
+      ],
+      "explanation": {
+        "solution": {
+          "ru": "Делители 12: 1, 2, 3, 4, 6, 12. Их сумма — 28.",
+          "en": "The divisors of 12 are 1, 2, 3, 4, 6, 12, which sum to 28."
+        },
+        "options": [
+          {
+            "optionId": "A",
+            "text": {
+              "ru": "Не учли само число 12: 1 + 2 + 3 + 4 + 6 = 16.",
+              "en": "This leaves out 12 itself: 1 + 2 + 3 + 4 + 6 = 16."
+            }
+          },
+          {
+            "optionId": "B",
+            "text": {
+              "ru": "Пропущен делитель 6.",
+              "en": "This misses the divisor 6."
+            }
+          },
+          {
+            "optionId": "C",
+            "text": {
+              "ru": "Не учли делитель 1.",
+              "en": "This misses the divisor 1."
+            }
+          },
+          {
+            "optionId": "E",
+            "text": {
+              "ru": "Это 1 + 2 + … + 8, а не сумма делителей.",
+              "en": "This is 1 + 2 + … + 8, not the sum of divisors."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "d3f00000-0000-4000-8000-000000000025",
+      "type": "multiple_choice",
+      "topic": "geometry",
+      "difficulty": "hard",
+      "body": {
+        "prompt": "A right triangle has legs of length 6 and 8. What is the length of the altitude to the hypotenuse?",
+        "groups": [
+          {
+            "options": [
+              {
+                "id": "A",
+                "text": "4"
+              },
+              {
+                "id": "B",
+                "text": "4.8"
+              },
+              {
+                "id": "C",
+                "text": "5"
+              },
+              {
+                "id": "D",
+                "text": "7"
+              },
+              {
+                "id": "E",
+                "text": "10"
+              }
+            ]
+          }
+        ],
+        "selectCount": 1
+      },
+      "answer": [
+        "B"
+      ],
+      "explanation": {
+        "solution": {
+          "ru": "Гипотенуза — 10. Площадь равна 6 × 8 / 2 = 24 и равна 10 × h / 2, откуда h = 4,8.",
+          "en": "The hypotenuse is 10. The area is 6 × 8 / 2 = 24, which also equals 10 × h / 2, so h = 4.8."
+        },
+        "options": [
+          {
+            "optionId": "A",
+            "text": {
+              "ru": "Похоже на округление: точно — 48 / 10 = 4,8.",
+              "en": "Looks like rounding; exactly it is 48 / 10 = 4.8."
+            }
+          },
+          {
+            "optionId": "C",
+            "text": {
+              "ru": "5 — медиана к гипотенузе (половина гипотенузы), а не высота.",
+              "en": "5 is the median to the hypotenuse (half of it), not the altitude."
+            }
+          },
+          {
+            "optionId": "D",
+            "text": {
+              "ru": "Это среднее катетов.",
+              "en": "This is the average of the legs."
+            }
+          },
+          {
+            "optionId": "E",
+            "text": {
+              "ru": "Это сама гипотенуза.",
+              "en": "This is the hypotenuse itself."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "d3f00000-0000-4000-8000-000000000026",
+      "type": "multiple_choice",
+      "topic": "inequalities",
+      "difficulty": "medium",
+      "body": {
+        "prompt": "Which of the following describes all solutions of 3 − 2x > 11?",
+        "groups": [
+          {
+            "options": [
+              {
+                "id": "A",
+                "text": "x > 4"
+              },
+              {
+                "id": "B",
+                "text": "x > −4"
+              },
+              {
+                "id": "C",
+                "text": "x < 4"
+              },
+              {
+                "id": "D",
+                "text": "x < −4"
+              },
+              {
+                "id": "E",
+                "text": "x < −7"
+              }
+            ]
+          }
+        ],
+        "selectCount": 1
+      },
+      "answer": [
+        "D"
+      ],
+      "explanation": {
+        "solution": {
+          "ru": "3 − 2x > 11 → −2x > 8. При делении на −2 знак неравенства меняется: x < −4.",
+          "en": "3 − 2x > 11 gives −2x > 8. Dividing by −2 flips the sign: x < −4."
+        },
+        "options": [
+          {
+            "optionId": "A",
+            "text": {
+              "ru": "Две ошибки: не перевернули знак и потеряли минус у 4.",
+              "en": "Two slips: the sign was not flipped and the minus on 4 was lost."
+            }
+          },
+          {
+            "optionId": "B",
+            "text": {
+              "ru": "Самая частая ловушка: при делении на отрицательное число знак неравенства меняется.",
+              "en": "The classic trap: dividing by a negative number flips the inequality."
+            }
+          },
+          {
+            "optionId": "C",
+            "text": {
+              "ru": "Знак перевернули, но потеряли минус у 4.",
+              "en": "The sign was flipped, but the minus on 4 was lost."
+            }
+          },
+          {
+            "optionId": "E",
+            "text": {
+              "ru": "Похоже на (11 + 3) / 2 = 7: перепутан знак у 3.",
+              "en": "Looks like (11 + 3) / 2 = 7: the sign of 3 was mixed up."
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

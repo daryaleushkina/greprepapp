@@ -30,6 +30,30 @@ type Identity struct {
 	CreatedAt time.Time
 }
 
+type Question struct {
+	ID           uuid.UUID
+	QuestionType string
+	TopicID      string
+	Difficulty   string
+	Status       string
+	Body         []byte
+	Answer       []string
+	Explanation  []byte
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+}
+
+type QuestionReport struct {
+	ID         int64
+	UserID     *uuid.UUID
+	QuestionID uuid.UUID
+	TrainingID *uuid.UUID
+	Kind       string
+	Text       *string
+	CreatedAt  time.Time
+	ResolvedAt *time.Time
+}
+
 type Session struct {
 	TokenHash         []byte
 	UserID            uuid.UUID
@@ -38,6 +62,39 @@ type Session struct {
 	LastSeenAt        time.Time
 	IdleExpiresAt     time.Time
 	AbsoluteExpiresAt time.Time
+}
+
+type Topic struct {
+	ID       string
+	Section  string
+	TitleRu  string
+	TitleEn  string
+	Position int
+}
+
+type Training struct {
+	ID               uuid.UUID
+	UserID           uuid.UUID
+	Mode             string
+	Section          string
+	QuestionTypes    []string
+	Request          []byte
+	TimeLimitSeconds *int
+	StartedAt        time.Time
+	FinishedAt       *time.Time
+	TimedOut         bool
+}
+
+type TrainingItem struct {
+	TrainingID uuid.UUID
+	Position   int
+	QuestionID uuid.UUID
+	OptionIds  []string
+	DontKnow   bool
+	Flagged    bool
+	AnsweredAt *time.Time
+	ElapsedMs  *int
+	Correct    *bool
 }
 
 type User struct {

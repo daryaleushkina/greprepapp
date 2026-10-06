@@ -3,6 +3,7 @@
 //	greprep serve           — API на HTTP_ADDR (за Caddy)
 //	greprep migrate up      — применить новые миграции (выкладка делает это до переключения сборки)
 //	greprep migrate status  — какие миграции применены
+//	greprep seed-dev        — набор заданий для разработки (локально и на стенде; в бою запрещено)
 //
 // Настройки — переменные окружения (server/.env.example).
 package main
@@ -28,6 +29,7 @@ import (
 	"github.com/daryaleushkina/greprepapp/server/internal/auth"
 	"github.com/daryaleushkina/greprepapp/server/internal/config"
 	"github.com/daryaleushkina/greprepapp/server/internal/db"
+	"github.com/daryaleushkina/greprepapp/server/internal/devseed"
 	"github.com/daryaleushkina/greprepapp/server/internal/migrations"
 )
 
@@ -44,7 +46,7 @@ func main() {
 
 func run(ctx context.Context, log *slog.Logger, args []string) error {
 	if len(args) == 0 {
-		return errors.New("usage: greprep serve | migrate up | migrate status")
+		return errors.New("usage: greprep serve | migrate up | migrate status | seed-dev")
 	}
 	cfg, err := config.Load()
 	if err != nil {
@@ -57,6 +59,8 @@ func run(ctx context.Context, log *slog.Logger, args []string) error {
 		return migrateUp(ctx, log, cfg)
 	case args[0] == "migrate" && len(args) == 2 && args[1] == "status":
 		return migrateStatus(ctx, log, cfg)
+	case args[0] == "seed-dev" && len(args) == 1:
+		return seedDev(ctx, log, cfg)
 	default:
 		return fmt.Errorf("unknown command %q", args)
 	}
@@ -100,6 +104,30 @@ func migrateStatus(ctx context.Context, log *slog.Logger, cfg config.Config) err
 	for _, m := range st {
 		fmt.Printf("%-8s %s\n", m.State, m.Source.Path)
 	}
+	return nil
+}
+
+// seedDev записывает набор заданий для разработки (internal/devseed). В бою не запускается: контент для
+// людей приходит через админку после проверки Даши.
+func seedDev(ctx context.Context, log *slog.Logger, cfg config.Config) error {
+	if cfg.Env == config.EnvProduction {
+		return errors.New("seed-dev is not allowed with APP_ENV=production")
+	}
+	set, err := devseed.Load()
+	if err != nil {
+		return err
+	}
+	sctx, cancel := context.WithTimeout(ctx, time.Minute)
+	defer cancel()
+	pool, err := pgxpool.New(sctx, cfg.DatabaseURL)
+	if err != nil {
+		return fmt.Errorf("connect to database: %w", err)
+	}
+	defer pool.Close()
+	if err := devseed.Apply(sctx, pool, set); err != nil {
+		return err
+	}
+	log.Info("dev seed", slog.Int("topics", len(set.Topics)), slog.Int("questions", len(set.Questions)))
 	return nil
 }
 

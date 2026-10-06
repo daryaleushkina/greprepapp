@@ -38,11 +38,17 @@ func findAuthorization(h http.Header, prefix string) (string, bool) {
 
 // operationRolesBearerAuth is a private map storing roles per operation.
 var operationRolesBearerAuth = map[string][]string{
-	GetMeOperation:             []string{},
-	GetReviewQueueOperation:    []string{},
-	GetTodayOperation:          []string{},
-	ReportClientErrorOperation: []string{},
-	SignOutOperation:           []string{},
+	FinishTrainingOperation:        []string{},
+	GetMeOperation:                 []string{},
+	GetReviewQueueOperation:        []string{},
+	GetTodayOperation:              []string{},
+	GetTrainingOperation:           []string{},
+	GetTrainingOptionsOperation:    []string{},
+	ReportClientErrorOperation:     []string{},
+	ReportQuestionOperation:        []string{},
+	SignOutOperation:               []string{},
+	StartTrainingOperation:         []string{},
+	SubmitTrainingAnswersOperation: []string{},
 }
 
 // GetRolesForBearerAuth returns the required roles for the given operation.
@@ -68,11 +74,17 @@ func GetRolesForBearerAuth(operation string) []string {
 
 // operationRolesCookieAuth is a private map storing roles per operation.
 var operationRolesCookieAuth = map[string][]string{
-	GetMeOperation:             []string{},
-	GetReviewQueueOperation:    []string{},
-	GetTodayOperation:          []string{},
-	ReportClientErrorOperation: []string{},
-	SignOutOperation:           []string{},
+	FinishTrainingOperation:        []string{},
+	GetMeOperation:                 []string{},
+	GetReviewQueueOperation:        []string{},
+	GetTodayOperation:              []string{},
+	GetTrainingOperation:           []string{},
+	GetTrainingOptionsOperation:    []string{},
+	ReportClientErrorOperation:     []string{},
+	ReportQuestionOperation:        []string{},
+	SignOutOperation:               []string{},
+	StartTrainingOperation:         []string{},
+	SubmitTrainingAnswersOperation: []string{},
 }
 
 // GetRolesForCookieAuth returns the required roles for the given operation.
