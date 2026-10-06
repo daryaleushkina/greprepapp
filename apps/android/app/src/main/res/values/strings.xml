@@ -93,4 +93,155 @@
         <item quantity="many">%d шагов</item>
         <item quantity="other">%d шага</item>
     </plurals>
+
+    <!-- Тренировки (макеты R1–R17) -->
+    <string name="training_new">Новая тренировка</string>
+    <string name="training_own">Своя тренировка</string>
+    <string name="training_continue">Продолжить тренировку</string>
+    <string name="training_continue_subtitle">%1$s · вопрос %2$d из %3$d</string>
+    <string name="training_loading">Загружаем темы</string>
+    <string name="training_offline_title">Нет сети</string>
+    <string name="training_offline_message">Чтобы начать тренировку, нужна сеть: задания скачаются целиком, и дальше можно без неё.</string>
+    <string name="training_failed_title">Не получилось загрузить темы</string>
+    <string name="training_failed_message">Мы уже знаем об ошибке. Попробуйте ещё раз чуть позже.</string>
+    <string name="training_retry">Повторить</string>
+    <string name="training_missing_title">Тренировки нет на устройстве</string>
+    <string name="training_missing_message">Она могла устареть. Начните новую с экрана «Сегодня».</string>
+    <string name="builder_preset_last">Как в прошлый раз</string>
+    <string name="builder_preset_timed">Проверка на время</string>
+    <string name="builder_preset_timed_subtitle">%1$s · %2$s · %3$d мин, как секция экзамена</string>
+    <string name="builder_section">Раздел</string>
+    <string name="builder_type">Тип</string>
+    <string name="builder_count">Вопросов</string>
+    <string name="builder_mode">Режим</string>
+    <string name="builder_topics">Темы и сложность</string>
+    <string name="builder_topics_all">все</string>
+    <string name="builder_topics_some">%1$d из %2$d</string>
+    <string name="builder_type_soon">скоро</string>
+    <string name="builder_start">Начать · %1$s · ~%2$d мин</string>
+    <string name="builder_nothing">Заданий пока нет</string>
+    <string name="builder_no_questions">Под этот выбор заданий пока нет — попробуйте другие темы или сложность.</string>
+    <string name="builder_start_offline">Нет сети — тренировку не начать. Попробуйте, когда она появится.</string>
+    <string name="builder_start_failed">Не получилось начать тренировку. Попробуйте ещё раз.</string>
+    <string name="mode_practice">Практика</string>
+    <string name="mode_check">Проверка</string>
+    <string name="mode_practice_hint">Разбор после каждого вопроса, без таймера</string>
+    <string name="mode_check_hint">Таймер как на экзамене, разбор в конце</string>
+    <string name="difficulty_any">Любая</string>
+    <string name="difficulty_easy">Лёгкая</string>
+    <string name="difficulty_medium">Средняя</string>
+    <string name="difficulty_hard">Трудная</string>
+    <string name="topics_difficulty">Сложность</string>
+    <string name="topics_done">Готово · %1$s</string>
+    <string name="question_of">%1$d из %2$d</string>
+    <string name="question_report">Сообщить об ошибке</string>
+    <string name="question_close">Закрыть тренировку</string>
+    <string name="question_check">Проверить</string>
+    <string name="question_dont_know">Не знаю</string>
+    <string name="question_next">Дальше · %1$d из %2$d</string>
+    <string name="question_result">Итог</string>
+    <string name="question_skip">Пропустить</string>
+    <string name="question_to_list">К списку вопросов</string>
+    <string name="question_flag">Отметить, чтобы вернуться</string>
+    <string name="question_unflag">Снять отметку</string>
+    <string name="question_overview">Все вопросы</string>
+    <string name="question_missing_blank">Осталось выбрать слово для пропуска %1$s</string>
+    <string name="question_missing_blanks">Осталось выбрать слова для пропусков %1$s</string>
+    <string name="question_pick_one_more">Выберите ещё один ответ</string>
+    <string name="question_check_note">Разбор — после последнего вопроса</string>
+    <string name="question_blank">пропуск</string>
+    <string name="question_correct_mark">верный</string>
+    <string name="question_yours_mark">ваш ответ</string>
+    <string name="question_others">Остальные варианты</string>
+    <string name="question_progress_description">Вопрос %1$d из %2$d</string>
+    <string name="timer_description">Осталось %1$d мин %2$d с, вопрос %3$d из %4$d</string>
+    <string name="type_with_note">%1$s · %2$s</string>
+    <string name="type_two_blanks">два пропуска</string>
+    <string name="type_three_blanks">три пропуска</string>
+    <string name="type_two_answers">два ответа</string>
+    <string name="explanation_language">Язык разбора</string>
+    <string name="overview_summary">Отвечено %1$d из %2$d · отмечено %3$d</string>
+    <string name="overview_finish">Закончить</string>
+    <string name="overview_back">К вопросу %1$d</string>
+    <string name="overview_answered">отвечен</string>
+    <string name="overview_flagged">отмечен</string>
+    <string name="overview_empty">без ответа</string>
+    <string name="overview_item">Вопрос %1$d, %2$s</string>
+    <plurals name="summary_correct_of">
+        <item quantity="one">из %d верно</item>
+        <item quantity="few">из %d верно</item>
+        <item quantity="many">из %d верно</item>
+        <item quantity="other">из %d верно</item>
+    </plurals>
+    <string name="summary_of_limit">%1$s из %2$d</string>
+    <string name="summary_timed_out">Время вышло — неотвеченные не считаются ошибками темы.</string>
+    <string name="summary_review">Что повторить</string>
+    <string name="summary_question">вопрос %1$s</string>
+    <string name="summary_questions">вопросы %1$s</string>
+    <string name="summary_and">и</string>
+    <string name="summary_all_answers">Все ответы и разборы</string>
+    <string name="summary_done">Готово</string>
+    <string name="summary_repeat">Повторить · %1$s</string>
+    <string name="summary_perfect">Без ошибок — повторять нечего.</string>
+    <string name="review_title_practice">Разбор тренировки</string>
+    <string name="review_title_check">Разбор проверки</string>
+    <string name="review_all">Все · %1$d</string>
+    <string name="review_mistakes">Ошибки · %1$d</string>
+    <string name="review_question">Вопрос %1$d</string>
+    <string name="review_correct">верно</string>
+    <string name="review_wrong">неверно</string>
+    <string name="review_unanswered">без ответа</string>
+    <string name="review_no_mistakes">Ошибок нет.</string>
+    <string name="report_title">Сообщить об ошибке</string>
+    <string name="report_context">Вопрос %1$d · %2$s</string>
+    <string name="report_kind">Где ошибка</string>
+    <string name="report_kind_question">В задании</string>
+    <string name="report_kind_answer">В ответе</string>
+    <string name="report_kind_explanation">В разборе</string>
+    <string name="report_kind_translation">В переводе</string>
+    <string name="report_kind_other">Другое</string>
+    <string name="report_text">Что не так</string>
+    <string name="report_note">Проверим вручную и поправим задание.</string>
+    <string name="report_send">Отправить</string>
+    <string name="report_thanks">Спасибо!</string>
+    <string name="report_back">Вернуться к вопросу</string>
+    <!-- Названия типов GRE и формулы разбора на двух языках: язык разбора переключается на нём самом -->
+    <string name="type_text_completion" translatable="false">Text Completion</string>
+    <string name="type_sentence_equivalence" translatable="false">Sentence Equivalence</string>
+    <string name="type_quantitative_comparison" translatable="false">Quantitative Comparison</string>
+    <string name="type_multiple_choice" translatable="false">Multiple Choice</string>
+    <string name="quantity_a" translatable="false">Quantity A</string>
+    <string name="quantity_b" translatable="false">Quantity B</string>
+    <string name="verdict_correct_ru" translatable="false">Верно.</string>
+    <string name="verdict_correct_en" translatable="false">Correct.</string>
+    <string name="verdict_wrong_ru" translatable="false">Неверно.</string>
+    <string name="verdict_wrong_en" translatable="false">Incorrect.</string>
+    <string name="verdict_answer_ru" translatable="false">Верный ответ — %1$s.</string>
+    <string name="verdict_answer_en" translatable="false">The answer is %1$s.</string>
+    <string name="verdict_answers_ru" translatable="false">Верные ответы — %1$s.</string>
+    <string name="verdict_answers_en" translatable="false">The answers are %1$s.</string>
+    <string name="verdict_and_ru" translatable="false">и</string>
+    <string name="verdict_and_en" translatable="false">and</string>
+    <string name="why_not_ru" translatable="false">Почему не %1$s?</string>
+    <string name="why_not_en" translatable="false">Why not %1$s?</string>
+    <string name="language_ru" translatable="false">RU</string>
+    <string name="language_en" translatable="false">EN</string>
+    <plurals name="questions_count">
+        <item quantity="one">%d вопрос</item>
+        <item quantity="few">%d вопроса</item>
+        <item quantity="many">%d вопросов</item>
+        <item quantity="other">%d вопроса</item>
+    </plurals>
+    <plurals name="tasks_count">
+        <item quantity="one">%d задание</item>
+        <item quantity="few">%d задания</item>
+        <item quantity="many">%d заданий</item>
+        <item quantity="other">%d задания</item>
+    </plurals>
+    <plurals name="summary_mistakes">
+        <item quantity="one">%d ошибка</item>
+        <item quantity="few">%d ошибки</item>
+        <item quantity="many">%d ошибок</item>
+        <item quantity="other">%d ошибки</item>
+    </plurals>
 </resources>

@@ -5,6 +5,8 @@ import dev.greprepapp.app.core.report.ClientErrorReporter
 import dev.greprepapp.app.core.session.SessionManager
 import dev.greprepapp.app.core.session.TokenHolder
 import dev.greprepapp.app.feature.today.TodayCache
+import dev.greprepapp.app.feature.training.TrainingRepository
+import dev.greprepapp.app.feature.training.TrainingStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
@@ -18,7 +20,7 @@ import java.io.File
 @OptIn(ExperimentalCoroutinesApi::class)
 class TestGraph(
     private val scope: TestScope,
-    dispatcher: TestDispatcher,
+    private val dispatcher: TestDispatcher,
     directory: File,
     token: String? = null,
     devSignIn: Boolean = true,
@@ -33,17 +35,38 @@ class TestGraph(
     val appScope = CoroutineScope(SupervisorJob() + dispatcher)
     val reporter = ClientErrorReporter({ publicApi }, config, clock, appScope)
     val cache = TodayCache(directory)
+    val trainingStore = TrainingStore(directory)
     val serverSignOuts = mutableListOf<String>()
     val session =
         SessionManager(
             tokens = tokens,
             holder = holder,
-            personal = setOf(cache),
+            personal = setOf(cache, trainingStore),
             serverSignOut = { serverSignOuts += it },
             reporter = reporter,
             scope = appScope,
             io = dispatcher,
         )
+
+    val trainingsApi = FakeTrainingsApi()
+    val network = FakeNetwork()
+    val foreground = FakeForeground()
+    val ticker = ManualTicker()
+
+    /** Тренировки поверх подменного сервера; создаются по первому обращению, как синглтон Hilt. */
+    val trainings: TrainingRepository by lazy {
+        TrainingRepository(
+            api = trainingsApi,
+            store = trainingStore,
+            session = session,
+            reporter = reporter,
+            clock = clock,
+            network = network,
+            foreground = foreground,
+            scope = appScope,
+            io = dispatcher,
+        )
+    }
 
     /** Дождаться, пока прочитается сохранённый вход и всё фоновое закончится. */
     fun settle() = scope.advanceUntilIdle()

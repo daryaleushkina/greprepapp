@@ -2,6 +2,7 @@ package dev.greprepapp.design
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
@@ -40,6 +41,42 @@ fun Modifier.pressScale(interactionSource: MutableInteractionSource): Modifier {
     return graphicsLayer {
         scaleX = scale
         scaleY = scale
+    }
+}
+
+/**
+ * Второстепенная кнопка (компонент button-secondary): капсула на плотной поверхности — «Не знаю», «Пропустить»,
+ * «Готово» рядом с главной.
+ */
+@Composable
+fun GpSecondaryButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+) {
+    val interaction = remember { MutableInteractionSource() }
+    val colors = Gp.colors
+    Button(
+        onClick = onClick,
+        enabled = enabled,
+        interactionSource = interaction,
+        shape = CircleShape,
+        colors =
+            ButtonDefaults.buttonColors(
+                containerColor = colors.surface,
+                contentColor = colors.text,
+                disabledContainerColor = colors.fill,
+                disabledContentColor = colors.textSecondary,
+            ),
+        border = BorderStroke(GpSize.hairline, colors.line),
+        contentPadding = PaddingValues(horizontal = GpSpace.s24),
+        modifier =
+            modifier
+                .defaultMinSize(minHeight = GpSize.button)
+                .pressScale(interaction),
+    ) {
+        Text(text = text, style = Gp.type.callout.copy(fontWeight = FontWeight.W600))
     }
 }
 

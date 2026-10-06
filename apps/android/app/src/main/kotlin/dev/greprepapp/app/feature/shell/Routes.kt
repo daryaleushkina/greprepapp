@@ -3,9 +3,11 @@ package dev.greprepapp.app.feature.shell
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.navigation3.runtime.NavKey
+import dev.greprepapp.api.models.QuestionType
 import dev.greprepapp.app.R
 import dev.greprepapp.app.core.session.SignOutReason
 import dev.greprepapp.app.feature.today.TodayPlan
+import dev.greprepapp.app.feature.training.BuilderPrefill
 import kotlinx.serialization.Serializable
 
 /**
@@ -20,6 +22,45 @@ sealed interface RootKey {
     data class Main(
         val sessionId: Long,
     ) : RootKey
+}
+
+/**
+ * Внутри входа: разделы с вкладками — первым, тренировка — поверх них. Внутри тренировки вкладок нет, только
+ * одна нижняя кнопка (PRODUCT.md, «Навигация»).
+ */
+@Serializable
+sealed interface MainRoute : NavKey {
+    @Serializable
+    data object Tabs : MainRoute
+
+    @Serializable
+    data class Builder(
+        val prefill: BuilderPrefill? = null,
+    ) : MainRoute
+
+    @Serializable
+    data class Session(
+        val trainingId: String,
+    ) : MainRoute
+
+    @Serializable
+    data class Review(
+        val trainingId: String,
+    ) : MainRoute
+
+    @Serializable
+    data class ReviewItem(
+        val trainingId: String,
+        val position: Int,
+    ) : MainRoute
+
+    @Serializable
+    data class Report(
+        val trainingId: String,
+        val position: Int,
+        val questionId: String,
+        val questionType: QuestionType,
+    ) : MainRoute
 }
 
 /** Разделы: «Сегодня · Слова · Экзамен · Прогресс» (PRODUCT.md, «Навигация»); эссе — в «Экзамене». */
@@ -40,7 +81,7 @@ sealed interface TodayRoute : NavKey {
     @Serializable
     data object Root : TodayRoute
 
-    /** Шаг ленты. Сами тренировки и слова — следующие части (ROADMAP §5). */
+    /** Шаг ленты без своего экрана (слова — следующая часть, ROADMAP §5); тренировки — MainRoute. */
     @Serializable
     data class Step(
         val step: TodayPlan.Step,

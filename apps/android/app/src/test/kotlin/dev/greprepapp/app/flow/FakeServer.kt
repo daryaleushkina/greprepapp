@@ -1,9 +1,17 @@
 package dev.greprepapp.app.flow
 
 import dev.greprepapp.api.ApiJson
+import dev.greprepapp.api.models.AnswerBatch
 import dev.greprepapp.api.models.DevSignIn
+import dev.greprepapp.api.models.QuestionReport
 import dev.greprepapp.api.models.Session
 import dev.greprepapp.api.models.Today
+import dev.greprepapp.api.models.TrainingFinish
+import dev.greprepapp.api.models.TrainingOptions
+import dev.greprepapp.api.models.TrainingRequest
+import dev.greprepapp.api.models.TrainingSession
+import dev.greprepapp.api.models.TrainingSummary
+import dev.greprepapp.app.testing.Fixtures
 import dev.greprepapp.app.testing.session
 import dev.greprepapp.app.testing.starterPlan
 import mockwebserver3.Dispatcher
@@ -29,6 +37,16 @@ class FakeServer {
     @Volatile var down = false
 
     @Volatile var plan: Today = starterPlan
+
+    // Тренировки: что выдать и что пришло.
+    @Volatile var trainingOptions: TrainingOptions = Fixtures.options(listOf(Fixtures.timedPreset))
+
+    @Volatile var nextSession: TrainingSession = Fixtures.session(Fixtures.tc1, Fixtures.se)
+
+    val starts = CopyOnWriteArrayList<TrainingRequest>()
+    val answers = CopyOnWriteArrayList<AnswerBatch>()
+    val finishes = CopyOnWriteArrayList<TrainingFinish>()
+    val reports = CopyOnWriteArrayList<QuestionReport>()
 
     val url get() = server.url("/")
 
@@ -59,7 +77,11 @@ class FakeServer {
                 .build()
         }
         val token = request.headers["Authorization"]?.removePrefix("Bearer ")
-        return when (request.target.substringBefore('?')) {
+        val path = request.target.substringBefore('?')
+        if (path.startsWith("/api/trainings") || path.startsWith("/api/questions/")) {
+            return if (token != null && token in valid) trainings(path, request) else error(401, "unauthorized")
+        }
+        return when (path) {
             "/api/auth/dev" -> {
                 val body = ApiJson.decodeFromString(DevSignIn.serializer(), request.body!!.utf8())
                 val fresh = "tok-${body.name}-${issued.incrementAndGet()}"
@@ -85,6 +107,43 @@ class FakeServer {
 
             "/api/client-errors" -> {
                 clientErrors += request.body!!.utf8()
+                MockResponse.Builder().code(204).build()
+            }
+
+            else -> {
+                error(404, "not_found")
+            }
+        }
+    }
+
+    /** Тренировки по договору: варианты, начало, ответы, конец, жалобы. */
+    private fun trainings(
+        path: String,
+        request: RecordedRequest,
+    ): MockResponse {
+        val body = request.body?.utf8().orEmpty()
+        return when {
+            path == "/api/trainings/options" -> {
+                json(200, ApiJson.encodeToString(TrainingOptions.serializer(), trainingOptions))
+            }
+
+            path == "/api/trainings" -> {
+                starts += ApiJson.decodeFromString(TrainingRequest.serializer(), body)
+                json(201, ApiJson.encodeToString(TrainingSession.serializer(), nextSession))
+            }
+
+            path.endsWith("/answers") -> {
+                answers += ApiJson.decodeFromString(AnswerBatch.serializer(), body)
+                MockResponse.Builder().code(204).build()
+            }
+
+            path.endsWith("/finish") -> {
+                finishes += ApiJson.decodeFromString(TrainingFinish.serializer(), body)
+                json(200, ApiJson.encodeToString(TrainingSummary.serializer(), TrainingSummary(0, 1, 0, 0, emptyList())))
+            }
+
+            path.endsWith("/reports") -> {
+                reports += ApiJson.decodeFromString(QuestionReport.serializer(), body)
                 MockResponse.Builder().code(204).build()
             }
 

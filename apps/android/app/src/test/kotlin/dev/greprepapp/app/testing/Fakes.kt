@@ -19,6 +19,7 @@ import dev.greprepapp.api.models.TodayStep
 import dev.greprepapp.api.models.User
 import dev.greprepapp.app.core.AppForeground
 import dev.greprepapp.app.core.NetworkStatus
+import dev.greprepapp.app.core.Ticker
 import dev.greprepapp.app.core.session.TokenStore
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -181,4 +182,19 @@ class MutableClock(
     override fun withZone(zone: java.time.ZoneId?): Clock = this
 
     override fun instant(): Instant = now
+}
+
+/** Таймер «Проверки», который двигает тест: tick() — «прошла секунда» (часы двигаются отдельно). */
+class ManualTicker : Ticker {
+    private val flow = MutableSharedFlow<Unit>(replay = 1, extraBufferCapacity = 8)
+
+    init {
+        flow.tryEmit(Unit)
+    }
+
+    override fun ticks(): kotlinx.coroutines.flow.Flow<Unit> = flow
+
+    fun tick() {
+        flow.tryEmit(Unit)
+    }
 }

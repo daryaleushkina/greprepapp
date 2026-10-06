@@ -18,17 +18,29 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import dev.greprepapp.api.models.Section
 import dev.greprepapp.app.R
 import dev.greprepapp.app.feature.today.TodayContent
 import dev.greprepapp.app.feature.today.TodayPlan
 import dev.greprepapp.app.feature.today.TodayViewModel
+import dev.greprepapp.app.feature.training.ActiveTrainingViewModel
+import dev.greprepapp.app.feature.training.BuilderPrefill
+import dev.greprepapp.app.feature.training.BuilderScreen
+import dev.greprepapp.app.feature.training.ReportScreen
+import dev.greprepapp.app.feature.training.ReportTarget
+import dev.greprepapp.app.feature.training.ReviewItemScreen
+import dev.greprepapp.app.feature.training.ReviewScreen
+import dev.greprepapp.app.feature.training.SessionScreen
+import dev.greprepapp.app.feature.training.label
 import dev.greprepapp.design.Gp
+import dev.greprepapp.design.StudySection
 
 /**
  * Разделы приложения. Навигация — Material по ширине окна (DESIGN.md, «Нативные приложения»): на телефоне —
@@ -42,21 +54,106 @@ fun MainScreen(
     modifier: Modifier = Modifier,
     // Модель «Сегодня» живёт, пока человек вошёл, и переживает переключение вкладок.
     today: TodayViewModel = hiltViewModel(),
+    trainings: ActiveTrainingViewModel = hiltViewModel(),
 ) {
     val state by today.state.collectAsStateWithLifecycle()
-    MainScaffold(
-        appVersion = appVersion,
-        onSignOut = onSignOut,
+    val active by trainings.active.collectAsStateWithLifecycle()
+    val stack = rememberNavBackStack(MainRoute.Tabs)
+
+    fun back() {
+        stack.removeLastOrNull()
+    }
+
+    fun replaceTop(route: MainRoute) {
+        stack.removeLastOrNull()
+        stack.add(route)
+    }
+
+    fun toTabs() {
+        while (stack.size > 1) stack.removeLastOrNull()
+    }
+    NavDisplay(
+        backStack = stack,
+        onBack = ::back,
         modifier = modifier,
-        today = { onOpenStep ->
-            TodayContent(
-                state = state,
-                onRefresh = today::refresh,
-                onSelect = { step -> if (today.canStart(step)) onOpenStep(step) },
-            )
-        },
+        entryDecorators = listOf(rememberSaveableStateHolderNavEntryDecorator(), rememberViewModelStoreNavEntryDecorator()),
+        entryProvider =
+            entryProvider {
+                entry<MainRoute.Tabs> {
+                    MainScaffold(
+                        appVersion = appVersion,
+                        onSignOut = onSignOut,
+                        today = { onOpenStep ->
+                            TodayContent(
+                                state = state,
+                                onRefresh = today::refresh,
+                                onSelect = { step ->
+                                    if (today.canStart(step)) {
+                                        // Шаги Verbal и Quant — тренировки: конструктор уже на нужном разделе.
+                                        val section = step.section.trainingSection()
+                                        if (section != null) stack.add(MainRoute.Builder(BuilderPrefill(section))) else onOpenStep(step)
+                                    }
+                                },
+                                continueTraining = active,
+                                onContinueTraining = { stack.add(MainRoute.Session(it)) },
+                                onNewTraining = { stack.add(MainRoute.Builder()) },
+                            )
+                        },
+                    )
+                }
+                entry<MainRoute.Builder> { route ->
+                    BuilderScreen(
+                        prefill = route.prefill,
+                        onBack = ::back,
+                        onStarted = { replaceTop(MainRoute.Session(it)) },
+                    )
+                }
+                entry<MainRoute.Session> { route ->
+                    SessionScreen(
+                        trainingId = route.trainingId,
+                        onClose = ::toTabs,
+                        onReview = { stack.add(MainRoute.Review(route.trainingId)) },
+                        onReport = { stack.add(it.route()) },
+                        onRepeatStarted = { replaceTop(MainRoute.Session(it)) },
+                    )
+                }
+                entry<MainRoute.Review> { route ->
+                    ReviewScreen(
+                        trainingId = route.trainingId,
+                        onBack = ::back,
+                        onOpen = { stack.add(MainRoute.ReviewItem(route.trainingId, it)) },
+                    )
+                }
+                entry<MainRoute.ReviewItem> { route ->
+                    ReviewItemScreen(
+                        trainingId = route.trainingId,
+                        position = route.position,
+                        onBack = ::back,
+                        onReport = { stack.add(it.route()) },
+                    )
+                }
+                entry<MainRoute.Report> { route ->
+                    ReportScreen(
+                        questionId = route.questionId,
+                        trainingId = route.trainingId,
+                        position = route.position,
+                        typeLabel = route.questionType.label(),
+                        onBack = ::back,
+                    )
+                }
+            },
     )
 }
+
+private fun ReportTarget.route() = MainRoute.Report(trainingId, position, questionId, questionType)
+
+/** Раздел тренировки для шага «Сегодня»; у слов и эссе тренировок нет. */
+private fun StudySection.trainingSection(): Section? =
+    when (this) {
+        StudySection.Verbal -> Section.VERBAL
+        StudySection.Quant -> Section.QUANT
+        StudySection.Words, StudySection.Essay -> null
+    }
 
 /** Вкладки и стопки экранов; «Сегодня» — слотом, чтобы снимки экранов подставляли готовое состояние. */
 @Composable

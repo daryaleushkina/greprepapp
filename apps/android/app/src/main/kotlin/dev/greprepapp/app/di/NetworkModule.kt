@@ -9,6 +9,7 @@ import dev.greprepapp.api.apiCallNoContent
 import dev.greprepapp.api.apis.AuthApi
 import dev.greprepapp.api.apis.PublicApi
 import dev.greprepapp.api.apis.TodayApi
+import dev.greprepapp.api.apis.TrainingsApi
 import dev.greprepapp.app.core.AppConfig
 import dev.greprepapp.app.core.session.ServerSignOut
 import dev.greprepapp.app.core.session.TokenHolder
@@ -70,6 +71,9 @@ object NetworkModule {
 
     @Provides
     fun publicApi(api: GrePrepApi): PublicApi = api.public
+
+    @Provides
+    fun trainingsApi(api: GrePrepApi): TrainingsApi = api.trainings
 
     @Provides
     @Singleton

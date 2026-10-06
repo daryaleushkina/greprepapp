@@ -15,10 +15,13 @@ import dev.greprepapp.app.core.ConnectivityNetworkStatus
 import dev.greprepapp.app.core.IoDispatcher
 import dev.greprepapp.app.core.NetworkStatus
 import dev.greprepapp.app.core.ProcessForeground
+import dev.greprepapp.app.core.SecondTicker
+import dev.greprepapp.app.core.Ticker
 import dev.greprepapp.app.core.session.KeystoreTokenStore
 import dev.greprepapp.app.core.session.PersonalData
 import dev.greprepapp.app.core.session.TokenStore
 import dev.greprepapp.app.feature.today.TodayCache
+import dev.greprepapp.app.feature.training.TrainingStore
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -53,6 +56,9 @@ object AppModule {
     fun clock(): Clock = Clock.systemUTC()
 
     @Provides
+    fun ticker(): Ticker = SecondTicker
+
+    @Provides
     @Singleton
     fun tokenStore(
         @ApplicationContext context: Context,
@@ -67,6 +73,16 @@ object AppModule {
     @Provides
     @IntoSet
     fun todayIsPersonal(cache: TodayCache): PersonalData = cache
+
+    @Provides
+    @Singleton
+    fun trainingStore(
+        @ApplicationContext context: Context,
+    ): TrainingStore = TrainingStore(context.noBackupFilesDir)
+
+    @Provides
+    @IntoSet
+    fun trainingsArePersonal(store: TrainingStore): PersonalData = store
 
     @Provides
     @Singleton

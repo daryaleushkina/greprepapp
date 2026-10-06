@@ -4,6 +4,7 @@ import dev.greprepapp.api.apis.AccountApi
 import dev.greprepapp.api.apis.AuthApi
 import dev.greprepapp.api.apis.PublicApi
 import dev.greprepapp.api.apis.TodayApi
+import dev.greprepapp.api.apis.TrainingsApi
 import kotlinx.serialization.json.Json
 import okhttp3.HttpUrl
 import okhttp3.MediaType.Companion.toMediaType
@@ -17,7 +18,8 @@ import retrofit2.create
  * Разбор JSON договора. Ответ читается «терпимо»: незнакомое поле пропускается — сервер обновляется раньше
  * приложения, а установленные версии силой не обновить (то же у Apple, docs/HANDOFF.md). Известные поля
  * проверяются по типам: нет обязательного поля или тип не тот — ошибка разбора, а не тихий пустой экран.
- * Новое значение enum так не пропустить — задача #4.
+ * Новое значение enum так не пропустить — задача #4; у тренировок договор обходит это сам: клиент называет
+ * типы заданий, которые умеет показывать, а вид набора — открытая строка.
  */
 val ApiJson: Json =
     Json {
@@ -45,4 +47,5 @@ class GrePrepApi(
     val account: AccountApi = retrofit.create()
     val today: TodayApi = retrofit.create()
     val public: PublicApi = retrofit.create()
+    val trainings: TrainingsApi = retrofit.create()
 }

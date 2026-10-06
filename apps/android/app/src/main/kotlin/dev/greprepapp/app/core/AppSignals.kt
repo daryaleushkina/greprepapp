@@ -8,12 +8,14 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flow
 
 /** Есть ли сеть: «Сегодня» обновляется сам, когда она вернулась; шаг без сети не начать. */
 interface NetworkStatus {
@@ -23,6 +25,27 @@ interface NetworkStatus {
 /** Приложение вернулось на экран (из фона, после блокировки). */
 interface AppForeground {
     val events: Flow<Unit>
+}
+
+/**
+ * Ход времени для таймера «Проверки»: событие сразу и потом раз в секунду. Сколько осталось, считается по
+ * часам (Clock), а не по числу событий: свернул приложение — время всё равно шло.
+ */
+fun interface Ticker {
+    fun ticks(): Flow<Unit>
+}
+
+/** Раз в секунду, пока кто-то слушает. */
+object SecondTicker : Ticker {
+    private const val SECOND_MS = 1000L
+
+    override fun ticks(): Flow<Unit> =
+        flow {
+            while (true) {
+                emit(Unit)
+                delay(SECOND_MS)
+            }
+        }
 }
 
 /**

@@ -54,6 +54,18 @@ class TabletSnapshotTest(
     @Test
     fun settings() = snap("tablet-settings") { Settings() }
 
+    @Test
+    fun trainingBuilder() = snap("tablet-training-builder") { TrainingScreens.Builder() }
+
+    @Test
+    fun trainingQuestionWrong() = snap("tablet-training-question-wrong") { TrainingScreens.Session(TrainingScreens.tcWrong) }
+
+    @Test
+    fun trainingSummary() = snap("tablet-training-summary") { TrainingScreens.Session(TrainingScreens.summary) }
+
+    @Test
+    fun trainingReview() = snap("tablet-training-review") { TrainingScreens.Review() }
+
     companion object {
         @JvmStatic
         @ParameterizedRobolectricTestRunner.Parameters(name = "{0}")
