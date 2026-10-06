@@ -88,6 +88,7 @@
   --layout-sidebar-max: 280px;
   --layout-content-max: 720px;
   --layout-breakpoint-wide: 900px;
+  --layout-breakpoint-narrow: 600px;
   --layout-auth-column-max: 420px;
   --layout-tagline-max: 320px;
   --glass-blur: 16px;

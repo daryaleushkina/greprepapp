@@ -94,6 +94,8 @@ public enum GPLayout {
     public static let contentMax: CGFloat = 720
     /// С этой ширины — боковая панель и крупная типографика
     public static let breakpointWide: CGFloat = 900
+    /// Сайт уже этой ширины — как телефон: капсула вкладок снизу; от неё до breakpoint-wide — строка разделов сверху (решение Даши 06.10.2026)
+    public static let breakpointNarrow: CGFloat = 600
     /// Колонка экрана входа на широком экране (iPad, Mac, сайт)
     public static let authColumnMax: CGFloat = 420
     /// Строка о продукте под именем на экране входа
