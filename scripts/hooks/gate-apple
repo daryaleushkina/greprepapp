@@ -6,8 +6,9 @@
 #   на iPhone: юнит-тесты, снимки, сценарии UI против своего сервера и порог покрытия →
 #   снимки на iPad → юнит-тесты и снимки на Mac.
 #
-# Симуляторы гейт загружает по одному, только на время их шагов, и гасит сам — и при ошибке тоже. Гасит только
-# те, что загрузил сам: уже включённый (человек смотрит на него, scripts/run-sim.sh) не трогает.
+# Симуляторы гейт загружает по одному, только на время их шагов, и гасит сам — и при ошибке тоже. Состояние
+# после ожидания проверяет снова: уже включённый человеком или соседним прогоном не трогает. Своё не погасло
+# даже в cleanup — гейт красный с командой выключения; помощники и общий предел Мака — в sim-devices.
 #
 # Порог покрытия — здесь, а правка этой папки — только с согласия Даши (.claude/hooks/protect-gates.mjs):
 # AGENTS.md, «Порог не опускать; подняли покрытие — поднять и порог».
@@ -21,24 +22,21 @@ APPLE_COVERAGE_MIN=96.0
 UI_PORT=8091
 UI_DB=greprep_apple_ui
 
-# Эмуляторы Android и симуляторы iOS всех проектов делят память Мака (36 ГБ, телефон — 2–4 ГБ): включённых разом
-# — не больше пяти, Android и iOS вместе (правило Даши для всего Мака, ~/.codex/AGENTS.md). Места нет — гейт
-# ждёт, а не включает шестой; через 15 минут ожидания — красный с объяснением, а не вечный пуш.
-DEVICES_MAX=5
-DEVICES_WAIT_SEC=900
-
 root="$(git rev-parse --show-toplevel)"
+. "$root/scripts/hooks/sim-devices"
 app="$root/apps/apple"
 cd "$app"
 
 work="$(mktemp -d)"
 server_pid=""
-# Симуляторы, загруженные этим прогоном: гасит гейт только их.
-booted_here=""
 cleanup() {
+  cleanup_status=$?
+  trap - EXIT
   if [ -n "$server_pid" ]; then kill "$server_pid" 2>/dev/null || true; fi
-  for sim in $booted_here; do xcrun simctl shutdown "$sim" 2>/dev/null || true; done
+  # Ошибка основного шага сохраняется, а неудачное выключение своего делает красным и успешный прогон.
+  if ! sim_cleanup; then cleanup_status=1; fi
   rm -rf "$work"
+  exit "$cleanup_status"
 }
 trap cleanup EXIT
 # Прерванный гейт (Ctrl-C, закрытый терминал) тоже гасит своё: не всякий sh зовёт ловушку EXIT по сигналу.
@@ -85,63 +83,6 @@ run_tests() {
     exit 1
   fi
   grep -E 'Test run with|Executed [0-9]+ tests?' "$log" | tail -2 >&2
-}
-
-# Сколько виртуальных телефонов включено на Маке — всех проектов: симуляторы iOS и эмуляторы Android.
-devices_on() {
-  sims="$(xcrun simctl list devices booted | grep -c '(Booted)' || true)"
-  emus=0
-  adb_bin="$(command -v adb || echo "${ANDROID_HOME:-$HOME/Library/Android/sdk}/platform-tools/adb")"
-  if [ -x "$adb_bin" ]; then
-    emus="$("$adb_bin" devices 2>/dev/null | grep -c '^emulator-' || true)"
-  fi
-  echo $((sims + emus))
-}
-
-# Ждать, пока включённых телефонов станет меньше предела: их гасят сессии, которые их подняли.
-wait_for_slot() {
-  waited=0
-  on="$(devices_on)"
-  while [ "$on" -ge "$DEVICES_MAX" ]; do
-    if [ "$waited" -ge "$DEVICES_WAIT_SEC" ]; then
-      echo "gate: Apple — включено $on виртуальных телефонов при пределе $DEVICES_MAX, места нет $((DEVICES_WAIT_SEC / 60)) мин." >&2
-      echo "      Что включено: xcrun simctl list devices booted; adb devices. Погасить своё или брошенное и пушить снова." >&2
-      exit 1
-    fi
-    if [ "$waited" -eq 0 ]; then
-      echo "gate: Apple — включено $on виртуальных телефонов при пределе $DEVICES_MAX, жду свободного места (до $((DEVICES_WAIT_SEC / 60)) мин.)" >&2
-    fi
-    sleep 10
-    waited=$((waited + 10))
-    on="$(devices_on)"
-  done
-}
-
-# Загрузить симулятор перед его шагами. Уже включённый берётся как есть и потом не гасится: его включил человек
-# или соседний прогон. Свой запоминается до загрузки — прерванная на середине загрузка тоже погаснет в cleanup.
-sim_boot() {
-  if xcrun simctl list devices booted | grep -q -F "$1"; then
-    return 0
-  fi
-  wait_for_slot
-  booted_here="$booted_here $1"
-  xcrun simctl boot "$1" 2>/dev/null || true
-  xcrun simctl bootstatus "$1" -b >/dev/null
-}
-
-# Погасить симулятор сразу после его шагов, если его загрузил гейт: место в пятёрке нужно следующему устройству
-# и соседним проектам. Из списка он убирается — включит его потом кто-то другой, cleanup его уже не тронет.
-sim_release() {
-  case " $booted_here " in
-    *" $1 "*) ;;
-    *) return 0 ;;
-  esac
-  xcrun simctl shutdown "$1" 2>/dev/null || true
-  rest=""
-  for sim in $booted_here; do
-    if [ "$sim" != "$1" ]; then rest="$rest $sim"; fi
-  done
-  booted_here="$rest"
 }
 
 echo "gate: Apple — клиент API свежий?" >&2

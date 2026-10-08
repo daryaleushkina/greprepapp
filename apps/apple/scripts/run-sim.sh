@@ -7,6 +7,7 @@
 # больше пяти, Android и iOS вместе (правило Даши для всего Мака, ~/.codex/AGENTS.md). Поэтому включил — погаси.
 set -eu
 here="$(cd "$(dirname "$0")/.." && pwd)"
+. "$here/../../scripts/hooks/sim-devices"
 cd "$here"
 
 if [ "${1:-}" = stop ]; then
@@ -28,7 +29,12 @@ if ! xcodebuild -quiet -project GrePrep.xcodeproj -scheme GrePrep -destination "
   exit 1
 fi
 rm -f "$log"
-xcrun simctl boot "$udid" 2>/dev/null || true
+# Общая пятёрка — через wait_for_slot в помощнике; после ожидания сосед мог уже включить это устройство.
+# Владение здесь не ведётся: симулятор остаётся для просмотра и гасится командой stop.
+sim_wait_to_boot "$udid"
+if [ "$gp_sim_was_booted" -eq 0 ]; then
+  xcrun simctl boot "$udid" 2>/dev/null || true
+fi
 xcrun simctl bootstatus "$udid" -b >/dev/null
 xcrun simctl install "$udid" build/dd/Build/Products/Debug-iphonesimulator/GrePrep.app
 xcrun simctl terminate "$udid" dev.greprepapp.app 2>/dev/null || true

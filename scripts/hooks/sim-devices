@@ -1,0 +1,139 @@
+#!/bin/sh
+# Эмуляторы Android и симуляторы iOS всех проектов делят память Мака (36 ГБ, телефон — 2–4 ГБ): включённых
+# разом — не больше пяти (правило Даши для всего Мака, ~/.codex/AGENTS.md). Места нет или число неизвестно —
+# ждём до 15 минут. Подключается через «.»; сам устройства не запускает и ловушки вызывающего скрипта не меняет.
+DEVICES_MAX="${GP_DEVICES_MAX:-5}"
+DEVICES_WAIT_SEC="${GP_DEVICES_WAIT_SEC:-900}"
+DEVICES_POLL_SEC="${GP_DEVICES_POLL_SEC:-10}"
+booted_here=""
+
+# Сколько виртуальных телефонов включено на Маке — всех проектов: симуляторы iOS и эмуляторы Android.
+devices_on() (
+  # В POSIX sh нет pipefail: сначала проверяем команду, иначе grep превратит её ошибку в ноль устройств.
+  if ! gp_sims_list="$(xcrun simctl list devices booted 2>/dev/null)"; then
+    echo "gate: Apple — не удалось посчитать симуляторы: xcrun simctl list devices booted" >&2
+    return 1
+  fi
+  gp_sims="$(printf '%s\n' "$gp_sims_list" | grep -c '(Booted)' || true)"
+  gp_emus=0
+  gp_adb_bin="$(command -v adb || echo "${ANDROID_HOME:-$HOME/Library/Android/sdk}/platform-tools/adb")"
+  if [ -x "$gp_adb_bin" ]; then
+    if ! gp_emus_list="$("$gp_adb_bin" devices 2>/dev/null)"; then
+      echo "gate: Apple — не удалось посчитать эмуляторы: adb devices ($gp_adb_bin)" >&2
+      return 1
+    fi
+    gp_emus="$(printf '%s\n' "$gp_emus_list" | grep -c '^emulator-' || true)"
+  fi
+  echo $((gp_sims + gp_emus))
+)
+
+# Один срок на занятые места и ошибки подсчёта, включая повторную проверку состояния перед boot.
+devices_wait_tick() {
+  if [ "$gp_devices_waited" -ge "$DEVICES_WAIT_SEC" ]; then
+    echo "$1; места нет или число устройств неизвестно уже $DEVICES_WAIT_SEC с." >&2
+    echo "      Что включено: xcrun simctl list devices booted; adb devices. Погасить своё и повторить запуск." >&2
+    return 1
+  fi
+  if [ "$gp_devices_waited" -eq 0 ]; then
+    echo "$1; жду свободного места (до $DEVICES_WAIT_SEC с.)" >&2
+  fi
+  gp_devices_delay="$DEVICES_POLL_SEC"
+  if [ "$gp_devices_delay" -gt "$((DEVICES_WAIT_SEC - gp_devices_waited))" ]; then
+    gp_devices_delay=$((DEVICES_WAIT_SEC - gp_devices_waited))
+  fi
+  sleep "$gp_devices_delay" || return 1
+  gp_devices_waited=$((gp_devices_waited + gp_devices_delay))
+}
+
+# Ждать, пока включённых телефонов станет меньше предела: их гасят сессии, которые их подняли.
+wait_for_slot() {
+  # Необязательный аргумент продолжает ожидание после ошибки повторного чтения состояния, без новых 15 минут.
+  gp_devices_waited="${1:-0}"
+  while :; do
+    if gp_devices_on="$(devices_on 2>&1)"; then
+      if [ "$gp_devices_on" -lt "$DEVICES_MAX" ]; then return 0; fi
+      gp_devices_reason="gate: Apple — включено $gp_devices_on виртуальных телефонов при пределе $DEVICES_MAX"
+    else
+      gp_devices_reason="$gp_devices_on; число виртуальных телефонов неизвестно"
+    fi
+    devices_wait_tick "$gp_devices_reason" || return 1
+  done
+}
+
+# Код 2 отличает недоступное состояние от выключенного устройства: при ошибке чтения включать нельзя.
+sim_is_booted() (
+  if ! gp_sim_list="$(xcrun simctl list devices booted 2>/dev/null)"; then
+    echo "gate: Apple — не удалось проверить симулятор $1: xcrun simctl list devices booted" >&2
+    return 2
+  fi
+  printf '%s\n' "$gp_sim_list" | grep -q -F "($1) (Booted)"
+)
+
+# Пока ждали места, устройство мог включить кто-то другой: перечитываем состояние до присвоения владения.
+# Эта проверка нужна и run-sim.sh, но там владение не ведётся — после просмотра устройство гасит человек.
+sim_wait_to_boot() {
+  gp_sim_was_booted=1
+  if sim_is_booted "$1" 2>/dev/null; then return 0; fi
+  wait_for_slot || return 1
+  while :; do
+    if gp_sim_state="$(sim_is_booted "$1" 2>&1)"; then return 0; else gp_sim_state_status=$?; fi
+    if [ "$gp_sim_state_status" -eq 1 ]; then break; fi
+    devices_wait_tick "$gp_sim_state; число виртуальных телефонов неизвестно" || return 1
+    wait_for_slot "$gp_devices_waited" || return 1
+  done
+  gp_sim_was_booted=0
+}
+
+sim_forget() {
+  gp_sim_rest=""
+  for gp_forget_sim in $booted_here; do
+    if [ "$gp_forget_sim" != "$1" ]; then gp_sim_rest="$gp_sim_rest $gp_forget_sim"; fi
+  done
+  booted_here="$gp_sim_rest"
+}
+
+# Свой запоминается до boot: прерванная на середине загрузка тоже должна погаснуть в cleanup.
+sim_boot() {
+  sim_wait_to_boot "$1" || return 1
+  if [ "$gp_sim_was_booted" -eq 1 ]; then return 0; fi
+  booted_here="$booted_here $1"
+  if ! xcrun simctl boot "$1" 2>/dev/null; then
+    if sim_is_booted "$1"; then
+      # Между проверкой и boot его включили одновременно с нами: оно чужое, cleanup не должен его гасить.
+      sim_forget "$1"
+    else
+      echo "gate: Apple — не удалось включить симулятор $1: xcrun simctl boot $1" >&2
+      return 1
+    fi
+  fi
+  if ! xcrun simctl bootstatus "$1" -b >/dev/null; then
+    echo "gate: Apple — симулятор $1 не закончил загрузку: xcrun simctl bootstatus $1 -b" >&2
+    return 1
+  fi
+}
+
+# Не забываем своё до удачного shutdown: иначе cleanup потеряет возможность повторить выключение.
+sim_release() {
+  case " $booted_here " in
+    *" $1 "*) ;;
+    *) return 0 ;;
+  esac
+  if ! xcrun simctl shutdown "$1" 2>/dev/null; then
+    echo "gate: Apple — не удалось погасить симулятор $1, он остаётся в списке своих" >&2
+    return 1
+  fi
+  sim_forget "$1"
+}
+
+# Пробуем погасить каждое своё, даже если предыдущее не погасло. Вызывающий cleanup обязан учесть код возврата:
+# гейт, оставивший своё устройство включённым, не может быть зелёным.
+sim_cleanup() {
+  gp_sim_cleanup_failed=0
+  for gp_cleanup_sim in $booted_here; do
+    if ! sim_release "$gp_cleanup_sim"; then
+      echo "      Погасить своё вручную: xcrun simctl shutdown $gp_cleanup_sim" >&2
+      gp_sim_cleanup_failed=1
+    fi
+  done
+  return "$gp_sim_cleanup_failed"
+}
