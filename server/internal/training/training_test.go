@@ -2,7 +2,6 @@ package training
 
 import (
 	"errors"
-	"reflect"
 	"slices"
 	"strings"
 	"testing"
@@ -61,7 +60,7 @@ func mc() Question {
 	return question(MultipleChoice, "What is 2 + 2?", 1, []string{"C"}, opts("A", "B", "C", "D", "E"))
 }
 
-func TestSectionAndPace(t *testing.T) {
+func TestSectionOf(t *testing.T) {
 	cases := map[Type]Section{
 		TextCompletion: Verbal, SentenceEquivalence: Verbal,
 		QuantitativeComparison: Quant, MultipleChoice: Quant,
@@ -71,13 +70,6 @@ func TestSectionAndPace(t *testing.T) {
 		if got := SectionOf(typ); got != want {
 			t.Errorf("SectionOf(%s) = %q, want %q", typ, got, want)
 		}
-	}
-	// Первая секция экзамена: Verbal — 12 вопросов за 18 минут, Quant — за 21.
-	if got := TimeLimitSeconds(Verbal, TimedCount); got != 18*60 {
-		t.Errorf("verbal limit = %d", got)
-	}
-	if got := TimeLimitSeconds(Quant, TimedCount); got != 21*60 {
-		t.Errorf("quant limit = %d", got)
 	}
 }
 
@@ -138,84 +130,5 @@ func TestValidateRejectsShapeOfEachType(t *testing.T) {
 		if err := Validate(q); !errors.Is(err, ErrInvalid) {
 			t.Errorf("%s: err = %v, want ErrInvalid", name, err)
 		}
-	}
-}
-
-func TestCheckAnswer(t *testing.T) {
-	cases := []struct {
-		name     string
-		q        Question
-		ids      []string
-		dontKnow bool
-		correct  bool
-		bad      bool
-	}{
-		{name: "tc right", q: tc1(), ids: []string{"A"}, correct: true},
-		{name: "tc wrong", q: tc1(), ids: []string{"B"}},
-		{name: "empty is not an error", q: tc1()},
-		{name: "dont know", q: tc1(), dontKnow: true},
-		{name: "tc3 all right in any order", q: tc3(), ids: []string{"G", "B", "D"}, correct: true},
-		{name: "tc3 two of three is wrong", q: tc3(), ids: []string{"B", "D", "H"}},
-		{name: "tc3 partial", q: tc3(), ids: []string{"B", "D"}},
-		{name: "se both", q: se(), ids: []string{"C", "A"}, correct: true},
-		{name: "se one of two", q: se(), ids: []string{"A", "B"}},
-		{name: "se single", q: se(), ids: []string{"A"}},
-		{name: "foreign option", q: tc1(), ids: []string{"Z"}, bad: true},
-		{name: "repeated option", q: se(), ids: []string{"A", "A"}, bad: true},
-		{name: "two in one tc blank", q: tc3(), ids: []string{"A", "B"}, bad: true},
-		{name: "three in se", q: se(), ids: []string{"A", "B", "C"}, bad: true},
-		{name: "dont know with choice", q: tc1(), ids: []string{"A"}, dontKnow: true, bad: true},
-	}
-	for _, c := range cases {
-		got, err := CheckAnswer(c.q, c.ids, c.dontKnow)
-		if c.bad {
-			if !errors.Is(err, ErrBadAnswer) {
-				t.Errorf("%s: err = %v, want ErrBadAnswer", c.name, err)
-			}
-			continue
-		}
-		if err != nil || got != c.correct {
-			t.Errorf("%s: correct = %v, err = %v; want %v", c.name, got, err, c.correct)
-		}
-	}
-}
-
-func TestSummarize(t *testing.T) {
-	contrast := Text{Ru: "Контраст", En: "Contrast"}
-	cause := Text{Ru: "Причина", En: "Cause"}
-	tone := Text{Ru: "Тон", En: "Tone"}
-	vocab := Text{Ru: "Лексика", En: "Vocabulary"}
-	results := []Result{
-		{Position: 0, TopicID: "cause", Title: cause, Answered: true},                      // ошибка
-		{Position: 1, TopicID: "contrast", Title: contrast, Answered: true, Correct: true}, // верно
-		{Position: 2, TopicID: "contrast", Title: contrast, Answered: true},                // ошибка
-		{Position: 3, TopicID: "tone", Title: tone, DontKnow: true},                        // «Не знаю» — ошибка
-		{Position: 4, TopicID: "contrast", Title: contrast},                                // пропуск
-		{Position: 5, TopicID: "vocab", Title: vocab, Answered: true},                      // четвёртая тема
-	}
-	got := Summarize(results, false)
-	want := Summary{Correct: 1, Total: 6, Unanswered: 2, Review: []TopicToReview{
-		{TopicID: "contrast", Title: contrast, Mistakes: 2, Positions: []int{2, 4}},
-		{TopicID: "cause", Title: cause, Mistakes: 1, Positions: []int{0}},
-		{TopicID: "tone", Title: tone, Mistakes: 1, Positions: []int{3}},
-	}}
-	if !reflect.DeepEqual(got, want) {
-		t.Fatalf("summary = %+v\nwant %+v", got, want)
-	}
-
-	// Время вышло: неотвеченное — «не успел», не ошибка темы; «Не знаю» по-прежнему ошибка.
-	timed := Summarize(results, true)
-	if timed.Unanswered != 2 || len(timed.Review) != 3 || timed.Review[0].Mistakes != 1 {
-		t.Fatalf("timed summary = %+v", timed)
-	}
-	for _, r := range timed.Review {
-		if r.TopicID == "contrast" && !reflect.DeepEqual(r.Positions, []int{2}) {
-			t.Fatalf("unanswered after time-out counted as a mistake: %+v", r)
-		}
-	}
-
-	perfect := Summarize([]Result{{Position: 0, TopicID: "a", Answered: true, Correct: true}}, false)
-	if perfect.Correct != 1 || perfect.Review != nil {
-		t.Fatalf("perfect = %+v", perfect)
 	}
 }
