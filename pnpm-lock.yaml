@@ -226,6 +226,9 @@ importers:
       '@tma.js/sdk-react':
         specifier: 3.0.23
         version: 3.0.23(@types/react@19.3.0)(react@19.3.0)(typescript@7.0.2)
+      idb:
+        specifier: ^8.0.4
+        version: 8.0.4
       react:
         specifier: 19.3.0
         version: 19.3.0
@@ -1688,6 +1691,9 @@ packages:
   hyperdyperid@1.2.0:
     resolution: {integrity: sha512-Y93lCzHYgGWdrJ66yIktxiaGULYc6oGiABxhcO5AufBeOyoIdZF7bIfLaOrbM0iGIOXQQgxxRrFEnb+Y6w1n4A==}
     engines: {node: '>=10.18'}
+
+  idb@8.0.4:
+    resolution: {integrity: sha512-jd0ITCrN+Zah4J7R/Z2jnR3W7A4BXDAjmo62MwWuSjxCiueUAf7X5rbodEdidWzeknwXHmLpdZkoiiCppNi30Q==}
 
   ieee754@1.2.1:
     resolution: {integrity: sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==}
@@ -3580,6 +3586,8 @@ snapshots:
   human-signals@8.0.1: {}
 
   hyperdyperid@1.2.0: {}
+
+  idb@8.0.4: {}
 
   ieee754@1.2.1: {}
 

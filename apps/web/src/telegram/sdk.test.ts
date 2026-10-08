@@ -15,6 +15,7 @@ const sdk = vi.hoisted(() => {
       setBottomBarColor: { ifAvailable: vi.fn() },
     },
     initData: { restore: vi.fn(), raw: vi.fn((): string | undefined => 'query_id=1&hash=x'), user: vi.fn(() => ({ language_code: 'en' })) },
+    mainButton: { mount: { ifAvailable: vi.fn() } },
     backButton: { mount: { ifAvailable: vi.fn() } },
     viewport: {
       mount: avail(async (_o?: unknown) => {}),

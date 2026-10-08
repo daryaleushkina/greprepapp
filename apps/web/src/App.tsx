@@ -4,6 +4,7 @@ import { miniApp } from '@tma.js/sdk-react';
 import { useEffect, type ReactNode } from 'react';
 import { ErrorBoundary } from './errors/ErrorBoundary';
 import { I18nProvider } from './i18n/i18n';
+import { useTrainingUpdates } from './training/hooks';
 import { browserLocale, telegramLocale, type Locale } from './i18n/locale';
 import type { makeRouter } from './router';
 import { SessionProvider, useSession } from './session/session';
@@ -41,6 +42,7 @@ export function App({ queryClient, router, shell, launch }: Props): ReactNode {
 /** Язык интерфейса: вошёл — язык аккаунта; до входа — по Telegram или браузеру (i18n/locale.ts). */
 function Localized({ children }: { children: ReactNode }): ReactNode {
   const { session } = useSession();
+  useTrainingUpdates();
   const { launch } = useShell();
   let locale: Locale;
   if (session.status === 'signedIn') locale = session.user.locale;

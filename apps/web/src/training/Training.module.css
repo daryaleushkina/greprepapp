@@ -1,0 +1,48 @@
+.screen { display: flex; flex-direction: column; gap: var(--space-24); }
+.title { font: var(--font-title-2); letter-spacing: var(--tracking-title-2); }
+.back { align-self: flex-start; min-height: var(--size-tap-target); display: inline-flex; align-items: center; border: 0; background: none; color: var(--color-text); font: var(--font-body); text-underline-offset: var(--space-4); }
+.builder { display: grid; gap: var(--space-24); align-items: start; }
+.group { border-radius: var(--radius-xxl); padding: 0 var(--space-16); }
+.row, .preset { min-height: var(--size-row-tall); display: flex; align-items: center; justify-content: space-between; gap: var(--space-12); width: 100%; padding: var(--space-8) 0; border: 0; border-bottom: var(--size-hairline) solid var(--color-line); background: none; text-align: left; font: var(--font-body); color: var(--color-text); }
+.row:last-child, .preset:last-child { border-bottom: 0; }
+.preset { padding: var(--space-12) 0; cursor: pointer; }
+.presetTitle { font-weight: var(--font-weight-medium); }
+.grow { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-4); }
+.note { font: var(--font-footnote); color: var(--color-text-secondary); }
+.preset input { width: var(--space-24); height: var(--space-24); flex: none; accent-color: var(--color-accent); }
+.segments { border-radius: var(--radius-full); padding: var(--space-4); display: flex; flex: none; }
+.segments button { flex: 1; min-height: var(--size-button-compact); padding: 0 var(--space-12); border: 0; border-radius: var(--radius-full); background: none; color: var(--color-text-secondary); font: var(--font-subhead); font-weight: var(--font-weight-medium); }
+.segments button[aria-pressed='true'] { background: var(--color-surface); color: var(--color-text); box-shadow: var(--shadow-segment-on); }
+.count { width: var(--space-72); height: var(--size-button-compact); border: 0; border-radius: var(--radius-full); background: var(--color-fill); text-align: center; font: var(--font-body); font-weight: var(--font-weight-semibold); font-variant-numeric: tabular-nums; }
+.typeRow { flex-wrap: wrap; }
+.typeRow select { min-height: var(--size-tap-target); max-width: 100%; min-width: 0; border: 0; background: transparent; color: var(--color-text-secondary); font: var(--font-callout); text-align: right; }
+.modeRow { border-bottom: var(--size-hairline) solid var(--color-line); padding-bottom: var(--space-12); }
+.modeRow .row { border: 0; }
+.action { width: 100%; min-height: var(--size-button); border: 0; border-radius: var(--radius-full); padding: var(--space-12) var(--space-24); background: var(--color-accent); color: var(--color-on-accent); font: var(--font-callout); font-weight: var(--font-weight-semibold); font-variant-numeric: tabular-nums; }
+.action:disabled, .row:disabled, .segments button:disabled { opacity: 0.5; }
+.section { color: var(--color-verbal); font: var(--font-subhead); font-weight: var(--font-weight-medium); margin-top: calc(-1 * var(--space-16)); }
+.section[data-section='quant'] { color: var(--color-quant); }
+.difficulty { border: 0; margin: 0; padding: 0; }
+.difficulty legend { font: var(--font-body); margin-bottom: var(--space-12); }
+.difficulty .segments { width: 100%; }
+.difficulty button { padding-inline: var(--space-8); }
+.switch { appearance: none; width: var(--space-48); height: var(--space-28); border: var(--size-hairline) solid var(--color-line); border-radius: var(--radius-full); background: var(--color-fill); flex: none; position: relative; margin-block: var(--space-8); cursor: pointer; }
+.switch::after { content: ''; position: absolute; width: var(--space-24); height: var(--space-24); inset: var(--size-hairline) auto auto var(--size-hairline); border-radius: var(--radius-full); background: var(--color-surface); box-shadow: var(--shadow-segment-on); transition: transform var(--motion-duration-press) var(--motion-easing-out); }
+.switch:checked { background: var(--color-verbal); }
+.switch:checked::after { transform: translateX(var(--space-20)); }
+/* Ширины — токены layout.breakpoint-*; var() внутри @media не поддерживается. */
+@media (min-width: 900px) {
+  .screen[data-shell='site'] .builder:has(.preset) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .screen[data-shell='site'] .action { width: auto; align-self: flex-end; }
+}
+@media (max-width: 599px) {
+  .modeRow .row { flex-wrap: wrap; }
+  .segments { max-width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { .switch::after { transition: none; } }
+
+.back { gap: var(--space-8); text-decoration: none; }
+.back svg, .value svg { width: var(--space-20); height: var(--space-20); flex: none; }
+.value { display: inline-flex; align-items: center; gap: var(--space-4); color: var(--color-text-secondary); }
+
+.solid { background: var(--color-surface); }

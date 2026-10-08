@@ -13,6 +13,7 @@ import {
 import { useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { createContext, use, useEffect, type ReactNode } from 'react';
 import { reportError } from '../errors/report';
+import { trainingRepository } from '../training/repository';
 import type { TelegramLaunch } from '../telegram/sdk';
 
 export const SESSION_KEY = ['session'] as const;
@@ -57,12 +58,15 @@ async function loadSession(launch: TelegramLaunch | null): Promise<SessionData> 
     // Вход по initData — всегда с токеном в теле (transport bearer); без него мини-апп не сможет ни одного запроса.
     if (!res.token) throw new ApiError('contract', { status: 200, message: 'telegram-mini-app sign-in returned no token' });
     setMiniAppToken(res.token);
+    await trainingRepository.signedIn(res.user.id);
     return { user: res.user, expired: false };
   }
   try {
-    return { user: await getMe(), expired: false };
+    const user = await getMe();
+    await trainingRepository.signedIn(user.id);
+    return { user, expired: false };
   } catch (e) {
-    if (isApiError(e) && e.status === 401) return { user: null, expired: false };
+    if (isApiError(e) && e.status === 401) { trainingRepository.pause(); return { user: null, expired: false }; }
     throw e;
   }
 }
@@ -97,6 +101,7 @@ export function SessionProvider({ launch, children }: { launch: TelegramLaunch |
       // Запрос «кто вошёл», отправленный до входа (кука ещё не стояла), ответит «никто» позже — и затёр бы
       // только что открытую сессию. Сначала его отменяем, потом записываем вошедшего.
       await queryClient.cancelQueries({ queryKey: SESSION_KEY });
+      await trainingRepository.signedIn(user.id);
       queryClient.setQueryData<SessionData>(SESSION_KEY, { user, expired: false });
     },
     signOut: async () => {
@@ -107,6 +112,7 @@ export function SessionProvider({ launch, children }: { launch: TelegramLaunch |
         // с экрана всё равно стираем. Остальные отказы — экран как был: кука, может быть, ещё жива.
         if (!(isApiError(e) && e.status === 401)) throw e;
       }
+      await trainingRepository.signOut();
       setMiniAppToken(null);
       forgetUserData(queryClient, false);
     },
@@ -134,6 +140,7 @@ export function onUnauthorized(queryClient: QueryClient, error: unknown, isMiniA
     const now = Date.now();
     if (now - lastReauthAt < REAUTH_EVERY_MS) return;
     lastReauthAt = now;
+    trainingRepository.pause();
     setMiniAppToken(null);
     void queryClient.refetchQueries({ queryKey: SESSION_KEY }).then(() => {
       // Вошли заново — перечитать то, что упало на старой сессии; не вошли — экран входа скажет, а запросы без
@@ -143,6 +150,7 @@ export function onUnauthorized(queryClient: QueryClient, error: unknown, isMiniA
     });
     return;
   }
+  trainingRepository.pause();
   forgetUserData(queryClient, true);
 }
 

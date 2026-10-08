@@ -117,7 +117,13 @@ export async function mockTelegramEnvForDev(): Promise<void> {
   // перезагрузки он скажет «это Telegram», хотя моста уже нет.
   if (await isTMA('complete')) return;
 
-  const q = new URLSearchParams(window.location.search);
+  const launchOptions = new URLSearchParams(window.location.search);
+  // Роутер убирает параметры запуска из адреса. Подмена должна восстанавливать того же человека и тему
+  // после перезагрузки, как настоящий мост Telegram, а не подставлять неподписанного пользователя по умолчанию.
+  const mockOptionsKey = 'greprep.telegram-mock-options';
+  const hasLaunchOptions = [...launchOptions.keys()].some((key) => key.startsWith('tg'));
+  const q = hasLaunchOptions ? launchOptions : new URLSearchParams(sessionStorage.getItem(mockOptionsKey) ?? '');
+  if (hasLaunchOptions) sessionStorage.setItem(mockOptionsKey, launchOptions.toString());
   let theme = q.get('tgTheme') === 'light' ? LIGHT_THEME : DARK_THEME;
   const platform = q.get('tgPlatform') ?? 'ios';
   const version = q.get('tgVersion') ?? '10.1';

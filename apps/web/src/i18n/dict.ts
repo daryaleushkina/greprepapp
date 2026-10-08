@@ -25,7 +25,93 @@ function en(one: string, other: string): Plural {
 const ruSteps = ['', 'Один шаг', 'Два шага', 'Три шага', 'Четыре шага', 'Пять шагов', 'Шесть шагов', 'Семь шагов', 'Восемь шагов'];
 const enSteps = ['', 'One step', 'Two steps', 'Three steps', 'Four steps', 'Five steps', 'Six steps', 'Seven steps', 'Eight steps'];
 
+
+const trainingRu = {
+  training_new: "Новая тренировка",
+  training_own: "Своя тренировка",
+  training_continue: "Продолжить тренировку",
+  training_continue_subtitle: "%1$s · вопрос %2$d из %3$d",
+  training_loading: "Загружаем темы",
+  training_offline_title: "Нет сети",
+  training_offline_message: "Чтобы начать тренировку, нужна сеть: задания скачаются целиком, и дальше можно без неё.",
+  training_failed_title: "Не получилось загрузить темы",
+  training_failed_message: "Мы уже знаем об ошибке. Попробуйте ещё раз чуть позже.",
+  training_retry: "Повторить",
+  training_missing_title: "Тренировки нет на устройстве",
+  training_missing_message: "Она могла устареть. Начните новую с экрана «Сегодня».",
+  question_close: "Закрыть тренировку",
+  builder_preset_last: "Как в прошлый раз",
+  builder_preset_timed: "Проверка на время",
+  builder_preset_timed_subtitle: "%1$s · %2$s · %3$d мин, как секция экзамена",
+  builder_section: "Раздел",
+  builder_type: "Тип",
+  builder_count: "Вопросов",
+  builder_mode: "Режим",
+  builder_topics: "Темы и сложность",
+  builder_topics_all: "все",
+  builder_topics_some: "%1$d из %2$d",
+  builder_type_soon: "скоро",
+  builder_start: "Начать · %1$s · ~%2$d мин",
+  builder_nothing: "Заданий пока нет",
+  builder_no_questions: "Под этот выбор заданий пока нет — попробуйте другие темы или сложность.",
+  builder_start_offline: "Нет сети — тренировку не начать. Попробуйте, когда она появится.",
+  builder_start_failed: "Не получилось начать тренировку. Попробуйте ещё раз.",
+  mode_practice: "Практика",
+  mode_check: "Проверка",
+  mode_practice_hint: "Разбор после каждого вопроса, без таймера",
+  mode_check_hint: "Таймер как на экзамене, разбор в конце",
+  difficulty_any: "Любая",
+  difficulty_easy: "Лёгкая",
+  difficulty_medium: "Средняя",
+  difficulty_hard: "Трудная",
+  topics_difficulty: "Сложность",
+  topics_done: "Готово · %1$s",
+};
+const trainingEn = {
+  training_new: "New practice",
+  training_own: "Custom practice",
+  training_continue: "Continue practice",
+  training_continue_subtitle: "%1$s · question %2$d of %3$d",
+  training_loading: "Loading topics",
+  training_offline_title: "No connection",
+  training_offline_message: "Starting a practice needs a connection: the questions download in full, and after that you can go offline.",
+  training_failed_title: "Couldn’t load topics",
+  training_failed_message: "We already know about it. Please try again a little later.",
+  training_retry: "Try again",
+  training_missing_title: "This practice isn’t on the device",
+  training_missing_message: "It may have expired. Start a new one from Today.",
+  question_close: "Close practice",
+  builder_preset_last: "Same as last time",
+  builder_preset_timed: "Timed check",
+  builder_preset_timed_subtitle: "%1$s · %2$s · %3$d min, like an exam section",
+  builder_section: "Section",
+  builder_type: "Type",
+  builder_count: "Questions",
+  builder_mode: "Mode",
+  builder_topics: "Topics and difficulty",
+  builder_topics_all: "all",
+  builder_topics_some: "%1$d of %2$d",
+  builder_type_soon: "soon",
+  builder_start: "Start · %1$s · ~%2$d min",
+  builder_nothing: "No questions yet",
+  builder_no_questions: "No questions match this yet — try other topics or difficulty.",
+  builder_start_offline: "No connection — the practice can’t start. Try again once you’re online.",
+  builder_start_failed: "Couldn’t start the practice. Please try again.",
+  mode_practice: "Practice",
+  mode_check: "Check",
+  mode_practice_hint: "Explanation after each question, no timer",
+  mode_check_hint: "Exam-pace timer, explanations at the end",
+  difficulty_any: "Any",
+  difficulty_easy: "Easy",
+  difficulty_medium: "Medium",
+  difficulty_hard: "Hard",
+  topics_difficulty: "Difficulty",
+  topics_done: "Done · %1$s",
+};
+type TrainingDict = { [K in keyof typeof trainingRu]: string } & { questionsCount: Plural };
+
 export interface Dict {
+  training: TrainingDict;
   back: string;
   tabs: { today: string; words: string; exam: string; progress: string; settings: string; sections: string };
   sections: { verbal: string; quant: string; words: string; essay: string };
@@ -80,6 +166,7 @@ export interface Dict {
 }
 
 const dictRu: Dict = {
+  training: { ...trainingRu, questionsCount: ru({ one: "# вопрос", few: "# вопроса", many: "# вопросов", other: "# вопроса" }) },
   back: 'Назад',
   tabs: { today: 'Сегодня', words: 'Слова', exam: 'Экзамен', progress: 'Прогресс', settings: 'Настройки', sections: 'Разделы' },
   sections: { verbal: 'Verbal', quant: 'Quant', words: 'Слова', essay: 'Эссе' },
@@ -157,6 +244,7 @@ const dictRu: Dict = {
 };
 
 const dictEn: Dict = {
+  training: { ...trainingEn, questionsCount: en("# question", "# questions") },
   back: 'Back',
   tabs: { today: 'Today', words: 'Words', exam: 'Exam', progress: 'Progress', settings: 'Settings', sections: 'Sections' },
   sections: { verbal: 'Verbal', quant: 'Quant', words: 'Words', essay: 'Essay' },

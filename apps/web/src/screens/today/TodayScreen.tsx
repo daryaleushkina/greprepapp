@@ -4,15 +4,17 @@
 // Apple: загрузка скелетом той же геометрии, «Нет сети» и «Не получилось» с повтором; если план уже был на
 // экране, а обновить его не вышло, — план остаётся и над ним тихая строка.
 import { isApiError, useGetToday, type TodayStep } from '@greprep/api-client';
-import { useNavigate } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
-import { OfflineIcon } from '../../components/icons';
+import { ChevronRightIcon, OfflineIcon } from '../../components/icons';
 import { StatusScreen } from '../../components/StatusScreen';
 import { reportError } from '../../errors/report';
 import { useI18n } from '../../i18n/i18n';
 import { useGlow } from '../../layout/AppLayout';
 import { useSession } from '../../session/session';
 import { useOnline } from '../../useOnline';
+import { useActiveTraining } from '../../training/hooks';
+import { TYPE_LABELS, trainingText } from '../../training/builder';
 import { RibbonSkeleton, StepRibbon } from './StepRibbon';
 import { todaySummary } from './summary';
 import styles from './Today.module.css';
@@ -26,6 +28,7 @@ export function TodayScreen(): ReactNode {
   const [blockedStepId, setBlockedStepId] = useState<string | null>(null);
   // Повторы — только при нехватке сети (queryClient.ts); без сети запрос ждёт её возвращения.
   const today = useGetToday({ query: { enabled: session.status === 'signedIn' } });
+  const activeTraining = useActiveTraining().data;
   const plan = today.data;
   const current = plan?.steps.find((s) => s.state === 'current');
 
@@ -83,6 +86,14 @@ export function TodayScreen(): ReactNode {
         )}
       </header>
 
+      {activeTraining && <Link to="/training/$trainingId" params={{ trainingId: activeTraining.session.id }} className={styles.continue}>
+        <span className={styles.continueText}><span className={styles.rowTitle}>{t.training.training_continue}</span>
+        <span className={styles.section} data-section={activeTraining.session.section}>
+          {trainingText(t.training.training_continue_subtitle,
+            [t.sections[activeTraining.session.section], ...activeTraining.session.questionTypes.map((type) => TYPE_LABELS[type])].join(' · '),
+            activeTraining.position + 1, activeTraining.session.items.length)}
+        </span></span><ChevronRightIcon />
+      </Link>}
       {plan ? (
         <>
           {(today.isError || offline) && (
@@ -109,6 +120,7 @@ export function TodayScreen(): ReactNode {
           <RibbonSkeleton />
         </>
       )}
+      <Link to="/training/new" className={styles.own}>{t.training.training_own}</Link>
     </div>
   );
 }
