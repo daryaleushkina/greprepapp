@@ -47,3 +47,5 @@ tools/dev/backlog.sh           # пересобрать это зеркало
 - [#23](https://github.com/daryaleushkina/greprepapp/issues/23) Задания Quant: формулы сверх Unicode — дроби, степени, корни
 - [#24](https://github.com/daryaleushkina/greprepapp/issues/24) Админка: правка проверенного задания — новой версией, не на месте; очередь жалоб
 - [#25](https://github.com/daryaleushkina/greprepapp/issues/25) Android: истёкший вход стирает неотправленные ответы тренировки без следа
+- [#30](https://github.com/daryaleushkina/greprepapp/issues/30) Android: постоянный отказ пачки ответов выкидывает из очереди и верные ответы
+- [#31](https://github.com/daryaleushkina/greprepapp/issues/31) Android: в списке «Проверки» частично заполненный вопрос помечен отвеченным
