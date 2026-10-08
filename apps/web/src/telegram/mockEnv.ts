@@ -167,6 +167,7 @@ export async function mockTelegramEnvForDev(): Promise<void> {
     renderButton(chrome.main, buttons.main);
     renderButton(chrome.secondary, buttons.secondary);
     const { position } = buttons.secondary;
+    chrome.bar.toggleAttribute('data-stacked', position === 'top' || position === 'bottom');
     chrome.bar.style.flexDirection = position === 'top' ? 'column-reverse'
       : position === 'bottom' ? 'column'
       : position === 'right' ? 'row' : 'row-reverse';
@@ -340,6 +341,7 @@ function createChrome(): Chrome {
       background: var(--tg-bottom-bar-color, var(--tg-theme-bottom-bar-bg-color, var(--tg-theme-secondary-bg-color))); }
     #tg-mock-bar[hidden], #tg-mock-back[hidden], #tg-mock-bar button[hidden] { display: none; }
     #tg-mock-bar button { flex: 1; height: 44px; border: 0; border-radius: 10px; font: 600 15px system-ui, sans-serif; }
+    #tg-mock-bar[data-stacked] button { flex: none; }
     #tg-mock-bar button:disabled { opacity: .6; }
     #tg-mock-back { position: fixed; top: 8px; left: 8px; z-index: 2147483647; border: 0; border-radius: 16px;
       padding: 6px 12px; font: 500 14px system-ui, sans-serif;

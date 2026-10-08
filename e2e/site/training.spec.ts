@@ -1,4 +1,5 @@
-import { test } from '../fixtures';
+import { expect, test } from '../fixtures';
+import { schemas } from '../../packages/api-client/src';
 import { buildAndResume, offlineBuilder, presetMatchesForm, resumeCounterStaysTogether, unavailableStorageKeepsSession } from '../training';
 
 test('собрать, начать и продолжить после возврата и перезагрузки', async ({ site }) => { await buildAndResume(site); });
@@ -16,3 +17,13 @@ test('перезагрузка сохраняет вопрос, выбор и р
 test('без сети ответы и итог локальны, после возвращения сети сервер видит всё', async ({ site: page, me }) => { await offlineSession(page, me); });
 import { keyboardSession } from '../training';
 test('клавиши выбора, Enter и стрелки', async ({ site }) => { await keyboardSession(site); });
+
+test('me — человек, вошедший на сайте', async ({ me, site }) => {
+  await expect(site.getByRole('heading', { name: 'Сегодня' })).toBeVisible();
+  expect(me.user).toEqual(schemas.User.parse(await me.api('GET', '/me')));
+});
+
+test('me без site объясняет отсутствие входа', async ({ me }) => {
+  expect(() => me.user).toThrow('site');
+  await expect(me.api('GET', '/me')).rejects.toThrow('site');
+});

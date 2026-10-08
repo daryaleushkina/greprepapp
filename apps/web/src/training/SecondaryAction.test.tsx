@@ -6,7 +6,7 @@ const sdk = vi.hoisted(() => ({ unsubscribe: vi.fn(),
   setParams: { isAvailable: vi.fn(() => true), ifAvailable: vi.fn() },
   onClick: { ifAvailable: vi.fn((_handler: () => void): { ok: boolean; data: () => void } => ({ ok: true, data: sdk.unsubscribe })) },
 }));
-vi.mock('@tma.js/sdk-react', () => ({ secondaryButton: sdk }));
+vi.mock('@tma.js/sdk-react', () => ({ mainButton: sdk, secondaryButton: sdk }));
 import { TrainingSecondaryAction } from './SecondaryAction';
 
 const action = (disabled = false, onClick = vi.fn(), shell: 'site' | 'telegram' = 'telegram') => <ShellProvider value={{ shell, launch: null }}><TrainingSecondaryAction text="Не знаю" disabled={disabled} onClick={onClick} /></ShellProvider>;

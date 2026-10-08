@@ -99,6 +99,8 @@
 .sessionFooter { display: grid; gap: var(--space-12); margin-top: auto; padding-top: var(--space-16); }
 .sessionFooter > .note { text-align: center; }
 .actions { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-12); }
+.nativeMeasure { position: fixed; inset: 0 auto auto 0; visibility: hidden; pointer-events: none; display: grid; justify-items: start; }
+.nativeMeasure span { white-space: nowrap; font: var(--font-body); font-family: var(--font-family-system); font-weight: var(--font-weight-semibold); padding-inline: var(--space-16); }
 .actions .action { flex: 1; min-width: 0; padding-inline: var(--space-16); }
 .secondaryAction { flex: none; min-height: var(--size-button); border: 0; border-radius: var(--radius-full); padding: var(--space-12) var(--space-16); background: var(--color-surface); color: var(--color-text); font: var(--font-callout); }
 .textButton { min-height: var(--size-tap-target); border: 0; background: transparent; font: var(--font-body); color: var(--color-text); text-decoration: underline; text-underline-offset: var(--space-4); }
@@ -118,7 +120,7 @@
 .reviewTopic h3 { font: var(--font-headline); margin-bottom: var(--space-4); }
 .keys, .optionKey { display: none; }
 .option:active, .secondaryAction:active, .action:active, .overviewCell:active, .iconButton:active, .whyNot:active { transform: scale(var(--motion-press-scale)); }
-button:disabled { cursor: default; }
+.screen button:disabled, .action:disabled, .secondaryAction:disabled { cursor: default; }
 @media (hover: hover) and (pointer: fine) { .option:not(:disabled):hover, .iconButton:hover, .secondaryAction:hover { background: var(--color-fill); } }
 /* Широкий режим начинается на layout.breakpoint-wide; media не принимают var(). */
 @media (min-width: 900px) {

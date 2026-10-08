@@ -1,89 +1,159 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type { GivenAnswer } from '@greprep/api-client';
 import type { StoredTraining } from './model';
 import { trainingRepository } from './repository';
 import { TrainingRules } from './rules';
 
 const initialSelection = (training: StoredTraining) => training.answers[String(training.position)]?.optionIds ?? training.drafts?.[String(training.position)] ?? [];
 
-/** Действия сериализуются на устройстве. Переход не опережает запись ответа, даже при двойном сигнале Telegram. */
+/** Выбор виден сразу, записи идут по порядку; отложенные переходы читают уже записанное состояние. */
 export function useTrainingSession(incoming: StoredTraining) {
   const [training, setTraining] = useState(incoming);
   const [selection, setSelection] = useState(() => initialSelection(incoming));
-  const [overview, setOverview] = useState(false);
+  const [overview, updateOverview] = useState(false);
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
   const [now, setNow] = useState(Date.now);
-  const latest = useRef(training);
-  const locked = useRef(false);
-  const intent = useRef<(() => void) | undefined>(undefined);
+  const latest = useRef(incoming);
+  const persisted = useRef(incoming);
+  const selected = useRef(selection);
+  const selectionVersion = useRef(0);
+  const overviewRef = useRef(false);
+  const queue = useRef(Promise.resolve());
+  const pending = useRef(0);
+  const releaseSync = useRef<(() => void) | undefined>(undefined);
+  const expiredFinish = useRef<StoredTraining['finish']>(undefined);
   const shownAt = useRef(Date.now());
+  const id = incoming.session.id;
+
+  const showSelection = (ids: string[]) => { selected.current = ids; setSelection(ids); };
+  const setOverview = (open: boolean) => { overviewRef.current = open; updateOverview(open); };
   useEffect(() => {
-    if (locked.current) return;
-    latest.current = incoming;
-    setTraining(incoming);
-    setSelection(initialSelection(incoming));
+    if (pending.current || expiredFinish.current && !incoming.finish) return;
+    latest.current = incoming; persisted.current = incoming;
+    setTraining(incoming); selected.current = initialSelection(incoming); setSelection(selected.current);
   }, [incoming]);
 
-  const run = useCallback(async (action: () => Promise<void>) => {
-    if (locked.current) return;
-    locked.current = true; setBusy(true);
-    try {
-      await action();
-      const fresh = await trainingRepository.get(incoming.session.id);
-      if (fresh) { latest.current = fresh; setTraining(fresh); setSelection(initialSelection(fresh)); }
-    } catch {
-      // Репозиторий уже сообщил о сбое без содержимого. Неподтверждённый выбор возвращается, экран объясняет отказ.
-      setSelection(initialSelection(latest.current)); setFailed(true);
-    } finally {
-      locked.current = false; setBusy(false);
-      const pending = intent.current; intent.current = undefined;
-      pending?.();
-    }
-  }, [incoming.session.id]);
+  const run = useCallback((action: () => Promise<void>) => {
+    const version = selectionVersion.current;
+    if (!pending.current) releaseSync.current = trainingRepository.holdSync(id);
+    pending.current++; setBusy(true);
+    queue.current = queue.current.then(async () => {
+      try {
+        await action();
+        const fresh = await trainingRepository.get(id);
+        if (!fresh) throw new Error('training record unavailable after write');
+        persisted.current = fresh;
+        // Подтверждение раннего касания не перерисовывает более поздний выбор.
+        const preserveSelection = selectionVersion.current !== version && fresh.position === latest.current.position;
+        latest.current = { ...fresh,
+          ...(preserveSelection && fresh.session.mode === 'check' && { answers: latest.current.answers }),
+          ...(expiredFinish.current && { finish: expiredFinish.current }),
+        };
+        setTraining(latest.current);
+        if (!preserveSelection) { selected.current = initialSelection(latest.current); setSelection(selected.current); }
+        setFailed(false);
+      } catch {
+        // Репозиторий сообщает о сбое без содержимого; откатываем только выбор, которому нет новой замены.
+        if (selectionVersion.current === version) {
+          latest.current = { ...persisted.current, ...(expiredFinish.current && { finish: expiredFinish.current }) };
+          setTraining(latest.current); selected.current = initialSelection(latest.current); setSelection(selected.current);
+        }
+        setFailed(true);
+      } finally {
+        pending.current--; setBusy(pending.current > 0);
+        if (!pending.current) { releaseSync.current!(); releaseSync.current = undefined; }
+      }
+    });
+  }, [id]);
+
+  const expire = useCallback(() => {
+    const current = latest.current;
+    if (current.finish) return true;
+    const currentTime = Date.now();
+    if (TrainingRules.remainingSeconds(current, currentTime) !== 0) return false;
+    // Итог не ждёт IndexedDB. Ответы, принятые до срока, дописываются перед концом очереди.
+    expiredFinish.current = { finishedAt: new Date(current.startedAtMillis + current.session.timeLimitSeconds! * 1000).toISOString(), timedOut: true };
+    latest.current = { ...current, finish: expiredFinish.current }; setTraining(latest.current); setNow(currentTime);
+    run(() => trainingRepository.finish(id, true));
+    return true;
+  }, [id, run]);
+
   useEffect(() => {
     if (training.session.mode !== 'check' || training.finish) return;
-    const tick = () => {
-      const currentTime = Date.now(); setNow(currentTime);
-      if (TrainingRules.remainingSeconds(latest.current, currentTime) === 0) void run(() => trainingRepository.finish(incoming.session.id, true));
-    };
+    const tick = () => { setNow(Date.now()); expire(); };
     tick();
     const interval = window.setInterval(tick, 1000);
-    document.addEventListener('visibilitychange', tick);
-    window.addEventListener('pageshow', tick);
+    document.addEventListener('visibilitychange', tick); window.addEventListener('pageshow', tick);
     return () => { clearInterval(interval); document.removeEventListener('visibilitychange', tick); window.removeEventListener('pageshow', tick); };
-  }, [training.session.mode, training.finish, incoming.session.id, run]);
+  }, [training.session.mode, training.finish, expire]);
 
+  const makeAnswer = (ids: string[], dontKnow = false, flagged = latest.current.answers[String(latest.current.position)]?.flagged ?? false): GivenAnswer => ({
+    position: latest.current.position, optionIds: ids, dontKnow, flagged,
+    answeredAt: new Date(Date.now()).toISOString(), elapsedMs: Math.max(0, Date.now() - shownAt.current),
+  });
+  const save = async (ids: string[], dontKnow = false, flagged?: boolean) => {
+    if (expire()) return;
+    await trainingRepository.answer(id, makeAnswer(ids, dontKnow, flagged));
+  };
+  const move = async (next: number) => {
+    const current = latest.current;
+    if (expire() || next < 0 || next >= current.session.items.length) return;
+    await trainingRepository.moveTo(id, next);
+    shownAt.current = Date.now(); setOverview(false);
+  };
+  const advance = async () => {
+    const current = latest.current;
+    if (expire() || current.session.mode === 'practice' && !current.answers[String(current.position)]) return;
+    if (current.position < current.session.items.length - 1) await move(current.position + 1);
+    else if (current.session.mode === 'check') setOverview(true);
+    else await trainingRepository.finish(id, false);
+  };
+  const check = async () => {
+    const current = latest.current;
+    if (current.session.mode === 'practice' && !current.answers[String(current.position)] && TrainingRules.isComplete(current.session.items[current.position]!.question, selected.current)) await save(selected.current);
+  };
+  const select = (optionId: string) => {
+    const current = latest.current;
+    if (expire() || current.session.mode === 'practice' && current.answers[String(current.position)]) return;
+    const ids = TrainingRules.toggle(current.session.items[current.position]!.question, selected.current, optionId);
+    selectionVersion.current++; showSelection(ids);
+    if (current.session.mode === 'check') {
+      const answer = makeAnswer(ids);
+      latest.current = { ...current, answers: { ...current.answers, [current.position]: answer } }; setTraining(latest.current);
+      run(() => trainingRepository.answer(id, answer));
+    } else run(() => trainingRepository.draft(id, current.position, ids));
+  };
   const position = training.position;
   const question = training.session.items[position]!.question;
   const answer = training.answers[String(position)];
   const checkMode = training.session.mode === 'check';
   const revealed = !checkMode && Boolean(answer);
-  const complete = TrainingRules.isComplete(question, selection);
-  const flagged = answer?.flagged ?? false;
-  const save = (ids: string[], dontKnow = false, flag = flagged) => trainingRepository.answer(training.session.id, {
-    position, optionIds: ids, dontKnow, flagged: flag, answeredAt: new Date().toISOString(), elapsedMs: Math.max(0, Date.now() - shownAt.current),
-  });
-  const go = (next: number) => {
-    if (next < 0 || next >= training.session.items.length || training.finish) return;
-    void run(async () => { await trainingRepository.moveTo(training.session.id, next); shownAt.current = Date.now(); setOverview(false); });
-  };
-  const next = () => {
-    if (!checkMode && !revealed) return;
-    if (position < training.session.items.length - 1) go(position + 1);
-    else if (checkMode) setOverview(true);
-    else void run(() => trainingRepository.finish(training.session.id, false));
-  };
-  return { training, selection, overview, setOverview, busy, failed, position, question, answer, checkMode, revealed, complete, flagged,
-    whenReady: (action: () => void) => { if (locked.current) intent.current ??= action; else action(); },
-    remaining: TrainingRules.remainingSeconds(training, now), go, next,
-    select: (id: string) => {
-      if (locked.current || revealed || training.finish) return;
-      const ids = TrainingRules.toggle(question, selection, id); setSelection(ids);
-      void run(() => checkMode ? save(ids) : trainingRepository.draft(training.session.id, position, ids));
+  return { training, selection, overview, setOverview, busy, failed, position, question, answer, checkMode, revealed,
+    complete: TrainingRules.isComplete(question, selection), flagged: answer?.flagged ?? false,
+    remaining: TrainingRules.remainingSeconds(training, now), select,
+    selectKey: (key: string) => {
+      const groups = latest.current.session.items[latest.current.position]!.question.groups;
+      const group = groups.find((group) => !group.options.some((option) => selected.current.includes(option.id))) ?? groups[0];
+      const option = group?.options[key.toLowerCase().charCodeAt(0) - 'a'.charCodeAt(0)];
+      if (option) select(option.id);
     },
-    check: () => { if (complete && !revealed && !checkMode) void run(() => save(selection)); },
-    dontKnow: () => { if (!revealed && !checkMode) void run(() => save([], true, false)); },
-    flag: () => { if (checkMode && !training.finish) void run(() => save(selection, false, !flagged)); },
-    finish: () => void run(() => trainingRepository.finish(training.session.id, false)),
+    go: (next: number) => run(() => move(next)),
+    previous: () => run(() => move(latest.current.position - 1)),
+    next: () => run(advance),
+    primary: () => run(async () => {
+      if (expire()) return;
+      if (overviewRef.current) await trainingRepository.finish(id, false);
+      else if (latest.current.session.mode === 'check' || latest.current.answers[String(latest.current.position)]) await advance();
+      else await check();
+    }),
+    dontKnow: () => run(async () => {
+      const current = latest.current;
+      if (current.session.mode === 'practice' && !current.answers[String(current.position)]) await save([], true, false);
+    }),
+    flag: () => {
+      if (expire() || latest.current.session.mode !== 'check') return;
+      run(() => save(selected.current, false, !latest.current.answers[String(latest.current.position)]?.flagged));
+    },
   };
 }

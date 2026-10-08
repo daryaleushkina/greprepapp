@@ -7,8 +7,18 @@ const sdk = vi.hoisted(() => {
   return { unsubscribe, setParams: { isAvailable: vi.fn(() => true), ifAvailable: vi.fn() },
     onClick: { ifAvailable: vi.fn((_handler: () => void): { ok: boolean; data: () => void } => ({ ok: true, data: unsubscribe })) } };
 });
-vi.mock('@tma.js/sdk-react', () => ({ mainButton: sdk }));
+vi.mock('@tma.js/sdk-react', () => ({ mainButton: sdk, secondaryButton: sdk }));
 import { TrainingAction } from './Action';
+
+test('короткий hex главной кнопки разворачивается в RGB после минификации', async () => {
+  const html = document.documentElement;
+  html.style.setProperty('--color-accent', '#abc'); html.style.setProperty('--color-on-accent', '#fff');
+  try {
+    const screen = await render(action());
+    expect(sdk.setParams.ifAvailable).toHaveBeenCalledWith(expect.objectContaining({ bgColor: '#aabbcc', textColor: '#ffffff' }));
+    await screen.unmount();
+  } finally { html.style.removeProperty('--color-accent'); html.style.removeProperty('--color-on-accent'); }
+});
 
 const action = (disabled = false, busy = false, onClick = vi.fn()) => <ShellProvider value={{ shell: 'telegram', launch: null }}>
   <TrainingAction text="Начать" disabled={disabled} busy={busy} onClick={onClick} />

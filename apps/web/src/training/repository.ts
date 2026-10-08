@@ -13,7 +13,13 @@ interface TrainingApi {
   answers: typeof submitTrainingAnswers;
   finish: typeof finishTraining;
 }
-const TRAINING_API: TrainingApi = { options: getTrainingOptions, start: startTraining, answers: submitTrainingAnswers, finish: finishTraining };
+const TRAINING_API: TrainingApi = {
+  options: getTrainingOptions, start: startTraining,
+  // Пачка ограничена договором (50 ответов, по три id до 16 знаков): keepalive переживает перезагрузку в WebKit.
+  // Неотправленное остаётся на диске; повтор того же ответа после открытия подтверждается сервером идемпотентно.
+  answers: (id, answers, options) => submitTrainingAnswers(id, answers, { ...options, keepalive: true }),
+  finish: (id, finish, options) => finishTraining(id, finish, { ...options, keepalive: true }),
+};
 
 /** Одна отправка на все вкладки. Под замком данные перечитываются из IndexedDB, поэтому второй круг не дублирует первый. */
 export class TrainingRepository {
@@ -30,6 +36,7 @@ export class TrainingRepository {
   private running: Promise<void> | undefined;
   private again = false;
   private unauthorized: (error: ApiError) => void = () => {};
+  private edits = new Map<string, number>();
 
   constructor(readonly store = new TrainingStore(), private api: TrainingApi = TRAINING_API, private report = reportError,
     private now: () => number = Date.now, private locks: LockManager | null | undefined = globalThis.navigator?.locks) {
@@ -62,6 +69,19 @@ export class TrainingRepository {
   }
 
   setUnauthorizedHandler(handler: (error: ApiError) => void) { this.unauthorized = handler; }
+
+  /** Фоновый круг не заканчивает сессию раньше записи уже принятых нажатий. Другие сессии отправляются. */
+  holdSync(id: string): () => void {
+    this.edits.set(id, (this.edits.get(id) ?? 0) + 1);
+    let released = false;
+    return () => {
+      if (released) return;
+      released = true;
+      const pending = this.edits.get(id)! - 1;
+      if (pending) this.edits.set(id, pending);
+      else { this.edits.delete(id); this.requestSync(); }
+    };
+  }
 
   signedIn(userId: string): Promise<void> {
     const generation = ++this.generation;
@@ -205,6 +225,7 @@ export class TrainingRepository {
     const all = (await this.store.list(owner)).sort((a, b) => a.startedAtMillis - b.startedAtMillis);
     for (let training of all) {
       if (!this.isCurrent(owner, generation)) return;
+      if (this.edits.has(training.session.id)) continue;
       if (!training.finish && TrainingRules.remainingSeconds(training, this.now()) === 0) {
         const end = training.startedAtMillis + (training.session.timeLimitSeconds ?? 0) * 1000;
         await this.store.update(owner, training.session.id, (t) => t.finish ? t : { ...t, finish: { finishedAt: new Date(end).toISOString(), timedOut: true } });
@@ -232,7 +253,7 @@ export class TrainingRepository {
         if (outcome === 'later') continue;
       }
       const fresh = await this.store.get(owner, id);
-      if (fresh?.finish && !fresh.finishSent && fresh.unsent.length === 0) {
+      if (fresh?.finish && !fresh.finishSent && fresh.unsent.length === 0 && !this.edits.has(id)) {
         const finish = fresh.finish;
         const outcome = await this.send(owner, generation, () => this.api.finish(id, finish), async () => {
           await this.store.update(owner, id, (t) => ({ ...t, finishSent: true }));

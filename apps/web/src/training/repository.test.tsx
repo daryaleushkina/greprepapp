@@ -24,6 +24,19 @@ const seed = async (m: ReturnType<typeof make>, id = trainingSession().id, finis
 };
 const fail = (status: number, kind: 'server' | 'network' | 'contract' = 'server') => new ApiError(kind, { status, code: 'fixture', message: 'fixture' });
 const deferred = () => { let resolve = () => {}; const promise = new Promise<void>((r) => { resolve = r; }); return { promise, resolve }; };
+
+test('две очереди одной сессии удерживают отправку до последней записи, другие сессии уходят', async () => {
+  const m = make(); const { t } = await seed(m);
+  const other = await seed(m, '00000000-0000-4000-8000-000000000101');
+  const first = m.repo.holdSync(t.session.id), second = m.repo.holdSync(t.session.id);
+  await m.repo.sync();
+  expect(m.api.answers).toHaveBeenCalledExactlyOnceWith(other.t.session.id, { answers: [givenAnswer()] });
+  first(); first();
+  await m.repo.sync();
+  expect(m.api.answers).toHaveBeenCalledTimes(1);
+  second(); await m.repo.sync();
+  expect(m.api.answers).toHaveBeenNthCalledWith(2, t.session.id, { answers: [givenAnswer()] });
+});
 afterEach(async () => { for (const { store } of opened) await store.close(); for (const name of new Set(opened.map((s) => s.name))) await deleteDB(name); opened.length = 0; });
 
 test('постоянный отказ пачки проверяет ответы отдельно и не теряет верный при временном отказе', async () => {

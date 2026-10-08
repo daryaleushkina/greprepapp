@@ -1,7 +1,7 @@
 import type { Question, TrainingRequest } from '@greprep/api-client';
 import { isApiError } from '@greprep/api-client';
 import { Link, useNavigate, useParams } from '@tanstack/react-router';
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { BackIcon, CheckIcon } from '../components/icons';
 import { StatusScreen } from '../components/StatusScreen';
 import { dictionaries } from '../i18n/dict';
@@ -12,13 +12,12 @@ import { useShell } from '../shellContext';
 import glass from '../styles/glass.module.css';
 import { useBackButton, useTrainingSwipes } from '../telegram/hooks';
 import { useOnline } from '../useOnline';
-import { TrainingAction } from './Action';
+import { TrainingActions } from './Action';
 import { TYPE_LABELS } from './builder';
 import { useStoredTraining, useTrainingStorage } from './hooks';
 import type { StoredTraining } from './model';
 import { trainingRepository } from './repository';
 import { TrainingRules } from './rules';
-import { TrainingSecondaryAction } from './SecondaryAction';
 import styles from './Training.module.css';
 import { useTrainingSession } from './useTrainingSession';
 
@@ -35,7 +34,7 @@ export function SessionScreen() {
   useTrainingSwipes(shell === 'telegram' && Boolean(training.data && !training.data.finish));
   return <FocusLayout glow={training.data?.session.section ?? 'verbal'} training wide session>
     {storage === 'unavailable' || training.isPending || !training.data ? <div className={styles.screen}>
-      <Link to="/" className={styles.back}>{t.training.question_close}</Link>
+      {shell === 'site' && <Link to="/" className={styles.back}>{t.training.question_close}</Link>}
       {storage === 'unavailable' ? <StatusScreen title={t.training.training_storage_title} text={t.training.training_storage_message} /> : training.isPending ? <p role="status">{t.today.loading}</p> :
         <StatusScreen title={t.training.training_missing_title} text={t.training.training_missing_message} />}
     </div> : <ActiveSession key={trainingId} incoming={training.data} />}
@@ -51,31 +50,31 @@ function ActiveSession({ incoming }: { incoming: StoredTraining }) {
   const total = s.training.session.items.length;
   const last = s.position === total - 1;
   const primary = s.overview ? text.overview_finish : s.checkMode ? last ? text.question_to_list : text.question_next(s.position + 2, total) : s.revealed ? last ? text.question_result : text.question_next(s.position + 2, total) : text.question_check;
-  const act = s.overview ? s.finish : s.checkMode || s.revealed ? s.next : s.check;
+  const act = s.primary;
   const secondary = s.overview ? { text: text.overview_back(s.position + 1), onClick: () => s.setOverview(false) } : s.checkMode ? { text: text.question_skip, onClick: s.next } : !s.revealed ? { text: text.question_dont_know, onClick: s.dontKnow } : undefined;
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
     document.querySelector('main')?.scrollTo({ top: 0 });
     heading.current?.focus({ preventScroll: true });
   }, [s.position, s.overview, s.training.finish]);
+  const keyboard = useRef(s);
+  useLayoutEffect(() => { keyboard.current = s; });
   useEffect(() => {
     if (shell !== 'site') return;
     const key = (event: KeyboardEvent) => {
+      const s = keyboard.current;
       if (event.repeat || event.ctrlKey || event.altKey || event.metaKey || s.training.finish || s.overview) return;
       if (event.target instanceof Element && event.target.closest('input, textarea, select, [contenteditable="true"]')) return;
-      // Нативная активация сфокусированной кнопки остаётся у браузера.
-      if (event.key === 'Enter' && event.target instanceof Element && event.target.closest('button, a, [role="radio"], [role="checkbox"]')) return;
+      // Enter всегда соответствует подсказке; пробел сохраняет нативный выбор сфокусированного варианта.
       if (/^[a-f]$/i.test(event.key) && !s.revealed) {
-        const group = s.question.groups.find((group) => !group.options.some((option) => s.selection.includes(option.id))) ?? s.question.groups[0];
-        const option = group?.options[event.key.toLowerCase().charCodeAt(0) - 'a'.charCodeAt(0)];
-        if (option) { event.preventDefault(); s.select(option.id); }
-      } else if (event.key === 'Enter' && (s.checkMode || s.revealed || s.complete)) { event.preventDefault(); s.whenReady(act); }
-      else if (event.key === 'ArrowRight' && (s.checkMode || s.revealed)) { event.preventDefault(); s.whenReady(s.next); }
-      else if (event.key === 'ArrowLeft' && s.checkMode) { event.preventDefault(); s.whenReady(() => s.go(s.position - 1)); }
+        event.preventDefault(); s.selectKey(event.key);
+      } else if (event.key === 'Enter') { event.preventDefault(); s.primary(); }
+      else if (event.key === 'ArrowRight') { event.preventDefault(); s.next(); }
+      else if (event.key === 'ArrowLeft' && s.checkMode) { event.preventDefault(); s.previous(); }
     };
     window.addEventListener('keydown', key);
     return () => window.removeEventListener('keydown', key);
-  }, [shell, s, act]);
+  }, [shell]);
   if (s.training.finish) return <Summary training={s.training} />;
   const missing = TrainingRules.missingGroups(s.question, s.selection);
   const note = s.overview ? undefined : s.checkMode ? text.question_check_note : s.selection.length && missing.length ? s.question.groups.length > 1 ? (missing.length === 1 ? text.question_missing_blank : text.question_missing_blanks)(missing.map((i) => BLANKS[i]).join(', ')) : s.question.selectCount > 1 ? text.question_pick_one_more : undefined : undefined;
@@ -84,9 +83,9 @@ function ActiveSession({ incoming }: { incoming: StoredTraining }) {
   const flags = Object.values(s.training.answers).filter((answer) => answer.flagged).length;
   return <div className={`${styles.session} ${styles.screen}`} data-shell={shell} data-section={s.training.session.section}>
     <header className={styles.sessionHeader}>
-      <Link to="/" className={styles.close} aria-label={text.question_close}><BackIcon /></Link>
+      {shell === 'site' && <Link to="/" className={styles.close} aria-label={text.question_close}><BackIcon /></Link>}
       <div className={styles.progress} aria-label={text.question_progress_description(s.position + 1, total)}>
-        {s.remaining !== undefined ? <span role="timer" className={`${glass.glass} ${styles.timer}`} aria-label={text.timer_description(Math.floor(s.remaining / 60), s.remaining % 60, s.position + 1, total)}>{Math.floor(s.remaining / 60)}:{String(s.remaining % 60).padStart(2, '0')}</span> : total <= 12 && <span className={styles.dots} aria-hidden="true">{s.training.session.items.map((item) => <i key={item.position} data-current={item.position === s.position || undefined} data-result={s.training.answers[String(item.position)] ? TrainingRules.isCorrect(item.question, s.training.answers[String(item.position)]!.optionIds) ? 'correct' : 'wrong' : undefined} />)}</span>}
+        {s.remaining !== undefined ? <span role="timer" className={`${glass.glass} ${styles.timer}`} aria-label={text.timer_description(Math.floor(s.remaining / 60), s.remaining % 60, s.position + 1, total)}>{Math.floor(s.remaining / 60)}:{String(s.remaining % 60).padStart(2, '0')}</span> : total <= 12 && <span className={styles.dots} aria-hidden="true">{s.training.session.items.map((item) => <i key={item.position} data-current={item.position === s.position || undefined} data-result={!s.checkMode && s.training.answers[String(item.position)] ? TrainingRules.isCorrect(item.question, s.training.answers[String(item.position)]!.optionIds) ? 'correct' : 'wrong' : undefined} />)}</span>}
         <span>{text.question_of(s.position + 1, total)}</span>
       </div>
       {s.checkMode && !s.overview ? <div className={styles.headerActions}>
@@ -106,7 +105,7 @@ function ActiveSession({ incoming }: { incoming: StoredTraining }) {
       <section className={styles.question}>
         <h1 ref={heading} tabIndex={-1} className={styles.questionType}>{TYPE_LABELS[s.question.questionType]}{typeNote && ` · ${typeNote}`}</h1>
         <QuestionPrompt question={s.question} selection={s.revealed ? s.question.answer : s.selection} />
-        <Options question={s.question} selection={s.selection} revealed={s.revealed} onSelect={s.select} disabled={s.busy} />
+        <Options question={s.question} selection={s.selection} revealed={s.revealed} onSelect={s.select} />
       </section>
       {s.revealed && <Explanation question={s.question} chosen={s.answer?.optionIds ?? []} language={language} onLanguage={setLanguage} />}
     </div>}
@@ -114,10 +113,7 @@ function ActiveSession({ incoming }: { incoming: StoredTraining }) {
       {s.failed && <p role="alert" className={styles.note}>{text.training_storage_message}</p>}
       {note && <p role="status" className={styles.note}>{note}</p>}
       {shell === 'site' && !s.overview && <p className={styles.keys}><kbd>A–{String.fromCharCode(64 + Math.max(...s.question.groups.map((group) => group.options.length)))}</kbd> {t.training.question_select_hint} <kbd>Enter</kbd> {primary} {(s.checkMode || s.revealed) && <kbd>→</kbd>}</p>}
-      <div className={styles.actions}>
-        {secondary && <TrainingSecondaryAction {...secondary} disabled={s.busy} />}
-        <TrainingAction text={primary} disabled={s.busy || (!s.checkMode && !s.revealed && !s.complete)} busy={s.busy} onClick={act} />
-      </div>
+      <TrainingActions secondary={secondary && { ...secondary, disabled: s.busy }} primary={{ text: primary, disabled: s.busy || (!s.checkMode && !s.revealed && !s.complete), busy: s.busy, onClick: act }} />
       {s.checkMode && !s.overview && s.position > 0 && <button className={styles.textButton} disabled={s.busy} onClick={() => s.go(s.position - 1)}>{t.back}</button>}
     </footer>
   </div>;
@@ -134,7 +130,7 @@ function QuestionPrompt({ question: q, selection }: { question: Question; select
   </span>}{part}</span>)}</p>;
 }
 
-function Options({ question: q, selection, revealed, disabled, onSelect }: { question: Question; selection: string[]; revealed: boolean; disabled: boolean; onSelect: (id: string) => void }) {
+function Options({ question: q, selection, revealed, onSelect }: { question: Question; selection: string[]; revealed: boolean; onSelect: (id: string) => void }) {
   const { t } = useI18n();
   const many = q.groups.length > 1;
   return <div className={styles.options}>{q.groups.map((group, index) => <div key={index} className={styles.optionGroup} role={revealed ? undefined : q.selectCount === 1 ? 'radiogroup' : 'group'} aria-label={many ? `${t.training.question_blank} ${BLANKS[index]}` : t.training.builder_type}>
@@ -145,7 +141,7 @@ function Options({ question: q, selection, revealed, disabled, onSelect }: { que
         const wrong = revealed && !correct;
         const content = <><span className={styles.letter} lang="en">{many && revealed ? BLANKS[index] : many ? null : option.id}</span><span lang="en" className={styles.optionText}>{option.text}</span>{revealed && <span className={styles.optionMark}>{correct ? t.training.question_correct_mark : t.training.question_yours_mark}{correct ? <CheckIcon /> : <Cross />}</span>}{!revealed && !many && <kbd className={styles.optionKey}>{String.fromCharCode(65 + optionIndex)}</kbd>}</>;
         return revealed ? <div key={option.id} className={styles.option} data-result={correct ? 'correct' : wrong ? 'wrong' : undefined}>{content}</div> :
-          <button key={option.id} className={styles.option} type="button" role={q.selectCount === 1 ? 'radio' : 'checkbox'} aria-checked={selection.includes(option.id)} disabled={disabled} onClick={() => onSelect(option.id)}>{content}</button>;
+          <button key={option.id} className={styles.option} type="button" role={q.selectCount === 1 ? 'radio' : 'checkbox'} aria-checked={selection.includes(option.id)} onClick={() => onSelect(option.id)}>{content}</button>;
       })}
     </div>
     {revealed && <p className={styles.others} aria-label={t.training.question_others} lang="en">{group.options.filter((option) => !selection.includes(option.id) && !q.answer.includes(option.id)).map((option) => `${many ? '' : option.id + ' '}${option.text}`).join('　 ')}</p>}
@@ -206,7 +202,7 @@ function Summary({ training }: { training: StoredTraining }) {
     finally { starting.current = false; setBusy(false); }
   };
   return <div className={`${styles.screen} ${styles.session} ${styles.summary}`} data-shell={shell} data-section={training.session.section}>
-    <Link to="/" className={styles.close} aria-label={text.summary_done}><BackIcon /></Link>
+    {shell === 'site' && <Link to="/" className={styles.close} aria-label={text.summary_done}><BackIcon /></Link>}
     <h1 className={styles.score} aria-label={text.summary_correct_of(result.correct, result.total)}><span>{result.correct}</span><small>{text.summary_correct_of(result.correct, result.total).replace(String(result.correct), '').trim()}</small></h1>
     <p className={styles.note}>{line}</p>
     {training.finish?.timedOut && <p className={styles.note}>{text.summary_timed_out}</p>}
@@ -221,10 +217,7 @@ function Summary({ training }: { training: StoredTraining }) {
     </section> : !result.unanswered && <p>{text.summary_perfect}</p>}
     <footer className={styles.sessionFooter}>
       {(problem || !online && result.review.length > 0) && <p role="status" className={styles.note}>{problem ?? text.builder_start_offline}</p>}
-      <div className={styles.actions}>
-        {result.review.length > 0 && <TrainingSecondaryAction text={text.summary_done} disabled={busy} onClick={close} />}
-        <TrainingAction text={result.review.length ? text.summary_repeat(text.questionsCount(count)) : text.summary_done} disabled={busy || Boolean(result.review.length && !online)} busy={busy} onClick={result.review.length ? () => void repeat() : close} />
-      </div>
+      <TrainingActions secondary={result.review.length > 0 ? { text: text.summary_done, disabled: busy, onClick: close } : undefined} primary={{ text: result.review.length ? text.summary_repeat(text.questionsCount(count)) : text.summary_done, disabled: busy || Boolean(result.review.length && !online), busy, onClick: result.review.length ? () => void repeat() : close }} />
     </footer>
   </div>;
 }
