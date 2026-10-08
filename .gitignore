@@ -9,14 +9,11 @@
 .env
 .env.*
 !.env.example
-.dev.vars*
 
 # Зависимости и сборка
 node_modules/
 dist/
 dist-e2e/
-.wrangler/
-.supabase/
 
 # Тесты: результаты, отчёты, покрытие (эталоны снимков e2e/__screens__ коммитим)
 test-results/

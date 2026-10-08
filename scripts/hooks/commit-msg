@@ -1,5 +1,5 @@
 #!/bin/sh
-# Коммит — от Даши и без подписей ИИ-ассистента (CLAUDE.md, «Git»). Хуки включает .claude/hooks/session-git.sh
+# Коммит — от Даши и без подписей ИИ-ассистента (AGENTS.md, «Git»). Хуки включает .claude/hooks/session-git.sh
 # в начале сессии Claude Code (или руками: git config core.hooksPath scripts/hooks). Тест: scripts/hooks/git-hooks.test.ts.
 
 msg="$1"
@@ -9,8 +9,8 @@ msg="$1"
 case "$(git var GIT_AUTHOR_IDENT 2>/dev/null)" in
   *noreply@anthropic.com*)
     {
-      echo "commit-msg: автор коммита — Claude, а должна быть Даша (CLAUDE.md, «Git»). Поставь автора и закоммить ещё раз:"
-      echo "  git config user.name daryaleushkina && git config user.email darya_leushkina@mail.ru"
+      echo "commit-msg: автор коммита — Claude, а должна быть Даша (AGENTS.md, «Git»). Поставь автора и закоммить ещё раз:"
+      echo "  git config user.name 'Darya Leushkina' && git config user.email 15678175+daryaleushkina@users.noreply.github.com"
     } >&2
     exit 1
     ;;
@@ -18,12 +18,12 @@ esac
 
 # Строки-комментарии и всё ниже «ножниц» (git commit -v) в коммит не попадают — их не проверяем.
 bad="$(awk '/^# -+ >8 -+$/ { exit } !/^#/ { print NR ": " $0 }' "$msg" |
-  grep -iE 'co-authored-by:.*(claude|anthropic)|generated (with|by).*claude|claude\.ai/code|claude\.com/claude-code|claude-session:')"
+  grep -iE 'co-authored-by:.*(claude|anthropic|codex|openai|chatgpt)|generated (with|by).*(claude|codex|chatgpt)|claude\.ai/code|claude\.com/claude-code|claude-session:')"
 [ -z "$bad" ] && exit 0
 
 {
   echo "commit-msg: в сообщении коммита подпись ИИ-ассистента — убери эти строки:"
   printf '%s\n' "$bad" | sed 's/^/  /'
-  echo "Правило проекта (CLAUDE.md, «Git»): ни в коммитах, ни в PR, ни в файлах — никаких подписей ИИ-ассистента."
+  echo "Правило проекта (AGENTS.md, «Git»): ни в коммитах, ни в PR, ни в файлах — никаких подписей ИИ-ассистента."
 } >&2
 exit 1

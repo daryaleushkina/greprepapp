@@ -15,7 +15,7 @@
 //   • мини-апп входит настоящим путём: фикстура подписывает initData ключом тестового бота (E2E_BOT_TOKEN), сервер
 //     проверяет подпись; сайт — кнопками через подменный провайдер или входом подменой.
 //
-// Проекты: мини-апп — iPhone/WebKit и Android/Chromium, светлая и тёмная тема (CLAUDE.md, «Тесты»); сайт — компьютер
+// Проекты: мини-апп — iPhone/WebKit и Android/Chromium, светлая и тёмная тема (AGENTS.md, «Тесты»); сайт — компьютер
 // (Chromium и WebKit/Safari, обе темы), средняя ширина и телефон.
 import { defineConfig, devices, type PlaywrightTestOptions, type PlaywrightWorkerOptions, type Project } from '@playwright/test';
 

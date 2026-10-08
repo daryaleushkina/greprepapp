@@ -33,7 +33,7 @@ type Identity struct {
 	Name     string
 }
 
-// outboundTimeout — срок любого запроса наружу (ключи провайдера, обмен кода). CLAUDE.md: каждый запрос
+// outboundTimeout — срок любого запроса наружу (ключи провайдера, обмен кода). AGENTS.md: каждый запрос
 // наружу — с context и сроком.
 const outboundTimeout = 10 * time.Second
 
