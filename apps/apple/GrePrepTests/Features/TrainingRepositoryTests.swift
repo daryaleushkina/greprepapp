@@ -22,7 +22,120 @@ struct TrainingRepositoryTests {
         model.connect(
             api: API(config: server.config(), session: server.session, tokens: MemoryTokenStore("t")), ownerID: owner)
         _ = try await model.options()
+        await model.repository.sync()
         return (model, reports)
+    }
+
+    @Test func slowQueueDoesNotBlockOptionsStartOrEdits() async throws {
+        let t = TrainingFixture.stored(pending: true)
+        try store.saveOwner("person")
+        try store.save(t)
+        let gate = StubServer.Gate()
+        defer { gate.open() }
+        server.on("POST /api/trainings/\(t.id)/answers", .gated(gate, 204, ""), .status(204))
+        server.on("GET /api/trainings/options", .json(200, TrainingFixture.json(TrainingFixture.options)))
+        var session = TrainingFixture.session
+        session.id = "00000000-0000-4000-8000-000000000102"
+        server.on("POST /api/trainings", .json(201, TrainingFixture.json(session)))
+        let model = TrainingModel(store: store, report: { _, _ in }, unauthorized: {})
+        model.connect(
+            api: API(config: server.config(), session: server.session, tokens: MemoryTokenStore("t")), ownerID: "person"
+        )
+        await eventually { !server.requests("POST /api/trainings/\(t.id)/answers").isEmpty }
+        let options = Task { try await model.options() }
+        let start = Task { try await model.start(TrainingFixture.options.presets[0].request) }
+        model.recordAnswer(t.id, position: 1, optionIDs: ["B"])
+        await eventually {
+            !server.requests("GET /api/trainings/options").isEmpty && !server.requests("POST /api/trainings").isEmpty
+                && model.trainings[t.id]?.unsent.contains(1) == true
+        }
+        gate.open()
+        _ = try await options.value
+        _ = try await start.value
+        #expect(try store.load { _ in }[t.id]?.answers[1]?.optionIds == ["B"])
+    }
+
+    @Test("Отказ транзакции проверяет ответы отдельно", arguments: [400, 404, 409, 410, 422])
+    func rejectedBatchKeepsValidAnswers(status: Int) async throws {
+        var t = TrainingFixture.stored(pending: true)
+        t.answers[1] = .init(
+            position: 1, optionIds: ["B"], dontKnow: false, flagged: false, answeredAt: Date(), elapsedMs: 100)
+        t.unsent.insert(1)
+        server.on(
+            "POST /api/trainings/\(t.id)/answers", .json(status, Fixture.error("bad_answer")),
+            .json(status, Fixture.error("bad_answer")), .status(204))
+        let (model, reports) = try await model([t])
+        #expect(model.trainings[t.id]?.unsent.isEmpty == true)
+        let requests = server.requests("POST /api/trainings/\(t.id)/answers")
+        #expect(requests.count == 3)
+        #expect(try requests.map { try $0.json()["answers"] as? [[String: Any]] }.map { $0?.count } == [2, 1, 1])
+        #expect(reports.messages.filter { $0.contains("rejected") }.count == 1)
+    }
+
+    @Test("После дробления временный отказ сохраняет только неотправленный ответ", arguments: [403, 408, 429, 500])
+    func splitBatchRetriesOnlyUnconfirmedAnswer(status: Int) async throws {
+        var t = TrainingFixture.stored(pending: true)
+        t.answers[1] = .init(
+            position: 1, optionIds: ["B"], dontKnow: false, flagged: false, answeredAt: Date(), elapsedMs: 100)
+        t.unsent.insert(1)
+        try store.saveOwner("person")
+        try store.save(t)
+        server.on(
+            "POST /api/trainings/\(t.id)/answers", .json(422, Fixture.error("bad_answer")), .status(204),
+            .json(status, Fixture.error("temporary")))
+        let access = TrainingAccess()
+        let epoch = access.renew()
+        let repo = TrainingRepository(
+            store: store, access: access, report: { _, _ in }, publish: { _, _ in }, unauthorized: { _ in })
+        await repo.connect(
+            api: API(config: server.config(), session: server.session, tokens: MemoryTokenStore("t")),
+            ownerID: "person", revision: epoch)
+        await repo.sync()
+        #expect(try store.load { _ in }[t.id]?.unsent == [1])
+        server.on("POST /api/trainings/\(t.id)/answers", .status(204))
+        await repo.sync()
+        #expect(try store.load { _ in }[t.id]?.unsent.isEmpty == true)
+        let sent = try #require(server.requests("POST /api/trainings/\(t.id)/answers").last).json()
+        #expect((sent["answers"] as? [[String: Any]])?.first?["position"] as? Int == 1)
+    }
+
+    @Test func expiringChecksRetainAnswerWrittenBetweenPublications() async throws {
+        var first = TrainingFixture.stored(start: 1_799_999_000_000)
+        first.session.mode = .check
+        first.session.timeLimitSeconds = 60
+        var second = first
+        second.session.id = "00000000-0000-4000-8000-000000000101"
+        try store.saveOwner("person")
+        try store.save(first)
+        try store.save(second)
+        let access = TrainingAccess()
+        let epoch = access.renew()
+        var target: String?
+        var resume: CheckedContinuation<Void, Never>?
+        let repo = TrainingRepository(
+            store: store, access: access, now: { Date(timeIntervalSince1970: 1_800_000_000) }, report: { _, _ in },
+            publish: { all, _ in
+                if target == nil, all.values.filter({ $0.isFinished }).count == 1 {
+                    target = all.values.first { !$0.isFinished }?.id
+                    await withCheckedContinuation { resume = $0 }
+                }
+            }, unauthorized: { _ in })
+        server.on("POST /api/trainings/\(first.id)/answers", .failure(.notConnectedToInternet))
+        server.on("POST /api/trainings/\(second.id)/answers", .failure(.notConnectedToInternet))
+        let connect = Task {
+            await repo.connect(
+                api: API(config: server.config(), session: server.session, tokens: MemoryTokenStore("t")),
+                ownerID: "person", revision: epoch)
+        }
+        await eventually { resume != nil }
+        let id = try #require(target)
+        await repo.answer(id, position: 0, optionIDs: ["A"], epoch: epoch)
+        resume?.resume()
+        await connect.value
+        await repo.sync()
+        let saved = try #require(store.load { _ in }[id])
+        #expect(saved.answers[0]?.optionIds == ["A"] && saved.unsent == [0])
+        #expect(saved.finish?.timedOut == true)
     }
 
     @Test func startPersistsWholeSessionAndQueriesFourTypes() async throws {
@@ -240,7 +353,7 @@ struct TrainingRepositoryTests {
         #expect(try store.load { _ in }.isEmpty)
     }
 
-    @Test func corruptedOwnerIsQuarantinedAndReported() async throws {
+    @Test func corruptedOwnerClearsTrainingsAndReports() async throws {
         let t = TrainingFixture.stored()
         try store.save(t)
         try Data("broken".utf8).write(to: store.directory.appending(path: "owner.json"))
@@ -251,10 +364,45 @@ struct TrainingRepositoryTests {
             api: API(config: server.config(), session: server.session, tokens: MemoryTokenStore("t")), ownerID: "person"
         )
         _ = try await model.options()
-        #expect(model.trainings[t.id] != nil)
+        #expect(model.trainings.isEmpty)
+        #expect(try store.load { _ in }.isEmpty)
         #expect(reports.messages.contains { $0.contains("owner unreadable") })
         let files = try FileManager.default.contentsOfDirectory(at: store.directory, includingPropertiesForKeys: nil)
-        #expect(files.contains { $0.pathExtension == "broken" })
+        #expect(!files.contains { $0.pathExtension == "broken" })
+    }
+
+    @Test func corruptedOwnerCleanupFailureRemainsDetectableAfterRelaunch() async throws {
+        let t = TrainingFixture.stored(pending: true)
+        try store.save(t)
+        let owner = store.directory.appending(path: "owner.json")
+        try Data("private corrupt identity".utf8).write(to: owner)
+        let parent = store.directory.deletingLastPathComponent()
+        try FileManager.default.setAttributes([.posixPermissions: 0o500], ofItemAtPath: parent.path)
+        defer {
+            do { try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: parent.path) } catch {
+                Issue.record("не восстановились права тестовой папки")
+            }
+        }
+        let reports = Reports()
+        let model = TrainingModel(store: store, report: { message, _ in reports.add(message) }, unauthorized: {})
+        let api = API(config: server.config(), session: server.session, tokens: MemoryTokenStore("t"))
+        model.connect(api: api, ownerID: "person")
+        do {
+            _ = try await model.options()
+            Issue.record("доступна повреждённая очередь")
+        } catch { #expect(error.isReportable) }
+        #expect(model.trainings.isEmpty)
+        #expect(FileManager.default.fileExists(atPath: owner.path))
+        #expect(reports.messages.allSatisfy { !$0.contains("private corrupt identity") && !$0.contains(owner.path) })
+        try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: parent.path)
+        let again = TrainingModel(
+            store: TrainingStore(directory: store.directory), report: { _, _ in }, unauthorized: {})
+        server.on("GET /api/trainings/options", .json(200, TrainingFixture.json(TrainingFixture.options)))
+        again.connect(api: api, ownerID: "person")
+        _ = try await again.options()
+        #expect(again.trainings.isEmpty)
+        #expect(try store.load { _ in }.isEmpty)
+        #expect(server.requests("POST /api/trainings/\(t.id)/answers").isEmpty)
     }
 
     @Test func queuedStartCannotMoveToNewLogin() async throws {
@@ -263,13 +411,14 @@ struct TrainingRepositoryTests {
         try store.save(t)
         let gate = StubServer.Gate()
         defer { gate.open() }
-        server.on("POST /api/trainings/\(t.id)/answers", .gated(gate, 204, ""))
+        server.on("GET /api/me", .gated(gate, 200, TrainingFixture.json(Fixture.user)))
         server.on("GET /api/trainings/options", .json(200, TrainingFixture.json(TrainingFixture.options)))
         server.on("POST /api/trainings", .json(201, TrainingFixture.json(TrainingFixture.session)))
         let model = TrainingModel(store: store, report: { _, _ in }, unauthorized: {})
         model.connect(
-            api: API(config: server.config(), session: server.session, tokens: MemoryTokenStore("old")), ownerID: "old")
-        await eventually { !server.requests("POST /api/trainings/\(t.id)/answers").isEmpty }
+            api: API(config: server.config(), session: server.session, tokens: MemoryTokenStore("old")), ownerID: nil,
+            credentialID: "changed-token")
+        await eventually { !server.requests("GET /api/me").isEmpty }
         var requested = false
         let start = Task {
             requested = true
@@ -302,7 +451,10 @@ struct TrainingRepositoryTests {
         model.connect(
             api: API(config: server.config(), session: server.session, tokens: MemoryTokenStore("new")),
             ownerID: Fixture.user.id)
-        _ = try await model.options()
+        do {
+            _ = try await model.options()
+            Issue.record("доступны тренировки после сбоя удаления")
+        } catch { #expect(error.isReportable) }
         #expect(reports.messages.contains { $0.contains("storage failed") })
         #expect(model.trainings.isEmpty)
         await model.repository.sync()

@@ -23,6 +23,17 @@ struct TrainingStoreTests {
         #expect(try store.owner() == nil)
     }
 
+    @Test func liveFactoryAndDirectoryAfterAccountClear() throws {
+        let cache = temporaryCache()
+        let store = TrainingStore.live(beside: cache)
+        #expect(store.directory == cache.fileURL.deletingLastPathComponent().appending(path: "trainings"))
+        try store.saveOwner("first")
+        try store.clear()
+        try store.saveOwner("second")
+        #expect(try store.owner() == "second")
+        #expect(try store.directory.resourceValues(forKeys: [.isExcludedFromBackupKey]).isExcludedFromBackup == true)
+    }
+
     @Test func corruptFileIsKeptAside() throws {
         try store.save(TrainingFixture.stored())
         let file = store.directory.appending(path: TrainingFixture.session.id + ".training.json")

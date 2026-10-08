@@ -164,7 +164,7 @@ const RELATIVE = {
 };
 const SWIFT_WEIGHT = { 400: '.regular', 500: '.medium', 600: '.semibold' };
 
-function emitSwift({ common }) {
+function emitSwift({ common }, apple) {
   const group = (head) => common.filter((t) => t.path[0] === head && t.$type === 'dimension');
   const cg = (title, head, doc) => [
     `/// ${doc}`,
@@ -198,6 +198,11 @@ ${cg('GPRadius', 'radius', 'Радиусы скругления, pt. full — к
 ${cg('GPSize', 'size', 'Размеры элементов, pt.')}
 
 ${cg('GPLayout', 'layout', 'Раскладка, pt. breakpointWide — граница компактной и широкой раскладки.')}
+
+/// Прозрачность состояний элементов Apple.
+public enum GPOpacity {
+    public static let disabled: Double = ${fmt(apple.opacity.disabled.$value)}
+}
 
 /// Роль текста: размер и межстрочный — pt, трекинг — доля размера (em), relativeTo — с каким стилем Dynamic Type растёт.
 public struct GPTextStyle: Sendable {
@@ -365,7 +370,7 @@ export async function render() {
   const parts = split(await resolveModes());
   const files = {
     'web/tokens.css': emitCss(parts),
-    'apple/GPTokens.swift': emitSwift(parts),
+    'apple/GPTokens.swift': emitSwift(parts, JSON.parse(await readFile(join(here, 'src/apple/control.json'), 'utf8'))),
     'android/GpTokens.kt': emitKotlin(parts),
     ...emitAndroidColorResources(parts),
     ...Object.fromEntries(Object.entries(emitColorAssets(parts)).map(([k, v]) => ['apple/' + k, v])),

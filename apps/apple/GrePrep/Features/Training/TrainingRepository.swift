@@ -4,7 +4,7 @@ import Foundation
 /// сверяется с поколением входа и с самим ответом, который ушёл в запросе.
 actor TrainingRepository {
     typealias Report = @Sendable (String, String?) -> Void
-    typealias Publish = @MainActor @Sendable ([String: StoredTraining], Int) -> Void
+    typealias Publish = @MainActor @Sendable ([String: StoredTraining], Int) async -> Void
     private let store: TrainingStore
     nonisolated let access: TrainingAccess
     private let report: Report
@@ -16,6 +16,8 @@ actor TrainingRepository {
     private var credentialID: String?
     private var api: API?
     private var revision = 0
+    private var storageAvailable = false
+    private var syncWaiters: [CheckedContinuation<Void, Never>] = []
     private var loaded = false
     private var syncing = false
     private var syncAgain = false
@@ -42,6 +44,7 @@ actor TrainingRepository {
         self.api = api
         self.revision = revision
         self.credentialID = credentialID
+        storageAvailable = false
         do {
             if clearPrevious || store.requiresClear || clearPending {
                 try access.withCurrent(revision) {
@@ -58,6 +61,16 @@ actor TrainingRepository {
                 loaded = true
                 do { ownerID = try store.owner() } catch {
                     report("training owner unreadable: \(TrainingStore.reason(error))", nil)
+                    // Владелец не проверен: даже совпавший id в файлах не разрешает показать прошлую очередь.
+                    try access.withCurrent(revision) {
+                        let lost = all.values.reduce(0) { $0 + $1.unsent.count }
+                        all = [:]
+                        ownerID = nil
+                        clearPending = true
+                        report("training account changed: lost \(lost) unsent answers", nil)
+                        try store.clear()
+                        clearPending = false
+                    }
                 }
             }
             if let knownOwner {
@@ -72,12 +85,18 @@ actor TrainingRepository {
                     try selectOwner(user.id, revision: revision)
                 }
             }
+            storageAvailable = true
             await notify()
-            await sync()
+            // Подключение ждёт только диск и владельца: очередь не задерживает форму и локальные ответы.
+            Task { await sync() }
         } catch {
+            guard access.isCurrent(revision) else { return }
             if let failure = error as? APIFailure {
+                // Диск прочитан; отсутствие сети при проверке владельца не делает хранилище неисправным.
+                storageAvailable = true
                 await handle(failure, what: "owner", epoch: revision)
             } else {
+                storageAvailable = false
                 reportStorage(error)
             }
             await notify()
@@ -103,6 +122,7 @@ actor TrainingRepository {
 
     func options(epoch: Int) async throws(APIFailure) -> TrainingOptions {
         guard let api, revision == epoch, access.isCurrent(epoch) else { throw .cancelled }
+        guard storageAvailable else { throw .unexpected("training storage unavailable") }
         do {
             let options = try await api.trainingOptions()
             guard access.isCurrent(epoch) else { throw APIFailure.cancelled }
@@ -123,6 +143,7 @@ actor TrainingRepository {
                 try selectOwner(user.id, revision: epoch)
             }
             guard access.isCurrent(epoch), let ownerID else { throw APIFailure.cancelled }
+            guard storageAvailable else { throw APIFailure.unexpected("training storage unavailable") }
             let session = try await api.startTraining(request)
             guard access.isCurrent(epoch) else { throw APIFailure.cancelled }
             let training = StoredTraining(
@@ -213,6 +234,7 @@ actor TrainingRepository {
             }
             try store.saveOwner(id, credentialID: credentialID)
             ownerID = id
+            storageAvailable = true
         }
     }
 
@@ -225,10 +247,16 @@ actor TrainingRepository {
     func sync() async {
         if syncing {
             syncAgain = true
+            await withCheckedContinuation { syncWaiters.append($0) }
             return
         }
         syncing = true
-        defer { syncing = false }
+        defer {
+            syncing = false
+            let waiters = syncWaiters
+            syncWaiters = []
+            for waiter in waiters { waiter.resume() }
+        }
         repeat {
             syncAgain = false
             await syncOnce()
@@ -253,8 +281,11 @@ actor TrainingRepository {
                 return
             }
         }
-        guard let ownerID else { return }
-        for var t in all.values where t.ownerID == ownerID && !t.isFinished {
+        guard let ownerID, storageAvailable else { return }
+        // После каждого await могла прийти правка. Из снимка берём только id, содержимое читаем заново.
+        let ids = all.values.filter { $0.ownerID == ownerID && !$0.isFinished }.map(\.id)
+        for id in ids {
+            guard var t = current(id, epoch), !t.isFinished else { continue }
             if TrainingRules.remainingSeconds(t, nowMillis: Int64(now().timeIntervalSince1970 * 1000)) == 0,
                 let limit = t.session.timeLimitSeconds
             {
@@ -269,25 +300,14 @@ actor TrainingRepository {
             guard access.isCurrent(epoch) else { return }
             if !t.unsent.isEmpty {
                 let answers = t.unsent.sorted().compactMap { t.answers[$0] }
-                let sent = await send(epoch: epoch, what: "answers") {
-                    try await api.trainingAnswers(t.id, answers: answers)
-                }
-                switch sent {
-                case .stop: return
-                case .later: continue
-                case .done:
-                    if var fresh = current(t.id, epoch) {
-                        fresh.unsent = fresh.unsent.filter { fresh.answers[$0].map { !answers.contains($0) } ?? true }
-                        await persist(fresh, epoch: epoch)
-                    }
-                }
+                if await sendAnswers(t.id, answers: answers, api: api, epoch: epoch) == .stop { return }
             }
             if var fresh = current(t.id, epoch), fresh.unsent.isEmpty, let finish = fresh.finish, !fresh.finishSent {
                 let sent = await send(epoch: epoch, what: "finish") {
                     try await api.trainingFinish(t.id, finish: finish)
                 }
                 if sent == .stop { return }
-                if sent == .done, let current = current(t.id, epoch) {
+                if sent == .done || sent == .rejected, let current = current(t.id, epoch) {
                     fresh = current
                     fresh.finishSent = true
                     await persist(fresh, epoch: epoch)
@@ -298,8 +318,27 @@ actor TrainingRepository {
         await notify()
     }
 
-    private enum Sent { case done, later, stop }
-    private func send(epoch: Int, what: String, request: () async throws -> Void) async -> Sent {
+    private func sendAnswers(_ id: String, answers: [GivenAnswer], api: API, epoch: Int) async -> Sent {
+        let what = answers.count == 1 ? "answer at position \(answers[0].position)" : "answers"
+        let sent = await send(epoch: epoch, what: what, reportRejection: answers.count == 1) {
+            try await api.trainingAnswers(id, answers: answers)
+        }
+        if sent == .rejected && answers.count > 1 {
+            // Пачка — транзакция: её отказ ничего не говорит об остальных ответах.
+            for answer in answers {
+                if await sendAnswers(id, answers: [answer], api: api, epoch: epoch) == .stop { return .stop }
+            }
+        } else if sent == .done || sent == .rejected, var fresh = current(id, epoch) {
+            fresh.unsent = fresh.unsent.filter { fresh.answers[$0].map { !answers.contains($0) } ?? true }
+            await persist(fresh, epoch: epoch)
+        }
+        return sent
+    }
+
+    private enum Sent { case done, rejected, later, stop }
+    private func send(epoch: Int, what: String, reportRejection: Bool = true, request: () async throws -> Void) async
+        -> Sent
+    {
         do {
             try await request()
             return access.isCurrent(epoch) ? .done : .stop
@@ -310,8 +349,8 @@ actor TrainingRepository {
             switch failure {
             case .offline, .unauthorized, .cancelled: return .stop
             case let .server(status, code, requestID) where [400, 404, 409, 410, 422].contains(status):
-                report("training \(what) rejected: \(code)", requestID)
-                return .done
+                if reportRejection { report("training \(what) rejected: \(code)", requestID) }
+                return .rejected
             default: return .later
             }
         }

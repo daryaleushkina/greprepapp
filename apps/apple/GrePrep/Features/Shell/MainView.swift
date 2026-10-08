@@ -14,11 +14,21 @@ struct MainView: View {
     }
 
     var body: some View {
-        if let trainingEntry {
-            TrainingFlow(entry: trainingEntry, trainings: app.trainings) { self.trainingEntry = nil }
-        } else {
-            tabs
-        }
+        #if os(iOS)
+            tabs.fullScreenCover(item: $trainingEntry) { entry in
+                TrainingFlow(entry: entry, trainings: app.trainings) { trainingEntry = nil }
+            }
+        #else
+            ZStack {
+                tabs
+                    .accessibilityHidden(trainingEntry != nil)
+                    .allowsHitTesting(trainingEntry == nil)
+                if let trainingEntry {
+                    TrainingFlow(entry: trainingEntry, trainings: app.trainings) { self.trainingEntry = nil }
+                        .background(Color(.bg))
+                }
+            }
+        #endif
     }
 
     private var tabs: some View {

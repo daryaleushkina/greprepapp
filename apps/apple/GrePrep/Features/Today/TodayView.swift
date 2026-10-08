@@ -8,6 +8,7 @@ struct TodayView: View {
     /// Снимки экранов выключают запрос при появлении: иначе кадр ловит его на полпути.
     let refreshesOnAppear: Bool
     let onTraining: (TrainingEntry) -> Void
+    @State private var didRefreshOnAppear = false
     @State private var path: [TodayPlan.Step] = []
     @State private var blockedStepID: TodayPlan.Step.ID?
 
@@ -31,7 +32,11 @@ struct TodayView: View {
                 }
         }
         .task {
-            if refreshesOnAppear { await model.refresh() }
+            // Полноэкранная тренировка скрывает вкладки; возврат не требует повторять исходный запрос.
+            if refreshesOnAppear, !didRefreshOnAppear {
+                didRefreshOnAppear = true
+                await model.refresh()
+            }
         }
         .onChange(of: app.network.isOnline) { _, online in
             if online { blockedStepID = nil }
@@ -79,12 +84,15 @@ struct TodayView: View {
                             VStack(alignment: .leading, spacing: GPSpace.s4) {
                                 Text("Продолжить тренировку").gpText(GPType.headline)
                                 Text(verbatim: TrainingCopy.continuation(training)).gpText(GPType.subhead)
-                                    .foregroundStyle(Color(.textSecondary))
+                                    .foregroundStyle(StudySection(training.session.section).color)
+                                    .fixedSize(horizontal: false, vertical: true)
                             }
-                            Spacer()
+                            Spacer(minLength: GPSpace.s8)
                             Image(systemName: "chevron.forward").foregroundStyle(Color(.textSecondary))
-                        }.frame(minHeight: GPSize.rowTall).contentShape(Rectangle())
-                    }.buttonStyle(.plain).padding(.top, GPSpace.s20)
+                        }.frame(minHeight: GPSize.rowTall).padding(GPSpace.s16)
+                            .background(Color(.surface), in: RoundedRectangle(cornerRadius: GPRadius.xxl))
+                            .contentShape(RoundedRectangle(cornerRadius: GPRadius.xxl))
+                    }.buttonStyle(PressScaleStyle()).padding(.top, GPSpace.s20)
                         .accessibilityIdentifier("today.continueTraining")
                 }
                 StepRibbon(plan: plan, blockedStepID: blockedStepID, onSelect: select)

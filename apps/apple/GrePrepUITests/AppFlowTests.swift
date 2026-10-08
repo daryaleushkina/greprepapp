@@ -17,9 +17,12 @@ final class AppFlowTests: XCTestCase {
         continueAfterFailure = false
     }
 
-    private func launch(reset: Bool, server: String? = nil) -> XCUIApplication {
+    private func launch(reset: Bool, server: String? = nil, largeText: Bool = false) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["-AppleLanguages", "(ru)", "-AppleLocale", "ru_RU"] + (reset ? ["-GPResetState"] : [])
+        if largeText {
+            app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
+        }
         app.launchEnvironment["GP_API_BASE_URL"] = server ?? serverURL
         app.launch()
         return app
@@ -107,7 +110,10 @@ final class AppFlowTests: XCTestCase {
         app.swipeUp()
         app.buttons["today.newTraining"].tap()
         XCTAssertTrue(app.buttons["builder.start"].waitForExistence(timeout: 10))
-        XCTAssertFalse(app.tabBars.firstMatch.exists, "в тренировке нет вкладок")
+        // Full-screen cover сохраняет TabView в иерархии; под экраном тренировки вкладки недоступны.
+        let hiddenTabs = expectation(
+            for: NSPredicate(format: "hittable == false"), evaluatedWith: app.tabBars.firstMatch)
+        wait(for: [hiddenTabs], timeout: 5)
         let count = app.textFields["builder.count"]
         // Касание справа от числа ставит курсор в конец поля, как при обычном редактировании.
         count.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
@@ -120,7 +126,22 @@ final class AppFlowTests: XCTestCase {
         wait(for: [changed], timeout: 5)
         app.buttons["builder.topics"].tap()
         XCTAssertTrue(app.buttons["builder.topics.done"].waitForExistence(timeout: 5))
+        let topics = app.switches.matching(NSPredicate(format: "identifier BEGINSWITH %@", "builder.topic."))
+        XCTAssertGreaterThan(topics.count, 1)
+        // В наборе для разработки здесь один средний вопрос; в остальных темах остаются ещё четыре.
+        app.switches["builder.topic.cause-effect"].tap()
+        app.segmentedControls["builder.difficulty"].buttons["Средняя"].tap()
         app.buttons["builder.topics.done"].tap()
+        let retained = expectation(for: NSPredicate(format: "value == %@", "3"), evaluatedWith: count)
+        wait(for: [retained], timeout: 5)
+        XCTAssertTrue(app.buttons["builder.topics"].label.contains("Средняя"))
+        XCTAssertTrue(app.buttons["builder.topics"].label.contains("2 из 3"))
+        app.buttons["builder.topics"].tap()
+        XCTAssertTrue(app.buttons["builder.topics.done"].waitForExistence(timeout: 5))
+        XCTAssertEqual(app.switches["builder.topic.cause-effect"].value as? String, "0")
+        XCTAssertTrue(app.segmentedControls["builder.difficulty"].buttons["Средняя"].isSelected)
+        app.buttons["builder.topics.done"].tap()
+        XCTAssertTrue(app.buttons["builder.start"].label.contains("3 вопроса"))
         app.buttons["builder.start"].tap()
         XCTAssertTrue(app.otherElements["training.session"].waitForExistence(timeout: 10))
         app.terminate()
@@ -128,11 +149,27 @@ final class AppFlowTests: XCTestCase {
         let again = launch(reset: false, server: unreachableServer)
         let resume = again.buttons["today.continueTraining"]
         XCTAssertTrue(resume.waitForExistence(timeout: 10), "тренировка должна пережить перезапуск без сети")
-        XCTAssertTrue(resume.label.contains("вопрос 1 из"), resume.label)
+        XCTAssertTrue(
+            resume.label.replacingOccurrences(of: "\u{00A0}", with: " ").contains("вопрос 1 из 3"), resume.label)
         resume.tap()
         XCTAssertTrue(again.otherElements["training.session"].waitForExistence(timeout: 5))
         again.buttons["training.close"].tap()
         XCTAssertTrue(again.staticTexts["today.summary"].waitForExistence(timeout: 5))
+    }
+
+    func testTrainingClosePreservesTodayScroll() {
+        let app = launch(reset: true, largeText: true)
+        signIn(app)
+        app.swipeUp()
+        let entry = app.buttons["today.newTraining"]
+        XCTAssertTrue(entry.isHittable)
+        let originalY = entry.frame.midY
+        entry.tap()
+        XCTAssertTrue(app.buttons["builder.start"].waitForExistence(timeout: 10))
+        app.buttons["training.close"].tap()
+        XCTAssertTrue(entry.waitForExistence(timeout: 5))
+        XCTAssertTrue(entry.isHittable)
+        XCTAssertEqual(entry.frame.midY, originalY, accuracy: 2)
     }
 
     func testTrainingLayoutInBothOrientations() throws {
@@ -143,6 +180,7 @@ final class AppFlowTests: XCTestCase {
         XCTAssertTrue(app.buttons["builder.start"].waitForExistence(timeout: 10))
         let output = ProcessInfo.processInfo.environment["GP_REVIEW_OUTPUT"]
         let theme = ProcessInfo.processInfo.environment["GP_REVIEW_THEME"] ?? "light"
+        let device = UIDevice.current.userInterfaceIdiom == .pad ? "ipad" : "iphone"
         let orientations: [(UIDeviceOrientation, String)] =
             UIDevice.current.userInterfaceIdiom == .pad
             ? [(.portrait, "portrait"), (.landscapeLeft, "landscape")] : [(.portrait, "portrait")]
@@ -152,13 +190,13 @@ final class AppFlowTests: XCTestCase {
             if name == "landscape" { XCTAssertGreaterThan(app.frame.width, app.frame.height) }
             if let output {
                 try XCUIScreen.main.screenshot().pngRepresentation.write(
-                    to: URL(filePath: output).appending(path: "builder-ipad-\(name)-\(theme).png"))
+                    to: URL(filePath: output).appending(path: "builder-\(device)-\(name)-\(theme).png"))
             }
             app.buttons["builder.topics"].tap()
             XCTAssertTrue(app.buttons["builder.topics.done"].waitForExistence(timeout: 5))
             if let output {
                 try XCUIScreen.main.screenshot().pngRepresentation.write(
-                    to: URL(filePath: output).appending(path: "topics-ipad-\(name)-\(theme).png"))
+                    to: URL(filePath: output).appending(path: "topics-\(device)-\(name)-\(theme).png"))
             }
             app.buttons["builder.topics.done"].tap()
         }
@@ -166,11 +204,12 @@ final class AppFlowTests: XCTestCase {
             app.buttons["builder.start"].tap()
             XCTAssertTrue(app.otherElements["training.session"].waitForExistence(timeout: 10))
             app.buttons["training.close"].tap()
+            app.swipeDown()
             XCTAssertTrue(app.buttons["today.continueTraining"].waitForExistence(timeout: 5))
             for (orientation, name) in orientations {
                 XCUIDevice.shared.orientation = orientation
                 try XCUIScreen.main.screenshot().pngRepresentation.write(
-                    to: URL(filePath: output).appending(path: "today-ipad-\(name)-\(theme).png"))
+                    to: URL(filePath: output).appending(path: "today-\(device)-\(name)-\(theme).png"))
             }
         }
         if output == nil { XCUIDevice.shared.orientation = .portrait }

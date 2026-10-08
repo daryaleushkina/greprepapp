@@ -2,6 +2,16 @@ import Foundation
 import GPAPI
 import Observation
 
+enum TrainingPresetKind: String, CaseIterable {
+    case last, timed
+    var label: LocalizedStringResource {
+        switch self {
+        case .last: "Как в прошлый раз"
+        case .timed: "Проверка на время"
+        }
+    }
+}
+
 struct BuilderPrefill: Hashable, Sendable {
     let section: Components.Schemas.Section
     var type: Components.Schemas.QuestionType?
@@ -36,28 +46,30 @@ final class BuilderModel {
     @ObservationIgnored private let prefill: BuilderPrefill?
     @ObservationIgnored private var loadRevision = 0
 
-    init(trainings: TrainingModel, prefill: BuilderPrefill? = nil) {
+    init(trainings: TrainingModel, prefill: BuilderPrefill? = nil, loadsOnInit: Bool = true) {
         self.trainings = trainings
         self.prefill = prefill
+        if loadsOnInit { Task { await load() } }
     }
 
     var presets: [Components.Schemas.TrainingPreset] {
-        options?.presets.filter { ["last", "timed"].contains($0.kind) } ?? []
+        options?.presets.filter { TrainingPresetKind(rawValue: $0.kind) != nil } ?? []
     }
     var topics: [Components.Schemas.TrainingTopic] {
         options?.types.first { $0.questionType == form.type }?.topics ?? []
     }
     var types: [Components.Schemas.TrainingType] { options?.types.filter { $0.section == form.section } ?? [] }
-    var available: Int {
-        topics.filter { form.topicIDs == nil || form.topicIDs?.contains($0.id) == true }.reduce(0) { count, topic in
-            let n = topic.available
-            switch form.difficulty {
-            case nil: return count + n.easy + n.medium + n.hard
-            case .easy: return count + n.easy
-            case .medium: return count + n.medium
-            case .hard: return count + n.hard
-            }
+    func available(in topic: Components.Schemas.TrainingTopic) -> Int {
+        switch form.difficulty {
+        case nil: topic.available.easy + topic.available.medium + topic.available.hard
+        case .easy: topic.available.easy
+        case .medium: topic.available.medium
+        case .hard: topic.available.hard
         }
+    }
+    var available: Int {
+        topics.filter { form.topicIDs == nil || form.topicIDs?.contains($0.id) == true }
+            .reduce(0) { $0 + available(in: $1) }
     }
     var request: TrainingRequest? {
         guard let options else { return nil }
@@ -91,14 +103,31 @@ final class BuilderModel {
 
     /// Снимки и тесты используют тот же путь выбора формы, что ответ сервера.
     func use(_ options: TrainingOptions) {
+        let firstLoad = self.options == nil
+        let selectedKind = preset.flatMap { presets.indices.contains($0) ? presets[$0].kind : nil }
         self.options = options
-        preset = prefill == nil ? presets.firstIndex { $0.kind == "last" } : nil
-        if let prefill {
-            form = defaultForm(section: prefill.section, type: prefill.type)
-        } else if let preset {
-            form = formOf(presets[preset].request)
+        if firstLoad {
+            preset = prefill == nil ? presets.firstIndex { $0.kind == TrainingPresetKind.last.rawValue } : nil
+            if let prefill {
+                form = defaultForm(section: prefill.section, type: prefill.type)
+            } else if let preset {
+                form = formOf(presets[preset].request)
+            } else {
+                form = defaultForm(section: .verbal, type: nil)
+            }
         } else {
-            form = defaultForm(section: .verbal, type: nil)
+            preset = selectedKind.flatMap { kind in presets.firstIndex { $0.kind == kind } }
+            if let preset, presets[preset].request.questionTypes.count == 1 {
+                form = formOf(presets[preset].request)
+            }
+            // Ответ сервера обновляет варианты, а не выбор человека. Пропавшие варианты отбрасываются.
+            if !types.contains(where: { $0.questionType == form.type }) {
+                form.type = defaultForm(section: form.section, type: nil).type
+                form.topicIDs = nil
+                preset = nil
+            } else if let selected = form.topicIDs {
+                form.topicIDs = selected.intersection(topics.map(\.id))
+            }
         }
         problem = nil
         content = .ready

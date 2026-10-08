@@ -2,10 +2,20 @@ import CryptoKit
 import Foundation
 
 /// По файлу на тренировку. Доступ только из TrainingRepository; атомарная запись сохраняет прошлый файл при сбое.
-struct TrainingStore: Sendable {
+final class TrainingStore: @unchecked Sendable {
     let directory: URL
+    // Подготовка общая для копий ссылки и синхронной отметки выхода; после clear каталог создаётся заново.
+    private let lock = NSLock()
+    private var prepared = false
+
+    init(directory: URL) { self.directory = directory }
+
+    static func live(beside cache: TodayCache = .live()) -> TrainingStore {
+        TrainingStore(directory: cache.fileURL.deletingLastPathComponent().appending(path: "trainings"))
+    }
     private var ownerURL: URL { directory.appending(path: "owner.json") }
     private var clearURL: URL { directory.appending(path: "clear-pending") }
+    private var retiredURL: URL { directory.appendingPathExtension("clearing") }
     var requiresClear: Bool { FileManager.default.fileExists(atPath: clearURL.path) }
 
     /// Маленькая запись до смены экрана: даже завершение процесса сразу после выхода не вернёт очередь.
@@ -32,14 +42,14 @@ struct TrainingStore: Sendable {
 
     private func identity() throws -> Identity? {
         guard FileManager.default.fileExists(atPath: ownerURL.path) else { return nil }
-        do { return try JSONDecoder().decode(Identity.self, from: Data(contentsOf: ownerURL)) } catch {
-            try FileManager.default.moveItem(
-                at: ownerURL, to: ownerURL.appendingPathExtension("\(UUID().uuidString).broken"))
-            throw error
-        }
+        // В отличие от задания, потерянная запись владельца запрещает всю очередь. До успешного clear
+        // оставляем её на месте: повторный запуск тоже должен обнаружить повреждение.
+        return try JSONDecoder().decode(Identity.self, from: Data(contentsOf: ownerURL))
     }
 
     func load(report: (String) -> Void) throws -> [String: StoredTraining] {
+        // Если процесс оборвался после перемещения, эти файлы уже отозваны и никогда не загружаются.
+        try removeIfPresent(retiredURL)
         if requiresClear {
             try clear()
             return [:]
@@ -84,21 +94,37 @@ struct TrainingStore: Sendable {
         try removeIfPresent(file(id))
     }
 
-    func clear() throws { try removeIfPresent(directory) }
+    func clear() throws {
+        try lock.withLock {
+            try removeIfPresent(retiredURL)
+            if FileManager.default.fileExists(atPath: directory.path) {
+                // Рекурсивное removeItem могло стереть владельца и остановиться на одном из заданий.
+                // Переименование атомарно отзывает весь каталог до удаления любого его содержимого.
+                try FileManager.default.moveItem(at: directory, to: retiredURL)
+            }
+            prepared = false
+            try removeIfPresent(retiredURL)
+        }
+    }
 
     private func file(_ id: String) -> URL { directory.appending(path: id + ".training.json") }
 
     private func write(_ data: Data, to url: URL) throws {
-        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-        var folder = directory
-        var values = URLResourceValues()
-        values.isExcludedFromBackup = true
-        try folder.setResourceValues(values)
-        #if os(iOS)
-            try data.write(to: url, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
-        #else
-            try data.write(to: url, options: .atomic)
-        #endif
+        try lock.withLock {
+            if !prepared {
+                try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+                var folder = directory
+                var values = URLResourceValues()
+                values.isExcludedFromBackup = true
+                try folder.setResourceValues(values)
+                prepared = true
+            }
+            #if os(iOS)
+                try data.write(to: url, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
+            #else
+                try data.write(to: url, options: .atomic)
+            #endif
+        }
     }
 
     private func removeIfPresent(_ url: URL) throws {

@@ -31,18 +31,20 @@ extension Components.Schemas.LocalizedText {
     var localized: String { Locale.current.language.languageCode?.identifier == "en" ? en : ru }
 }
 
-enum TrainingEntry: Hashable {
+enum TrainingEntry: Hashable, Identifiable {
     case builder(BuilderPrefill?)
     case session(String)
+    var id: Self { self }
 }
 
-/// Тренировки заменяют вкладки целиком: системный стек ведёт внутрь задачи, «Сегодня» возвращает к разделам.
+/// Тренировки поверх вкладок: системный стек ведёт внутрь задачи, «Сегодня» возвращает к сохранённым разделам.
 struct TrainingFlow: View {
     let trainings: TrainingModel
     let onClose: () -> Void
-    @State private var builder: BuilderModel
+    @State private var builder: BuilderModel?
     @State private var sessionID: String?
     @State private var topics = false
+    private let prefill: BuilderPrefill?
 
     init(entry: TrainingEntry, trainings: TrainingModel, onClose: @escaping () -> Void) {
         self.trainings = trainings
@@ -56,7 +58,7 @@ struct TrainingFlow: View {
             prefill = nil
             _sessionID = State(initialValue: id)
         }
-        _builder = State(initialValue: BuilderModel(trainings: trainings, prefill: prefill))
+        self.prefill = prefill
     }
 
     var body: some View {
@@ -64,7 +66,7 @@ struct TrainingFlow: View {
             Group {
                 if let sessionID {
                     TrainingSessionPlaceholder(trainings: trainings, id: sessionID)
-                } else {
+                } else if let builder {
                     TrainingBuilderView(model: builder, onTopics: { topics = true }, onStarted: { sessionID = $0 })
                         .navigationDestination(isPresented: $topics) {
                             TrainingTopicsView(model: builder) { topics = false }
@@ -79,24 +81,27 @@ struct TrainingFlow: View {
             }
         }
         .tint(Color(.accent))
+        .onAppear {
+            // State(initialValue:) вычислялся при каждом пересчёте родителя, даже если SwiftUI сохранял State.
+            if sessionID == nil, builder == nil { builder = BuilderModel(trainings: trainings, prefill: prefill) }
+        }
     }
 }
 
 struct TrainingBuilderView: View {
     let model: BuilderModel
-    var loadsOnAppear = true
     var onTopics: () -> Void = {}
     var onStarted: (String) -> Void = { _ in }
     @Environment(AppModel.self) private var app
     @Environment(\.scenePhase) private var scenePhase
     @State private var countText: String
+    @FocusState private var countFocused: Bool
 
     init(
-        model: BuilderModel, loadsOnAppear: Bool = true, onTopics: @escaping () -> Void = {},
+        model: BuilderModel, onTopics: @escaping () -> Void = {},
         onStarted: @escaping (String) -> Void = { _ in }
     ) {
         self.model = model
-        self.loadsOnAppear = loadsOnAppear
         self.onTopics = onTopics
         self.onStarted = onStarted
         _countText = State(initialValue: model.form.countText)
@@ -122,7 +127,6 @@ struct TrainingBuilderView: View {
         #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
         #endif
-        .task { if loadsOnAppear { await model.load() } }
         .onChange(of: countText) { _, text in
             guard text != model.form.countText else { return }
             model.setCount(text)
@@ -206,9 +210,9 @@ struct TrainingBuilderView: View {
                 } label: {
                     HStack(spacing: GPSpace.s16) {
                         VStack(alignment: .leading, spacing: GPSpace.s4) {
-                            Text(LocalizedStringKey(preset.kind == "last" ? "Как в прошлый раз" : "Проверка на время"))
-                                .gpText(
-                                    GPType.headline)
+                            if let kind = TrainingPresetKind(rawValue: preset.kind) {
+                                Text(kind.label).gpText(GPType.headline)
+                            }
                             Text(verbatim: presetSubtitle(preset)).gpText(GPType.subhead).foregroundStyle(
                                 Color(.textSecondary)
                             )
@@ -228,7 +232,7 @@ struct TrainingBuilderView: View {
     private func presetSubtitle(_ preset: Components.Schemas.TrainingPreset) -> String {
         let r = preset.request
         let section = String(localized: StudySection(r.section).label)
-        if preset.kind == "timed" {
+        if preset.kind == TrainingPresetKind.timed.rawValue {
             return String(
                 localized:
                     "\(section) · \(TrainingCopy.questions(r.count)) · \(model.minutes(r)) мин, как секция экзамена")
@@ -260,13 +264,15 @@ struct TrainingBuilderView: View {
                         .tag(type.questionType)
                         .disabled(type.topics.isEmpty)
                     }
-                }.labelsHidden().pickerStyle(.menu).accessibilityIdentifier("builder.type")
+                }.labelsHidden().pickerStyle(.menu).fixedSize(horizontal: true, vertical: false)
+                    .accessibilityIdentifier("builder.type")
             }
             line
             field {
                 Text("Вопросов")
                 Spacer()
                 TextField("Вопросов", text: $countText)
+                    .focused($countFocused)
                     .textFieldStyle(.plain).multilineTextAlignment(.center).monospacedDigit()
                     .frame(width: GPSpace.s72 + GPSpace.s4, height: GPSize.tapTarget)
                     .background(Color(.fill), in: Capsule()).accessibilityIdentifier("builder.count")
@@ -291,7 +297,11 @@ struct TrainingBuilderView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }.padding(GPSpace.s16)
             line
-            Button(action: onTopics) {
+            Button {
+                // Фокус не возвращает цифровую клавиатуру поверх главной кнопки после выбора тем.
+                countFocused = false
+                onTopics()
+            } label: {
                 HStack(spacing: GPSpace.s12) {
                     Text("Темы и сложность")
                     Spacer()
@@ -337,7 +347,7 @@ struct TrainingBuilderView: View {
                 }
             }.opacity(model.starting ? 0 : 1).overlay { if model.starting { ProgressView().tint(Color(.onAccent)) } }
         }
-        .buttonStyle(PrimaryCapsuleStyle()).opacity(model.request == nil ? 0.5 : 1)
+        .buttonStyle(PrimaryCapsuleStyle())
         .disabled(model.starting || model.request == nil).keyboardShortcut(.defaultAction)
         .accessibilityIdentifier("builder.start")
     }
@@ -400,7 +410,7 @@ struct TrainingTopicsView: View {
                         Text(verbatim: topic.title.localized).gpText(GPType.body).fixedSize(
                             horizontal: false, vertical: true)
                         Spacer(minLength: GPSpace.s8)
-                        Text(topicCount(topic), format: .number).gpText(GPType.subhead).monospacedDigit()
+                        Text(model.available(in: topic), format: .number).gpText(GPType.subhead).monospacedDigit()
                             .foregroundStyle(Color(.textSecondary))
                     }
                 }.tint(StudySection(model.form.section).color).frame(minHeight: GPSize.rowTall)
@@ -418,17 +428,9 @@ struct TrainingTopicsView: View {
             }.pickerStyle(.segmented).labelsHidden().accessibilityIdentifier("builder.difficulty")
         }
     }
-    private func topicCount(_ topic: Components.Schemas.TrainingTopic) -> Int {
-        switch model.form.difficulty {
-        case nil: topic.available.easy + topic.available.medium + topic.available.hard
-        case .easy: topic.available.easy
-        case .medium: topic.available.medium
-        case .hard: topic.available.hard
-        }
-    }
     private var done: some View {
         Button(action: onDone) { Text("Готово · \(TrainingCopy.tasks(model.available))") }
-            .buttonStyle(PrimaryCapsuleStyle()).opacity(model.available == 0 ? 0.5 : 1)
+            .buttonStyle(PrimaryCapsuleStyle())
             .disabled(model.available == 0).accessibilityIdentifier("builder.topics.done")
     }
 }
@@ -463,6 +465,9 @@ enum TrainingCopy {
     static func tasks(_ count: Int) -> String { String(localized: "\(count) заданий") }
     static func continuation(_ training: StoredTraining) -> String {
         let section = String(localized: StudySection(training.session.section).label)
-        return String(localized: "\(section) · вопрос \(training.position + 1) из \(training.total)")
+        let types = training.session.questionTypes.map(\.label).joined(separator: " · ")
+        let position = String(localized: "вопрос \(training.position + 1) из \(training.total)")
+            .replacingOccurrences(of: " ", with: "\u{00A0}")
+        return "\(section) · \(types) · \(position)"
     }
 }

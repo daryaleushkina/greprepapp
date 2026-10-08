@@ -102,6 +102,11 @@ public enum GPLayout {
     public static let taglineMax: CGFloat = 320
 }
 
+/// Прозрачность состояний элементов Apple.
+public enum GPOpacity {
+    public static let disabled: Double = 0.5
+}
+
 /// Роль текста: размер и межстрочный — pt, трекинг — доля размера (em), relativeTo — с каким стилем Dynamic Type растёт.
 public struct GPTextStyle: Sendable {
     public let size: CGFloat

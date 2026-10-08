@@ -231,17 +231,17 @@ struct ScreenSnapshotTests {
     @Test("конструктор тренировки")
     func trainingBuilder() throws {
         let app = try signedInApp(cached: nil, today: .json(200, Fixture.todayJSON))
-        let model = BuilderModel(trainings: app.trainings)
+        let model = BuilderModel(trainings: app.trainings, loadsOnInit: false)
         model.use(TrainingFixture.options)
         assertScreens(
-            NavigationStack { TrainingBuilderView(model: model, loadsOnAppear: false) }.environment(app),
+            NavigationStack { TrainingBuilderView(model: model) }.environment(app),
             named: "training-builder")
     }
 
     @Test("темы и сложность")
     func trainingTopics() throws {
         let app = try signedInApp(cached: nil, today: .json(200, Fixture.todayJSON))
-        let model = BuilderModel(trainings: app.trainings)
+        let model = BuilderModel(trainings: app.trainings, loadsOnInit: false)
         model.use(TrainingFixture.options)
         model.toggleTopic("contrast")
         assertScreens(NavigationStack { TrainingTopicsView(model: model) }.environment(app), named: "training-topics")
@@ -260,27 +260,27 @@ struct ScreenSnapshotTests {
         assertScreens(TodayView(model: model, refreshesOnAppear: false).environment(app), named: "today-with-training")
     }
 
-    @Test("конструктор — нет сети и сбой", .enabled { await ScreenSnapshotTests.isPhone() })
+    @Test("конструктор — нет сети и сбой")
     func trainingUnavailable() async throws {
         let app = try signedInApp(cached: nil, today: .json(200, Fixture.todayJSON))
-        let model = BuilderModel(trainings: app.trainings)
+        let model = BuilderModel(trainings: app.trainings, loadsOnInit: false)
         server.on("GET /api/trainings/options", .failure(.notConnectedToInternet))
         await model.load()
         assertScreens(
-            NavigationStack { TrainingBuilderView(model: model, loadsOnAppear: false) }.environment(app),
-            named: "training-offline", devices: [.phone])
+            NavigationStack { TrainingBuilderView(model: model) }.environment(app),
+            named: "training-offline")
         server.on("GET /api/trainings/options", .json(500, Fixture.error("internal")))
         await model.load()
         assertScreens(
-            NavigationStack { TrainingBuilderView(model: model, loadsOnAppear: false) }.environment(app),
-            named: "training-failed", devices: [.phone])
+            NavigationStack { TrainingBuilderView(model: model) }.environment(app),
+            named: "training-failed")
     }
 
-    @Test("конструктор — ошибка старта", .enabled { await ScreenSnapshotTests.isPhone() })
+    @Test("конструктор — ошибка старта")
     func trainingStartProblems() async throws {
         let app = try signedInApp(cached: nil, today: .json(200, Fixture.todayJSON))
         try app.didSignIn(.init(token: "t", user: Fixture.user))
-        let model = BuilderModel(trainings: app.trainings)
+        let model = BuilderModel(trainings: app.trainings, loadsOnInit: false)
         model.use(TrainingFixture.options)
         for (reply, name) in [
             (StubServer.Reply.json(409, Fixture.error("no_questions")), "training-no-questions"),
@@ -290,16 +290,16 @@ struct ScreenSnapshotTests {
             server.on("POST /api/trainings", reply)
             _ = await model.start()
             assertScreens(
-                NavigationStack { TrainingBuilderView(model: model, loadsOnAppear: false) }.environment(app),
-                named: name, devices: [.phone], themes: [.light])
+                NavigationStack { TrainingBuilderView(model: model) }.environment(app),
+                named: name)
         }
         model.setType(.sentenceEquivalence)
         assertScreens(
-            NavigationStack { TrainingBuilderView(model: model, loadsOnAppear: false) }.environment(app),
-            named: "training-empty", devices: [.phone], themes: [.light])
+            NavigationStack { TrainingBuilderView(model: model) }.environment(app),
+            named: "training-empty")
     }
 
-    @Test("заглушка начатой тренировки", .enabled { await ScreenSnapshotTests.isPhone() })
+    @Test("заглушка начатой тренировки")
     func trainingSession() async throws {
         let app = try signedInApp(cached: nil, today: .json(200, Fixture.todayJSON))
         try app.didSignIn(.init(token: "t", user: Fixture.user))
@@ -307,10 +307,10 @@ struct ScreenSnapshotTests {
         let id = try await app.trainings.start(TrainingFixture.options.presets[0].request)
         assertScreens(
             NavigationStack { TrainingSessionPlaceholder(trainings: app.trainings, id: id) }.environment(app),
-            named: "training-session", devices: [.phone], themes: [.light])
+            named: "training-session")
         assertScreens(
             NavigationStack { TrainingSessionPlaceholder(trainings: app.trainings, id: "missing") }.environment(app),
-            named: "training-missing", devices: [.phone], themes: [.light])
+            named: "training-missing")
     }
 
     enum Device { case phone, pad }

@@ -11,12 +11,12 @@
         }
       }
     },
-    "%@ · вопрос %lld из %lld": {
+    "вопрос %lld из %lld": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ · question %lld of %lld"
+            "value": "question %lld of %lld"
           }
         }
       }

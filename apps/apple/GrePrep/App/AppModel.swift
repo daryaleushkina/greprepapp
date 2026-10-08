@@ -45,7 +45,7 @@ final class AppModel {
         self.api = api
         makeAPI = { token in API(config: config, session: session, tokens: MemoryTokenStore(token)) }
         trainings = TrainingModel(
-            store: TrainingStore(directory: cache.fileURL.deletingLastPathComponent().appending(path: "trainings")),
+            store: TrainingStore.live(beside: cache),
             report: { message, requestID in
                 Task { await api.reportClientError(message: message, route: "training", requestID: requestID) }
             }, unauthorized: {})
@@ -83,9 +83,7 @@ final class AppModel {
             // Необязательный фон: стереть то, чего может и не быть.
             _ = try? KeychainTokenStore.live().clear()
             _ = try? TodayCache.live().clear()
-            _ = try? TrainingStore(
-                directory: TodayCache.live().fileURL.deletingLastPathComponent().appending(path: "trainings")
-            ).clear()
+            _ = try? TrainingStore.live().clear()
         }
     #endif
 

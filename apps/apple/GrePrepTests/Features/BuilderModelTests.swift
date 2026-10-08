@@ -8,12 +8,53 @@ import Testing
 @Suite("Конструктор тренировки")
 struct BuilderModelTests {
     let server = StubServer()
-    func model(prefill: BuilderPrefill? = nil) -> BuilderModel {
+    func model(prefill: BuilderPrefill? = nil, loadsOnInit: Bool = false) -> BuilderModel {
         let trainings = TrainingModel(store: temporaryTrainingStore(), report: { _, _ in }, unauthorized: {})
         trainings.connect(
             api: API(config: server.config(), session: server.session, tokens: MemoryTokenStore("t")), ownerID: "person"
         )
-        return BuilderModel(trainings: trainings, prefill: prefill)
+        return BuilderModel(trainings: trainings, prefill: prefill, loadsOnInit: loadsOnInit)
+    }
+
+    @Test func loadsOptionsAtInitialization() async {
+        server.on("GET /api/trainings/options", .json(200, TrainingFixture.json(TrainingFixture.options)))
+        let model = model(loadsOnInit: true)
+        await eventually { model.options != nil }
+        #expect(server.requests("GET /api/trainings/options").count == 1)
+    }
+
+    @Test func reloadPreservesEditsAndRemovesMissingChoices() {
+        let model = model()
+        model.use(TrainingFixture.options)
+        model.setCount("3")
+        model.setMode(.check)
+        model.setDifficulty(.hard)
+        model.toggleTopic("contrast")
+        let form = model.form
+        model.use(TrainingFixture.options)
+        #expect(model.form == form && model.preset == nil)
+        var options = TrainingFixture.options
+        options.types[0].topics.removeAll { $0.id == "clauses" }
+        model.use(options)
+        #expect(model.form.topicIDs == ["context"])
+        #expect(model.form.countText == "3" && model.form.difficulty == .hard && model.form.mode == .check)
+        options.types.removeAll { $0.questionType == .textCompletion }
+        model.use(options)
+        #expect(model.form.type == .sentenceEquivalence && model.form.topicIDs == nil)
+        #expect(model.form.countText == "3" && model.form.mode == .check && model.form.difficulty == .hard)
+    }
+
+    @Test func presetReloadTracksKindRatherThanIndex() {
+        let model = model()
+        model.use(TrainingFixture.options)
+        model.selectPreset(1)
+        var options = TrainingFixture.options
+        options.presets.reverse()
+        model.use(options)
+        #expect(model.preset == 0 && model.request == options.presets[0].request)
+        options.presets.removeFirst()
+        model.use(options)
+        #expect(model.preset == nil)
     }
 
     @Test func defaultLastAndKnownPresets() {
@@ -33,6 +74,23 @@ struct BuilderModelTests {
         options.presets.append(.init(kind: "unknown", request: options.presets[0].request))
         model.use(options)
         #expect(model.presets.count == 2)
+    }
+
+    @Test func selectedSingleTypePresetReflectsUpdatedRequest() {
+        let model = model()
+        var options = TrainingFixture.options
+        model.use(options)
+        model.setCount("3")
+        model.selectPreset(0)
+        #expect(model.form.countText == "10" && model.form.mode == .practice)
+        options.presets[0].request.count = 6
+        options.presets[0].request.mode = .check
+        options.presets[0].request.topicIds = ["context"]
+        options.presets[0].request.difficulty = .medium
+        model.use(options)
+        #expect(model.form.countText == "6" && model.form.mode == .check)
+        #expect(model.form.topicIDs == ["context"] && model.form.difficulty == .medium)
+        #expect(model.request == options.presets[0].request)
     }
 
     @Test func prefillAndCustomFields() {
@@ -161,6 +219,7 @@ struct BuilderModelTests {
         #expect(model.request?.count == 3 && model.request?.topicIds == ["numbers"])
         options.presets[0].request.topicIds = []
         model.use(options)
-        #expect(model.form.topicIDs == nil)
+        #expect(model.form.topicIDs == ["numbers"])
+        #expect(model.form.countText == "7" && model.form.difficulty == .hard)
     }
 }
