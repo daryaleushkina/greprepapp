@@ -20,6 +20,8 @@ final class SessionModel {
     private var finish: TrainingFinish?
     private var date: Date
     private var shownAt: Date
+    private var elapsedBeforeShowing: Int
+    @ObservationIgnored private var cachedResult: Components.Schemas.TrainingSummary?
 
     struct Screen {
         let training: StoredTraining
@@ -33,8 +35,29 @@ final class SessionModel {
         var isLast: Bool { position == training.total - 1 }
         var canCheck: Bool { TrainingRules.isComplete(question, selection) }
         var missing: [Int] { TrainingRules.missingGroups(question, selection) }
-        var result: Components.Schemas.TrainingSummary? {
-            training.isFinished ? TrainingRules.result(training) : nil
+        func isAnswered(_ index: Int) -> Bool {
+            TrainingRules.isComplete(training.session.items[index].question, training.answers[index]?.optionIds ?? [])
+        }
+        var answeredCount: Int { (0..<training.total).filter(isAnswered).count }
+        let result: Components.Schemas.TrainingSummary?
+        init(
+            training: StoredTraining, position: Int, selection: [String], remaining: Int?,
+            result: Components.Schemas.TrainingSummary? = nil
+        ) {
+            self.training = training
+            self.position = position
+            self.selection = selection
+            self.remaining = remaining
+            self.result = result
+        }
+        var keyboardGroup: Components.Schemas.OptionGroup? {
+            let index = missing.first ?? (question.groups.count - 1)
+            return question.groups.indices.contains(index) ? question.groups[index] : nil
+        }
+        var selectionKeys: String {
+            let count = min(keyboardGroup?.options.count ?? 0, SessionModel.optionKeys.count)
+            guard count > 1 else { return String(SessionModel.optionKeys.prefix(count)) }
+            return "A–" + String(SessionModel.optionKeys[count - 1])
         }
     }
 
@@ -44,6 +67,8 @@ final class SessionModel {
         epoch = trainings.revision
         date = trainings.currentDate
         shownAt = trainings.currentDate
+        let t = trainings.trainings[id]
+        elapsedBeforeShowing = t?.answers[t?.position ?? 0]?.elapsedMs ?? 0
     }
 
     var screen: Screen? {
@@ -51,9 +76,13 @@ final class SessionModel {
         for (position, answer) in answers { t.answers[position] = answer }
         if let finish { t.finish = finish }
         let p = min(t.total - 1, max(0, position ?? t.position))
+        // Законченную тренировку больше нельзя менять; ViewThatFits использует один готовый итог.
+        if t.isFinished, cachedResult == nil { cachedResult = TrainingRules.result(t) }
         return Screen(
             training: t, position: p, selection: selection ?? t.answers[p]?.optionIds ?? [],
-            remaining: TrainingRules.remainingSeconds(t, nowMillis: Int64(date.timeIntervalSince1970 * 1000)))
+            remaining: t.isFinished
+                ? nil : TrainingRules.remainingSeconds(t, nowMillis: Int64(date.timeIntervalSince1970 * 1000)),
+            result: cachedResult)
     }
 
     private func activeScreen() -> Screen? {
@@ -64,7 +93,7 @@ final class SessionModel {
     }
 
     func select(_ optionID: String) {
-        guard let s = activeScreen(), !s.revealed, !overview else { return }
+        guard let s = activeScreen(), !s.revealed else { return }
         let next = TrainingRules.toggle(s.question, s.selection, optionID)
         selection = next
         if s.training.isCheck { save(s, optionIDs: next, flagged: s.flagged) }
@@ -84,13 +113,15 @@ final class SessionModel {
     }
 
     private func save(_ s: Screen, optionIDs: [String], dontKnow: Bool = false, flagged: Bool = false) {
-        let elapsed = min(86_400_000, max(0, Int(date.timeIntervalSince(shownAt) * 1000)))
+        let now = visitDate(s.training)
+        let elapsed = elapsedBeforeShowing + max(0, Int(now.timeIntervalSince(shownAt) * 1000))
+        let boundedElapsed = min(86_400_000, elapsed)
         answers[s.position] = .init(
             position: s.position, optionIds: optionIDs, dontKnow: dontKnow,
-            flagged: flagged, answeredAt: date, elapsedMs: elapsed)
+            flagged: flagged, answeredAt: now, elapsedMs: boundedElapsed)
         trainings.recordAnswer(
             id, position: s.position, optionIDs: optionIDs, dontKnow: dontKnow,
-            flagged: flagged, elapsedMs: elapsed)
+            flagged: flagged, elapsedMs: boundedElapsed)
     }
 
     func next() {
@@ -110,11 +141,17 @@ final class SessionModel {
     }
 
     private func move(_ position: Int, training: StoredTraining) {
+        guard position != (self.position ?? training.position) else {
+            overview = false
+            return
+        }
+        closeVisit()
         self.position = position
         selection = training.answers[position]?.optionIds ?? []
         overview = false
         whyNotOpen = false
-        shownAt = date
+        shownAt = trainings.currentDate
+        elapsedBeforeShowing = answers[position]?.elapsedMs ?? training.answers[position]?.elapsedMs ?? 0
         trainings.recordPosition(id, position: position)
     }
 
@@ -130,9 +167,11 @@ final class SessionModel {
     func closeOverview() { overview = false }
 
     func tick() {
-        date = trainings.currentDate
-        guard let s = screen, !s.training.isFinished, s.remaining == 0 else { return }
-        complete(timedOut: true)
+        guard let s = screen, s.training.isCheck, !s.training.isFinished else { return }
+        let now = trainings.currentDate
+        let remaining = TrainingRules.remainingSeconds(s.training, nowMillis: Int64(now.timeIntervalSince1970 * 1000))
+        if remaining != s.remaining { date = now }
+        if remaining == 0 { complete(timedOut: true) }
     }
 
     func end() {
@@ -141,17 +180,35 @@ final class SessionModel {
     }
 
     private func complete(timedOut: Bool) {
-        finish = .init(finishedAt: date, timedOut: timedOut)
+        closeVisit()
+        finish = .init(finishedAt: trainings.currentDate, timedOut: timedOut)
         overview = false
         trainings.recordFinish(id, timedOut: timedOut)
     }
 
-    /// A–E относятся к первому незаполненному пропуску; заполненный ответ можно изменить касанием.
+    private func closeVisit() {
+        guard let s = screen, !s.training.isFinished else { return }
+        // Сохраняем также время после последнего выбора; частичный ответ при этом остаётся частичным.
+        if s.training.isCheck || s.answer != nil {
+            save(s, optionIDs: s.selection, dontKnow: s.answer?.dontKnow ?? false, flagged: s.flagged)
+        }
+    }
+
+    private func visitDate(_ training: StoredTraining) -> Date {
+        let now = trainings.currentDate
+        guard training.isCheck, let limit = training.session.timeLimitSeconds else { return now }
+        return min(now, Date(timeIntervalSince1970: Double(training.startedAtMillis) / 1000 + Double(limit)))
+    }
+
+    var hasTimer: Bool { screen.map { $0.training.isCheck && !$0.training.isFinished } ?? false }
+    nonisolated static let optionKeys = Array("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+    /// Буквы относятся к первому незаполненному пропуску; диапазон определяется числом вариантов в группе.
     func selectKey(_ letter: String) {
-        guard let s = activeScreen(), !s.revealed, !overview else { return }
-        let group = s.question.groups[s.missing.first ?? (s.question.groups.count - 1)]
-        let letters = ["A", "B", "C", "D", "E"]
-        guard let index = letters.firstIndex(of: letter.uppercased()), group.options.indices.contains(index) else {
+        guard let s = activeScreen(), !s.revealed, let group = s.keyboardGroup,
+            letter.count == 1, let character = letter.uppercased().first,
+            let index = Self.optionKeys.firstIndex(of: character), group.options.indices.contains(index)
+        else {
             return
         }
         select(group.options[index].id)

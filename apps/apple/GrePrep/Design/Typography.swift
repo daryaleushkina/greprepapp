@@ -25,8 +25,8 @@ enum Fonts {
 
 extension Font {
     /// Роль текста из токенов (GPType): Onest, растёт с Dynamic Type вместе со своим системным стилем.
-    static func gp(_ style: GPTextStyle) -> Font {
-        .custom(GPType.fontFamily, size: style.size, relativeTo: style.relativeTo).weight(style.weight)
+    static func gp(_ style: GPTextStyle, scale: CGFloat = 1) -> Font {
+        .custom(GPType.fontFamily, size: style.size * scale, relativeTo: style.relativeTo).weight(style.weight)
     }
 }
 

@@ -31,6 +31,16 @@
         }
       }
     },
+    "%@ — выбрать · Enter — проверить / дальше · → — дальше": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ select · Enter check / next · → next"
+          }
+        }
+      }
+    },
     "%lld вопросов": {
       "localizations": {
         "ru": {
@@ -321,16 +331,6 @@
         }
       }
     },
-    "A–E — выбрать · Enter — проверить / дальше · → — дальше": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "A–E select · Enter check / next · → next"
-          }
-        }
-      }
-    },
     "Enter / → — дальше": {
       "localizations": {
         "en": {
@@ -502,7 +502,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Time’s up — unanswered questions don’t count as topic mistakes."
+            "value": "Time ran out — unanswered questions don’t count as topic mistakes."
           }
         }
       }
@@ -583,6 +583,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sign out"
+          }
+        }
+      }
+    },
+    "Готово": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
           }
         }
       }
@@ -732,7 +742,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Summary"
+            "value": "Results"
           }
         }
       }
@@ -742,7 +752,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Back to question %lld"
+            "value": "To question %lld"
           }
         }
       }
@@ -1019,10 +1029,124 @@
     },
     "Осталось %lld минут %lld секунд": {
       "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Осталось %#@minutes@ %#@seconds@"
+          },
+          "substitutions": {
+            "minutes": {
+              "argNum": 1,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg минута"
+                    }
+                  },
+                  "few": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg минуты"
+                    }
+                  },
+                  "many": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg минут"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg минуты"
+                    }
+                  }
+                }
+              }
+            },
+            "seconds": {
+              "argNum": 2,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg секунда"
+                    }
+                  },
+                  "few": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg секунды"
+                    }
+                  },
+                  "many": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg секунд"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg секунды"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld minutes %lld seconds remaining"
+            "value": "%#@minutes@ %#@seconds@ remaining"
+          },
+          "substitutions": {
+            "minutes": {
+              "argNum": 1,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg minute"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg minutes"
+                    }
+                  }
+                }
+              }
+            },
+            "seconds": {
+              "argNum": 2,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg second"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg seconds"
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -1062,7 +1186,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Answered %lld of %lld · flagged %lld"
+            "value": "Answered %lld of %lld · marked %lld"
           }
         }
       }
@@ -1077,12 +1201,12 @@
         }
       }
     },
-    "Ошибок нет, но остались вопросы без ответа.": {
+    "Ошибок нет, но не успели %@.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No mistakes, but some questions are unanswered."
+            "value": "No mistakes, but %@ ran out of time."
           }
         }
       }
@@ -1122,7 +1246,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Repeat · %@"
+            "value": "Review · %@"
           }
         }
       }
@@ -1582,7 +1706,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "unanswered"
+            "value": "not answered"
           }
         }
       }
@@ -1593,16 +1717,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "your answer"
-          }
-        }
-      }
-    },
-    "верно из %lld": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "correct of %lld"
           }
         }
       }
@@ -1663,6 +1777,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "two answers"
+          }
+        }
+      }
+    },
+    "и": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "and"
+          }
+        }
+      }
+    },
+    "из %lld верно": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "of %lld correct"
           }
         }
       }
@@ -1734,7 +1868,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "flagged"
+            "value": "marked"
           }
         }
       }

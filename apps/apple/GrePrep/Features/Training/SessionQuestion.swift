@@ -4,6 +4,67 @@ import SwiftUI
 enum TrainingText {
     static let blanks = ["(i)", "(ii)", "(iii)"]
 
+    static func explanation(_ text: String) -> AttributedString {
+        // В договоре курсив обозначен одиночными * вокруг слов. Остальная разметка и математика — текст.
+        let pattern = #/\*([^\s*](?:[^*\n]*[^\s*])?)\*/#
+        var markdown = ""
+        var start = text.startIndex
+        for match in text.matches(of: pattern) {
+            let before =
+                match.range.lowerBound == text.startIndex ? nil : text[text.index(before: match.range.lowerBound)]
+            let after = match.range.upperBound == text.endIndex ? nil : text[match.range.upperBound]
+            guard
+                ![before, after].contains(where: { character in
+                    character.map { $0.isLetter || $0.isNumber || $0 == "_" || $0 == "*" } ?? false
+                })
+            else { continue }
+            markdown += escapedMarkdown(String(text[start..<match.range.lowerBound]))
+            markdown += "*" + escapedMarkdown(String(match.output.1)) + "*"
+            start = match.range.upperBound
+        }
+        markdown += escapedMarkdown(String(text[start...]))
+        do {
+            return try AttributedString(
+                markdown: markdown, options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace))
+        } catch {
+            // Если разметка не разобралась, весь текст остаётся доступен без оформления.
+            return AttributedString(text)
+        }
+    }
+
+    private static func escapedMarkdown(_ text: String) -> String {
+        text.reduce(into: "") { result, character in
+            if #"\`*_{}[]<>()#+-.!|~&"#.contains(character) { result.append("\\") }
+            result.append(character)
+        }
+    }
+
+    enum PromptPart: Equatable {
+        case text(String)
+        case blank(Int)
+    }
+
+    /// Одна непрерывная черта соответствует одной группе. Лишние черты остаются буквальным текстом.
+    static func promptParts(_ question: Question) -> [PromptPart] {
+        let prompt = question.prompt
+        var parts: [PromptPart] = []
+        var start = prompt.startIndex
+        var group = 0
+        for match in prompt.matches(of: #/_{3,}/#) {
+            guard group < question.groups.count else { break }
+            parts.append(.text(String(prompt[start..<match.range.lowerBound])))
+            parts.append(.blank(group))
+            start = match.range.upperBound
+            group += 1
+        }
+        parts.append(.text(String(prompt[start...])))
+        return parts
+    }
+
+    static func blankLabel(_ index: Int) -> String {
+        blanks.indices.contains(index) ? blanks[index] : "(\(index + 1))"
+    }
+
     static func typeLabel(_ q: Question) -> String {
         if q.groups.count > 1 { return q.questionType.label + " · " + String(localized: "\(q.groups.count) пропуска") }
         if q.selectCount > 1 { return q.questionType.label + " · " + String(localized: "два ответа") }
@@ -13,7 +74,7 @@ enum TrainingText {
     static func missing(_ s: SessionModel.Screen) -> String? {
         guard !s.selection.isEmpty, !s.missing.isEmpty else { return nil }
         if s.question.groups.count > 1 {
-            let numbers = s.missing.map { blanks[$0] }.joined(separator: ", ")
+            let numbers = s.missing.map(blankLabel).joined(separator: ", ")
             return s.missing.count == 1
                 ? String(localized: "Осталось выбрать слово для пропуска \(numbers)")
                 : String(localized: "Осталось выбрать слова для пропусков \(numbers)")
@@ -45,6 +106,7 @@ enum TrainingText {
 struct SessionQuestion: View {
     let screen: SessionModel.Screen
     let onSelect: (String) -> Void
+    @Environment(\.textScale) private var textScale
     var section: StudySection { StudySection(screen.training.session.section) }
     var question: Question { screen.question }
 
@@ -55,7 +117,7 @@ struct SessionQuestion: View {
             if question.questionType == .quantitativeComparison {
                 quantities
             } else {
-                Text(prompt).gpText(GPType.prompt).fixedSize(horizontal: false, vertical: true)
+                Text(prompt(scale: textScale)).gpText(GPType.prompt).fixedSize(horizontal: false, vertical: true)
                     .accessibilityLabel(Text(verbatim: spokenPrompt)).accessibilityIdentifier("question.prompt")
             }
             ForEach(Array(question.groups.enumerated()), id: \.offset) { index, group in
@@ -63,7 +125,7 @@ struct SessionQuestion: View {
                     revealed(group, index: index)
                 } else if question.groups.count > 1 {
                     VStack(alignment: .leading, spacing: GPSpace.s8) {
-                        Text(verbatim: TrainingText.blanks[index]).gpText(GPType.footnote)
+                        Text(verbatim: TrainingText.blankLabel(index)).gpText(GPType.footnote)
                             .foregroundStyle(Color(.textSecondary)).accessibilityLabel("Пропуск \(index + 1)")
                         ViewThatFits(in: .horizontal) {
                             HStack(spacing: GPSpace.s8) { chips(group, index: index) }
@@ -91,18 +153,19 @@ struct SessionQuestion: View {
         }.foregroundStyle(Color(.text)).frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private var prompt: AttributedString {
-        let parts = question.prompt.components(separatedBy: "___")
+    func prompt(scale: CGFloat) -> AttributedString {
         let chosen = screen.revealed ? question.answer : screen.selection
         var text = AttributedString()
-        for (index, part) in parts.enumerated() {
-            text.append(AttributedString(part))
-            guard index < parts.count - 1 else { continue }
+        for part in TrainingText.promptParts(question) {
+            guard case let .blank(index) = part else {
+                if case let .text(literal) = part { text.append(AttributedString(literal)) }
+                continue
+            }
             let many = question.groups.count > 1
             if many {
-                var label = AttributedString(TrainingText.blanks[index] + " ")
+                var label = AttributedString(TrainingText.blankLabel(index) + " ")
                 label.foregroundColor = Color(.textSecondary)
-                label.font = .gp(GPType.key)
+                label.font = .gp(GPType.key, scale: scale)
                 text.append(label)
             }
             let option =
@@ -114,15 +177,15 @@ struct SessionQuestion: View {
         }
         return text
     }
-    private var spokenPrompt: String {
-        let parts = question.prompt.components(separatedBy: "___")
+    var spokenPrompt: String {
         let chosen = screen.revealed ? question.answer : screen.selection
-        return parts.enumerated().map { index, part in
-            guard index < parts.count - 1 else { return part }
-            let option =
-                question.groups.indices.contains(index)
-                ? question.groups[index].options.first { chosen.contains($0.id) } : nil
-            return part + " " + (option?.text ?? String(localized: "Пропуск \(index + 1)")) + " "
+        return TrainingText.promptParts(question).map { part in
+            switch part {
+            case let .text(literal): return literal
+            case let .blank(index):
+                let option = question.groups[index].options.first { chosen.contains($0.id) }
+                return " " + (option?.text ?? String(localized: "Пропуск \(index + 1)")) + " "
+            }
         }.joined()
     }
 
@@ -211,7 +274,7 @@ struct SessionQuestion: View {
     private func revealed(_ group: Components.Schemas.OptionGroup, index: Int) -> some View {
         VStack(alignment: .leading, spacing: GPSpace.s8) {
             if question.groups.count > 1 {
-                Text(verbatim: TrainingText.blanks[index]).gpText(GPType.footnote).foregroundStyle(
+                Text(verbatim: TrainingText.blankLabel(index)).gpText(GPType.footnote).foregroundStyle(
                     Color(.textSecondary))
             }
             ForEach(
@@ -251,7 +314,7 @@ struct SessionExplanation: View {
         let wrong = q.explanation.options.filter { chosen.contains($0.optionId) && !q.answer.contains($0.optionId) }
         HStack(alignment: .top, spacing: GPSpace.s14) {
             Image(systemName: correct ? "checkmark.circle.fill" : "xmark.circle.fill")
-                .font(.gp(GPType.title2)).foregroundStyle(correct ? StudySection(q.section).color : Color(.wrong))
+                .gpText(GPType.title2).foregroundStyle(correct ? StudySection(q.section).color : Color(.wrong))
                 .frame(width: nodeSize, height: nodeSize)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: GPSpace.s12) {
@@ -309,6 +372,6 @@ struct SessionExplanation: View {
 
     private func rich(_ text: String) -> Text {
         // Разметка договора ограничена курсивом; пользовательский HTML сюда не попадает.
-        Text(LocalizedStringKey(text))
+        Text(TrainingText.explanation(text))
     }
 }

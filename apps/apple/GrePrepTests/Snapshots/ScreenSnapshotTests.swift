@@ -396,6 +396,32 @@ struct ScreenSnapshotTests {
         assertSession(model, name: "training-check")
         model.openOverview()
         assertSession(model, name: "training-overview")
+        #if os(iOS)
+            if UIDevice.current.userInterfaceIdiom == .pad {
+                let q = TrainingFixture.sample(.textCompletion, blanks: 3)
+                let partial = try await sessionModel(q, check: true)
+                partial.select(q.answer[0])
+                partial.openOverview()
+                for larger in [false, true] {
+                    let view = NavigationStack { TrainingSessionView(model: partial) }
+                        .environment(\.glassEnabled, false)
+                        .environment(\.textScale, larger ? GPType.textScaleLarge : 1)
+                    for dark in [false, true] {
+                        assertSnapshot(
+                            of: view,
+                            as: .image(
+                                drawHierarchyInKeyWindow: true,
+                                precision: Self.precision, perceptualPrecision: Self.perceptual,
+                                layout: .device(config: Self.padLandscape),
+                                traits: UITraitCollection(userInterfaceStyle: dark ? .dark : .light)
+                            ),
+                            named:
+                                "training-overview-partial\(larger ? "-larger" : "")-ipad-landscape-\(dark ? "dark" : "light")"
+                        )
+                    }
+                }
+            }
+        #endif
     }
 
     @Test("итог: ошибки и без ошибок")
@@ -503,6 +529,17 @@ struct ScreenSnapshotTests {
         static let pad = ViewImageConfig(
             safeArea: UIEdgeInsets(top: 24, left: 0, bottom: 20, right: 0),
             size: CGSize(width: 834, height: 1210),
+            traits: UITraitCollection { traits in
+                traits.userInterfaceIdiom = .pad
+                traits.displayScale = 2
+                traits.horizontalSizeClass = .regular
+                traits.verticalSizeClass = .regular
+            }
+        )
+
+        static let padLandscape = ViewImageConfig(
+            safeArea: UIEdgeInsets(top: 24, left: 0, bottom: 20, right: 0),
+            size: CGSize(width: 1210, height: 834),
             traits: UITraitCollection { traits in
                 traits.userInterfaceIdiom = .pad
                 traits.displayScale = 2

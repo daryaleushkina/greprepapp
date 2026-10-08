@@ -5,19 +5,20 @@ import SwiftUI
 
 /// Системная навигация сверху и одно главное действие снизу во всех состояниях сессии.
 struct TrainingSessionView: View {
-    @State private var model: SessionModel
+    @State private var model: SessionModel?
+    private let id: String
+    private let trainings: TrainingModel
+    private let runsClock: Bool
     let onClose: () -> Void
     let onRepeat: (String) -> Void
-    @Environment(\.scenePhase) private var scenePhase
-    @FocusState private var keyboardFocus: Bool
-    @State private var keyboardConnected = GCKeyboard.coalesced != nil
-    private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     init(
         id: String, trainings: TrainingModel, onClose: @escaping () -> Void = {},
         onRepeat: @escaping (String) -> Void = { _ in }
     ) {
-        _model = State(initialValue: SessionModel(id: id, trainings: trainings))
+        self.id = id
+        self.trainings = trainings
+        runsClock = true
         self.onClose = onClose
         self.onRepeat = onRepeat
     }
@@ -25,9 +26,36 @@ struct TrainingSessionView: View {
     /// Снимки получают уже подготовленную модель и не запускают часы.
     init(model: SessionModel, onClose: @escaping () -> Void = {}, onRepeat: @escaping (String) -> Void = { _ in }) {
         _model = State(initialValue: model)
+        id = model.id
+        trainings = model.trainings
+        runsClock = false
         self.onClose = onClose
         self.onRepeat = onRepeat
     }
+
+    var body: some View {
+        Group {
+            if let model {
+                TrainingSessionContent(model: model, runsClock: runsClock, onClose: onClose, onRepeat: onRepeat)
+            } else {
+                Color(.bg)
+            }
+        }.onAppear {
+            // Создание модели откладывается до появления; пересчёт TrainingFlow не создаёт лишних моделей.
+            if model == nil { model = SessionModel(id: id, trainings: trainings) }
+        }
+    }
+}
+
+private struct TrainingSessionContent: View {
+    let model: SessionModel
+    let runsClock: Bool
+    let onClose: () -> Void
+    let onRepeat: (String) -> Void
+    @Environment(\.scenePhase) private var scenePhase
+    @FocusState private var keyboardFocus: Bool
+    @State private var keyboardConnected = GCKeyboard.coalesced != nil
+    @State private var wideWindow = false
 
     private var hasKeyboard: Bool {
         #if os(macOS)
@@ -50,7 +78,7 @@ struct TrainingSessionView: View {
                         .toolbar {
                             if s.result == nil {
                                 ToolbarItem(placement: .principal) { SessionProgress(screen: s) }
-                                if s.training.isCheck && !model.overview {
+                                if s.training.isCheck && (!model.overview || wide) {
                                     ToolbarItemGroup(placement: .primaryAction) {
                                         Button(action: model.toggleFlag) {
                                             Label(
@@ -77,9 +105,19 @@ struct TrainingSessionView: View {
         #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
         #endif
+        .onGeometryChange(for: Bool.self) {
+            $0.size.width >= GPLayout.breakpointWide
+        } action: {
+            wideWindow = $0
+        }
         .focusable().focusEffectDisabled().focused($keyboardFocus)
-        .onKeyPress(characters: CharacterSet(charactersIn: "abcdeABCDE"), phases: .down) { press in
-            guard press.modifiers.intersection([.command, .control, .option]).isEmpty else { return .ignored }
+        .onKeyPress(
+            characters: CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"),
+            phases: .down
+        ) { press in
+            guard press.modifiers.intersection([.command, .control, .option]).isEmpty,
+                !model.overview || wideWindow
+            else { return .ignored }
             model.selectKey(press.characters)
             return .handled
         }
@@ -93,7 +131,20 @@ struct TrainingSessionView: View {
             model.next()
             return .handled
         }
-        .onReceive(timer) { _ in if scenePhase == .active { model.tick() } }
+        .task(id: runsClock && model.hasTimer && scenePhase == .active) {
+            guard runsClock, model.hasTimer, scenePhase == .active else { return }
+            // Часы существуют только у незаконченной «Проверки» и отменяются при уходе в фон или итог.
+            do {
+                while !Task.isCancelled {
+                    try await Task.sleep(for: .seconds(1))
+                    model.tick()
+                }
+            } catch is CancellationError {
+                // SwiftUI отменяет задачу часов при смене состояния или закрытии экрана.
+            } catch {
+                assertionFailure("Session clock failed: \(error)")
+            }
+        }
         .onChange(of: scenePhase) { _, phase in if phase == .active { model.tick() } }
         .onReceive(NotificationCenter.default.publisher(for: .GCKeyboardDidConnect)) { _ in
             keyboardConnected = true
@@ -166,7 +217,7 @@ struct TrainingSessionView: View {
                     } else if s.revealed {
                         Text("Enter / → — дальше")
                     } else {
-                        Text("A–E — выбрать · Enter — проверить / дальше · → — дальше")
+                        Text("\(s.selectionKeys) — выбрать · Enter — проверить / дальше · → — дальше")
                     }
                 }.gpText(GPType.key).foregroundStyle(Color(.textSecondary)).accessibilityIdentifier("session.keys")
             }
@@ -180,13 +231,11 @@ struct TrainingSessionView: View {
     @ViewBuilder private func buttons(_ s: SessionModel.Screen) -> some View {
         if let result = s.result {
             if result.review.isEmpty {
-                Button("Готово", action: onClose).buttonStyle(PrimaryCapsuleStyle()).accessibilityIdentifier(
+                Button("Готово", action: primary).buttonStyle(PrimaryCapsuleStyle()).accessibilityIdentifier(
                     "summary.done")
             } else {
                 secondary("Готово", id: "summary.done", action: onClose)
-                Button {
-                    Task { if let id = await model.repeatMistakes() { onRepeat(id) } }
-                } label: {
+                Button(action: primary) {
                     Text(
                         "Повторить · \(TrainingCopy.questions(TrainingRules.repeatCount(result.review.reduce(0) { $0 + $1.mistakes })))"
                     )
@@ -199,11 +248,11 @@ struct TrainingSessionView: View {
         } else if model.overview {
             secondary(
                 LocalizedStringKey("К вопросу \(s.position + 1)"), id: "overview.back", action: model.closeOverview)
-            Button("Закончить", action: model.end).buttonStyle(PrimaryCapsuleStyle()).accessibilityIdentifier(
+            Button("Закончить", action: primary).buttonStyle(PrimaryCapsuleStyle()).accessibilityIdentifier(
                 "overview.finish")
         } else if s.training.isCheck || s.revealed {
             if s.training.isCheck { secondary("Пропустить", id: "question.skip", action: model.next) }
-            Button(action: model.next) {
+            Button(action: primary) {
                 if s.isLast {
                     Text(s.training.isCheck ? "К списку вопросов" : "Итог")
                 } else {
@@ -212,7 +261,7 @@ struct TrainingSessionView: View {
             }.buttonStyle(PrimaryCapsuleStyle()).accessibilityIdentifier("question.next")
         } else {
             secondary("Не знаю", id: "question.dontKnow", action: model.dontKnow)
-            Button("Проверить", action: model.check).buttonStyle(PrimaryCapsuleStyle())
+            Button("Проверить", action: primary).buttonStyle(PrimaryCapsuleStyle())
                 .disabled(!s.canCheck).accessibilityIdentifier("question.check")
         }
     }
@@ -269,7 +318,7 @@ struct SessionOverview: View {
     var body: some View {
         VStack(alignment: .leading, spacing: GPSpace.s16) {
             Text("Все вопросы").gpText(GPType.title3).accessibilityAddTraits(.isHeader)
-            let answered = screen.training.answers.values.filter { !$0.optionIds.isEmpty }.count
+            let answered = screen.answeredCount
             let flagged = screen.training.answers.values.filter(\.flagged).count
             Text("Отвечено \(answered) из \(screen.training.total) · отмечено \(flagged)").gpText(GPType.subhead)
                 .foregroundStyle(Color(.textSecondary)).accessibilityIdentifier("overview.status")
@@ -277,7 +326,7 @@ struct SessionOverview: View {
             {
                 ForEach(0..<screen.training.total, id: \.self) { index in
                     let answer = screen.training.answers[index]
-                    let answered = !(answer?.optionIds.isEmpty ?? true)
+                    let answered = screen.isAnswered(index)
                     let flagged = answer?.flagged == true
                     Button {
                         model.goTo(index)
@@ -285,9 +334,9 @@ struct SessionOverview: View {
                         VStack(spacing: GPSpace.s4) {
                             Text(index + 1, format: .number).gpText(GPType.headline)
                             if flagged {
-                                Image(systemName: "flag.fill").font(.gp(GPType.key))
+                                Image(systemName: "flag.fill").gpText(GPType.key)
                             } else if answered {
-                                Image(systemName: "checkmark").font(.gp(GPType.key))
+                                Image(systemName: "checkmark").gpText(GPType.key)
                             }
                         }.frame(maxWidth: .infinity, minHeight: GPSize.rowTall).padding(.vertical, GPSpace.s4)
                             .foregroundStyle(answered ? section.color : Color(.text))
@@ -326,7 +375,7 @@ struct SessionSummary: View {
             HStack(alignment: .firstTextBaseline, spacing: GPSpace.s12) {
                 Text(result.correct, format: .number).gpText(wide ? GPType.displayWide : GPType.display)
                     .accessibilityIdentifier("summary.correct")
-                Text("верно из \(result.total)").gpText(GPType.title3)
+                Text(verbatim: TrainingCopy.correctOf(result.total)).gpText(GPType.title3)
             }.accessibilityElement(children: .combine)
             Text(verbatim: summaryLine).gpText(GPType.subhead).foregroundStyle(Color(.textSecondary))
             if screen.training.finish?.timedOut == true {
@@ -340,7 +389,8 @@ struct SessionSummary: View {
             if result.review.isEmpty {
                 Text(
                     result.unanswered > 0
-                        ? "Ошибок нет, но остались вопросы без ответа." : "Без ошибок — повторять нечего."
+                        ? LocalizedStringKey("Ошибок нет, но не успели \(TrainingCopy.questions(result.unanswered)).")
+                        : "Без ошибок — повторять нечего."
                 )
                 .gpText(GPType.body).accessibilityIdentifier("summary.noMistakes")
             } else {
@@ -352,7 +402,7 @@ struct SessionSummary: View {
                         ).accessibilityHidden(true)
                         VStack(alignment: .leading, spacing: GPSpace.s4) {
                             Text(verbatim: topic.title.localized).gpText(GPType.headline)
-                            let places = topic.positions.map { String($0 + 1) }.joined(separator: ", ")
+                            let places = TrainingCopy.positions(topic.positions)
                             let location =
                                 topic.positions.count == 1
                                 ? String(localized: "вопрос \(places)") : String(localized: "вопросы \(places)")

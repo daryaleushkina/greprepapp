@@ -1,4 +1,5 @@
 import Foundation
+import Observation
 import Testing
 
 @testable import GrePrep
@@ -9,6 +10,105 @@ struct SessionModelTests {
     let server = StubServer()
     let store = temporaryTrainingStore()
     let clock = TrainingTestClock()
+
+    @Test func keyboardSelectsSixthSEOption() async throws {
+        let q = TrainingFixture.sample(.sentenceEquivalence)
+        let (model, _) = try await model(question: q)
+        #expect(model.screen?.selectionKeys == "A–F")
+        model.selectKey("f")
+        #expect(model.screen?.selection == [q.groups[0].options[5].id])
+        model.selectKey("A")
+        #expect(model.screen?.canCheck == true)
+        model.selectKey("G")
+        #expect(model.screen?.selection.count == 2)
+    }
+
+    @Test func wideOverviewQuestionStillAcceptsSelection() async throws {
+        let (model, _) = try await model(check: true)
+        model.openOverview()
+        model.select("A")
+        #expect(model.screen?.selection == ["A"])
+        model.selectKey("B")
+        #expect(model.screen?.selection == ["B"])
+        #expect(model.overview)
+    }
+
+    @Test func overviewRequiresAllThreeBlanksButPartialAnswerIsStillWrong() async throws {
+        let q = TrainingFixture.sample(.textCompletion, blanks: 3)
+        let (model, _) = try await model(check: true, question: q)
+        for option in q.answer.dropLast() { model.select(option) }
+        #expect(model.screen?.answeredCount == 0)
+        #expect(model.screen?.isAnswered(0) == false)
+        model.end()
+        #expect(model.screen?.result?.correct == 0)
+        #expect(model.screen?.result?.unanswered == model.screen!.training.total - 1)
+        var complete = try #require(model.screen?.training)
+        complete.answers[0]?.optionIds = q.answer
+        #expect(
+            SessionModel.Screen(training: complete, position: 0, selection: q.answer, remaining: nil).answeredCount == 1
+        )
+    }
+
+    @Test func elapsedAccumulatesVisitsWithoutDoubleCountingSameVisit() async throws {
+        let (model, trainings) = try await model(check: true)
+        clock.advance(4)
+        model.select("A")
+        clock.advance(2)
+        model.toggleFlag()
+        #expect(model.screen?.answer?.elapsedMs == 6000)
+        clock.advance(1)
+        model.next()
+        clock.advance(3)
+        model.goTo(0)
+        clock.advance(2)
+        model.select("B")
+        #expect(model.screen?.answer?.elapsedMs == 9000)
+        clock.advance(1)
+        model.toggleFlag()
+        #expect(model.screen?.answer?.elapsedMs == 10000)
+        model.end()
+        await eventually { trainings.trainings[model.id]?.answers[0]?.elapsedMs == 10000 }
+        let resumed = SessionModel(id: model.id, trainings: trainings)
+        #expect(resumed.screen?.answer?.elapsedMs == 10000)
+    }
+
+    @Test func skippedVisitTimeSurvivesRelaunch() async throws {
+        let (model, trainings) = try await model(check: true)
+        clock.advance(4)
+        model.next()
+        await eventually { trainings.trainings[model.id]?.position == 1 }
+        let resumed = SessionModel(id: model.id, trainings: trainings)
+        resumed.goTo(0)
+        clock.advance(2)
+        resumed.select("A")
+        #expect(resumed.screen?.answer?.elapsedMs == 6000)
+    }
+
+    @Test func tickDoesNotInvalidatePracticeOrFinishedScreen() async throws {
+        let (model, _) = try await model()
+        let practiceChanged = SessionObservationFlag()
+        withObservationTracking {
+            _ = model.screen
+        } onChange: {
+            practiceChanged.mark()
+        }
+        clock.advance(2)
+        model.tick()
+        #expect(!practiceChanged.changed)
+        model.select("A")
+        model.check()
+        #expect(model.screen?.answer?.elapsedMs == 2000)
+        model.end()
+        let finishedChanged = SessionObservationFlag()
+        withObservationTracking {
+            _ = model.screen
+        } onChange: {
+            finishedChanged.mark()
+        }
+        clock.advance(3)
+        model.tick()
+        #expect(!finishedChanged.changed)
+    }
 
     func model(check: Bool = false, question: Question? = nil) async throws -> (SessionModel, TrainingModel) {
         var t = TrainingFixture.stored()
@@ -161,8 +261,6 @@ struct SessionModelTests {
         model.toggleFlag()
         model.toggleFlag()
         model.openOverview()
-        model.select("A")
-        #expect(model.screen?.selection == ["C"])
         model.closeOverview()
         model.goTo(-1)
         model.goTo(999)
@@ -181,6 +279,7 @@ struct SessionModelTests {
     @Test func practiceCannotJumpAndKeyboardFillsGroups() async throws {
         let q = TrainingFixture.question("tc_three_blanks_correct_reordered")
         let (model, _) = try await model(question: q)
+        #expect(model.screen?.selectionKeys == "A–C")
         model.goTo(1)
         model.openOverview()
         model.toggleFlag()
@@ -262,4 +361,11 @@ struct SessionModelTests {
         gate.open()
         #expect(await task.value != nil)
     }
+}
+
+private final class SessionObservationFlag: @unchecked Sendable {
+    private let lock = NSLock()
+    private var value = false
+    var changed: Bool { lock.withLock { value } }
+    func mark() { lock.withLock { value = true } }
 }

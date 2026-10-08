@@ -439,6 +439,15 @@ struct TrainingTopicsView: View {
 }
 
 enum TrainingCopy {
+    static func correctOf(_ total: Int, locale: Locale = .current) -> String {
+        String(localized: LocalizedStringResource("из \(total) верно", locale: locale))
+    }
+    static func positions(_ positions: [Int], locale: Locale = .current) -> String {
+        let numbers = positions.map { String($0 + 1) }
+        guard numbers.count > 1, let last = numbers.last else { return numbers.joined() }
+        let and = String(localized: LocalizedStringResource("и", locale: locale))
+        return numbers.dropLast().joined(separator: ", ") + " \(and) " + last
+    }
     static func questions(_ count: Int) -> String { String(localized: "\(count) вопросов") }
     static func tasks(_ count: Int) -> String { String(localized: "\(count) заданий") }
     static func mistakes(_ count: Int) -> String { String(localized: "\(count) ошибок") }

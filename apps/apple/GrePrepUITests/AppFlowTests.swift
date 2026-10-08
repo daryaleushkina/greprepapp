@@ -172,20 +172,21 @@ final class AppFlowTests: XCTestCase {
         XCTAssertEqual(entry.frame.midY, originalY, accuracy: 2)
     }
 
-    private func startSession(_ app: XCUIApplication, check: Bool = false) {
+    private func startSession(_ app: XCUIApplication, check: Bool = false, threeBlanks: Bool = false) {
         signIn(app)
         app.swipeUp()
         app.buttons["today.newTraining"].tap()
         XCTAssertTrue(app.buttons["builder.start"].waitForExistence(timeout: 10))
         let count = app.textFields["builder.count"]
         count.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
-        count.typeText(XCUIKeyboardKey.delete.rawValue + XCUIKeyboardKey.delete.rawValue + "3")
+        count.typeText(XCUIKeyboardKey.delete.rawValue + XCUIKeyboardKey.delete.rawValue + (threeBlanks ? "1" : "3"))
         if check { app.segmentedControls["builder.mode"].buttons["Проверка"].tap() }
         app.buttons["builder.topics"].tap()
         XCTAssertTrue(app.buttons["builder.topics.done"].waitForExistence(timeout: 5))
         // Контраст: в открытом наборе все ответы — A, у двух пропусков — A и D.
-        app.switches["builder.topic.similarity-signals"].tap()
+        app.switches[threeBlanks ? "builder.topic.contrast-signals" : "builder.topic.similarity-signals"].tap()
         app.switches["builder.topic.cause-effect"].tap()
+        if threeBlanks { app.segmentedControls["builder.difficulty"].buttons["Трудная"].tap() }
         app.buttons["builder.topics.done"].tap()
         app.buttons["builder.start"].tap()
         XCTAssertTrue(app.staticTexts["session.progress"].waitForExistence(timeout: 10))
@@ -237,6 +238,10 @@ final class AppFlowTests: XCTestCase {
         app.buttons["question.next"].tap()
         XCTAssertTrue(app.buttons["summary.repeat"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["Что повторить"].exists)
+        XCTAssertTrue(
+            app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "из 3 верно")).firstMatch.exists)
+        XCTAssertTrue(
+            app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "вопросы 2 и 3")).firstMatch.exists)
         try capture("summary")
         app.buttons["summary.done"].tap()
         XCTAssertTrue(app.buttons["today.newTraining"].waitForExistence(timeout: 5))
@@ -255,6 +260,12 @@ final class AppFlowTests: XCTestCase {
         app.buttons["question.next"].tap()
         app.buttons["question.next"].tap()
         XCTAssertTrue(app.buttons["overview.finish"].waitForExistence(timeout: 5))
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            XCTAssertTrue(app.buttons["question.flag"].exists)
+            // Оставляем ошибку для проверки повтора: после трёх верных ответов повторять нечего.
+            choose(app, correct: false)
+            XCTAssertTrue(app.buttons["option.C"].isSelected)
+        }
         try capture("overview")
         XCTAssertTrue(app.buttons["overview.question.0"].value as? String == "без ответа, отмечен")
         app.buttons["overview.question.0"].tap()
@@ -269,6 +280,32 @@ final class AppFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["session.progress"].waitForExistence(timeout: 10))
         XCTAssertFalse(app.staticTexts["session.timer"].exists)
         app.buttons["training.close"].tap()
+        XCUIDevice.shared.orientation = .portrait
+    }
+
+    func testTrainingCheckThreeBlanksCountOnlyCompleteAnswer() throws {
+        let app = launch(reset: true)
+        if UIDevice.current.userInterfaceIdiom == .pad { XCUIDevice.shared.orientation = .landscapeLeft }
+        startSession(app, check: true, threeBlanks: true)
+        XCTAssertEqual(app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "option.")).count, 9)
+        app.buttons["option.A"].tap()
+        app.buttons["question.overview"].tap()
+        XCTAssertTrue(app.staticTexts["overview.status"].waitForExistence(timeout: 5))
+        XCTAssertEqual(app.staticTexts["overview.status"].label, "Отвечено 0 из 1 · отмечено 0")
+        XCTAssertEqual(app.buttons["overview.question.0"].value as? String, "без ответа")
+        try capture("overview-partial")
+        if UIDevice.current.userInterfaceIdiom != .pad { app.buttons["overview.back"].tap() }
+        for id in ["D", "G"] {
+            let option = app.buttons["option.\(id)"]
+            if !option.isHittable { app.swipeUp() }
+            option.tap()
+            XCTAssertTrue(option.isSelected)
+        }
+        app.buttons["question.overview"].tap()
+        XCTAssertEqual(app.staticTexts["overview.status"].label, "Отвечено 1 из 1 · отмечено 0")
+        XCTAssertEqual(app.buttons["overview.question.0"].value as? String, "отвечен")
+        app.buttons["overview.finish"].tap()
+        XCTAssertTrue(app.buttons["summary.done"].waitForExistence(timeout: 5))
         XCUIDevice.shared.orientation = .portrait
     }
 
