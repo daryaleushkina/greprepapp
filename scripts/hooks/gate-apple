@@ -6,6 +6,10 @@
 #   на iPhone: юнит-тесты, снимки, сценарии UI против своего сервера и порог покрытия →
 #   снимки на iPad → юнит-тесты и снимки на Mac.
 #
+# Симуляторы гейт загружает по одному, только на время их шагов, и гасит сам — и при ошибке тоже. Состояние
+# после ожидания проверяет снова: уже включённый человеком или соседним прогоном не трогает. Своё не погасло
+# даже в cleanup — гейт красный с командой выключения; помощники и общий предел Мака — в sim-devices.
+#
 # Порог покрытия — здесь, а правка этой папки — только с согласия Даши (.claude/hooks/protect-gates.mjs):
 # AGENTS.md, «Порог не опускать; подняли покрытие — поднять и порог».
 
@@ -19,16 +23,24 @@ UI_PORT=8091
 UI_DB=greprep_apple_ui
 
 root="$(git rev-parse --show-toplevel)"
+. "$root/scripts/hooks/sim-devices"
 app="$root/apps/apple"
 cd "$app"
 
 work="$(mktemp -d)"
 server_pid=""
 cleanup() {
+  cleanup_status=$?
+  trap - EXIT
   if [ -n "$server_pid" ]; then kill "$server_pid" 2>/dev/null || true; fi
+  # Ошибка основного шага сохраняется, а неудачное выключение своего делает красным и успешный прогон.
+  if ! sim_cleanup; then cleanup_status=1; fi
   rm -rf "$work"
+  exit "$cleanup_status"
 }
 trap cleanup EXIT
+# Прерванный гейт (Ctrl-C, закрытый терминал) тоже гасит своё: не всякий sh зовёт ловушку EXIT по сигналу.
+trap 'exit 130' HUP INT TERM
 
 need() {
   command -v "$1" >/dev/null 2>&1 || { echo "gate: Apple — нет $1: $2" >&2; exit 1; }
@@ -115,13 +127,11 @@ until curl -sf "http://127.0.0.1:$UI_PORT/api/health" >/dev/null 2>&1; do
   sleep 0.2
 done
 
-# Свои симуляторы GrePrep (scripts/simulator.sh создаёт их, если нет), заранее загруженные.
+# Свои симуляторы GrePrep (scripts/simulator.sh создаёт их, если нет). Загружаются по одному и заранее, перед
+# прогоном тестов на них, а не все в начале: сборке для тестов симулятор не нужен, iPad нужен только снимкам —
+# держать его включённым всё время шагов iPhone значит занимать место в общей пятёрке зря.
 iphone="$(sh scripts/simulator.sh iphone)"
 ipad="$(sh scripts/simulator.sh ipad)"
-for udid in "$iphone" "$ipad"; do
-  xcrun simctl boot "$udid" 2>/dev/null || true
-  xcrun simctl bootstatus "$udid" -b >/dev/null
-done
 
 # Эталоны снимков гейт не записывает: нет эталона — тест красный.
 export TEST_RUNNER_SNAPSHOT_TESTING_RECORD=never
@@ -129,8 +139,10 @@ export TEST_RUNNER_GP_UI_SERVER="http://127.0.0.1:$UI_PORT"
 
 echo "gate: Apple — iPhone: юнит-тесты, снимки, сценарии UI, покрытие ≥ ${APPLE_COVERAGE_MIN}%" >&2
 build_step tests-ios -scheme GrePrep -destination "id=$iphone" build-for-testing
+sim_boot "$iphone"
 run_tests iphone -scheme GrePrep -destination "id=$iphone" -enableCodeCoverage YES \
   -resultBundlePath "$work/iphone.xcresult" test-without-building
+sim_release "$iphone"
 total="$(xcrun xccov view --report --json "$work/iphone.xcresult" | /usr/bin/python3 -c '
 import json, sys
 targets = [t for t in json.load(sys.stdin)["targets"] if t["name"] == "GrePrep.app"]
@@ -143,7 +155,9 @@ fi
 echo "gate: покрытие приложения Apple ${total}%" >&2
 
 echo "gate: Apple — iPad: снимки" >&2
+sim_boot "$ipad"
 run_tests ipad -scheme GrePrep -destination "id=$ipad" -only-testing:GrePrepTests/ScreenSnapshotTests test-without-building
+sim_release "$ipad"
 
 echo "gate: Apple — Mac: юнит-тесты и снимки" >&2
 run_tests mac -scheme GrePrepMac -destination 'platform=macOS' test

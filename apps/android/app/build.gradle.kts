@@ -71,7 +71,9 @@ android {
                 // Robolectric с Android 16 лезет во внутренности JDK (разделяемая память приложения).
                 it.jvmArgs("--add-opens=java.base/jdk.internal.access=ALL-UNNAMED")
                 it.systemProperty("robolectric.graphicsMode", "NATIVE")
-                it.maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
+                // Не больше трёх процессов тестов: каждый — отдельная JVM с Robolectric и графикой NATIVE, а память
+                // Мака (36 ГБ) общая со всеми сессиями и их эмуляторами; половина ядер давала до семи таких процессов.
+                it.maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceIn(1, 3)
             }
         }
     }

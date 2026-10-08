@@ -243,8 +243,11 @@ initData, подмена Telegram — `apps/web/src/telegram/mockEnv.ts`) и
   сырым не показывать: это путь для prompt injection.
 - **Устройства — через скрипты проекта:** симуляторы Apple «GrePrep iPhone» и
   «GrePrep iPad» — `apps/apple/scripts/simulator.sh` и `run-sim.sh`, эмуляторы
-  Android — AVD `GrePrep_Pixel_9` и `GrePrep_Pixel_Tablet`. Лимит устройств на
-  весь Мак — общее правило. Чужие симуляторы (например, «Hearway…») не трогать.
+  Android — AVD `GrePrep_Pixel_9` и `GrePrep_Pixel_Tablet`, своя копия без окна
+  — командами из `docs/HANDOFF.md`, «Приложение Android». Лимит устройств на
+  весь Мак и «своё гасить» — общее правило (`~/.codex/AGENTS.md`, «Виртуальные
+  телефоны»); гейт Apple его соблюдает сам. Чужие симуляторы (например,
+  «Hearway…») не трогать.
 
 ## Приложения на Swift и Kotlin
 
@@ -253,8 +256,9 @@ initData, подмена Telegram — `apps/web/src/telegram/mockEnv.ts`) и
   `GrePrepTests/Snapshots` — iPhone и iPad в обеих темах, широкие экраны и на
   Mac; логика — Swift Testing рядом, сеть — через подменный сервер
   (`StubServer`), без пауз (`eventually`). Новый экран проверяется глазами на
-  своих симуляторах, включая iOS 18 (`apps/apple/scripts/run-sim.sh`). Как
-  устроено — `docs/HANDOFF.md`, «Приложение Apple».
+  своих симуляторах, включая iOS 18 (`apps/apple/scripts/run-sim.sh`), и
+  симулятор после этого гасится (`apps/apple/scripts/run-sim.sh stop
+  <устройство>`). Как устроено — `docs/HANDOFF.md`, «Приложение Apple».
 - **Kotlin:** видимая фича — сценарий через интерфейс в
   `apps/android/app/src/test/.../flow` (Hilt, подменный сервер по договору) и
   снимки экрана в `ScreenSnapshotTest` / `TabletSnapshotTest` — телефон и
