@@ -22,6 +22,7 @@ final class AppModel {
     let api: API
     let config: AppConfig
     let network: NetworkMonitor
+    let trainings: TrainingModel
     @ObservationIgnored private let tokens: any TokenStore
     @ObservationIgnored private let cache: TodayCache
     @ObservationIgnored private let makeAPI: @Sendable (_ token: String) -> API
@@ -40,9 +41,17 @@ final class AppModel {
         self.tokens = tokens
         self.cache = cache
         self.network = network
-        api = API(config: config, session: session, tokens: tokens)
+        let api = API(config: config, session: session, tokens: tokens)
+        self.api = api
         makeAPI = { token in API(config: config, session: session, tokens: MemoryTokenStore(token)) }
+        trainings = TrainingModel(
+            store: TrainingStore(directory: cache.fileURL.deletingLastPathComponent().appending(path: "trainings")),
+            report: { message, requestID in
+                Task { await api.reportClientError(message: message, route: "training", requestID: requestID) }
+            }, unauthorized: {})
         phase = .signedOut(nil)
+
+        trainings.onUnauthorized = { [weak self] in self?.handleUnauthorized() }
 
         restoreSession()
     }
@@ -54,6 +63,7 @@ final class AppModel {
             tokenReadFailed = false
             if let token = try tokens.token(), !token.isEmpty {
                 becomeSignedIn()
+                trainings.connect(api: makeAPI(token), ownerID: nil, credentialID: TrainingStore.credentialID(token))
             }
         } catch {
             tokenReadFailed = true
@@ -73,6 +83,9 @@ final class AppModel {
             // Необязательный фон: стереть то, чего может и не быть.
             _ = try? KeychainTokenStore.live().clear()
             _ = try? TodayCache.live().clear()
+            _ = try? TrainingStore(
+                directory: TodayCache.live().fileURL.deletingLastPathComponent().appending(path: "trainings")
+            ).clear()
         }
     #endif
 
@@ -86,6 +99,9 @@ final class AppModel {
             report("today cache clear failed: \(error.domain) \(error.code)", route: "sign-in")
         }
         becomeSignedIn()
+        trainings.connect(
+            api: makeAPI(signedIn.token), ownerID: signedIn.user.id,
+            credentialID: TrainingStore.credentialID(signedIn.token))
     }
 
     /// Выход: на устройстве — сразу и до конца (токен, план), на сервере — следом, без ожидания. Не дошло до
@@ -138,6 +154,8 @@ final class AppModel {
     }
 
     private func forgetSession(reason: SignOutReason?) {
+        // 401 оставляет ответы до следующего входа; явный выход стирает их (решение Даши 08.10.2026).
+        trainings.disconnect(clear: reason != .sessionExpired)
         today?.retire()
         do {
             try tokens.clear()

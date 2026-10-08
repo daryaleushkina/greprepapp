@@ -114,7 +114,11 @@ struct ScreenSnapshotTests {
             await model.refresh()
             let view = TodayView(model: model, refreshesOnAppear: false).environment(app).environment(
                 \.glassEnabled, false)
-            let traits = UITraitCollection(preferredContentSizeCategory: .accessibilityLarge)
+            // Тема явная: снимок не зависит от того, какой оставил просмотрщик на симуляторе.
+            let traits = UITraitCollection { traits in
+                traits.userInterfaceStyle = .light
+                traits.preferredContentSizeCategory = .accessibilityLarge
+            }
             assertSnapshot(
                 of: view,
                 as: .image(
@@ -176,7 +180,10 @@ struct ScreenSnapshotTests {
                 as: .image(
                     drawHierarchyInKeyWindow: true, precision: Self.precision, perceptualPrecision: Self.perceptual,
                     layout: .device(config: Self.phone),
-                    traits: UITraitCollection(preferredContentSizeCategory: .accessibilityLarge)
+                    traits: UITraitCollection { traits in
+                        traits.userInterfaceStyle = .light
+                        traits.preferredContentSizeCategory = .accessibilityLarge
+                    }
                 ),
                 named: "today-eight-steps-large-text"
             )
@@ -220,6 +227,91 @@ struct ScreenSnapshotTests {
     }
 
     // MARK: - Устройства
+
+    @Test("конструктор тренировки")
+    func trainingBuilder() throws {
+        let app = try signedInApp(cached: nil, today: .json(200, Fixture.todayJSON))
+        let model = BuilderModel(trainings: app.trainings)
+        model.use(TrainingFixture.options)
+        assertScreens(
+            NavigationStack { TrainingBuilderView(model: model, loadsOnAppear: false) }.environment(app),
+            named: "training-builder")
+    }
+
+    @Test("темы и сложность")
+    func trainingTopics() throws {
+        let app = try signedInApp(cached: nil, today: .json(200, Fixture.todayJSON))
+        let model = BuilderModel(trainings: app.trainings)
+        model.use(TrainingFixture.options)
+        model.toggleTopic("contrast")
+        assertScreens(NavigationStack { TrainingTopicsView(model: model) }.environment(app), named: "training-topics")
+    }
+
+    @Test("«Сегодня» — продолжить тренировку")
+    func todayWithTraining() async throws {
+        let app = try signedInApp(cached: nil, today: .json(200, Fixture.todayJSON))
+        try app.didSignIn(.init(token: "t", user: Fixture.user))
+        server.on("POST /api/trainings", .json(201, TrainingFixture.json(TrainingFixture.session)))
+        let id = try await app.trainings.start(TrainingFixture.options.presets[0].request)
+        app.trainings.recordPosition(id, position: 2)
+        await eventually { app.trainings.active?.position == 2 }
+        let model = try #require(app.today)
+        await model.refresh()
+        assertScreens(TodayView(model: model, refreshesOnAppear: false).environment(app), named: "today-with-training")
+    }
+
+    @Test("конструктор — нет сети и сбой", .enabled { await ScreenSnapshotTests.isPhone() })
+    func trainingUnavailable() async throws {
+        let app = try signedInApp(cached: nil, today: .json(200, Fixture.todayJSON))
+        let model = BuilderModel(trainings: app.trainings)
+        server.on("GET /api/trainings/options", .failure(.notConnectedToInternet))
+        await model.load()
+        assertScreens(
+            NavigationStack { TrainingBuilderView(model: model, loadsOnAppear: false) }.environment(app),
+            named: "training-offline", devices: [.phone])
+        server.on("GET /api/trainings/options", .json(500, Fixture.error("internal")))
+        await model.load()
+        assertScreens(
+            NavigationStack { TrainingBuilderView(model: model, loadsOnAppear: false) }.environment(app),
+            named: "training-failed", devices: [.phone])
+    }
+
+    @Test("конструктор — ошибка старта", .enabled { await ScreenSnapshotTests.isPhone() })
+    func trainingStartProblems() async throws {
+        let app = try signedInApp(cached: nil, today: .json(200, Fixture.todayJSON))
+        try app.didSignIn(.init(token: "t", user: Fixture.user))
+        let model = BuilderModel(trainings: app.trainings)
+        model.use(TrainingFixture.options)
+        for (reply, name) in [
+            (StubServer.Reply.json(409, Fixture.error("no_questions")), "training-no-questions"),
+            (.failure(.notConnectedToInternet), "training-start-offline"),
+            (.json(500, Fixture.error("internal")), "training-start-failed"),
+        ] {
+            server.on("POST /api/trainings", reply)
+            _ = await model.start()
+            assertScreens(
+                NavigationStack { TrainingBuilderView(model: model, loadsOnAppear: false) }.environment(app),
+                named: name, devices: [.phone], themes: [.light])
+        }
+        model.setType(.sentenceEquivalence)
+        assertScreens(
+            NavigationStack { TrainingBuilderView(model: model, loadsOnAppear: false) }.environment(app),
+            named: "training-empty", devices: [.phone], themes: [.light])
+    }
+
+    @Test("заглушка начатой тренировки", .enabled { await ScreenSnapshotTests.isPhone() })
+    func trainingSession() async throws {
+        let app = try signedInApp(cached: nil, today: .json(200, Fixture.todayJSON))
+        try app.didSignIn(.init(token: "t", user: Fixture.user))
+        server.on("POST /api/trainings", .json(201, TrainingFixture.json(TrainingFixture.session)))
+        let id = try await app.trainings.start(TrainingFixture.options.presets[0].request)
+        assertScreens(
+            NavigationStack { TrainingSessionPlaceholder(trainings: app.trainings, id: id) }.environment(app),
+            named: "training-session", devices: [.phone], themes: [.light])
+        assertScreens(
+            NavigationStack { TrainingSessionPlaceholder(trainings: app.trainings, id: "missing") }.environment(app),
+            named: "training-missing", devices: [.phone], themes: [.light])
+    }
 
     enum Device { case phone, pad }
     enum Theme { case light, dark }

@@ -105,6 +105,8 @@ targets:
       - path: GrePrepTests
         excludes:
           - "**/__Snapshots__/**"
+      - path: ../../api/conformance/training-rules.json
+        buildPhase: resources
     dependencies:
       - target: GrePrep
       - package: SnapshotTesting

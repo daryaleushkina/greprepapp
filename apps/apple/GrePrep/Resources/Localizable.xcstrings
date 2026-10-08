@@ -1,6 +1,140 @@
 {
   "sourceLanguage": "ru",
   "strings": {
+    "%@ · %@ · %lld мин, как секция экзамена": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %@ · %lld min, like an exam section"
+          }
+        }
+      }
+    },
+    "%@ · вопрос %lld из %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · question %lld of %lld"
+          }
+        }
+      }
+    },
+    "%lld вопросов": {
+      "localizations": {
+        "ru": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld вопрос"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld вопроса"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld вопросов"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld вопроса"
+                }
+              }
+            }
+          }
+        },
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld question"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld questions"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld заданий": {
+      "localizations": {
+        "ru": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld задание"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld задания"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld заданий"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld задания"
+                }
+              }
+            }
+          }
+        },
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld question"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld questions"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld из %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld of %lld"
+          }
+        }
+      }
+    },
     "%lld мин": {
       "localizations": {
         "en": {
@@ -171,6 +305,16 @@
         }
       }
     },
+    "Вопросов": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questions"
+          }
+        }
+      }
+    },
     "Восемь шагов": {
       "localizations": {
         "en": {
@@ -231,6 +375,16 @@
         }
       }
     },
+    "Готово · %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done · %@"
+          }
+        }
+      }
+    },
     "Два шага": {
       "localizations": {
         "en": {
@@ -267,6 +421,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Loading today’s plan"
+          }
+        }
+      }
+    },
+    "Загружаем темы": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading topics"
+          }
+        }
+      }
+    },
+    "Заданий пока нет": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No questions yet"
           }
         }
       }
@@ -317,6 +491,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Test user name"
+          }
+        }
+      }
+    },
+    "Как в прошлый раз": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Same as last time"
+          }
+        }
+      }
+    },
+    "Любая": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Any"
+          }
+        }
+      }
+    },
+    "Лёгкая": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Easy"
           }
         }
       }
@@ -381,6 +585,16 @@
         }
       }
     },
+    "Начать · %@ · ~%lld мин": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start · %@ · ~%lld min"
+          }
+        }
+      }
+    },
     "Начать шаг": {
       "localizations": {
         "en": {
@@ -407,6 +621,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Couldn’t load the plan"
+          }
+        }
+      }
+    },
+    "Не получилось загрузить темы": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t load topics"
+          }
+        }
+      }
+    },
+    "Не получилось начать тренировку. Попробуйте ещё раз.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t start the practice. Please try again."
           }
         }
       }
@@ -451,12 +685,42 @@
         }
       }
     },
+    "Нет сети — тренировку не начать. Попробуйте, когда она появится.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No connection — the practice can’t start. Try again once you’re online."
+          }
+        }
+      }
+    },
+    "Новая тренировка": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New practice"
+          }
+        }
+      }
+    },
     "Один шаг": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "One step"
+          }
+        }
+      }
+    },
+    "Она могла устареть. Начните новую с экрана «Сегодня».": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "It may have expired. Start a new one from Today."
           }
         }
       }
@@ -491,12 +755,52 @@
         }
       }
     },
+    "Под этот выбор заданий пока нет — попробуйте другие темы или сложность.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No questions match this yet — try other topics or difficulty."
+          }
+        }
+      }
+    },
     "Подготовка к GRE® с разбором каждой ошибки — по-русски и по-английски.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "GRE® prep that explains every mistake — in Russian and in English."
+          }
+        }
+      }
+    },
+    "Практика": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Practice"
+          }
+        }
+      }
+    },
+    "Проверка": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check"
+          }
+        }
+      }
+    },
+    "Проверка на время": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Timed check"
           }
         }
       }
@@ -521,12 +825,62 @@
         }
       }
     },
+    "Продолжить тренировку": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue practice"
+          }
+        }
+      }
+    },
     "Пять шагов": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Five steps"
+          }
+        }
+      }
+    },
+    "Разбор после каждого вопроса, без таймера": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explanation after each question, no timer"
+          }
+        }
+      }
+    },
+    "Раздел": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Section"
+          }
+        }
+      }
+    },
+    "Режим": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mode"
+          }
+        }
+      }
+    },
+    "Своя тренировка": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Custom practice"
           }
         }
       }
@@ -591,6 +945,76 @@
         }
       }
     },
+    "Сложность": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Difficulty"
+          }
+        }
+      }
+    },
+    "Средняя": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Medium"
+          }
+        }
+      }
+    },
+    "Таймер как на экзамене, разбор в конце": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exam-pace timer, explanations at the end"
+          }
+        }
+      }
+    },
+    "Темы и сложность": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Topics and difficulty"
+          }
+        }
+      }
+    },
+    "Тип": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type"
+          }
+        }
+      }
+    },
+    "Тренировка сохранена на устройстве. Экран вопроса появится в следующей части.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The practice is saved on this device. The question screen will arrive in the next part."
+          }
+        }
+      }
+    },
+    "Тренировки нет на устройстве": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This practice isn’t on the device"
+          }
+        }
+      }
+    },
     "Тренировок ещё не было": {
       "localizations": {
         "en": {
@@ -611,12 +1035,32 @@
         }
       }
     },
+    "Трудная": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hard"
+          }
+        }
+      }
+    },
     "Четыре шага": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Four steps"
+          }
+        }
+      }
+    },
+    "Чтобы начать тренировку, нужна сеть: задания скачаются целиком, и дальше можно без неё.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starting a practice needs a connection: the questions download in full, and after that you can go offline."
           }
         }
       }
@@ -671,6 +1115,16 @@
         }
       }
     },
+    "все": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "all"
+          }
+        }
+      }
+    },
     "около %lld минут": {
       "localizations": {
         "ru": {
@@ -719,6 +1173,16 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "скоро": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "soon"
           }
         }
       }

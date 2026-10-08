@@ -11,6 +11,7 @@ final class StubServer: @unchecked Sendable {
     struct Request: Sendable {
         let method: String
         let path: String
+        let query: String?
         let headers: [String: String]
         let body: Data
         var authorization: String? { headers.first { $0.key.lowercased() == "authorization" }?.value }
@@ -114,6 +115,7 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
         let recorded = StubServer.Request(
             method: request.httpMethod ?? "GET",
             path: url.path(),
+            query: url.query(),
             headers: request.allHTTPHeaderFields ?? [:],
             body: request.httpBody ?? request.httpBodyStream.map(Self.read) ?? Data()
         )

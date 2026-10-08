@@ -3,18 +3,28 @@ import SwiftUI
 /// Разделы приложения: «Сегодня · Слова · Экзамен · Прогресс» (PRODUCT.md, «Навигация»). Вкладки системные:
 /// на iOS 26 — стеклянная капсула, на iPad и Mac — боковая панель (DESIGN.md, «Нативные приложения»).
 struct MainView: View {
+    @Environment(AppModel.self) private var app
     let today: TodayModel
     var refreshesOnAppear = true
     @State private var selection: AppTab = .today
+    @State private var trainingEntry: TrainingEntry?
 
     enum AppTab: Hashable {
         case today, words, exam, progress
     }
 
     var body: some View {
+        if let trainingEntry {
+            TrainingFlow(entry: trainingEntry, trainings: app.trainings) { self.trainingEntry = nil }
+        } else {
+            tabs
+        }
+    }
+
+    private var tabs: some View {
         TabView(selection: $selection) {
             Tab(value: AppTab.today) {
-                TodayView(model: today, refreshesOnAppear: refreshesOnAppear)
+                TodayView(model: today, refreshesOnAppear: refreshesOnAppear, onTraining: { trainingEntry = $0 })
             } label: {
                 Label {
                     Text("Сегодня")

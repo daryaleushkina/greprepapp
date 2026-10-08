@@ -1,3 +1,4 @@
+import UIKit
 import XCTest
 
 /// Сценарии через интерфейс, как это делает человек, против настоящего локального сервера (вход подменой,
@@ -98,5 +99,80 @@ final class AppFlowTests: XCTestCase {
         let message = app.staticTexts["signin.message"]
         XCTAssertTrue(message.waitForExistence(timeout: 5))
         XCTAssertTrue(message.label.contains("ещё не подключён"), message.label)
+    }
+
+    func testTrainingBuilderStartAndContinueAfterRelaunch() {
+        let app = launch(reset: true)
+        signIn(app)
+        app.swipeUp()
+        app.buttons["today.newTraining"].tap()
+        XCTAssertTrue(app.buttons["builder.start"].waitForExistence(timeout: 10))
+        XCTAssertFalse(app.tabBars.firstMatch.exists, "в тренировке нет вкладок")
+        let count = app.textFields["builder.count"]
+        // Касание справа от числа ставит курсор в конец поля, как при обычном редактировании.
+        count.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
+        count.typeText(XCUIKeyboardKey.delete.rawValue + XCUIKeyboardKey.delete.rawValue + "345")
+        let clipped = expectation(for: NSPredicate(format: "value == %@", "34"), evaluatedWith: count)
+        wait(for: [clipped], timeout: 5)
+        count.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
+        count.typeText(XCUIKeyboardKey.delete.rawValue + XCUIKeyboardKey.delete.rawValue + "3")
+        let changed = expectation(for: NSPredicate(format: "value == %@", "3"), evaluatedWith: count)
+        wait(for: [changed], timeout: 5)
+        app.buttons["builder.topics"].tap()
+        XCTAssertTrue(app.buttons["builder.topics.done"].waitForExistence(timeout: 5))
+        app.buttons["builder.topics.done"].tap()
+        app.buttons["builder.start"].tap()
+        XCTAssertTrue(app.otherElements["training.session"].waitForExistence(timeout: 10))
+        app.terminate()
+
+        let again = launch(reset: false, server: unreachableServer)
+        let resume = again.buttons["today.continueTraining"]
+        XCTAssertTrue(resume.waitForExistence(timeout: 10), "тренировка должна пережить перезапуск без сети")
+        XCTAssertTrue(resume.label.contains("вопрос 1 из"), resume.label)
+        resume.tap()
+        XCTAssertTrue(again.otherElements["training.session"].waitForExistence(timeout: 5))
+        again.buttons["training.close"].tap()
+        XCTAssertTrue(again.staticTexts["today.summary"].waitForExistence(timeout: 5))
+    }
+
+    func testTrainingLayoutInBothOrientations() throws {
+        let app = launch(reset: true)
+        signIn(app)
+        app.swipeUp()
+        app.buttons["today.newTraining"].tap()
+        XCTAssertTrue(app.buttons["builder.start"].waitForExistence(timeout: 10))
+        let output = ProcessInfo.processInfo.environment["GP_REVIEW_OUTPUT"]
+        let theme = ProcessInfo.processInfo.environment["GP_REVIEW_THEME"] ?? "light"
+        let orientations: [(UIDeviceOrientation, String)] =
+            UIDevice.current.userInterfaceIdiom == .pad
+            ? [(.portrait, "portrait"), (.landscapeLeft, "landscape")] : [(.portrait, "portrait")]
+        for (orientation, name) in orientations {
+            XCUIDevice.shared.orientation = orientation
+            XCTAssertTrue(app.buttons["builder.start"].isHittable)
+            if name == "landscape" { XCTAssertGreaterThan(app.frame.width, app.frame.height) }
+            if let output {
+                try XCUIScreen.main.screenshot().pngRepresentation.write(
+                    to: URL(filePath: output).appending(path: "builder-ipad-\(name)-\(theme).png"))
+            }
+            app.buttons["builder.topics"].tap()
+            XCTAssertTrue(app.buttons["builder.topics.done"].waitForExistence(timeout: 5))
+            if let output {
+                try XCUIScreen.main.screenshot().pngRepresentation.write(
+                    to: URL(filePath: output).appending(path: "topics-ipad-\(name)-\(theme).png"))
+            }
+            app.buttons["builder.topics.done"].tap()
+        }
+        if let output {
+            app.buttons["builder.start"].tap()
+            XCTAssertTrue(app.otherElements["training.session"].waitForExistence(timeout: 10))
+            app.buttons["training.close"].tap()
+            XCTAssertTrue(app.buttons["today.continueTraining"].waitForExistence(timeout: 5))
+            for (orientation, name) in orientations {
+                XCUIDevice.shared.orientation = orientation
+                try XCUIScreen.main.screenshot().pngRepresentation.write(
+                    to: URL(filePath: output).appending(path: "today-ipad-\(name)-\(theme).png"))
+            }
+        }
+        if output == nil { XCUIDevice.shared.orientation = .portrait }
     }
 }
