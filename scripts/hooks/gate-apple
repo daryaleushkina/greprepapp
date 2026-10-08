@@ -114,6 +114,8 @@ fi
 db="postgres://greprep:greprep@127.0.0.1:55432/$UI_DB?sslmode=disable"
 (cd "$root/server" && go build -o "$work/greprep" ./cmd/greprep)
 DATABASE_URL="$db" APP_ENV=test "$work/greprep" migrate up >"$work/migrate.log" 2>&1
+# Задания для сценариев тренировок — набор для разработки (в бою команда отказывается; согласие Даши 08.10.2026).
+DATABASE_URL="$db" APP_ENV=test "$work/greprep" seed-dev >"$work/seed.log" 2>&1
 DATABASE_URL="$db" APP_ENV=test HTTP_ADDR="127.0.0.1:$UI_PORT" DEV_AUTH=1 "$work/greprep" serve >"$work/server.log" 2>&1 &
 server_pid=$!
 tries=0
