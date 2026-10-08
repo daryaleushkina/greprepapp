@@ -6,8 +6,58 @@ import GPAPI
 /// Только открытый набор договора: задания для проверки, платного контента здесь нет.
 enum TrainingFixture {
     private final class ResourceBundle: NSObject {}
-    private struct Cases: Decodable { let summaries: [Summary] }
+    private struct Cases: Decodable {
+        let summaries: [Summary]
+        let answers: [AnswerCase]
+    }
+    private struct AnswerCase: Decodable {
+        let name: String
+        let question: Question
+    }
     private struct Summary: Decodable { let session: TrainingSession }
+    private struct Seed: Decodable {
+        struct Item: Decodable {
+            struct Body: Decodable {
+                let prompt: String
+                let condition: String?
+                let quantityA: String?
+                let quantityB: String?
+                let groups: [Components.Schemas.OptionGroup]
+                let selectCount: Int
+            }
+            let id: String
+            let type: Components.Schemas.QuestionType
+            let topic: String
+            let difficulty: Components.Schemas.Difficulty
+            let body: Body
+            let answer: [String]
+            let explanation: Components.Schemas.Explanation
+        }
+        let questions: [Item]
+        struct Topic: Decodable {
+            let id: String
+            let title: Components.Schemas.LocalizedText
+        }
+        let topics: [Topic]
+    }
+    static func sample(_ type: Components.Schemas.QuestionType, blanks: Int = 1) -> Question {
+        let url = Bundle(for: ResourceBundle.self).url(forResource: "questions", withExtension: "json")!
+        let seed = try! JSONDecoder().decode(Seed.self, from: Data(contentsOf: url))
+        let q = seed.questions.first { $0.type == type && $0.body.groups.count == blanks }!
+        return Question(
+            id: q.id, questionType: q.type,
+            section: type == .textCompletion || type == .sentenceEquivalence ? .verbal : .quant,
+            topicId: q.topic, topicTitle: seed.topics.first { $0.id == q.topic }!.title, difficulty: q.difficulty,
+            prompt: q.body.prompt, condition: q.body.condition, quantityA: q.body.quantityA,
+            quantityB: q.body.quantityB,
+            groups: q.body.groups, selectCount: q.body.selectCount, answer: q.answer, explanation: q.explanation)
+    }
+    static func question(_ name: String) -> Question {
+        let url = Bundle(for: ResourceBundle.self).url(forResource: "training-rules", withExtension: "json")!
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return try! decoder.decode(Cases.self, from: Data(contentsOf: url)).answers.first { $0.name == name }!.question
+    }
     static var session: TrainingSession {
         let url = Bundle(for: ResourceBundle.self).url(forResource: "training-rules", withExtension: "json")!
         let decoder = JSONDecoder()
@@ -77,6 +127,14 @@ enum TrainingFixture {
         }
         return t
     }
+}
+
+/// Часы теста: фон, блокировка и возврат проверяются без ожидания настоящего времени.
+final class TrainingTestClock: @unchecked Sendable {
+    private let lock = NSLock()
+    private var date = Date(timeIntervalSince1970: 1_800_000_000)
+    var now: Date { lock.withLock { date } }
+    func advance(_ seconds: TimeInterval) { lock.withLock { date.addTimeInterval(seconds) } }
 }
 
 func temporaryTrainingStore() -> TrainingStore {

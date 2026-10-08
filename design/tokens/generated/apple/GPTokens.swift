@@ -102,7 +102,7 @@ public enum GPLayout {
     public static let taglineMax: CGFloat = 320
 }
 
-/// Прозрачность состояний элементов Apple.
+/// Прозрачность состояний элементов.
 public enum GPOpacity {
     public static let disabled: Double = 0.5
 }

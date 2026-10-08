@@ -172,6 +172,124 @@ final class AppFlowTests: XCTestCase {
         XCTAssertEqual(entry.frame.midY, originalY, accuracy: 2)
     }
 
+    private func startSession(_ app: XCUIApplication, check: Bool = false) {
+        signIn(app)
+        app.swipeUp()
+        app.buttons["today.newTraining"].tap()
+        XCTAssertTrue(app.buttons["builder.start"].waitForExistence(timeout: 10))
+        let count = app.textFields["builder.count"]
+        count.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
+        count.typeText(XCUIKeyboardKey.delete.rawValue + XCUIKeyboardKey.delete.rawValue + "3")
+        if check { app.segmentedControls["builder.mode"].buttons["Проверка"].tap() }
+        app.buttons["builder.topics"].tap()
+        XCTAssertTrue(app.buttons["builder.topics.done"].waitForExistence(timeout: 5))
+        // Контраст: в открытом наборе все ответы — A, у двух пропусков — A и D.
+        app.switches["builder.topic.similarity-signals"].tap()
+        app.switches["builder.topic.cause-effect"].tap()
+        app.buttons["builder.topics.done"].tap()
+        app.buttons["builder.start"].tap()
+        XCTAssertTrue(app.staticTexts["session.progress"].waitForExistence(timeout: 10))
+    }
+
+    private func choose(_ app: XCUIApplication, correct: Bool) {
+        let options = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "option."))
+        XCTAssertTrue(options.firstMatch.waitForExistence(timeout: 5))
+        let count = options.count
+        app.buttons[correct ? "option.A" : "option.C"].tap()
+        if count > 5 { app.buttons[correct ? "option.D" : "option.F"].tap() }
+        if count > 6 { app.buttons[correct ? "option.G" : "option.I"].tap() }
+    }
+
+    private func capture(_ name: String) throws {
+        if let path = ProcessInfo.processInfo.environment["GP_REVIEW_OUTPUT"] {
+            let theme = ProcessInfo.processInfo.environment["GP_REVIEW_THEME"] ?? "light"
+            let device = UIDevice.current.userInterfaceIdiom == .pad ? "ipad-landscape" : "iphone"
+            try XCUIScreen.main.screenshot().pngRepresentation.write(
+                to: URL(filePath: path).appending(path: "\(name)-\(device)-\(theme).png"))
+        }
+    }
+
+    func testTrainingPracticeToSummary() throws {
+        let app = launch(reset: true)
+        if UIDevice.current.userInterfaceIdiom == .pad { XCUIDevice.shared.orientation = .landscapeLeft }
+        startSession(app)
+        try capture("question")
+        choose(app, correct: true)
+        app.buttons["question.check"].tap()
+        XCTAssertTrue(app.staticTexts["explanation.verdict"].waitForExistence(timeout: 5))
+        XCTAssertEqual(app.staticTexts["explanation.verdict"].label, "Верно.")
+        app.buttons["question.next"].tap()
+        choose(app, correct: false)
+        app.buttons["question.check"].tap()
+        XCTAssertTrue(app.staticTexts["explanation.verdict"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["explanation.verdict"].label.hasPrefix("Неверно."))
+        if !app.buttons["explanation.whyNotToggle"].isHittable { app.swipeUp() }
+        app.buttons["explanation.whyNotToggle"].tap()
+        XCTAssertTrue(app.staticTexts["explanation.whyNot"].firstMatch.waitForExistence(timeout: 5))
+        if !app.staticTexts["explanation.whyNot"].firstMatch.isHittable { app.swipeUp() }
+        try capture("explanation")
+        app.segmentedControls["explanation.language"].buttons["EN"].tap()
+        XCTAssertTrue(app.staticTexts["explanation.verdict"].label.hasPrefix("Incorrect."))
+        app.segmentedControls["explanation.language"].buttons["RU"].tap()
+        app.buttons["question.next"].tap()
+        app.buttons["question.dontKnow"].tap()
+        XCTAssertTrue(app.staticTexts["explanation.verdict"].waitForExistence(timeout: 5))
+        app.buttons["question.next"].tap()
+        XCTAssertTrue(app.buttons["summary.repeat"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Что повторить"].exists)
+        try capture("summary")
+        app.buttons["summary.done"].tap()
+        XCTAssertTrue(app.buttons["today.newTraining"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["today.continueTraining"].exists)
+        XCUIDevice.shared.orientation = .portrait
+    }
+
+    func testTrainingCheckSkipFlagReturnAndFinish() throws {
+        let app = launch(reset: true)
+        if UIDevice.current.userInterfaceIdiom == .pad { XCUIDevice.shared.orientation = .landscapeLeft }
+        startSession(app, check: true)
+        XCTAssertTrue(app.staticTexts["session.timer"].exists)
+        app.buttons["question.flag"].tap()
+        app.buttons["question.skip"].tap()
+        choose(app, correct: true)
+        app.buttons["question.next"].tap()
+        app.buttons["question.next"].tap()
+        XCTAssertTrue(app.buttons["overview.finish"].waitForExistence(timeout: 5))
+        try capture("overview")
+        XCTAssertTrue(app.buttons["overview.question.0"].value as? String == "без ответа, отмечен")
+        app.buttons["overview.question.0"].tap()
+        XCTAssertEqual(app.staticTexts["session.progress"].label, "Вопрос 1 из 3")
+        choose(app, correct: true)
+        app.buttons["question.overview"].tap()
+        XCTAssertTrue(app.buttons["overview.question.0"].value as? String == "отвечен, отмечен")
+        app.buttons["overview.finish"].tap()
+        XCTAssertTrue(app.buttons["summary.done"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["session.timer"].exists)
+        app.buttons["summary.repeat"].tap()
+        XCTAssertTrue(app.staticTexts["session.progress"].waitForExistence(timeout: 10))
+        XCTAssertFalse(app.staticTexts["session.timer"].exists)
+        app.buttons["training.close"].tap()
+        XCUIDevice.shared.orientation = .portrait
+    }
+
+    func testTrainingRelaunchResumesSameQuestionAndAnswerOffline() {
+        let app = launch(reset: true)
+        startSession(app, check: true)
+        choose(app, correct: true)
+        app.buttons["question.next"].tap()
+        choose(app, correct: false)
+        app.terminate()
+        let offline = launch(reset: false, server: unreachableServer)
+        XCTAssertTrue(offline.buttons["today.continueTraining"].waitForExistence(timeout: 10))
+        offline.buttons["today.continueTraining"].tap()
+        XCTAssertTrue(offline.staticTexts["session.progress"].waitForExistence(timeout: 5))
+        XCTAssertEqual(offline.staticTexts["session.progress"].label, "Вопрос 2 из 3")
+        XCTAssertTrue(offline.buttons["option.C"].isSelected)
+        offline.buttons["question.overview"].tap()
+        offline.buttons["overview.finish"].tap()
+        XCTAssertTrue(offline.buttons["summary.repeat"].waitForExistence(timeout: 5))
+    }
+
     func testTrainingLayoutInBothOrientations() throws {
         let app = launch(reset: true)
         signIn(app)

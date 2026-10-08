@@ -242,6 +242,11 @@ object GpLayout {
     val taglineMax = 320.dp
 }
 
+/** Прозрачность состояний элементов. */
+object GpOpacity {
+    const val DISABLED = 0.5f
+}
+
 /** Роли текста; family — Onest из ресурсов приложения. sp растут с системным масштабом шрифта. */
 @Immutable
 class GpTypography(family: FontFamily) {

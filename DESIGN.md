@@ -253,6 +253,8 @@ spacing:
   "56": "56px"
   "64": "64px"
   "72": "72px"
+opacity:
+  disabled: 0.5
 components:
   button-main:
     backgroundColor: "{colors.accent}"

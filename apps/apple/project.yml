@@ -107,6 +107,9 @@ targets:
           - "**/__Snapshots__/**"
       - path: ../../api/conformance/training-rules.json
         buildPhase: resources
+      # Открытый набор разработки нужен реалистичным снимкам всех четырёх типов.
+      - path: ../../server/internal/devseed/questions.json
+        buildPhase: resources
     dependencies:
       - target: GrePrep
       - package: SnapshotTesting

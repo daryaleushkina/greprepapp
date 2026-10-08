@@ -3,7 +3,7 @@
     "$type": "number",
     "disabled": {
       "$value": 0.5,
-      "$description": "Выключенная главная кнопка Apple"
+      "$description": "Выключенный элемент управления"
     }
   }
 }

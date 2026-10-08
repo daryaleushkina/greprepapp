@@ -1,8 +1,13 @@
+import GPAPI
 import SnapshotTesting
 import SwiftUI
 import Testing
 
 @testable import GrePrep
+
+#if os(iOS)
+    import Vision
+#endif
 
 /// Эталонные снимки экранов: iPhone, iPad и Mac — в светлой и тёмной теме. Каждое устройство снимается на своём
 /// симуляторе (гейт гоняет набор на iPhone и на iPad): стекло iOS 26 рисуется только в настоящем окне, а окно
@@ -299,19 +304,170 @@ struct ScreenSnapshotTests {
             named: "training-empty")
     }
 
-    @Test("заглушка начатой тренировки")
+    @Test("вопрос начатой тренировки и отсутствие данных")
     func trainingSession() async throws {
         let app = try signedInApp(cached: nil, today: .json(200, Fixture.todayJSON))
         try app.didSignIn(.init(token: "t", user: Fixture.user))
         server.on("POST /api/trainings", .json(201, TrainingFixture.json(TrainingFixture.session)))
         let id = try await app.trainings.start(TrainingFixture.options.presets[0].request)
         assertScreens(
-            NavigationStack { TrainingSessionPlaceholder(trainings: app.trainings, id: id) }.environment(app),
+            NavigationStack { TrainingSessionView(id: id, trainings: app.trainings) }.environment(app),
             named: "training-session")
         assertScreens(
-            NavigationStack { TrainingSessionPlaceholder(trainings: app.trainings, id: "missing") }.environment(app),
+            NavigationStack { TrainingSessionView(id: "missing", trainings: app.trainings) }.environment(app),
             named: "training-missing")
     }
+
+    private func sessionModel(_ question: Question, check: Bool = false, clock: TrainingTestClock = TrainingTestClock())
+        async throws -> SessionModel
+    {
+        var t = TrainingFixture.stored()
+        t.session.items = (0..<3).map { .init(position: $0, question: question) }
+        t.session.questionTypes = [question.questionType]
+        t.session.section = question.section
+        if check {
+            t.session.mode = .check
+            t.session.timeLimitSeconds = 270
+        }
+        let store = temporaryTrainingStore()
+        try store.saveOwner("person")
+        try store.save(t)
+        server.on("POST /api/trainings/\(t.id)/answers", .failure(.notConnectedToInternet))
+        let trainings = TrainingModel(
+            store: store, now: { clock.now }, report: { _, _ in }, unauthorized: {})
+        trainings.connect(
+            api: API(config: server.config(), session: server.session, tokens: MemoryTokenStore("t")), ownerID: "person"
+        )
+        await eventually { trainings.trainings[t.id] != nil }
+        return SessionModel(id: t.id, trainings: trainings)
+    }
+
+    private func assertSession(
+        _ model: SessionModel, name: String, file: StaticString = #filePath, testName: String = #function,
+        line: UInt = #line
+    ) {
+        let view = NavigationStack { TrainingSessionView(model: model) }
+        assertScreens(view, named: name, file: file, testName: testName, line: line)
+        assertScreens(
+            view.environment(\.textScale, GPType.textScaleLarge), named: name + "-larger", file: file,
+            testName: testName, line: line)
+    }
+
+    @Test("вопрос: четыре типа и один, два, три пропуска")
+    func trainingQuestions() async throws {
+        for (type, blanks, name) in [
+            (Components.Schemas.QuestionType.textCompletion, 1, "tc"), (.textCompletion, 2, "tc-two"),
+            (.textCompletion, 3, "tc-three"), (.sentenceEquivalence, 1, "se"),
+            (.quantitativeComparison, 1, "qc"), (.multipleChoice, 1, "mc"),
+        ] {
+            let q = TrainingFixture.sample(type, blanks: blanks)
+            let model = try await sessionModel(q)
+            model.select(q.groups[0].options[0].id)
+            assertSession(model, name: "training-question-" + name)
+        }
+    }
+
+    @Test("разбор: неверно, раскрыт, EN, верно, «Не знаю»")
+    func trainingExplanation() async throws {
+        let q = TrainingFixture.sample(.textCompletion)
+        let model = try await sessionModel(q)
+        model.select("C")
+        model.check()
+        assertSession(model, name: "training-explanation")
+        model.whyNotOpen = true
+        assertSession(model, name: "training-explanation-open")
+        model.english = true
+        assertSession(model, name: "training-explanation-en")
+        let correct = try await sessionModel(TrainingFixture.sample(.sentenceEquivalence))
+        for option in correct.screen!.question.answer { correct.select(option) }
+        correct.check()
+        assertSession(correct, name: "training-correct")
+        let unknown = try await sessionModel(q)
+        unknown.dontKnow()
+        assertSession(unknown, name: "training-dont-know")
+    }
+
+    @Test("Проверка: таймер и список вопросов")
+    func trainingCheck() async throws {
+        let model = try await sessionModel(TrainingFixture.sample(.textCompletion), check: true)
+        model.toggleFlag()
+        model.next()
+        model.select("A")
+        assertSession(model, name: "training-check")
+        model.openOverview()
+        assertSession(model, name: "training-overview")
+    }
+
+    @Test("итог: ошибки и без ошибок")
+    func trainingSummary() async throws {
+        let q = TrainingFixture.sample(.textCompletion)
+        let model = try await sessionModel(q)
+        model.select("A")
+        model.check()
+        model.next()
+        model.select("C")
+        model.check()
+        model.next()
+        model.dontKnow()
+        model.next()
+        assertSession(model, name: "training-summary")
+        let perfect = try await sessionModel(q)
+        for _ in 0..<3 {
+            perfect.select("A")
+            perfect.check()
+            perfect.next()
+        }
+        assertSession(perfect, name: "training-summary-perfect")
+        let clock = TrainingTestClock()
+        let timed = try await sessionModel(q, check: true, clock: clock)
+        timed.select("C")
+        clock.advance(300)
+        timed.tick()
+        assertSession(timed, name: "training-summary-timed-out")
+    }
+
+    #if os(iOS)
+        @Test(
+            "разбор целиком виден на iPad с «Крупнее»",
+            .enabled { await MainActor.run { UIDevice.current.userInterfaceIdiom == .pad } })
+        func trainingExplanationDoesNotTruncate() async throws {
+            let model = try await sessionModel(TrainingFixture.sample(.textCompletion))
+            model.select("C")
+            model.check()
+            model.english = false
+            model.whyNotOpen = true
+            let view = AnyView(
+                NavigationStack { TrainingSessionView(model: model) }
+                    .environment(\.textScale, GPType.textScaleLarge).environment(\.glassEnabled, false))
+            let strategy = Snapshotting<AnyView, UIImage>.image(
+                drawHierarchyInKeyWindow: true, layout: .device(config: Self.pad),
+                traits: UITraitCollection(userInterfaceStyle: .light))
+            let rendered: UIImage = await withCheckedContinuation { continuation in
+                strategy.snapshot(view).run { continuation.resume(returning: $0) }
+            }
+            let cgImage = try #require(rendered.cgImage)
+            let request = VNRecognizeTextRequest()
+            request.recognitionLevel = .accurate
+            request.recognitionLanguages = ["ru-RU", "en-US"]
+            try VNImageRequestHandler(cgImage: cgImage).perform([request])
+            let visible = request.results?.compactMap { $0.topCandidates(1).first?.string }.joined(separator: " ") ?? ""
+            // Метка VoiceOver содержит весь текст даже при обрезании; проверяем именно прочитанные пиксели.
+            #expect(visible.contains("повтора"), "Конец объяснения не виден: \(visible)")
+        }
+
+        @Test("вопрос и разбор с крупным системным шрифтом", .enabled { await ScreenSnapshotTests.isPhone() })
+        func trainingDynamicType() async throws {
+            let model = try await sessionModel(TrainingFixture.sample(.textCompletion, blanks: 3))
+            assertScreens(
+                NavigationStack { TrainingSessionView(model: model) }.environment(\.dynamicTypeSize, .accessibility3),
+                named: "training-dynamic-type", devices: [.phone])
+            model.dontKnow()
+            assertScreens(
+                NavigationStack { TrainingSessionView(model: model) }.environment(\.dynamicTypeSize, .accessibility3),
+                named: "training-dynamic-explanation",
+                devices: [.phone])
+        }
+    #endif
 
     enum Device { case phone, pad }
     enum Theme { case light, dark }

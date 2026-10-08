@@ -28,6 +28,7 @@ export async function resolveModes() {
       source: [
         join(here, 'src/primitives/*.json'),
         join(here, 'src/semantic/typography.json'),
+        join(here, 'src/semantic/control.json'),
         join(here, `src/semantic/color.${mode}.json`),
         join(here, `src/third-party/sign-in.${mode}.json`),
       ],
@@ -164,7 +165,7 @@ const RELATIVE = {
 };
 const SWIFT_WEIGHT = { 400: '.regular', 500: '.medium', 600: '.semibold' };
 
-function emitSwift({ common }, apple) {
+function emitSwift({ common }) {
   const group = (head) => common.filter((t) => t.path[0] === head && t.$type === 'dimension');
   const cg = (title, head, doc) => [
     `/// ${doc}`,
@@ -199,9 +200,9 @@ ${cg('GPSize', 'size', 'Размеры элементов, pt.')}
 
 ${cg('GPLayout', 'layout', 'Раскладка, pt. breakpointWide — граница компактной и широкой раскладки.')}
 
-/// Прозрачность состояний элементов Apple.
+/// Прозрачность состояний элементов.
 public enum GPOpacity {
-    public static let disabled: Double = ${fmt(apple.opacity.disabled.$value)}
+${common.filter((t) => t.path[0] === 'opacity').map((t) => `    public static let ${swiftName(t.path.slice(1))}: Double = ${fmt(t.$value)}`).join('\n')}
 }
 
 /// Роль текста: размер и межстрочный — pt, трекинг — доля размера (em), relativeTo — с каким стилем Dynamic Type растёт.
@@ -286,6 +287,11 @@ ${obj('GpSize', 'size', 'Размеры элементов.')}
 
 ${obj('GpLayout', 'layout', 'Раскладка. breakpointWide — граница компактной и широкой раскладки.')}
 
+/** Прозрачность состояний элементов. */
+object GpOpacity {
+${common.filter((t) => t.path[0] === 'opacity').map((t) => `    const val ${t.path.slice(1).join('_').replace(/-/g, '_').toUpperCase()} = ${fmt(t.$value)}f`).join('\n')}
+}
+
 /** Роли текста; family — Onest из ресурсов приложения. sp растут с системным масштабом шрифта. */
 @Immutable
 class GpTypography(family: FontFamily) {
@@ -349,6 +355,8 @@ function emitFrontmatter({ common, themed }) {
     lines.push(`${key}:`);
     for (const t of common.filter((t) => t.path[0] === head)) lines.push(`  ${q(t.path.slice(1).join('-'))}: ${q(px(t.$value))}`);
   }
+  lines.push('opacity:');
+  for (const t of common.filter((t) => t.path[0] === 'opacity')) lines.push(`  ${t.path.slice(1).join('-')}: ${fmt(t.$value)}`);
   // Компоненты — ссылками на токены выше: шапка не должна разойтись с источником.
   lines.push('components:',
     '  button-main:', '    backgroundColor: "{colors.accent}"', '    textColor: "{colors.on-accent}"', '    rounded: "{rounded.full}"', '    height: "48px"', '    padding: "0 24px"',
@@ -370,7 +378,7 @@ export async function render() {
   const parts = split(await resolveModes());
   const files = {
     'web/tokens.css': emitCss(parts),
-    'apple/GPTokens.swift': emitSwift(parts, JSON.parse(await readFile(join(here, 'src/apple/control.json'), 'utf8'))),
+    'apple/GPTokens.swift': emitSwift(parts),
     'android/GpTokens.kt': emitKotlin(parts),
     ...emitAndroidColorResources(parts),
     ...Object.fromEntries(Object.entries(emitColorAssets(parts)).map(([k, v]) => ['apple/' + k, v])),

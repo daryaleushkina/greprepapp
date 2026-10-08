@@ -46,6 +46,8 @@ final class TrainingModel {
         }.max { $0.startedAtMillis < $1.startedAtMillis }
     }
 
+    var currentDate: Date { now() }
+
     func connect(api: API, ownerID: String?, credentialID: String? = nil) {
         revision = access.renew()
         let epoch = revision

@@ -65,7 +65,10 @@ struct TrainingFlow: View {
         NavigationStack {
             Group {
                 if let sessionID {
-                    TrainingSessionPlaceholder(trainings: trainings, id: sessionID)
+                    TrainingSessionView(
+                        id: sessionID, trainings: trainings, onClose: onClose, onRepeat: { self.sessionID = $0 }
+                    )
+                    .id(sessionID)
                 } else if let builder {
                     TrainingBuilderView(model: builder, onTopics: { topics = true }, onStarted: { sessionID = $0 })
                         .navigationDestination(isPresented: $topics) {
@@ -435,34 +438,10 @@ struct TrainingTopicsView: View {
     }
 }
 
-struct TrainingSessionPlaceholder: View {
-    let trainings: TrainingModel
-    let id: String
-    var body: some View {
-        VStack {
-            if let t = trainings.trainings[id] {
-                ContentUnavailableView {
-                    Text("\(t.position + 1) из \(t.total)").gpText(GPType.title2)
-                } description: {
-                    Text("Тренировка сохранена на устройстве. Экран вопроса появится в следующей части.")
-                }
-                .navigationTitle(Text(StudySection(t.session.section).label))
-                .background { SectionGlow(section: StudySection(t.session.section)) }
-            } else {
-                ContentUnavailableView(
-                    "Тренировки нет на устройстве", systemImage: "tray",
-                    description:
-                        Text("Она могла устареть. Начните новую с экрана «Сегодня»."))
-            }
-        }.frame(maxWidth: .infinity, maxHeight: .infinity)
-            .accessibilityElement(children: .contain)
-            .accessibilityIdentifier("training.session")
-    }
-}
-
 enum TrainingCopy {
     static func questions(_ count: Int) -> String { String(localized: "\(count) вопросов") }
     static func tasks(_ count: Int) -> String { String(localized: "\(count) заданий") }
+    static func mistakes(_ count: Int) -> String { String(localized: "\(count) ошибок") }
     static func continuation(_ training: StoredTraining) -> String {
         let section = String(localized: StudySection(training.session.section).label)
         let types = training.session.questionTypes.map(\.label).joined(separator: " · ")
