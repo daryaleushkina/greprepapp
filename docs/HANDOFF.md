@@ -270,13 +270,16 @@ Code эмулятор запускается только вне песочни�
 
 ```bash
 adb devices; xcrun simctl list devices booted               # включённых на Маке должно быть меньше пяти
-emulator -avd GrePrep_Pixel_9 -read-only -no-window -no-boot-anim -no-snapshot-save -port 5570 &
-adb -s emulator-5570 wait-for-device
-adb -s emulator-5570 shell 'while [ "$(getprop sys.boot_completed)" != 1 ]; do sleep 1; done'
-ANDROID_SERIAL=emulator-5570 ./gradlew :app:installDebug    # отладочная сборка, сервер — 10.0.2.2:8090
-adb -s emulator-5570 shell am start -n dev.greprepapp.app/.MainActivity
-adb -s emulator-5570 exec-out screencap -p > screen.png
-adb -s emulator-5570 emu kill                               # всегда, и когда что-то упало
+port=5570                                                   # первый чётный, где не слушают ни консоль, ни adb
+while nc -z 127.0.0.1 $port >/dev/null 2>&1 || nc -z 127.0.0.1 $((port + 1)) >/dev/null 2>&1; do port=$((port + 2)); done
+emulator -avd GrePrep_Pixel_9 -read-only -no-window -no-boot-anim -no-snapshot-save -port $port & pid=$!
+export ANDROID_SERIAL=emulator-$port                        # дальше adb и gradlew говорят только с этой копией
+adb wait-for-device && kill -0 $pid                         # kill -0 упал — на порту чужое устройство, дальше не идти
+adb shell 'while [ "$(getprop sys.boot_completed)" != 1 ]; do sleep 1; done'
+./gradlew :app:installDebug                                 # отладочная сборка, сервер — 10.0.2.2:8090
+adb shell am start -n dev.greprepapp.app/.MainActivity
+adb exec-out screencap -p > screen.png
+adb emu kill                                                # всегда, и когда что-то упало
 ```
 
 | Путь | Что |
