@@ -1,6 +1,6 @@
 Run systematic **technical** quality checks on a native app (`ios` / `android` / `adaptive`) and generate a comprehensive report. Don't fix issues; document them for other commands to address.
 
-This is a code-level audit, not a design critique. Audit from source (SwiftUI / UIKit / Compose / React Native / Flutter); no browser tooling or `impeccable detect` applies. Score against the platform reference(s): [ios.md](ios.md) / [android.md](android.md), both for `adaptive`. Read them before scoring if Setup hasn't already. The report skeleton mirrors [audit.md](audit.md); keep the two in sync when changing it.
+This is a code-level audit, not a design critique. Audit from source (SwiftUI / UIKit / Compose); no browser tooling or `impeccable detect` applies. Score against the platform reference(s): [ios.md](ios.md) / [android.md](android.md), both for `adaptive`. Read them before scoring if Setup hasn't already. The report skeleton mirrors [audit.md](audit.md); keep the two in sync when changing it.
 
 ## Diagnostic Scan
 
@@ -24,7 +24,7 @@ Run comprehensive checks across 5 dimensions. Score each dimension 0-4 using the
 - **Slow startup**: heavy work on launch before first frame
 - **Unvirtualized lists**: long content without FlatList / LazyColumn / List recycling
 - **Main-thread jank**: synchronous work in scroll or gesture paths, dropped frames on 60/120 Hz
-- **Wasted rendering**: unnecessary re-renders (React Native) or recompositions (Compose); missing memoization/keys
+- **Wasted rendering**: unnecessary SwiftUI body re-evaluations or Compose recompositions; missing memoization/keys
 - **Image handling**: full-size images decoded for thumbnails, no caching
 - **App weight**: bloated JS bundle or binary, unused dependencies
 

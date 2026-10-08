@@ -1046,7 +1046,7 @@
       "entityId": "core-icon-semantics",
       "sourceFile": "icons.csv",
       "sourceKey": {
-        "Scope": "No 1-105; Allowed Contexts and contextual accessibility guidance in Usage; No 105 library/import examples",
+        "Scope": "No 1-101; Allowed Contexts and contextual accessibility guidance in Usage; No 101 library/import examples",
         "Compatibility": "Semantic Role remains a legacy recommended-default field, not an immutable semantic classification"
       },
       "status": "active",

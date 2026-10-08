@@ -29,7 +29,7 @@ struct API: Sendable {
     }
 
     /// Свой URLSession: без кук и кэша (токен — только в заголовке), каждый запрос — со сроком
-    /// (CLAUDE.md, «Многопоточность»). Ждать сеть не нужно: экран сам покажет «Нет сети» и повторит.
+    /// (AGENTS.md, «Многопоточность»). Ждать сеть не нужно: экран сам покажет «Нет сети» и повторит.
     static let session: URLSession = {
         let configuration = URLSessionConfiguration.ephemeral
         configuration.timeoutIntervalForRequest = 15

@@ -57,7 +57,7 @@ CSS_IMPORT = re.compile(
 FONT_WEIGHT = re.compile(r"(?<!\d)(?:[1-9]00)(?!\d)")
 ICON_IMPORT = re.compile(
     r"import\s*\{\s*[A-Z][A-Za-z0-9]*(?:\s*,\s*[A-Z][A-Za-z0-9]*)*\s*\}"
-    r"\s*from\s*['\"](?:@phosphor-icons/react|phosphor-react-native|"
+    r"\s*from\s*['\"](?:@phosphor-icons/react|"
     r"@heroicons/react/24/(?:outline|solid))['\"]"
 )
 ICON_USAGE_REQUIREMENTS = (
@@ -119,8 +119,6 @@ STACK_OFFICIAL_HOSTS = {
     "shadcn": {"ui.shadcn.com"},
     "nuxtjs": {"nuxt.com"},
     "nuxt-ui": {"ui.nuxt.com"},
-    "react-native": {"reactnative.dev", "react.dev"},
-    "flutter": {"api.flutter.dev", "docs.flutter.dev"},
     "swiftui": {"developer.apple.com"},
     "jetpack-compose": {"developer.android.com"},
     "avalonia": {"docs.avaloniaui.net"},

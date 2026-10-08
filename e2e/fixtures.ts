@@ -45,7 +45,7 @@ export function miniAppUrl(user: TelegramUser, o: TgOptions, path = '/'): string
   return `/tg${path}?${q.toString()}`;
 }
 
-/** Человек теста со своей сессией: запросы к API от его имени (проверка endpoint — CLAUDE.md, «Тесты»). */
+/** Человек теста со своей сессией: запросы к API от его имени (проверка endpoint — AGENTS.md, «Тесты»). */
 export interface Me {
   user: TelegramUser;
   /** Запрос к API от имени этого человека; ответ не 2xx — исключение с текстом ответа. */
