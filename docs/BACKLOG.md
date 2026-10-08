@@ -31,6 +31,7 @@ tools/dev/backlog.sh           # пересобрать это зеркало
 - [#10](https://github.com/daryaleushkina/greprepapp/issues/10) CI токенов: корневой lockfile pnpm и Node 24
 - [#11](https://github.com/daryaleushkina/greprepapp/issues/11) Стенд: вход подменой даёт роль admin кому угодно
 - [#15](https://github.com/daryaleushkina/greprepapp/issues/15) Приложение Apple: правила вёрстки в тестах и прогон на iOS 18 в CI
+- [#28](https://github.com/daryaleushkina/greprepapp/issues/28) e2e: вход на сайте в WebKit нестабилен, когда Мак перегружен — гейт краснеет на «flaky»
 
 ## Без метки
 
