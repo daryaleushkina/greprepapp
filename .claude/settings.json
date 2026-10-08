@@ -2,16 +2,6 @@
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "permissions": {
     "deny": [
-      "Bash(wrangler deploy *)",
-      "Bash(wrangler versions deploy *)",
-      "Bash(pnpm exec wrangler deploy *)",
-      "Bash(pnpm exec wrangler versions deploy *)",
-      "Bash(pnpm wrangler deploy *)",
-      "Bash(pnpm dlx wrangler deploy *)",
-      "Bash(npx wrangler deploy *)",
-      "Bash(npx wrangler versions deploy *)",
-      "Bash(./node_modules/.bin/wrangler deploy *)",
-      "Bash(node_modules/.bin/wrangler deploy *)",
       "Bash(pnpm deploy *)",
       "Bash(pnpm run deploy *)",
       "Bash(npm run deploy *)",
@@ -21,7 +11,6 @@
       "Bash(git config * core.hookspath *)",
       "Bash(git config * core.hooksPath)",
       "Bash(git config * core.hookspath)",
-      "Read(.dev.vars*)",
       "Read(.env)",
       "Read(.env.*)",
       "Read(!.env.example)"

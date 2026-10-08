@@ -1,5 +1,5 @@
 #!/bin/sh
-# SessionStart: git в этом репозитории готов к работе по правилам CLAUDE.md («Git»).
+# SessionStart: git в этом репозитории готов к работе по правилам AGENTS.md («Git»).
 #   • Автор — Даша. В облачной сессии git по умолчанию подписывает коммиты «Claude <noreply@anthropic.com>» из
 #     глобального конфига — так 03.10.2026 первые коммиты ушли не от её имени. Если git представляется Claude,
 #     ставим автора в локальный конфиг репозитория; свою настройку на Маке и глобальный конфиг не трогаем.
@@ -15,8 +15,8 @@ case "$email $name" in
   *anthropic.com*|*Claude*) set_author=1 ;;
   *) [ -n "$email" ] && set_author=0 || set_author=1 ;;
 esac
-if [ "$set_author" = 1 ] && git config --local user.name daryaleushkina && git config --local user.email darya_leushkina@mail.ru; then
-  echo "git: автор коммитов в этом репозитории — daryaleushkina <darya_leushkina@mail.ru> (CLAUDE.md, «Git»)"
+if [ "$set_author" = 1 ] && git config --local user.name 'Darya Leushkina' && git config --local user.email 15678175+daryaleushkina@users.noreply.github.com; then
+  echo "git: автор коммитов в этом репозитории — Darya Leushkina <15678175+daryaleushkina@users.noreply.github.com> (AGENTS.md, «Git»)"
 fi
 
 if [ -z "$(git config core.hooksPath 2>/dev/null)" ] && [ -d scripts/hooks ] && git config --local core.hooksPath scripts/hooks; then

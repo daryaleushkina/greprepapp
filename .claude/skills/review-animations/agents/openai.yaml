@@ -1,0 +1,5 @@
+interface:
+  display_name: "Review Animations"
+  short_description: "Strict review of animation and motion code"
+policy:
+  allow_implicit_invocation: false

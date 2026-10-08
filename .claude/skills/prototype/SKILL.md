@@ -22,6 +22,27 @@ Divergence is not an excuse to drop the craft bar. Every variant individually me
 4. **The picker is chrome, not a contestant.** Its exact markup, styles, and behavior are specified in [PICKER.md](PICKER.md) — copy them verbatim. Its look is not a design decision and never adapts to the project.
 5. **Clean up after the choice.** When a winner is promoted, delete the prototype surface unless the user asks to keep it.
 
+<!-- Локальная правка GrePrep (08.10.2026): разделы «One primary axis», «The floor every variant clears» и «Before you finish» влиты из скилла `variant` (github.com/jakubkrehel/skills, MIT), сам `variant` удалён. Обновление скилла из источника их сотрёт. -->
+
+## One primary axis
+
+Pick **one primary axis** for the set and give each variant a different position on it; secondary choices follow from it rather than varying on their own. A dense variant may need a smaller type step — that is coherence, not a second axis. Varying every axis at once produces unattributable results: you learn which one the user liked, not what made it work.
+
+| Axis | Owner skill | What varies |
+| --- | --- | --- |
+| Structure | `better-layout` | Grouping, order, column count, what collapses |
+| Density | `better-layout` | Spacing scale, hit areas, how much fits |
+| Emphasis | `better-colors` | Where filled color goes, what recedes |
+| Type | `better-typography` | Scale steps, weight contrast, measure |
+| Voice | `better-writing` | Labels, tone, how much copy |
+| Motion | `animate`, `emil-design-eng` | Entrance, feedback, interaction model |
+
+## The floor every variant clears
+
+A variant that wins on looks and fails accessibility is not a candidate. Before a variant enters the picker it clears `better-interface`'s escalation triggers: every control has an accessible name, the keyboard reaches everything a pointer does, focus is visible, nothing clips at 320px, and no meaning rides on color alone. The floor is identical across variants — it is not an axis and never trades against one. Where a direction can only work by breaking it, say so and drop the direction.
+
+Judge the piece where it will live: the harness renders the real surrounding chrome, neighbours and realistic data (the item count the page will really carry), never a blank route.
+
 ## Workflow
 
 ### Phase 1 — Scope
@@ -88,3 +109,16 @@ When the user picks: integrate that variant where it belongs, following the proj
 ## Tone
 
 Sell each variant honestly — one line on when it wins, one on what it costs. Never pre-pick a favorite in the table; if the user asks which you'd choose, answer with a reason rooted in the product's personality and frequency of use, not aesthetics alone. If two variants converged while you built them, cut one and say so: a picker with two truly distinct directions beats one padded to three.
+
+## Before you finish
+
+| Mistake | Fix |
+| --- | --- |
+| Variants differ only in accent color or copy | Move one to a different position on the primary axis, or cut it |
+| Every axis varies at once | Vary one; let the rest follow from it |
+| Judged on a blank route | Render the real chrome and neighbours around the piece |
+| Lorem ipsum, three rows, "Jane Doe" | Real copy and the item count the page will really carry |
+| The boldest variant skips keyboard or focus | Clear the floor or drop the direction |
+| A favourite marked in the table | State each variant's cost and let the user choose |
+| Picker restyled with the project's tokens | Keep it visibly outside the design system |
+| Harness left behind after promotion | Delete it unless asked to keep it |

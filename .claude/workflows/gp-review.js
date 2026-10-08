@@ -20,8 +20,8 @@ export const meta = {
 // Что ревьюим: всё, чем рабочая папка отличается от merge-base(base, HEAD), — коммиты после базы, правки
 // без коммита и новые файлы. Скиллы (сторонние копии в .claude/skills), .idea, .mcp.json и lock-файл не ревьюим.
 //
-// Линзы (агенты в .claude/agents): errors и tests — всегда; access — при worker/**, supabase/**, shared/**,
-// wrangler.jsonc; ui — при src/**.
+// Линзы (агенты в .claude/agents): errors и tests — всегда; access — при server/**, api/**, packages/api-client/**,
+// apps/*/src/{auth,session}/**; ui — при apps/web/src/** (задача #9; сами агенты ещё написаны под LifeCommit).
 //
 // Итог:
 //   { verdict: 'APPROVE' | 'CHANGES_REQUESTED' | 'NOTHING_TO_REVIEW',
@@ -37,12 +37,12 @@ export const meta = {
 const LENSES = [
   { key: 'errors', agentType: 'gp-review-errors', title: 'ошибки и тихие сбои', when: null },
   { key: 'tests', agentType: 'gp-review-tests', title: 'тесты', when: null },
-  { key: 'access', agentType: 'gp-review-access', title: 'доступ и безопасность', when: /^(worker|supabase|shared)\/|^wrangler\.jsonc$/ },
-  { key: 'ui', agentType: 'gp-review-ui', title: 'интерфейс мини-аппа', when: /^src\// },
+  { key: 'access', agentType: 'gp-review-access', title: 'доступ и безопасность', when: /^(server|api|packages\/api-client)\/|^apps\/[^/]+\/src\/(auth|session)\// },
+  { key: 'ui', agentType: 'gp-review-ui', title: 'интерфейс мини-аппа', when: /^apps\/web\/src\// },
 ];
 
-// Сторонние скиллы, настройки IDE и шум, которые не ревьюим.
-const SKIP = /^(\.claude\/skills\/|\.idea\/|\.mcp\.json$|pnpm-lock\.yaml$)/;
+// Сторонние скиллы (и ссылки на них для Codex), настройки IDE и шум, которые не ревьюим.
+const SKIP = /^(\.claude\/skills\/|\.agents\/|\.idea\/|\.mcp\.json$|pnpm-lock\.yaml$)/;
 
 const SCOPE_SCHEMA = {
   type: 'object',

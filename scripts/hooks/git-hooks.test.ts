@@ -40,6 +40,8 @@ describe('commit-msg', () => {
     'Fix\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)',
     'Fix\n\nClaude-Session: https://claude.ai/code/session_1',
     'Fix\n\nсм. claude.ai/code',
+    'Fix\n\nCo-authored-by: Codex <codex@openai.com>',
+    'Fix\n\nGenerated with Codex',
   ])('отклоняет подпись: %s', (message) => {
     const r = check(message);
     expect(r.status).toBe(1);
@@ -94,7 +96,7 @@ describe('git commit с хуками проекта', () => {
     const r = git('commit', '-q', '-m', 'Обычная правка');
     expect(r.status).not.toBe(0);
     expect(r.stderr).toContain('автор коммита — Claude');
-    expect(r.stderr).toContain('git config user.name daryaleushkina');
+    expect(r.stderr).toContain('git config user.email 15678175+daryaleushkina@users.noreply.github.com');
   });
 
   it('.claude/skills и .mcp.json коммитятся: скиллы правятся по просьбе Даши, запрета нет', () => {

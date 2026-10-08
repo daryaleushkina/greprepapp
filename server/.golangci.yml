@@ -1,7 +1,7 @@
-# Линтер бэкенда в гейте (CLAUDE.md, «Тесты»): golangci-lint v2.14. Набор — под правила репозитория:
+# Линтер бэкенда в гейте (AGENTS.md, «Тесты»): golangci-lint v2.14. Набор — под правила репозитория:
 # ошибки не глотать и оборачивать (errcheck, wrapcheck, errorlint), у запросов наружу и в базу —
 # context (noctx, contextcheck), ресурсы закрыты (bodyclose, sqlclosecheck, rowserrcheck), безопасность (gosec).
-# //nolint и отключение правил — только с согласия Даши и с причиной (CLAUDE.md, «Без обходов»).
+# //nolint и отключение правил — только с согласия Даши и с причиной (AGENTS.md, «Без обходов»).
 version: "2"
 run:
   timeout: 5m
