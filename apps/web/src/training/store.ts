@@ -1,20 +1,21 @@
 import { openDB, type DBSchema, type IDBPDatabase, type IDBPTransaction } from 'idb';
 import { z } from 'zod';
 import { reportError } from '../errors/report';
-import { storedTrainingSchema, type StoredTraining } from './model';
+import { pendingReportSchema, storedTrainingSchema, type PendingReport, type StoredTraining } from './model';
 
 const ownerSchema = z.object({ userId: z.string().nullable(), revision: z.number().int().nonnegative() });
 const changeSchema = z.discriminatedUnion('kind', [z.object({ kind: z.literal('owner') }),
-  z.object({ kind: z.literal('training'), ids: z.array(z.string()), activeChanged: z.boolean() })]);
+  z.object({ kind: z.literal('training'), ids: z.array(z.string()), activeChanged: z.boolean() }), z.object({ kind: z.literal('reports') })]);
 export type TrainingChange = z.infer<typeof changeSchema> & { remote?: boolean };
 export interface TrainingOwner { userId: string; revision: number }
 interface TrainingDB extends DBSchema {
   trainings: { key: string; value: unknown };
+  reports: { key: string; value: unknown };
   quarantine: { key: string; value: unknown };
   meta: { key: string; value: unknown };
 }
-type Edit = IDBPTransaction<TrainingDB, ['trainings', 'quarantine', 'meta'], 'readwrite'>;
-const stores: ['trainings', 'quarantine', 'meta'] = ['trainings', 'quarantine', 'meta'];
+type Edit = IDBPTransaction<TrainingDB, ['trainings', 'reports', 'quarantine', 'meta'], 'readwrite'>;
+const stores: ['trainings', 'reports', 'quarantine', 'meta'] = ['trainings', 'reports', 'quarantine', 'meta'];
 const KEEP_FINISHED = 3;
 
 /** Поздняя запись и другая вкладка не возвращают данные после выхода: каждая операция сверяет владельца. */
@@ -32,8 +33,11 @@ export class TrainingStore {
   }
 
   private open() {
-    this.db ??= openDB<TrainingDB>(this.name, 1, {
-      upgrade(db) { db.createObjectStore('trainings'); db.createObjectStore('quarantine'); db.createObjectStore('meta'); },
+    this.db ??= openDB<TrainingDB>(this.name, 2, {
+      upgrade(db, oldVersion) {
+        if (oldVersion < 1) { db.createObjectStore('trainings'); db.createObjectStore('quarantine'); db.createObjectStore('meta'); }
+        db.createObjectStore('reports');
+      },
     }).catch((error: unknown) => { this.db = undefined; throw error; });
     return this.db;
   }
@@ -55,6 +59,8 @@ export class TrainingStore {
       const pending = z.object({ unsent: z.array(z.number()) }).safeParse(record);
       return sum + (pending.success ? pending.data.unsent.length : 0);
     }, 0);
+    const lostReports = await tx.objectStore('reports').count();
+    await tx.objectStore('reports').clear();
     await tx.objectStore('trainings').clear();
     await tx.objectStore('quarantine').clear();
     // Нечитаемая ревизия не должна случайно совпасть с прежней ревизией открытой вкладки.
@@ -63,6 +69,7 @@ export class TrainingStore {
     await tx.done;
     if (!parsed.success) this.report(new Error('training owner unreadable'));
     if (lost > 0) this.report(new Error(`training account changed: ${lost} unsent answers lost`));
+    if (lostReports > 0) this.report(new Error(`training account changed: ${lostReports} unsent reports lost`));
     this.changed({ kind: 'owner' });
     return owner;
   }
@@ -93,6 +100,7 @@ export class TrainingStore {
   async signOut(owner: TrainingOwner): Promise<void> {
     const cleared = await this.edit(owner, async (tx) => {
       await tx.objectStore('trainings').clear();
+      await tx.objectStore('reports').clear();
       await tx.objectStore('quarantine').clear();
       await tx.objectStore('meta').put({ userId: null, revision: owner.revision + 1 }, 'owner');
       return true;
@@ -187,5 +195,43 @@ export class TrainingStore {
       return ids;
     });
     if (removed?.length) this.changed({ kind: 'training', ids: removed, activeChanged: true });
+  }
+
+  async putReport(owner: TrainingOwner, pending: PendingReport): Promise<boolean> {
+    const checked = pendingReportSchema.parse(pending);
+    const saved = await this.edit(owner, async (tx) => {
+      const previous = z.number().int().nonnegative().optional().parse(await tx.objectStore('meta').get('reportOrder')) ?? 0;
+      await tx.objectStore('reports').put({ ...checked, order: previous + 1 }, this.key(owner, checked.id));
+      await tx.objectStore('meta').put(previous + 1, 'reportOrder');
+      return true;
+    });
+    if (saved) this.changed({ kind: 'reports' });
+    return saved ?? false;
+  }
+
+  async reports(owner: TrainingOwner): Promise<PendingReport[]> {
+    const tx = (await this.open()).transaction(['reports', 'meta'], 'readonly');
+    if (!this.matches(await tx.objectStore('meta').get('owner'), owner)) { await tx.done; return []; }
+    const [keys, records] = await Promise.all([tx.objectStore('reports').getAllKeys(), tx.objectStore('reports').getAll()]);
+    await tx.done;
+    const valid: PendingReport[] = [], invalid: string[] = [];
+    records.forEach((raw, index) => {
+      const parsed = pendingReportSchema.safeParse(raw);
+      if (parsed.success) valid.push(parsed.data); else if (keys[index] !== undefined) invalid.push(keys[index]);
+    });
+    if (invalid.length) await this.edit(owner, async (tx) => {
+      for (const key of invalid) {
+        const raw = await tx.objectStore('reports').get(key);
+        if (raw === undefined || pendingReportSchema.safeParse(raw).success) continue;
+        await tx.objectStore('quarantine').put(raw, `report/${key}`);
+        await tx.objectStore('reports').delete(key);
+        this.report(new Error('training report unreadable'));
+      }
+    });
+    return valid.sort((a, b) => a.order - b.order);
+  }
+
+  async removeReport(owner: TrainingOwner, id: string): Promise<void> {
+    await this.edit(owner, async (tx) => { await tx.objectStore('reports').delete(this.key(owner, id)); });
   }
 }

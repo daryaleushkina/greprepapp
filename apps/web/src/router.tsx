@@ -4,7 +4,7 @@
 //   /settings         настройки          (на компьютере — пункт панели, на телефоне — экран из «Прогресса»)
 //   /step/$stepId     шаг из ленты       (пока заглушка; тренировки — ROADMAP §5)
 //   /training/new     конструктор        (ленивый маршрут)
-//   /training/$trainingId локальная сессия (заглушка до второго среза)
+//   /training/$trainingId локальная сессия и итог
 //   /signin           вход               (только сайт)
 //   /auth/callback    возврат от провайдера входа (только сайт)
 import type { QueryClient } from '@tanstack/react-query';
@@ -68,10 +68,18 @@ const builderRoute = createRoute({ getParentRoute: () => appRoute, path: 'traini
 const trainingRoute = createRoute({ getParentRoute: () => appRoute, path: 'training/$trainingId' })
   .lazy(() => import('./training/routes.lazy').then((m) => m.sessionRoute));
 
+const reviewRoute = createRoute({ getParentRoute: () => appRoute, path: 'training/$trainingId/review' })
+  .lazy(() => import('./training/routes.lazy').then((m) => m.reviewRoute));
+const reviewItemRoute = createRoute({ getParentRoute: () => appRoute, path: 'training/$trainingId/review/$position' })
+  .lazy(() => import('./training/routes.lazy').then((m) => m.reviewItemRoute));
+const reportRoute = createRoute({ getParentRoute: () => appRoute, path: 'training/$trainingId/report/$position',
+  validateSearch: z.object({ returnTo: z.enum(['session', 'review']).catch('session').default('session') }),
+}).lazy(() => import('./training/routes.lazy').then((m) => m.reportRoute));
+
 const routeTree = rootRoute.addChildren([
   signInRoute,
   callbackRoute,
-  appRoute.addChildren([tabsRoute.addChildren([todayRoute, wordsRoute, examRoute, progressRoute, settingsRoute]), stepRoute, builderRoute, trainingRoute]),
+  appRoute.addChildren([tabsRoute.addChildren([todayRoute, wordsRoute, examRoute, progressRoute, settingsRoute]), stepRoute, builderRoute, trainingRoute, reviewRoute, reviewItemRoute, reportRoute]),
 ]);
 
 /** history — для тестов (память вместо адресной строки); в приложении — адресная строка браузера. */

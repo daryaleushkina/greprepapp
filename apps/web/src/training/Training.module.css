@@ -148,3 +148,39 @@
   padding-block: var(--space-12); background: var(--color-bg);
 }
 .summary[data-shell='site'] .sessionFooter { max-width: var(--layout-content-max); }
+
+.reportLink, .allAnswers { display: inline-flex; align-items: center; min-height: var(--size-tap-target); color: var(--color-text-secondary); font: var(--font-footnote); text-underline-offset: var(--space-4); }
+.allAnswers { color: var(--color-text); font: var(--font-body); }
+.sessionHeader { flex-wrap: wrap; }
+.sessionHeader > .headerActions { margin-left: auto; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: var(--space-4); }
+.readTraining { --training-color: var(--color-verbal); --training-tint: var(--color-verbal-tint); width: 100%; }
+.readTraining[data-section='quant'] { --training-color: var(--color-quant); --training-tint: var(--color-quant-tint); }
+.readTraining:has(.reviewList), .readTraining:has(.reviewFilters), .readTraining:has(.reportForm), .readTraining:has(> [role='status']) { max-width: var(--layout-content-max); margin-inline: auto; }
+.reviewFilters { align-self: flex-start; }
+.reviewFilters button { flex: none; min-height: var(--size-tap-target); white-space: nowrap; }
+.reviewList { list-style: none; padding: 0; margin: 0; background: var(--color-surface); border-radius: var(--radius-xxl); border: var(--size-hairline) solid var(--color-line); }
+.reviewList li + li { border-top: var(--size-hairline) solid var(--color-line); }
+.reviewRow { display: flex; align-items: center; gap: var(--space-12); min-height: var(--size-row-tall); padding: var(--space-12) var(--space-16); color: var(--color-text); text-decoration: none; font: var(--font-body); border-radius: var(--radius-lg); }
+.reviewNumber { font: var(--font-subhead); font-variant-numeric: tabular-nums; color: var(--color-text-secondary); min-width: var(--space-20); }
+.reviewOutcome { display: flex; align-items: center; justify-content: center; flex: none; width: var(--space-28); height: var(--space-28); border-radius: var(--radius-full); background: var(--color-fill); color: var(--color-text-secondary); }
+.reviewOutcome[data-outcome='correct'] { background: var(--training-tint); color: var(--training-color); }
+.reviewOutcome[data-outcome='wrong'] { background: var(--color-wrong-tint); color: var(--color-wrong); }
+.reviewRow svg { width: var(--space-16); height: var(--space-16); flex: none; }
+.reviewItemHeader { display: flex; align-items: center; justify-content: space-between; gap: var(--space-16); }
+.reportForm { display: flex; flex-direction: column; gap: var(--space-24); flex: 1; }
+.reportKinds { border: 0; margin: 0; padding: 0; }
+.reportKinds legend { font: var(--font-headline); margin-bottom: var(--space-12); }
+.reportKinds .chips { flex-wrap: wrap; }
+.reportKinds button { min-height: var(--size-tap-target); border: var(--size-hairline) solid var(--color-line); border-radius: var(--radius-full); padding: var(--space-8) var(--space-16); background: var(--color-surface); color: var(--color-text); font: var(--font-subhead); }
+.reportKinds button[aria-pressed='true'] { background: var(--color-accent); color: var(--color-on-accent); }
+.reportField { display: grid; gap: var(--space-12); font: var(--font-body); }
+.reportField textarea { width: 100%; min-height: calc(var(--size-row) * 2); resize: vertical; border: var(--size-hairline) solid var(--color-line); border-radius: var(--radius-lg); background: var(--color-surface); color: var(--color-text); padding: var(--space-12) var(--space-16); font: var(--font-body); caret-color: var(--color-text); }
+.reportForm .sessionFooter { padding-bottom: var(--space-16); }
+.reportKinds button:active, .reviewRow:active { transform: scale(var(--motion-press-scale)); }
+@media (hover: hover) and (pointer: fine) { .reviewRow:hover, .reportKinds button:not([aria-pressed='true']):hover { background: var(--color-fill); } }
+@media (min-width: 900px) {
+  .readTraining[data-shell='site'] .reviewQuestionLayout { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .readTraining[data-shell='site'] .explanation { background: var(--color-surface); padding: var(--space-24); border-radius: var(--radius-xxl); }
+  .readTraining[data-shell='site'] .whyNotBody { background: var(--color-bg); }
+}
+@media (prefers-reduced-motion: reduce) { .reportKinds button:active, .reviewRow:active { transform: none; } }

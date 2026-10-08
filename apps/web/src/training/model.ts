@@ -1,6 +1,14 @@
 import { schemas } from '@greprep/api-client';
 import { z } from 'zod';
 
+export const REPORT_TEXT_MAX = 2000;
+// maxLength в договоре считает символы Unicode; обычный string.max считает единицы UTF-16.
+export const questionReportSchema = schemas.QuestionReport.omit({ text: true }).extend({
+  text: z.string().refine((text) => Array.from(text).length <= REPORT_TEXT_MAX).optional(),
+});
+export const pendingReportSchema = z.object({ id: z.uuid(), questionId: z.uuid(), report: questionReportSchema, order: z.number().int().nonnegative().default(0) });
+export type PendingReport = z.infer<typeof pendingReportSchema>;
+
 /** Ответы и весь разбор остаются на устройстве: начатой тренировке сеть уже не нужна. */
 export const storedTrainingSchema = z.object({
   session: schemas.TrainingSession,

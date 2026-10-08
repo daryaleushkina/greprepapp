@@ -39,3 +39,17 @@ test('вопрос и итог тренировки без нарушений', 
   await expect(page.getByRole('heading', { name: '0 из 3 верно' })).toBeVisible();
   expect(await violations(page)).toEqual([]);
 });
+
+import { finishForReview } from '../training';
+test('список ответов, разбор и жалоба без нарушений', async ({ site: page }) => {
+  await finishForReview(page);
+  await page.getByRole('link', { name: 'Все ответы и разборы' }).click();
+  await expect(page.getByRole('heading', { name: 'Разбор проверки' })).toBeVisible();
+  expect(await violations(page)).toEqual([]);
+  await page.getByRole('link', { name: /Вопрос 1, неверно/ }).click();
+  await page.getByRole('button', { name: /^Почему не/ }).click();
+  expect(await violations(page)).toEqual([]);
+  await page.getByRole('link', { name: 'Сообщить об ошибке' }).click();
+  await expect(page.getByRole('heading', { name: 'Сообщить об ошибке' })).toBeVisible();
+  expect(await violations(page)).toEqual([]);
+});

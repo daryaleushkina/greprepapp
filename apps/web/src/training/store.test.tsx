@@ -98,7 +98,7 @@ test('чтение тренировок и владельца не захват�
 
 test('ошибка открытия базы не запоминается навсегда; после восстановления устройство доступно', async () => {
   const { store, name } = makeStore();
-  const newer = await openDB(name, 2); newer.close();
+  const newer = await openDB(name, 3); newer.close();
   await expect(store.signIn('a')).rejects.toHaveProperty('name', 'VersionError');
   await deleteDB(name);
   const owner = await store.signIn('a'); expect(await store.owns(owner)).toBe(true);
@@ -112,4 +112,25 @@ test('get переносит нечитаемую запись отдельно�
   const again = await openDB(name); await again.put('trainings', 'private', 'a/invalid'); again.close();
   const next = await store.signIn('b'); expect(await store.list(next)).toEqual([]);
   expect(report).not.toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('private') }));
+});
+
+test('обновление IndexedDB 1 → 2 сохраняет владельца и тренировку', async () => {
+  const name = `training-migration-${crypto.randomUUID()}`;
+  const db = await openDB(name, 1, { upgrade(db) { db.createObjectStore('trainings'); db.createObjectStore('quarantine'); db.createObjectStore('meta'); } });
+  const t = savedTraining();
+  await db.put('meta', { userId: 'a', revision: 1 }, 'owner'); await db.put('trainings', t, `a/${t.session.id}`); db.close();
+  const { store } = makeStore(name); const owner = await store.signIn('a');
+  expect(await store.get(owner, t.session.id)).toEqual(t); expect(await store.reports(owner)).toEqual([]);
+});
+
+test('жалобы: нечитаемое из очереди в карантин без содержания, чужой владелец не читает и не пишет', async () => {
+  const { store, name, report } = makeStore(); const owner = await store.signIn('a');
+  const pending = { id: crypto.randomUUID(), questionId: crypto.randomUUID(), report: { kind: 'other' as const }, order: 0 };
+  await store.putReport(owner, pending);
+  const db = await openDB(name); await db.put('reports', { text: 'private fixture' }, 'a/broken'); db.close();
+  expect(await store.reports(owner)).toHaveLength(1); await store.reports(owner);
+  expect(report).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ message: 'training report unreadable' }));
+  const next = await store.signIn('b');
+  expect(await store.reports(owner)).toEqual([]); expect(await store.putReport(owner, pending)).toBe(false);
+  await store.removeReport(owner, pending.id); expect(await store.reports(next)).toEqual([]);
 });

@@ -45,3 +45,8 @@ test('итог: пара нижних подписей не переноситс
   await nativeButtonsFit(page);
   await expect(page.locator('#tg-mock-bar')).toHaveCSS('flex-direction', 'column-reverse');
 });
+
+import { reviewAllAnswers, reportFromQuestionAndReview } from '../training';
+test('все ответы из итога: фильтр, разбор RU/EN и назад', async ({ miniApp: page }) => { await reviewAllAnswers(page); });
+test('жалобы с вопроса и из разбора записаны сервером', async ({ miniApp: page, me }) => { await reportFromQuestionAndReview(page, me); });
+test('жалоба без сети отправляется после возвращения сети', async ({ miniApp: page, me }) => { await reportFromQuestionAndReview(page, me, true); });

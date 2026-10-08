@@ -1,12 +1,10 @@
-import type { Question, TrainingRequest } from '@greprep/api-client';
+import type { TrainingRequest } from '@greprep/api-client';
 import { isApiError } from '@greprep/api-client';
 import { Link, useNavigate, useParams } from '@tanstack/react-router';
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
-import { BackIcon, CheckIcon } from '../components/icons';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { BackIcon } from '../components/icons';
 import { StatusScreen } from '../components/StatusScreen';
-import { dictionaries } from '../i18n/dict';
 import { useI18n } from '../i18n/i18n';
-import type { Locale } from '../i18n/locale';
 import { FocusLayout } from '../layout/AppLayout';
 import { useShell } from '../shellContext';
 import glass from '../styles/glass.module.css';
@@ -20,8 +18,7 @@ import { trainingRepository } from './repository';
 import { TrainingRules } from './rules';
 import styles from './Training.module.css';
 import { useTrainingSession } from './useTrainingSession';
-
-const BLANKS = ['(i)', '(ii)', '(iii)'];
+import { BLANKS, QuestionPrompt, Options, Explanation, SessionIcon } from './QuestionContent';
 
 export function SessionScreen() {
   const { trainingId } = useParams({ from: '/app/training/$trainingId' });
@@ -64,7 +61,7 @@ function ActiveSession({ incoming }: { incoming: StoredTraining }) {
     const key = (event: KeyboardEvent) => {
       const s = keyboard.current;
       if (event.repeat || event.ctrlKey || event.altKey || event.metaKey || s.training.finish || s.overview) return;
-      if (event.target instanceof Element && event.target.closest('input, textarea, select, [contenteditable="true"]')) return;
+      if (event.target instanceof Element && event.target.closest('input, textarea, select, [contenteditable="true"], a')) return;
       // Enter всегда соответствует подсказке; пробел сохраняет нативный выбор сфокусированного варианта.
       if (/^[a-f]$/i.test(event.key) && !s.revealed) {
         event.preventDefault(); s.selectKey(event.key);
@@ -88,10 +85,13 @@ function ActiveSession({ incoming }: { incoming: StoredTraining }) {
         {s.remaining !== undefined ? <span role="timer" className={`${glass.glass} ${styles.timer}`} aria-label={text.timer_description(Math.floor(s.remaining / 60), s.remaining % 60, s.position + 1, total)}>{Math.floor(s.remaining / 60)}:{String(s.remaining % 60).padStart(2, '0')}</span> : total <= 12 && <span className={styles.dots} aria-hidden="true">{s.training.session.items.map((item) => <i key={item.position} data-current={item.position === s.position || undefined} data-result={!s.checkMode && s.training.answers[String(item.position)] ? TrainingRules.isCorrect(item.question, s.training.answers[String(item.position)]!.optionIds) ? 'correct' : 'wrong' : undefined} />)}</span>}
         <span>{text.question_of(s.position + 1, total)}</span>
       </div>
-      {s.checkMode && !s.overview ? <div className={styles.headerActions}>
-        <button className={styles.iconButton} disabled={s.busy} aria-label={s.flagged ? text.question_unflag : text.question_flag} aria-pressed={s.flagged} onClick={s.flag}><Flag filled={s.flagged} /></button>
-        <button className={styles.iconButton} disabled={s.busy} aria-label={text.question_overview} onClick={() => s.setOverview(true)}><Grid /></button>
-      </div> : <span className={styles.headerSpace} />}
+      {s.overview ? <span className={styles.headerSpace} /> : <div className={styles.headerActions}>
+        <Link to="/training/$trainingId/report/$position" params={{ trainingId: s.training.session.id, position: String(s.position) }} search={{ returnTo: 'session' }} className={styles.reportLink}>{text.question_report}</Link>
+        {s.checkMode && <div className={styles.headerActions}>
+          <button className={styles.iconButton} disabled={s.busy} aria-label={s.flagged ? text.question_unflag : text.question_flag} aria-pressed={s.flagged} onClick={s.flag}><Flag filled={s.flagged} /></button>
+          <button className={styles.iconButton} disabled={s.busy} aria-label={text.question_overview} onClick={() => s.setOverview(true)}><Grid /></button>
+        </div>}
+      </div>}
     </header>
     {s.overview ? <section className={styles.overview}>
       <h1 ref={heading} tabIndex={-1} className={styles.title}>{text.question_overview}</h1>
@@ -117,63 +117,6 @@ function ActiveSession({ incoming }: { incoming: StoredTraining }) {
       {s.checkMode && !s.overview && s.position > 0 && <button className={styles.textButton} disabled={s.busy} onClick={() => s.go(s.position - 1)}>{t.back}</button>}
     </footer>
   </div>;
-}
-
-function QuestionPrompt({ question: q, selection }: { question: Question; selection: string[] }) {
-  const { t } = useI18n();
-  if (q.questionType === 'quantitative_comparison') return <div className={styles.quantities}>
-    {q.condition && <p lang="en" className={styles.prompt}>{q.condition}</p>}
-    <div className={styles.quantityRow}>{[['Quantity A', q.quantityA], ['Quantity B', q.quantityB]].map(([label, value]) => <div key={label} className={styles.quantity}><span lang="en" className={styles.note}>{label}</span><strong lang="en">{value}</strong></div>)}</div>
-  </div>;
-  return <p lang="en" className={styles.prompt}>{q.prompt.split('___').map((part, index) => <span key={index}>{index > 0 && <span className={styles.blank} role="img" aria-label={`${t.training.question_blank} ${BLANKS[index - 1] ?? ''}${q.groups[index - 1]?.options.some((option) => selection.includes(option.id)) ? ': ' + q.groups[index - 1]?.options.filter((option) => selection.includes(option.id)).map((option) => option.text).join(', ') : ''}`}>
-    {q.groups[index - 1]?.options.filter((option) => selection.includes(option.id)).map((option) => option.text).join(' / ') || '　　'}{q.groups.length > 1 && <small>{BLANKS[index - 1]}</small>}
-  </span>}{part}</span>)}</p>;
-}
-
-function Options({ question: q, selection, revealed, onSelect }: { question: Question; selection: string[]; revealed: boolean; onSelect: (id: string) => void }) {
-  const { t } = useI18n();
-  const many = q.groups.length > 1;
-  return <div className={styles.options}>{q.groups.map((group, index) => <div key={index} className={styles.optionGroup} role={revealed ? undefined : q.selectCount === 1 ? 'radiogroup' : 'group'} aria-label={many ? `${t.training.question_blank} ${BLANKS[index]}` : t.training.builder_type}>
-    {many && !revealed && <p className={styles.note}>{BLANKS[index]}</p>}
-    <div className={many && !revealed ? styles.chips : styles.options}>
-      {group.options.filter((option) => !revealed || selection.includes(option.id) || q.answer.includes(option.id)).map((option, optionIndex) => {
-        const correct = revealed && q.answer.includes(option.id);
-        const wrong = revealed && !correct;
-        const content = <><span className={styles.letter} lang="en">{many && revealed ? BLANKS[index] : many ? null : option.id}</span><span lang="en" className={styles.optionText}>{option.text}</span>{revealed && <span className={styles.optionMark}>{correct ? t.training.question_correct_mark : t.training.question_yours_mark}{correct ? <CheckIcon /> : <Cross />}</span>}{!revealed && !many && <kbd className={styles.optionKey}>{String.fromCharCode(65 + optionIndex)}</kbd>}</>;
-        return revealed ? <div key={option.id} className={styles.option} data-result={correct ? 'correct' : wrong ? 'wrong' : undefined}>{content}</div> :
-          <button key={option.id} className={styles.option} type="button" role={q.selectCount === 1 ? 'radio' : 'checkbox'} aria-checked={selection.includes(option.id)} onClick={() => onSelect(option.id)}>{content}</button>;
-      })}
-    </div>
-    {revealed && <p className={styles.others} aria-label={t.training.question_others} lang="en">{group.options.filter((option) => !selection.includes(option.id) && !q.answer.includes(option.id)).map((option) => `${many ? '' : option.id + ' '}${option.text}`).join('　 ')}</p>}
-  </div>)}</div>;
-}
-
-function RichText({ text }: { text: string }) {
-  return <>{text.split(/(\*[^*]+\*)/).map((part, index) => part.startsWith('*') && part.endsWith('*') ? <em key={index}>{part.slice(1, -1)}</em> : <span key={index}>{part}</span>)}</>;
-}
-
-function Explanation({ question: q, chosen, language, onLanguage }: { question: Question; chosen: string[]; language: Locale; onLanguage: (language: Locale) => void }) {
-  const { locale } = useI18n();
-  const [open, setOpen] = useState(false);
-  useEffect(() => { setOpen(false); }, [q.id]);
-  const text = dictionaries[language].training;
-  const correct = TrainingRules.isCorrect(q, chosen);
-  const wrong = q.explanation.options.filter((item) => chosen.includes(item.optionId) && !q.answer.includes(item.optionId));
-  const options = q.groups.flatMap((group) => group.options);
-  const keys = options.filter((option) => q.answer.includes(option.id)).map((option) => `${q.groups.length === 1 ? option.id + ', ' : ''}${option.text}`).join(` ${text.summary_and} `);
-  const wrongLabel = options.filter((option) => wrong.some((item) => item.optionId === option.id)).map((option) => option.text).join(', ');
-  return <section lang={language} className={styles.explanation} data-testid="explanation">
-    <span className={styles.verdictDot} data-correct={correct} aria-hidden="true">{correct ? <CheckIcon /> : <Cross />}</span>
-    <div className={styles.explanationBody}>
-      <p role="status"><strong>{chosen.length ? correct ? text.verdict_correct : text.verdict_wrong : ''}</strong>{!correct && ` ${q.answer.length > 1 ? text.verdict_answers(keys) : text.verdict_answer(keys)}`}</p>
-      <p className={styles.solution}><RichText text={q.explanation.solution[language]} /></p>
-      <div className={styles.explanationTools}>
-        {wrong.length > 0 && <button className={`${styles.whyNot} ${glass.glass}`} aria-expanded={open} aria-controls="why-not" onClick={() => setOpen(!open)}>{text.why_not(wrongLabel)}</button>}
-        <div className={`${styles.segments} ${glass.glass}`} aria-label={dictionaries[locale].training.explanation_language}>{(['ru', 'en'] as const).map((lang) => <button key={lang} type="button" aria-pressed={language === lang} onClick={() => onLanguage(lang)}>{lang.toUpperCase()}</button>)}</div>
-      </div>
-      {open && <div id="why-not" className={styles.whyNotBody}>{wrong.map((item) => <p key={item.optionId} data-testid="explanation-option"><RichText text={item.text[language]} /></p>)}</div>}
-    </div>
-  </section>;
 }
 
 function Summary({ training }: { training: StoredTraining }) {
@@ -215,6 +158,7 @@ function Summary({ training }: { training: StoredTraining }) {
         return <div key={topic.topicId} className={styles.reviewTopic}><i aria-hidden="true" /><div><h3>{topic.title[locale]}</h3><p className={styles.note}>{text.summary_mistakes(topic.mistakes)} · {(numbers.length === 1 ? text.summary_question : text.summary_questions)(list)}</p></div></div>;
       })}
     </section> : !result.unanswered && <p>{text.summary_perfect}</p>}
+    <Link to="/training/$trainingId/review" params={{ trainingId: training.session.id }} className={styles.allAnswers}>{text.summary_all_answers}</Link>
     <footer className={styles.sessionFooter}>
       {(problem || !online && result.review.length > 0) && <p role="status" className={styles.note}>{problem ?? text.builder_start_offline}</p>}
       <TrainingActions secondary={result.review.length > 0 ? { text: text.summary_done, disabled: busy, onClick: close } : undefined} primary={{ text: result.review.length ? text.summary_repeat(text.questionsCount(count)) : text.summary_done, disabled: busy || Boolean(result.review.length && !online), busy, onClick: result.review.length ? () => void repeat() : close }} />
@@ -222,7 +166,5 @@ function Summary({ training }: { training: StoredTraining }) {
   </div>;
 }
 
-function SessionIcon({ children }: { children: ReactNode }) { return <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{children}</svg>; }
 function Flag({ filled = false }: { filled?: boolean }) { return <SessionIcon><path d="M5 21V3m0 1c5-3 9 3 14 0v10c-5 3-9-3-14 0" fill={filled ? 'currentColor' : 'none'} /></SessionIcon>; }
 function Grid() { return <SessionIcon>{[4, 14].flatMap((x) => [4, 14].map((y) => <rect key={`${x}-${y}`} x={x} y={y} width="6" height="6" rx="1" />))}</SessionIcon>; }
-function Cross() { return <SessionIcon><path d="m8 8 8 8m0-8-8 8" /></SessionIcon>; }

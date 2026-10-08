@@ -27,3 +27,8 @@ test('me без site объясняет отсутствие входа', async 
   expect(() => me.user).toThrow('site');
   await expect(me.api('GET', '/me')).rejects.toThrow('site');
 });
+
+import { reviewAllAnswers, reportFromQuestionAndReview } from '../training';
+test('все ответы из итога: фильтр, разбор RU/EN и назад', async ({ site: page }) => { await reviewAllAnswers(page); });
+test('жалобы с вопроса и из разбора записаны сервером', async ({ site: page, me }) => { await reportFromQuestionAndReview(page, me); });
+test('жалоба без сети отправляется после возвращения сети', async ({ site: page, me }) => { await reportFromQuestionAndReview(page, me, true); });

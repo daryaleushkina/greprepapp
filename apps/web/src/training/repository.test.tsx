@@ -11,7 +11,7 @@ const request = { section: 'verbal', questionTypes: ['text_completion'], count: 
 const make = (name = `queue-test-${crypto.randomUUID()}`, locks: LockManager | null = navigator.locks) => {
   const report = vi.fn(); const store = new TrainingStore(name, report); opened.push({ name, store });
   const api = { options: vi.fn(async () => trainingOptions()), start: vi.fn(async () => trainingSession()), answers: vi.fn(async () => {}),
-    finish: vi.fn(async () => ({ correct: 1, total: 3, unanswered: 2, durationSeconds: 90, review: [] })) };
+    finish: vi.fn(async () => ({ correct: 1, total: 3, unanswered: 2, durationSeconds: 90, review: [] })), report: vi.fn(async () => {}) };
   const repo = new TrainingRepository(store, api, report, () => NOW, locks);
   const auto = vi.spyOn(repo, 'requestSync').mockImplementation(() => {});
   return { repo, store, api, report, auto, name };
@@ -24,6 +24,54 @@ const seed = async (m: ReturnType<typeof make>, id = trainingSession().id, finis
 };
 const fail = (status: number, kind: 'server' | 'network' | 'contract' = 'server') => new ApiError(kind, { status, code: 'fixture', message: 'fixture' });
 const deferred = () => { let resolve = () => {}; const promise = new Promise<void>((r) => { resolve = r; }); return { promise, resolve }; };
+
+const complaint = { kind: 'explanation', text: 'synthetic private complaint', trainingId: trainingSession().id } as const;
+const questionId = trainingSession().items[0]!.question.id;
+test('жалоба сохраняется без сети, переживает открытие и отправляется позже', async () => {
+  const m = make(); await m.repo.signedIn('a');
+  await m.repo.recordReport(questionId, complaint);
+  m.api.report.mockRejectedValueOnce(fail(0, 'network'));
+  await m.repo.sync();
+  const next = make(m.name); await next.repo.signedIn('a'); await next.repo.sync();
+  expect(next.api.report).toHaveBeenCalledExactlyOnceWith(questionId, complaint);
+  await m.repo.sync(); expect(m.api.report).toHaveBeenCalledTimes(1);
+  expect(m.report).not.toHaveBeenCalled();
+});
+for (const status of [400, 404, 409, 410, 422]) test(`жалоба: ${status} удаляется и сообщается без текста`, async () => {
+  const m = make(); await m.repo.signedIn('a'); await m.repo.recordReport(questionId, complaint);
+  m.api.report.mockRejectedValueOnce(new ApiError('server', { status, code: complaint.text, message: complaint.text }));
+  await m.repo.sync(); await m.repo.sync();
+  expect(m.api.report).toHaveBeenCalledTimes(1);
+  expect(m.report).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ message: `training report rejected: ${status}` }));
+});
+for (const status of [403, 408, 429, 500, 503]) test(`жалоба: ${status} ждёт, следующая уходит`, async () => {
+  const m = make(); await m.repo.signedIn('a');
+  await m.repo.recordReport(questionId, complaint); await m.repo.recordReport(questionId, { kind: 'question' });
+  m.api.report.mockRejectedValueOnce(fail(status)); await m.repo.sync();
+  expect(m.api.report).toHaveBeenCalledTimes(2);
+  await m.repo.sync(); expect(m.api.report).toHaveBeenCalledTimes(3);
+  expect(m.api.report).toHaveBeenLastCalledWith(questionId, complaint);
+});
+test('жалоба: 401 ждёт входа того же человека, выход стирает очередь', async () => {
+  const m = make(); await m.repo.signedIn('a'); await m.repo.recordReport(questionId, complaint);
+  m.api.report.mockRejectedValueOnce(fail(401)); await m.repo.sync(); await m.repo.sync();
+  expect(m.api.report).toHaveBeenCalledTimes(1);
+  await m.repo.signedIn('a'); await m.repo.sync(); expect(m.api.report).toHaveBeenCalledTimes(2);
+  await m.repo.recordReport(questionId, complaint); await m.repo.signOut();
+  await m.repo.signedIn('a'); await m.repo.sync(); expect(m.api.report).toHaveBeenCalledTimes(2);
+});
+test('жалоба: другой аккаунт стирает старую очередь и сообщает только число', async () => {
+  const m = make(); await m.repo.signedIn('a'); await m.repo.recordReport(questionId, complaint);
+  m.repo.pause(); await m.repo.signedIn('b'); await m.repo.sync();
+  expect(m.api.report).not.toHaveBeenCalled();
+  expect(m.report).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ message: 'training account changed: 1 unsent reports lost' }));
+});
+test('жалоба: Web Locks двух вкладок не дублирует отправку', async () => {
+  const m = make(); await m.repo.signedIn('a'); await m.repo.recordReport(questionId, complaint);
+  const next = make(m.name); await next.repo.signedIn('a');
+  await Promise.all([m.repo.sync(), next.repo.sync()]);
+  expect(m.api.report.mock.calls.length + next.api.report.mock.calls.length).toBe(1);
+});
 
 test('две очереди одной сессии удерживают отправку до последней записи, другие сессии уходят', async () => {
   const m = make(); const { t } = await seed(m);
@@ -308,4 +356,18 @@ test('черновик практики сохраняется; проверен
   await store.put(owner, { ...savedTraining(), session: trainingSession({ mode: 'check', timeLimitSeconds: 270 }) });
   await repo.draft(trainingSession().id, 0, ['A']);
   expect((await repo.get(trainingSession().id))?.drafts).toBeUndefined();
+});
+
+test('жалоба: ошибка устройства не теряет форму, выход во время запроса не возвращает очередь', async () => {
+  const m = make(); await m.repo.signedIn('a');
+  vi.spyOn(m.store, 'putReport').mockRejectedValueOnce(new DOMException(complaint.text, 'QuotaExceededError'));
+  await expect(m.repo.recordReport(questionId, complaint)).rejects.toThrow();
+  expect(m.repo.storageStatus()).toBe('ready');
+  expect(m.report).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ message: 'training storage failed: QuotaExceededError' }));
+  await m.repo.recordReport(questionId, complaint);
+  const entered = deferred(), held = deferred();
+  m.api.report.mockImplementationOnce(async () => { entered.resolve(); await held.promise; });
+  const sending = m.repo.sync(); await entered.promise; await m.repo.signOut(); held.resolve(); await sending;
+  await m.repo.signedIn('a'); await m.repo.sync(); expect(m.api.report).toHaveBeenCalledTimes(1);
+  await m.repo.signOut(); await expect(m.repo.recordReport(questionId, complaint)).rejects.toThrow('owner changed');
 });

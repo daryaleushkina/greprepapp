@@ -300,7 +300,7 @@ export async function stableTrainingScreens(page: Page, capture = true) {
   await expect(page.getByText('Отвечено 1 из 3 · отмечено 1')).toBeVisible();
   if (capture) await checkScreen(page, 'training-overview');
   await closeSession(page);
-  if (!capture) return;
+  if (!capture) return session;
   for (const [type, section, count, name] of [
     ['text_completion', 'Verbal', 2, 'training-tc2'], ['text_completion', 'Verbal', 3, 'training-tc3'],
     ['sentence_equivalence', 'Verbal', 1, 'training-se'], ['quantitative_comparison', 'Quant', 1, 'training-qc'], ['multiple_choice', 'Quant', 1, 'training-mc'],
@@ -310,4 +310,97 @@ export async function stableTrainingScreens(page: Page, capture = true) {
     await checkScreen(page, name);
     await closeSession(page);
   }
+  return session;
+}
+
+export async function trainingBack(page: Page) {
+  if (new URL(page.url()).pathname.startsWith('/tg/')) await page.locator('#tg-mock-back').click();
+  else await page.getByRole('link', { name: 'Назад', exact: true }).click();
+}
+
+export async function finishForReview(page: Page) {
+  const session = await startSession(page, 'check');
+  await pick(page, session.items[0]!.question, true);
+  await expect(page.getByTestId('explanation')).toHaveCount(0);
+  await page.getByRole('button', { name: /Дальше · 2 из/ }).click();
+  await pick(page, session.items[1]!.question);
+  await page.getByRole('button', { name: 'Все вопросы', exact: true }).click();
+  await page.getByRole('button', { name: 'Закончить', exact: true }).click();
+  await expect(page.getByRole('heading', { name: '1 из 3 верно' })).toBeVisible();
+  return session;
+}
+
+export async function reviewAllAnswers(page: Page) {
+  const session = await finishForReview(page);
+  await page.getByRole('link', { name: 'Все ответы и разборы' }).click();
+  await expect(page.getByRole('heading', { name: 'Разбор проверки' })).toBeVisible();
+  for (const name of ['Все · 3', 'Ошибки · 2']) {
+    await expect.poll(() => page.getByRole('button', { name, exact: true }).evaluate((button) => {
+      const range = document.createRange(); range.selectNodeContents(button); return range.getClientRects().length;
+    })).toBe(1);
+  }
+  await expect(page.getByRole('link', { name: /Вопрос 2, верно/ })).toBeVisible();
+  await expect(page.getByRole('link', { name: /Вопрос 3, без ответа/ })).toBeVisible();
+  await page.getByRole('button', { name: 'Ошибки · 2' }).click();
+  await expect(page.getByRole('link', { name: /Вопрос 2, верно/ })).toHaveCount(0);
+  await page.getByRole('link', { name: /Вопрос 1, неверно/ }).click();
+  await expect(page.getByText('ваш ответ', { exact: true })).toBeVisible();
+  await expect(page.getByText('верный', { exact: true }).first()).toBeVisible();
+  if (!new URL(page.url()).pathname.startsWith('/tg/') && (page.viewportSize()?.width ?? 0) >= 900) {
+    const prompt = await page.locator('section').filter({ has: page.locator('[lang="en"]') }).first().boundingBox();
+    const explanation = await page.getByTestId('explanation').boundingBox();
+    expect(prompt).not.toBeNull(); expect(explanation).not.toBeNull();
+    expect(explanation!.x).toBeGreaterThan(prompt!.x + prompt!.width);
+  }
+  await page.getByRole('button', { name: 'EN', exact: true }).click();
+  await expect(page.getByTestId('explanation')).toContainText(session.items[0]!.question.explanation.solution.en.split('*').join(''));
+  await page.getByRole('button', { name: 'RU', exact: true }).click();
+  await trainingBack(page);
+  await page.getByRole('link', { name: /Вопрос 3, без ответа/ }).click();
+  await expect(page.getByText('без ответа', { exact: true })).toBeVisible();
+  await trainingBack(page); await trainingBack(page);
+  await expect(page.getByRole('heading', { name: '1 из 3 верно' })).toBeVisible();
+}
+
+/** У API пока нет чтения жалоб. Проверяем запись только счётчиком своей базы e2e, без текста. */
+export async function reportCount(me: import('./fixtures').Me, trainingId: string) {
+  const { execFile } = await import('node:child_process');
+  const { promisify } = await import('node:util');
+  const current = schemas.User.parse(await me.api('GET', '/me'));
+  const id = schemas.TrainingSession.shape.id.parse(trainingId);
+  const query = `SELECT count(*) FROM question_reports WHERE user_id = '${current.id}' AND training_id = '${id}'`;
+  const { stdout } = await promisify(execFile)('docker', ['compose', 'exec', '-T', 'postgres', 'psql', '-U', 'greprep', '-d', 'greprep_web_e2e', '-Atc', query]);
+  return Number(stdout.trim());
+}
+
+export async function reportFromQuestionAndReview(page: Page, me: import('./fixtures').Me, offline = false) {
+  const session = await startSession(page);
+  if (offline) await page.context().setOffline(true);
+  await page.getByRole('link', { name: 'Сообщить об ошибке' }).click();
+  await expect(page.getByRole('button', { name: 'Отправить', exact: true })).toBeDisabled();
+  await page.getByRole('button', { name: 'В задании', exact: true }).click();
+  // Только синтетический ввод: тело сообщения не читается и не печатается.
+  await page.getByRole('textbox', { name: 'Что не так' }).fill('Synthetic e2e fixture');
+  await page.getByRole('button', { name: 'Отправить', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Спасибо!' })).toBeVisible();
+  await page.getByRole('button', { name: 'Вернуться к вопросу' }).click();
+  await expect(page.getByRole('heading', { name: /Text Completion/ })).toBeVisible();
+  if (offline) {
+    expect(await reportCount(me, session.id)).toBe(0);
+    await page.context().setOffline(false);
+  }
+  await expect.poll(() => reportCount(me, session.id)).toBe(1);
+  for (let index = 0; index < session.items.length; index++) {
+    await page.getByRole('button', { name: 'Не знаю', exact: true }).click();
+    await page.getByRole('button', { name: index < session.items.length - 1 ? /Дальше ·/ : 'Итог', exact: true }).click();
+  }
+  await page.getByRole('link', { name: 'Все ответы и разборы' }).click();
+  await page.getByRole('link', { name: /Вопрос 2, без ответа/ }).click();
+  await page.getByRole('link', { name: 'Сообщить об ошибке' }).click();
+  await page.getByRole('button', { name: 'В разборе', exact: true }).click();
+  await page.getByRole('button', { name: 'Отправить', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Спасибо!' })).toBeVisible();
+  await expect.poll(() => reportCount(me, session.id)).toBe(2);
+  await page.getByRole('button', { name: 'Вернуться к вопросу' }).click();
+  await expect(page.getByRole('heading', { name: 'Вопрос 2', exact: true })).toBeVisible();
 }

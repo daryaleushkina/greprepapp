@@ -1,6 +1,6 @@
-import { ApiError, getTrainingOptions, startTraining, submitTrainingAnswers, finishTraining, schemas, type GivenAnswer, type TrainingRequest } from '@greprep/api-client';
+import { ApiError, getTrainingOptions, startTraining, submitTrainingAnswers, finishTraining, reportQuestion, schemas, type GivenAnswer, type QuestionReport, type TrainingRequest } from '@greprep/api-client';
 import { reportError } from '../errors/report';
-import { storedTraining, type StoredTraining } from './model';
+import { pendingReportSchema, storedTraining, type StoredTraining } from './model';
 import { TrainingRules } from './rules';
 import { TrainingStore, type TrainingOwner } from './store';
 
@@ -12,6 +12,7 @@ interface TrainingApi {
   start: typeof startTraining;
   answers: typeof submitTrainingAnswers;
   finish: typeof finishTraining;
+  report: typeof reportQuestion;
 }
 const TRAINING_API: TrainingApi = {
   options: getTrainingOptions, start: startTraining,
@@ -19,6 +20,7 @@ const TRAINING_API: TrainingApi = {
   // Неотправленное остаётся на диске; повтор того же ответа после открытия подтверждается сервером идемпотентно.
   answers: (id, answers, options) => submitTrainingAnswers(id, answers, { ...options, keepalive: true }),
   finish: (id, finish, options) => finishTraining(id, finish, { ...options, keepalive: true }),
+  report: (id, report, options) => reportQuestion(id, report, { ...options, keepalive: true }),
 };
 
 /** Одна отправка на все вкладки. Под замком данные перечитываются из IndexedDB, поэтому второй круг не дублирует первый. */
@@ -41,7 +43,7 @@ export class TrainingRepository {
   constructor(readonly store = new TrainingStore(), private api: TrainingApi = TRAINING_API, private report = reportError,
     private now: () => number = Date.now, private locks: LockManager | null | undefined = globalThis.navigator?.locks) {
     store.subscribe((change) => {
-      if (change.kind === 'owner' || change.activeChanged) this.activeKnown = false;
+      if (change.kind === 'owner' || change.kind === 'training' && change.activeChanged) this.activeKnown = false;
       if (change.remote) void this.refreshOwner().catch((error: unknown) => this.storageFailed(error));
     });
   }
@@ -197,6 +199,15 @@ export class TrainingRepository {
     } catch (error) { this.storageFailed(error); throw error; }
   }
 
+  async recordReport(questionId: string, report: QuestionReport): Promise<void> {
+    const pending = pendingReportSchema.parse({ id: crypto.randomUUID(), questionId, report });
+    try {
+      const owner = this.current();
+      if (!owner || !await this.store.putReport(owner, pending)) throw new Error('training report not saved: owner changed');
+    } catch (error) { this.reportStorage(error); throw error; }
+    this.requestSync();
+  }
+
   requestSync = (): void => { void this.sync().catch((error: unknown) => this.storageFailed(error)); };
 
   sync(): Promise<void> {
@@ -261,21 +272,26 @@ export class TrainingRepository {
         if (outcome === 'stop') return;
       }
     }
+    for (const pending of await this.store.reports(owner)) {
+      const outcome = await this.send(owner, generation, () => this.api.report(pending.questionId, pending.report),
+        () => this.store.removeReport(owner, pending.id), 1, true);
+      if (outcome === 'stop') return;
+    }
     await this.store.prune(owner);
   }
 
-  private async send(owner: TrainingOwner, generation: number, action: () => Promise<unknown>, done: () => Promise<void>, batchSize = 1): Promise<'done' | 'later' | 'stop' | 'split'> {
+  private async send(owner: TrainingOwner, generation: number, action: () => Promise<unknown>, done: () => Promise<void>, batchSize = 1, complaint = false): Promise<'done' | 'later' | 'stop' | 'split'> {
     if (!this.isCurrent(owner, generation) || !await this.store.owns(owner)) return 'stop';
     let failure: unknown;
     try { await action(); } catch (error) { failure = error; }
     if (!this.isCurrent(owner, generation) || !await this.store.owns(owner)) return 'stop';
     if (failure === undefined) { await done(); return 'done'; }
-    this.handle(failure);
+    this.handle(failure, complaint);
     if (failure instanceof ApiError) {
       if (failure.kind === 'network' || failure.status === 401) return 'stop';
       if (PERMANENT.has(failure.status)) {
         if (batchSize > 1) return 'split';
-        this.report(new Error(`training sync rejected: ${failure.status} ${failure.code}`));
+        this.report(new Error(complaint ? `training report rejected: ${failure.status}` : `training sync rejected: ${failure.status} ${failure.code}`));
         await done();
         return 'done';
       }
@@ -288,11 +304,11 @@ export class TrainingRepository {
     this.report(new Error(`training storage failed: ${error instanceof Error ? error.name : 'unknown'}`));
   }
   private storageFailed(error: unknown) { this.setStatus('unavailable'); this.reportStorage(error); }
-  private handle(error: unknown) {
+  private handle(error: unknown, complaint = false) {
     if (error instanceof DOMException && error.name === 'AbortError') return;
     if (error instanceof ApiError) {
       if (error.status === 401) { this.pause(); this.unauthorized(error); }
-      else if (error.kind === 'contract' || error.status >= 500) this.report(new Error(`training API failed: ${error.status} ${error.code}`));
+      else if (error.kind === 'contract' || error.status >= 500) this.report(new Error(complaint ? `training report API failed: ${error.status}` : `training API failed: ${error.status} ${error.code}`));
     } else this.reportStorage(error);
   }
 }

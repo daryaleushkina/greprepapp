@@ -78,6 +78,10 @@ describe('все строки-функции отвечают текстом н�
     typeof value === 'function' ? [`${prefix}${key}`] : value && typeof value === 'object' ? functionNames(value, `${prefix}${key}.`) : []);
   // Аргументы проверяет TypeScript: у текстов тренировки теперь разные подписи, вызова всех с одним числом недостаточно.
   const samples = (t: Dict): Record<string, string> => ({
+    'training.review_all': t.training.review_all(3),
+    'training.review_mistakes': t.training.review_mistakes(2),
+    'training.review_question': t.training.review_question(1),
+    'training.report_context': t.training.report_context(1, 'Text Completion'),
     'training.question_next': t.training.question_next(2, 3),
     'training.question_of': t.training.question_of(1, 3),
     'training.question_progress_description': t.training.question_progress_description(1, 3),

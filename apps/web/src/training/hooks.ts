@@ -8,6 +8,7 @@ import { trainingRepository } from './repository';
 export function useTrainingUpdates(): void {
   const client = useQueryClient();
   useEffect(() => trainingRepository.store.subscribe((change) => {
+    if (change.kind === 'reports') return;
     if (change.kind === 'owner') {
       if (change.remote) void client.invalidateQueries({ queryKey: SESSION_KEY });
       void client.invalidateQueries({ queryKey: ['training'] });

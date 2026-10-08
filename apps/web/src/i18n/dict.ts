@@ -27,6 +27,19 @@ const enSteps = ['', 'One step', 'Two steps', 'Three steps', 'Four steps', 'Five
 
 
 const trainingRu = {
+  question_report: 'Сообщить об ошибке', summary_all_answers: 'Все ответы и разборы',
+  review_title_practice: 'Разбор тренировки', review_title_check: 'Разбор проверки',
+  review_all: (count: number) => `Все · ${count}`, review_mistakes: (count: number) => `Ошибки · ${count}`,
+  review_question: (position: number) => `Вопрос ${position}`, review_correct: 'верно', review_wrong: 'неверно',
+  review_unanswered: 'без ответа', review_no_mistakes: 'Ошибок нет.', review_filter: 'Показать',
+  report_context: (position: number, type: string) => `Вопрос ${position} · ${type}`,
+  report_kind: 'Где ошибка', report_kind_question: 'В задании', report_kind_answer: 'В ответе',
+  report_kind_explanation: 'В разборе', report_kind_translation: 'В переводе', report_kind_other: 'Другое',
+  report_text: 'Что не так', report_note: 'Проверим вручную и поправим задание.', report_send: 'Отправить',
+  report_thanks: 'Спасибо!', report_back: 'Вернуться к вопросу',
+  report_saved: 'Сообщение сохранено. Если сети нет, отправим, когда она появится.',
+  report_failed: 'Не получилось сохранить сообщение. Освободите место на устройстве и попробуйте снова.',
+
   explanation_language: 'Язык разбора', question_select_hint: 'выбрать ответ',
   question_check: 'Проверить', question_dont_know: 'Не знаю', question_result: 'Итог', question_skip: 'Пропустить',
   question_next: (position: number, total: number) => `Дальше · ${position} из ${total}`,
@@ -95,6 +108,19 @@ const trainingRu = {
   topics_done: (count: string) => `Готово · ${count}`,
 };
 const trainingEn = {
+  question_report: 'Report a mistake', summary_all_answers: 'All answers and explanations',
+  review_title_practice: 'Practice review', review_title_check: 'Check review',
+  review_all: (count: number) => `All · ${count}`, review_mistakes: (count: number) => `Mistakes · ${count}`,
+  review_question: (position: number) => `Question ${position}`, review_correct: 'correct', review_wrong: 'wrong',
+  review_unanswered: 'not answered', review_no_mistakes: 'No mistakes.', review_filter: 'Show',
+  report_context: (position: number, type: string) => `Question ${position} · ${type}`,
+  report_kind: 'Where is the mistake', report_kind_question: 'In the question', report_kind_answer: 'In the answer',
+  report_kind_explanation: 'In the explanation', report_kind_translation: 'In the translation', report_kind_other: 'Other',
+  report_text: 'What’s wrong', report_note: 'We’ll check it by hand and fix the question.', report_send: 'Send',
+  report_thanks: 'Thank you!', report_back: 'Back to the question',
+  report_saved: 'Your message is saved. If you’re offline, we’ll send it when you reconnect.',
+  report_failed: 'Couldn’t save your message. Free up some space on your device and try again.',
+
   explanation_language: 'Explanation language', question_select_hint: 'choose an answer',
   question_check: 'Check answer', question_dont_know: 'I don’t know', question_result: 'Summary', question_skip: 'Skip',
   question_next: (position: number, total: number) => `Next · ${position} of ${total}`,
