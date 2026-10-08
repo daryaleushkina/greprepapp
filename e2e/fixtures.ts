@@ -3,6 +3,7 @@
 import { createHmac, randomInt } from 'node:crypto';
 import { expect, test as base, type Locator, type Page } from '@playwright/test';
 import { E2E_BOT_TOKEN, type TgOptions } from '../playwright.config';
+import { schemas } from '../packages/api-client/src';
 
 export interface TelegramUser {
   id: number;
@@ -49,7 +50,7 @@ export function miniAppUrl(user: TelegramUser, o: TgOptions, path = '/'): string
 export interface Me {
   user: TelegramUser;
   /** Запрос к API от имени этого человека; ответ не 2xx — исключение с текстом ответа. */
-  api: <T = unknown>(method: string, path: string, body?: unknown) => Promise<T>;
+  api: (method: string, path: string, body?: unknown) => Promise<unknown>;
 }
 
 type Fixtures = TgOptions & {
@@ -80,14 +81,24 @@ export const test = base.extend<Fixtures>({
     await use(newTelegramUser());
   },
 
-  me: async ({ request, tgUser }, use) => {
+  me: async ({ request, page, tgUser }, use, testInfo) => {
+    if (testInfo.project.name.startsWith('site-')) {
+      const api = async (method: string, path: string, body?: unknown): Promise<unknown> => {
+        const response = await page.request.fetch(`/api${path}`, { method, ...(body !== undefined && { data: body }) });
+        if (!response.ok()) throw new Error(`${method} ${path}: ${response.status()} ${await response.text()}`);
+        return response.status() === 204 ? undefined : await response.json();
+      };
+      await use({ user: tgUser, api });
+      return;
+    }
     const res = await request.post('/api/auth/telegram-mini-app', { data: { initData: signInitData(tgUser) } });
     expect(res.status(), await res.text()).toBe(200);
-    const { token } = (await res.json()) as { token: string };
-    const api = async <T,>(method: string, path: string, body?: unknown): Promise<T> => {
+    const { token } = schemas.Session.parse(await res.json());
+    if (!token) throw new Error('fixture session without bearer token');
+    const api = async (method: string, path: string, body?: unknown): Promise<unknown> => {
       const r = await request.fetch(`/api${path}`, { method, headers: { Authorization: `Bearer ${token}` }, ...(body !== undefined && { data: body }) });
       if (!r.ok()) throw new Error(`${method} ${path}: ${r.status()} ${await r.text()}`);
-      return (r.status() === 204 ? undefined : await r.json()) as T;
+      return r.status() === 204 ? undefined : await r.json();
     };
     await use({ user: tgUser, api });
   },

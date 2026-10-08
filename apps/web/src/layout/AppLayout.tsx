@@ -131,10 +131,10 @@ function SiteNav(): ReactNode {
  * Экран сессии без вкладок (шаг ленты): режим фокуса — без панели и капсулы, тот же свет и та же колонка
  * (DESIGN.md, «Navigation»: «сессии — режим фокуса без панели»).
  */
-export function FocusLayout({ glow, children, training = false, wide = false }: { glow: Glow; children: ReactNode; training?: boolean; wide?: boolean }): ReactNode {
+export function FocusLayout({ glow, children, training = false, wide = false, session = false }: { glow: Glow; children: ReactNode; training?: boolean; wide?: boolean; session?: boolean }): ReactNode {
   const { shell } = useShell();
   return (
-    <div className={styles.frame} data-shell={shell} data-glow={glow} data-nested data-training={training || undefined} data-wide={wide || undefined}>
+    <div className={styles.frame} data-shell={shell} data-glow={glow} data-nested data-training={training || undefined} data-wide={wide || undefined} data-session={session || undefined}>
       <main className={`app-shell ${styles.main}`} id="main">
         <div className={styles.column}>{children}</div>
       </main>

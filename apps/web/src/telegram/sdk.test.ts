@@ -16,6 +16,8 @@ const sdk = vi.hoisted(() => {
     },
     initData: { restore: vi.fn(), raw: vi.fn((): string | undefined => 'query_id=1&hash=x'), user: vi.fn(() => ({ language_code: 'en' })) },
     mainButton: { mount: { ifAvailable: vi.fn() } },
+    secondaryButton: { mount: { ifAvailable: vi.fn() } },
+    swipeBehavior: { mount: { ifAvailable: vi.fn() } },
     backButton: { mount: { ifAvailable: vi.fn() } },
     viewport: {
       mount: avail(async (_o?: unknown) => {}),
@@ -28,7 +30,7 @@ const sdk = vi.hoisted(() => {
   };
 });
 vi.mock('@tma.js/sdk-react', () => sdk);
-vi.mock('./mockEnv', () => ({ mockTelegramEnvForDev: vi.fn(async () => {}) }));
+vi.mock('./mockEnv', () => ({ mockTelegramEnvForDev: vi.fn(async () => {}), restoreMockChrome: vi.fn() }));
 
 import { followTelegramTheme, startTelegram } from './sdk';
 

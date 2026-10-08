@@ -86,9 +86,11 @@ test('конструктор и темы тренировки', async ({ miniApp
   await checkScreen(page, 'training-topics');
   await page.getByRole('button', { name: /^Готово ·/ }).click();
   await page.getByRole('button', { name: /^Начать ·/ }).click();
-  await expect(page.getByRole('heading', { name: 'Продолжить тренировку' })).toBeVisible();
-  await checkScreen(page, 'training-session');
+  await expect(page.getByRole('heading', { name: /Text Completion/ })).toBeVisible();
   await page.locator('#tg-mock-back').click();
   await expect(page.getByRole('link', { name: /Продолжить тренировку/ })).toBeVisible();
   await checkScreen(page, 'today-training');
 });
+
+import { stableTrainingScreens } from '../training';
+test('вопросы, разбор, проверка со списком и итог', async ({ miniApp: page }) => { await stableTrainingScreens(page); });

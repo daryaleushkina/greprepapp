@@ -7,6 +7,8 @@ const sdk = vi.hoisted(() => {
   return { visible: () => visible,
   backButton: { show: { ifAvailable: vi.fn(() => { visible = true; }) }, hide: { ifAvailable: vi.fn(() => { visible = false; }) }, onClick: { ifAvailable: vi.fn((_handler: () => void) => ({ ok: true, data: () => {} })) } },
   mainButton: { setParams: { isAvailable: vi.fn(() => false), ifAvailable: vi.fn() }, onClick: { ifAvailable: vi.fn((_handler: () => void) => ({ ok: true, data: () => {} })) } },
+  secondaryButton: { setParams: { isAvailable: vi.fn(() => false), ifAvailable: vi.fn() }, onClick: { ifAvailable: vi.fn(() => ({ ok: true, data: () => {} })) } },
+  swipeBehavior: { disableVertical: { isAvailable: vi.fn(() => true), ifAvailable: vi.fn() }, enableVertical: { ifAvailable: vi.fn() }, isVerticalEnabled: vi.fn(() => true) },
   miniApp: { ready: { ifAvailable: vi.fn() } },
 }; });
 vi.mock('@tma.js/sdk-react', () => sdk);
@@ -21,7 +23,7 @@ test('Telegram «назад» закрывает темы, затем конст
   await expect.poll(() => sdk.visible()).toBe(true);
   await screen.getByRole('button', { name: 'Темы и сложность все' }).click(); back();
   await expect.element(screen.getByRole('heading', { name: 'Новая тренировка' })).toBeVisible();
-  await screen.getByRole('button', { name: /Начать ·/ }).click(); await expect.element(screen.getByRole('heading', { name: 'Продолжить тренировку' })).toBeVisible(); back();
+  await screen.getByRole('button', { name: /Начать ·/ }).click(); await expect.element(screen.getByRole('heading', { name: 'Text Completion' })).toBeVisible(); back();
   await expect.element(screen.getByRole('heading', { name: 'Сегодня' })).toBeVisible();
   await screen.getByRole('link', { name: 'Своя тренировка' }).click(); await expect.element(screen.getByRole('heading', { name: 'Новая тренировка' })).toBeVisible(); back();
   await expect.element(screen.getByRole('heading', { name: 'Сегодня' })).toBeVisible();
@@ -46,6 +48,49 @@ test('два сигнала MainButton в одном кадре создают �
     const click = sdk.mainButton.onClick.ifAvailable.mock.calls.at(-1)?.[0];
     expect(click).toBeDefined(); click?.(); click?.();
     await expect.poll(() => server.requests.filter((r) => r.method === 'POST' && new URL(r.url).pathname === '/api/trainings').length).toBe(1);
-    release(); await expect.element(screen.getByRole('heading', { name: 'Продолжить тренировку' })).toBeVisible();
+    release(); await expect.element(screen.getByRole('heading', { name: 'Text Completion' })).toBeVisible();
   } finally { release(); sdk.mainButton.setParams.isAvailable.mockReturnValue(false); }
+});
+
+for (const enabled of [true, false]) test(`сессия сохраняет прогресс на «назад», свайпы восстановлены: ${enabled}`, async () => {
+  sdk.swipeBehavior.isVerticalEnabled.mockReturnValue(enabled);
+  vi.clearAllMocks();
+  fakeServer({ ...signedIn, 'GET /api/trainings/options': () => json(trainingOptions()), 'POST /api/trainings': () => json(trainingSession()) });
+  const { screen } = await renderApp({ path: '/training/new', shell: 'telegram', launch });
+  await screen.getByRole('button', { name: /Начать ·/ }).click();
+  await expect.element(screen.getByRole('heading', { name: 'Text Completion' })).toBeVisible();
+  expect(sdk.swipeBehavior.disableVertical.ifAvailable).toHaveBeenCalled();
+  back(); await expect.element(screen.getByRole('heading', { name: 'Сегодня' })).toBeVisible();
+  expect(sdk.swipeBehavior.enableVertical.ifAvailable.mock.calls.length > 0).toBe(enabled);
+  await expect.element(screen.getByRole('link', { name: /Продолжить тренировку/ })).toBeVisible();
+});
+
+test('после перезагрузки отключённые сессией свайпы возвращаются к исходному состоянию', async () => {
+  // При выгрузке страницы React не вызывает cleanup; SDK восстанавливает выключенные свайпы.
+  sessionStorage.setItem('greprep.training.swipes', 'enabled');
+  sdk.swipeBehavior.isVerticalEnabled.mockReturnValue(false);
+  vi.clearAllMocks();
+  fakeServer({ ...signedIn, 'GET /api/trainings/options': () => json(trainingOptions()), 'POST /api/trainings': () => json(trainingSession()) });
+  const { screen } = await renderApp({ path: '/training/new', shell: 'telegram', launch });
+  await screen.getByRole('button', { name: /Начать ·/ }).click();
+  await expect.element(screen.getByRole('heading', { name: 'Text Completion' })).toBeVisible();
+  back(); await expect.element(screen.getByRole('heading', { name: 'Сегодня' })).toBeVisible();
+  expect(sdk.swipeBehavior.enableVertical.ifAvailable).toHaveBeenCalled();
+  expect(sessionStorage.getItem('greprep.training.swipes')).toBeNull();
+});
+
+for (const stored of ['disabled', 'broken', 'storage-failed', 'cleanup-failed', 'unsupported']) test(`свайпы: исходное состояние и отказы оболочки ${stored}`, async () => {
+  sdk.swipeBehavior.isVerticalEnabled.mockReturnValue(true);
+  sdk.swipeBehavior.disableVertical.isAvailable.mockReturnValue(stored !== 'unsupported');
+  sessionStorage.setItem('greprep.training.swipes', stored === 'disabled' ? 'disabled' : 'broken');
+  if (stored === 'storage-failed') vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new DOMException('fixture denied'); });
+  vi.clearAllMocks();
+  fakeServer({ ...signedIn, 'GET /api/trainings/options': () => json(trainingOptions()), 'POST /api/trainings': () => json(trainingSession()) });
+  const { screen } = await renderApp({ path: '/training/new', shell: 'telegram', launch });
+  await screen.getByRole('button', { name: /Начать ·/ }).click();
+  await expect.element(screen.getByRole('heading', { name: 'Text Completion' })).toBeVisible();
+  if (stored === 'cleanup-failed') vi.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => { throw new DOMException('fixture denied'); });
+  back(); await expect.element(screen.getByRole('heading', { name: 'Сегодня' })).toBeVisible();
+  expect(sdk.swipeBehavior.enableVertical.ifAvailable.mock.calls.length > 0).toBe(stored !== 'disabled' && stored !== 'unsupported');
+  sdk.swipeBehavior.disableVertical.isAvailable.mockReturnValue(true);
 });

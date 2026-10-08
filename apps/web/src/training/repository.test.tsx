@@ -278,3 +278,21 @@ test('ответ между последним кругом и снятием We
   await expect.poll(() => m.api.answers.mock.calls.length).toBe(2);
   await expect.poll(async () => (await m.repo.get(t.session.id))?.unsent).toEqual([]);
 });
+
+test('черновик практики сохраняется; проверенный ответ, итог и проверка не перезаписываются черновиком', async () => {
+  const { repo, store } = make(); await repo.signedIn('one');
+  const owner = await store.currentOwner(); if (!owner) throw new Error('fixture owner');
+  await store.put(owner, savedTraining());
+  await repo.draft(trainingSession().id, 0, ['B']);
+  expect((await repo.get(trainingSession().id))?.drafts?.['0']).toEqual(['B']);
+  await repo.draft(trainingSession().id, 100, ['A']);
+  await repo.answer(trainingSession().id, givenAnswer());
+  await repo.draft(trainingSession().id, 0, ['A']);
+  expect((await repo.get(trainingSession().id))?.drafts?.['0']).toEqual(['B']);
+  await repo.finish(trainingSession().id, false);
+  await repo.draft(trainingSession().id, 1, ['A']);
+  expect((await repo.get(trainingSession().id))?.drafts?.['1']).toBeUndefined();
+  await store.put(owner, { ...savedTraining(), session: trainingSession({ mode: 'check', timeLimitSeconds: 270 }) });
+  await repo.draft(trainingSession().id, 0, ['A']);
+  expect((await repo.get(trainingSession().id))?.drafts).toBeUndefined();
+});

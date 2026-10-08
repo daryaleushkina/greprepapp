@@ -29,7 +29,7 @@ test('выбор набора показывает его раздел, типы
   await expect.element(screen.getByRole('button', { name: 'Проверка', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await expect.element(screen.getByRole('combobox', { name: 'Тип' })).toHaveValue('preset');
   await screen.getByRole('button', { name: /Начать ·/ }).click();
-  await expect.element(screen.getByRole('heading', { name: 'Продолжить тренировку' })).toBeVisible();
+  await expect.element(screen.getByRole('heading', { name: 'Text Completion' })).toBeVisible();
   expect(await server.requests.find((r) => r.method === 'POST')?.json()).toMatchObject({ section: 'verbal', count: 12, mode: 'check', questionTypes: ['text_completion', 'sentence_equivalence'] });
 });
 
@@ -65,14 +65,14 @@ test('поля, набор и темы меняют запрос; начать �
   await screen.getByRole('button', { name: 'Средняя', exact: true }).click();
   await screen.getByRole('button', { name: /Готово ·/ }).click();
   await screen.getByRole('button', { name: /Начать ·/ }).click();
-  await expect.element(screen.getByRole('heading', { name: 'Продолжить тренировку' })).toBeVisible();
+  await expect.element(screen.getByRole('heading', { name: 'Text Completion' })).toBeVisible();
   const posted = server.requests.find((r) => r.method === 'POST' && new URL(r.url).pathname === '/api/trainings');
   expect(await posted?.json()).toEqual({ section: 'quant', questionTypes: ['multiple_choice'], count: 2, mode: 'check', topicIds: ['cause'], difficulty: 'medium' });
   await screen.getByRole('link', { name: 'Закрыть тренировку' }).click();
   await expect.element(screen.getByRole('link', { name: /Продолжить тренировку/ })).toBeVisible();
   expect(screen.getByRole('link', { name: /Продолжить тренировку/ }).elements()).toHaveLength(1);
   await screen.getByRole('link', { name: /Продолжить тренировку/ }).click();
-  await expect.element(screen.getByRole('heading', { name: 'Продолжить тренировку' })).toBeVisible();
+  await expect.element(screen.getByRole('heading', { name: 'Text Completion' })).toBeVisible();
 });
 test('снять все темы, вернуть их и снять сложность', async () => {
   const { screen } = await boot();
@@ -118,7 +118,7 @@ for (const [kind, message] of [
   const { screen } = await renderApp({ path: '/training/new' });
   await screen.getByRole('button', { name: /Начать ·/ }).click(); await expect.element(screen.getByRole('alert')).toHaveTextContent(message);
   fail = false; await screen.getByRole('button', { name: /Начать ·/ }).click();
-  await expect.element(screen.getByRole('heading', { name: 'Продолжить тренировку' })).toBeVisible();
+  await expect.element(screen.getByRole('heading', { name: 'Text Completion' })).toBeVisible();
 });
 test('нет сети после загрузки — кнопка выключена, запрос старта не уходит', async () => {
   const { screen, server } = await boot(); onlineManager.setOnline(false);
@@ -167,7 +167,7 @@ test('при повторном входе в конструктор сразу 
   const { screen } = await renderApp({ path: '/training/new' });
   await screen.getByRole('textbox', { name: 'Вопросов' }).fill('3');
   await screen.getByRole('button', { name: /Начать ·/ }).click();
-  await expect.element(screen.getByRole('heading', { name: 'Продолжить тренировку' })).toBeVisible();
+  await expect.element(screen.getByRole('heading', { name: 'Text Completion' })).toBeVisible();
   await screen.getByRole('link', { name: 'Закрыть тренировку' }).click();
   await screen.getByRole('link', { name: 'Своя тренировка' }).click();
   await expect.element(screen.getByRole('radio', { name: 'Как в прошлый раз' })).toBeChecked();

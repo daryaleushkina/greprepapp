@@ -36,7 +36,11 @@
  *                                настоящим путём, с проверкой подписи на сервере; без неё initData неподписанная
  *                                и сервер её отклонит
  */
-import { emitEvent, isTMA, mockTelegramEnv } from '@tma.js/sdk-react';
+import { emitEvent, isTMA, mockTelegramEnv, mainButton, secondaryButton, backButton } from '@tma.js/sdk-react';
+
+let restoreChrome = () => {};
+/** Telegram сохраняет нативные кнопки между загрузками. Браузерная подмена восстанавливает их после mount SDK. */
+export function restoreMockChrome(): void { restoreChrome(); }
 
 declare global {
   interface Window {
@@ -168,6 +172,16 @@ export async function mockTelegramEnvForDev(): Promise<void> {
       : position === 'right' ? 'row' : 'row-reverse';
     chrome.bar.hidden = barHeight() === 0;
     emitViewport();
+  };
+  restoreChrome = () => {
+    for (const [kind, component] of [['main', mainButton], ['secondary', secondaryButton]] as const) {
+      const state = component.state();
+      buttons[kind] = { isVisible: state.isVisible, isActive: state.isEnabled, isProgressVisible: state.isLoaderVisible,
+        text: state.text, color: state.bgColor, textColor: state.textColor,
+        ...(kind === 'secondary' && { position: secondaryButton.position() }) };
+    }
+    backVisible = backButton.isVisible();
+    render();
   };
   chrome?.main.addEventListener('click', () => emitEvent('main_button_pressed'));
   chrome?.secondary.addEventListener('click', () => emitEvent('secondary_button_pressed'));
@@ -329,7 +343,7 @@ function createChrome(): Chrome {
     #tg-mock-bar button:disabled { opacity: .6; }
     #tg-mock-back { position: fixed; top: 8px; left: 8px; z-index: 2147483647; border: 0; border-radius: 16px;
       padding: 6px 12px; font: 500 14px system-ui, sans-serif;
-      background: var(--tg-theme-secondary-bg-color); color: var(--tg-theme-link-color); }`;
+      background: var(--color-surface, var(--tg-theme-secondary-bg-color)); color: var(--color-text, var(--tg-theme-text-color)); }`;
   document.head.append(style);
   const bar = document.createElement('div');
   bar.id = 'tg-mock-bar';

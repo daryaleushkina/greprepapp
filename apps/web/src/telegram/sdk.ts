@@ -1,7 +1,7 @@
 // Запуск мини-аппа: порядок инициализации @tma.js/sdk-react 3.x — по навыку telegram-mini-app
 // (assets/bootstrap.tsx). Цвета — свои, «Шагов» (решение Даши 05.10.2026): из темы Telegram берётся только,
 // светлая она или тёмная, а шапке, фону и нижней панели клиента отдаётся наш фон, чтобы швов не было.
-import { backButton, init, initData, mainButton, miniApp, retrieveLaunchParams, themeParams, viewport } from '@tma.js/sdk-react';
+import { backButton, init, initData, mainButton, secondaryButton, swipeBehavior, miniApp, retrieveLaunchParams, themeParams, viewport } from '@tma.js/sdk-react';
 
 export interface TelegramLaunch {
   /** Сырая initData — уходит на сервер, тот проверяет подпись ключом бота. */
@@ -44,10 +44,16 @@ export async function startTelegram(): Promise<TelegramStart> {
   themeParams.mount();
   miniApp.mount();
   mainButton.mount.ifAvailable();
+  secondaryButton.mount.ifAvailable();
+  swipeBehavior.mount.ifAvailable();
   themeParams.bindCssVars();
   miniApp.bindCssVars();
   initData.restore();
   backButton.mount.ifAvailable();
+  if (import.meta.env.DEV || import.meta.env.VITE_TELEGRAM_MOCK === '1') {
+    const { restoreMockChrome } = await import('./mockEnv');
+    restoreMockChrome();
+  }
 
   if (viewport.mount.isAvailable()) {
     try {

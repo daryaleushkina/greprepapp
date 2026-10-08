@@ -25,7 +25,7 @@ test('«Сегодня», разделы, настройки, шаг', async ({ 
   await expect(page.getByRole('button', { name: 'Выйти' })).toBeVisible();
   await checkScreen(page, 'settings');
   await page.goto('/step/verbal');
-  await expect(page.getByRole('heading', { name: 'Text Completion' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Text Completion/ })).toBeVisible();
   await checkScreen(page, 'step');
 });
 
@@ -38,9 +38,11 @@ test('конструктор и темы тренировки', async ({ site: p
   await checkScreen(page, 'training-topics');
   await page.getByRole('button', { name: /^Готово ·/ }).click();
   await page.getByRole('button', { name: /^Начать ·/ }).click();
-  await expect(page.getByRole('heading', { name: 'Продолжить тренировку' })).toBeVisible();
-  await checkScreen(page, 'training-session');
+  await expect(page.getByRole('heading', { name: /Text Completion/ })).toBeVisible();
   await page.getByRole('link', { name: 'Закрыть тренировку' }).click();
   await expect(page.getByRole('link', { name: /Продолжить тренировку/ })).toBeVisible();
   await checkScreen(page, 'today-training');
 });
+
+import { stableTrainingScreens } from '../training';
+test('вопросы, разбор, проверка со списком и итог', async ({ site: page }) => { await stableTrainingScreens(page); });

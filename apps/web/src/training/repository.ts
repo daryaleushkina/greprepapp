@@ -150,12 +150,23 @@ export class TrainingRepository {
     this.requestSync();
   }
 
+  async draft(id: string, position: number, selection: string[]): Promise<void> {
+    await this.edit(id, (t) => t.finish || t.session.mode !== 'practice' || t.answers[String(position)] || !t.session.items[position] ? t :
+      { ...t, drafts: { ...t.drafts, [position]: selection } });
+  }
+
   async moveTo(id: string, position: number): Promise<void> {
     await this.edit(id, (t) => position >= 0 && position < t.session.items.length ? { ...t, position } : t);
   }
 
   async finish(id: string, timedOut: boolean): Promise<void> {
-    await this.edit(id, (t) => t.finish ? t : { ...t, finish: { finishedAt: new Date(this.now()).toISOString(), timedOut } });
+    const now = this.now();
+    await this.edit(id, (t) => {
+      if (t.finish) return t;
+      const expired = timedOut || TrainingRules.remainingSeconds(t, now) === 0;
+      const end = expired ? t.startedAtMillis + (t.session.timeLimitSeconds ?? 0) * 1000 : now;
+      return { ...t, finish: { finishedAt: new Date(end).toISOString(), timedOut: expired } };
+    });
     this.requestSync();
   }
 
