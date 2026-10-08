@@ -1,8 +1,8 @@
 import { ApiError, getTrainingOptions, startTraining, submitTrainingAnswers, finishTraining, reportQuestion, schemas, type GivenAnswer, type QuestionReport, type TrainingRequest } from '@greprep/api-client';
 import { reportError } from '../errors/report';
-import { pendingReportSchema, storedTraining, type StoredTraining } from './model';
+import { reportDraftSchema, type ReportDraft, pendingReportSchema, storedTraining, type StoredTraining } from './model';
 import { TrainingRules } from './rules';
-import { TrainingStore, type TrainingOwner } from './store';
+import { TrainingStore, TrainingOwnerChangedError, TrainingStorageBlockedError, type TrainingOwner } from './store';
 
 export const SUPPORTED_TYPES = schemas.QuestionType.options;
 const PERMANENT = new Set([400, 404, 409, 410, 422]);
@@ -30,7 +30,7 @@ export class TrainingRepository {
   private authenticated = false;
   private initializing: Promise<void> | undefined;
   private authChanges = Promise.resolve();
-  private status: 'loading' | 'ready' | 'unavailable' = 'loading';
+  private status: 'loading' | 'ready' | 'unavailable' | 'blocked' = 'loading';
   private listeners = new Set<() => void>();
   private activeKnown = false;
   private activeId: string | undefined;
@@ -48,6 +48,7 @@ export class TrainingRepository {
     });
   }
 
+  retryStorage = (): void => { if (this.userId) void this.signedIn(this.userId); };
   storageStatus = () => this.status;
   subscribe = (listener: () => void) => { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; };
   private setStatus(status: typeof this.status) {
@@ -199,12 +200,30 @@ export class TrainingRepository {
     } catch (error) { this.storageFailed(error); throw error; }
   }
 
-  async recordReport(questionId: string, report: QuestionReport): Promise<void> {
-    const pending = pendingReportSchema.parse({ id: crypto.randomUUID(), questionId, report });
+  async reportDraft(id: string, position: number, draft?: ReportDraft): Promise<void> {
+    const checked = draft === undefined ? undefined : reportDraftSchema.parse(draft);
+    const owner = this.owner;
+    if (!owner) throw new TrainingOwnerChangedError();
+    let saved: boolean;
     try {
-      const owner = this.current();
-      if (!owner || !await this.store.putReport(owner, pending)) throw new Error('training report not saved: owner changed');
+      saved = await this.store.update(owner, id, (training) => {
+        if (!training.session.items[position]) return training;
+        const reportDrafts = { ...training.reportDrafts };
+        if (checked === undefined) delete reportDrafts[String(position)]; else reportDrafts[String(position)] = checked;
+        return { ...training, reportDrafts };
+      });
     } catch (error) { this.reportStorage(error); throw error; }
+    if (!saved) throw new TrainingOwnerChangedError();
+  }
+
+  async recordReport(questionId: string, report: QuestionReport, position?: number): Promise<void> {
+    const pending = pendingReportSchema.parse({ id: crypto.randomUUID(), questionId, report });
+    const owner = this.owner;
+    if (!owner) throw new TrainingOwnerChangedError();
+    let saved: boolean;
+    try { saved = await this.store.putReport(owner, pending, position); }
+    catch (error) { this.reportStorage(error); throw error; }
+    if (!saved) throw new TrainingOwnerChangedError();
     this.requestSync();
   }
 
@@ -252,11 +271,11 @@ export class TrainingRepository {
           await this.store.update(owner, id, (t) => ({ ...t, unsent: t.unsent.filter((position) =>
             !answers.some((answer) => JSON.stringify(answer) === JSON.stringify(t.answers[String(position)]))) }));
         };
-        let outcome = await this.send(owner, generation, () => this.api.answers(id, { answers: sent }), () => acknowledge(sent), sent.length);
+        let outcome = await this.send(owner, generation, () => this.api.answers(id, { answers: sent }), () => acknowledge(sent), 'training sync', sent.length);
         if (outcome === 'split') {
           // Сервер отклоняет транзакцию целиком: только отдельный запрос доказывает, какой ответ неверен.
           for (const answer of sent) {
-            outcome = await this.send(owner, generation, () => this.api.answers(id, { answers: [answer] }), () => acknowledge([answer]));
+            outcome = await this.send(owner, generation, () => this.api.answers(id, { answers: [answer] }), () => acknowledge([answer]), 'training sync');
             if (outcome === 'stop' || outcome === 'later') break;
           }
         }
@@ -268,30 +287,30 @@ export class TrainingRepository {
         const finish = fresh.finish;
         const outcome = await this.send(owner, generation, () => this.api.finish(id, finish), async () => {
           await this.store.update(owner, id, (t) => ({ ...t, finishSent: true }));
-        });
+        }, 'training sync');
         if (outcome === 'stop') return;
       }
     }
     for (const pending of await this.store.reports(owner)) {
       const outcome = await this.send(owner, generation, () => this.api.report(pending.questionId, pending.report),
-        () => this.store.removeReport(owner, pending.id), 1, true);
+        () => this.store.removeReport(owner, pending.id), 'training report');
       if (outcome === 'stop') return;
     }
     await this.store.prune(owner);
   }
 
-  private async send(owner: TrainingOwner, generation: number, action: () => Promise<unknown>, done: () => Promise<void>, batchSize = 1, complaint = false): Promise<'done' | 'later' | 'stop' | 'split'> {
+  private async send(owner: TrainingOwner, generation: number, action: () => Promise<unknown>, done: () => Promise<void>, queue: string, batchSize = 1): Promise<'done' | 'later' | 'stop' | 'split'> {
     if (!this.isCurrent(owner, generation) || !await this.store.owns(owner)) return 'stop';
     let failure: unknown;
     try { await action(); } catch (error) { failure = error; }
     if (!this.isCurrent(owner, generation) || !await this.store.owns(owner)) return 'stop';
     if (failure === undefined) { await done(); return 'done'; }
-    this.handle(failure, complaint);
+    this.handle(failure, `${queue} API`);
     if (failure instanceof ApiError) {
       if (failure.kind === 'network' || failure.status === 401) return 'stop';
       if (PERMANENT.has(failure.status)) {
         if (batchSize > 1) return 'split';
-        this.report(new Error(complaint ? `training report rejected: ${failure.status}` : `training sync rejected: ${failure.status} ${failure.code}`));
+        this.report(new Error(`${queue} rejected: ${failure.status}`));
         await done();
         return 'done';
       }
@@ -303,12 +322,15 @@ export class TrainingRepository {
     // Ни содержимое задания, ни ответы человека, ни сообщение внешней ошибки в отчёт не попадают.
     this.report(new Error(`training storage failed: ${error instanceof Error ? error.name : 'unknown'}`));
   }
-  private storageFailed(error: unknown) { this.setStatus('unavailable'); this.reportStorage(error); }
-  private handle(error: unknown, complaint = false) {
+  private storageFailed(error: unknown) {
+    if (error instanceof TrainingStorageBlockedError) { this.setStatus('blocked'); return; }
+    this.setStatus('unavailable'); this.reportStorage(error);
+  }
+  private handle(error: unknown, label = 'training API') {
     if (error instanceof DOMException && error.name === 'AbortError') return;
     if (error instanceof ApiError) {
       if (error.status === 401) { this.pause(); this.unauthorized(error); }
-      else if (error.kind === 'contract' || error.status >= 500) this.report(new Error(complaint ? `training report API failed: ${error.status}` : `training API failed: ${error.status} ${error.code}`));
+      else if (error.kind === 'contract' || error.status >= 500) this.report(new Error(`${label} failed: ${error.status}`));
     } else this.reportStorage(error);
   }
 }

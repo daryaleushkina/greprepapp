@@ -8,6 +8,7 @@ const sdk = vi.hoisted(() => {
   backButton: { show: { ifAvailable: vi.fn(() => { visible = true; }) }, hide: { ifAvailable: vi.fn(() => { visible = false; }) }, onClick: { ifAvailable: vi.fn((_handler: () => void) => ({ ok: true, data: () => {} })) } },
   mainButton: { setParams: { isAvailable: vi.fn(() => false), ifAvailable: vi.fn() }, onClick: { ifAvailable: vi.fn((_handler: () => void) => ({ ok: true, data: () => {} })) } },
   secondaryButton: { setParams: { isAvailable: vi.fn(() => false), ifAvailable: vi.fn() }, onClick: { ifAvailable: vi.fn(() => ({ ok: true, data: () => {} })) } },
+  closingBehavior: { mount: { ifAvailable: vi.fn() }, isConfirmationEnabled: vi.fn(() => false), enableConfirmation: { isAvailable: vi.fn(() => false), ifAvailable: vi.fn() }, disableConfirmation: { ifAvailable: vi.fn() } },
   swipeBehavior: { disableVertical: { isAvailable: vi.fn(() => true), ifAvailable: vi.fn() }, enableVertical: { ifAvailable: vi.fn() }, isVerticalEnabled: vi.fn(() => true) },
   miniApp: { ready: { ifAvailable: vi.fn() } },
 }; });
@@ -93,4 +94,68 @@ for (const stored of ['disabled', 'broken', 'storage-failed', 'cleanup-failed', 
   back(); await expect.element(screen.getByRole('heading', { name: 'Сегодня' })).toBeVisible();
   expect(sdk.swipeBehavior.enableVertical.ifAvailable.mock.calls.length > 0).toBe(stored !== 'disabled' && stored !== 'unsupported');
   sdk.swipeBehavior.disableVertical.isAvailable.mockReturnValue(true);
+});
+
+
+test('свайпы выключены в конструкторе, итоге, разборе и жалобе, при выходе восстановлены', async () => {
+  sdk.swipeBehavior.isVerticalEnabled.mockReturnValue(true); vi.clearAllMocks();
+  fakeServer({ ...signedIn, 'GET /api/trainings/options': () => json(trainingOptions()), 'POST /api/trainings': () => json(trainingSession()) });
+  const { trainingRepository } = await import('./repository');
+  vi.spyOn(trainingRepository, 'requestSync').mockImplementation(() => {});
+  const { screen } = await renderApp({ path: '/training/new', shell: 'telegram', launch });
+  await expect.element(screen.getByRole('heading', { name: 'Новая тренировка' })).toBeVisible();
+  expect(sdk.swipeBehavior.disableVertical.ifAvailable).toHaveBeenCalled();
+  await screen.getByRole('button', { name: /Начать ·/ }).click();
+  for (let index = 0; index < 3; index++) {
+    await screen.getByRole('button', { name: 'Не знаю', exact: true }).click();
+    await screen.getByRole('button', { name: index < 2 ? /Дальше ·/ : 'Итог', exact: true }).click();
+  }
+  await screen.getByRole('link', { name: 'Все ответы и разборы' }).click();
+  await screen.getByRole('link', { name: /Вопрос 1, без ответа/ }).click();
+  await screen.getByRole('link', { name: 'Сообщить об ошибке' }).click();
+  await expect.element(screen.getByRole('textbox', { name: 'Что не так' })).toBeVisible();
+  expect(sdk.swipeBehavior.enableVertical.ifAvailable).not.toHaveBeenCalled();
+  for (const heading of ['Вопрос 1', 'Разбор тренировки', '0 из 3 верно']) { back(); await expect.element(screen.getByRole('heading', { name: heading, exact: true })).toBeVisible(); }
+  await screen.getByRole('button', { name: 'Готово', exact: true }).click();
+  await expect.element(screen.getByRole('heading', { name: 'Сегодня' })).toBeVisible();
+  expect(sdk.swipeBehavior.enableVertical.ifAvailable).toHaveBeenCalledTimes(1);
+});
+
+
+for (const originallyEnabled of [true, false]) test(`черновик Telegram защищён до записи и возвращает подтверждение закрытия: ${originallyEnabled}`, async () => {
+  sdk.closingBehavior.enableConfirmation.isAvailable.mockReturnValue(true);
+  sdk.closingBehavior.isConfirmationEnabled.mockReturnValue(originallyEnabled);
+  fakeServer({ ...signedIn, 'GET /api/trainings/options': () => json(trainingOptions()), 'POST /api/trainings': () => json(trainingSession()) });
+  const { trainingRepository } = await import('./repository'); vi.spyOn(trainingRepository, 'requestSync').mockImplementation(() => {});
+  const { screen } = await renderApp({ path: '/training/new', shell: 'telegram', launch });
+  await screen.getByRole('button', { name: /Начать ·/ }).click();
+  await screen.getByRole('link', { name: 'Сообщить об ошибке' }).click();
+  let release = () => {}; const held = new Promise<void>((resolve) => { release = resolve; });
+  const original = trainingRepository.store.update.bind(trainingRepository.store);
+  vi.spyOn(trainingRepository.store, 'update').mockImplementationOnce(async (...args) => { await held; return original(...args); });
+  sdk.closingBehavior.disableConfirmation.ifAvailable.mockClear(); sdk.closingBehavior.enableConfirmation.ifAvailable.mockClear();
+  try {
+    await screen.getByRole('button', { name: 'Другое', exact: true }).click();
+    expect(sdk.closingBehavior.enableConfirmation.ifAvailable).toHaveBeenCalled();
+    release(); await expect.element(screen.getByText('Черновик сохранён', { exact: true })).toBeInTheDocument();
+    expect(sdk.closingBehavior.disableConfirmation.ifAvailable.mock.calls.length > 0).toBe(!originallyEnabled);
+  } finally { release(); sdk.closingBehavior.enableConfirmation.isAvailable.mockReturnValue(false); }
+});
+
+
+test('перезагрузка формы возвращает исходное подтверждение закрытия Telegram', async () => {
+  sessionStorage.setItem('greprep.training.draft-close', 'disabled');
+  sdk.closingBehavior.enableConfirmation.isAvailable.mockReturnValue(true);
+  sdk.closingBehavior.isConfirmationEnabled.mockReturnValue(true);
+  sdk.closingBehavior.disableConfirmation.ifAvailable.mockClear();
+  fakeServer({ ...signedIn, 'GET /api/trainings/options': () => json(trainingOptions()), 'POST /api/trainings': () => json(trainingSession()) });
+  const { trainingRepository } = await import('./repository'); vi.spyOn(trainingRepository, 'requestSync').mockImplementation(() => {});
+  const { screen } = await renderApp({ path: '/training/new', shell: 'telegram', launch });
+  try {
+    await screen.getByRole('button', { name: /Начать ·/ }).click();
+    await screen.getByRole('link', { name: 'Сообщить об ошибке' }).click();
+    await expect.element(screen.getByRole('textbox', { name: 'Что не так' })).toBeVisible();
+    expect(sdk.closingBehavior.disableConfirmation.ifAvailable).toHaveBeenCalled();
+    expect(sessionStorage.getItem('greprep.training.draft-close')).toBeNull();
+  } finally { sdk.closingBehavior.enableConfirmation.isAvailable.mockReturnValue(false); }
 });

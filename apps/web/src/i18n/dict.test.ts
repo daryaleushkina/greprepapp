@@ -81,6 +81,7 @@ describe('все строки-функции отвечают текстом н�
     'training.review_all': t.training.review_all(3),
     'training.review_mistakes': t.training.review_mistakes(2),
     'training.review_question': t.training.review_question(1),
+    'training.report_limit': t.training.report_limit(1800, 2000),
     'training.report_context': t.training.report_context(1, 'Text Completion'),
     'training.question_next': t.training.question_next(2, 3),
     'training.question_of': t.training.question_of(1, 3),

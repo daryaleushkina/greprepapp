@@ -8,7 +8,8 @@ import { useI18n } from '../i18n/i18n';
 import { FocusLayout } from '../layout/AppLayout';
 import { useShell } from '../shellContext';
 import glass from '../styles/glass.module.css';
-import { useBackButton, useTrainingSwipes } from '../telegram/hooks';
+import { TrainingStorageBlocked } from './ReadTraining';
+import { useBackButton } from '../telegram/hooks';
 import { useOnline } from '../useOnline';
 import { TrainingActions } from './Action';
 import { TYPE_LABELS } from './builder';
@@ -28,11 +29,10 @@ export function SessionScreen() {
   const training = useStoredTraining(trainingId);
   const storage = useTrainingStorage();
   useBackButton(shell === 'telegram' ? () => void navigate({ to: '/' }) : null);
-  useTrainingSwipes(shell === 'telegram' && Boolean(training.data && !training.data.finish));
   return <FocusLayout glow={training.data?.session.section ?? 'verbal'} training wide session>
-    {storage === 'unavailable' || training.isPending || !training.data ? <div className={styles.screen}>
+    {storage === 'blocked' || storage === 'unavailable' || training.isPending || !training.data ? <div className={styles.screen}>
       {shell === 'site' && <Link to="/" className={styles.back}>{t.training.question_close}</Link>}
-      {storage === 'unavailable' ? <StatusScreen title={t.training.training_storage_title} text={t.training.training_storage_message} /> : training.isPending ? <p role="status">{t.today.loading}</p> :
+      {storage === 'blocked' ? <TrainingStorageBlocked /> : storage === 'unavailable' ? <StatusScreen title={t.training.training_storage_title} text={t.training.training_storage_message} /> : training.isPending ? <p role="status">{t.today.loading}</p> :
         <StatusScreen title={t.training.training_missing_title} text={t.training.training_missing_message} />}
     </div> : <ActiveSession key={trainingId} incoming={training.data} />}
   </FocusLayout>;
@@ -76,7 +76,11 @@ function ActiveSession({ incoming }: { incoming: StoredTraining }) {
   const missing = TrainingRules.missingGroups(s.question, s.selection);
   const note = s.overview ? undefined : s.checkMode ? text.question_check_note : s.selection.length && missing.length ? s.question.groups.length > 1 ? (missing.length === 1 ? text.question_missing_blank : text.question_missing_blanks)(missing.map((i) => BLANKS[i]).join(', ')) : s.question.selectCount > 1 ? text.question_pick_one_more : undefined : undefined;
   const typeNote = s.question.groups.length === 3 ? text.type_three_blanks : s.question.groups.length === 2 ? text.type_two_blanks : s.question.selectCount === 2 ? text.type_two_answers : undefined;
-  const answered = Object.values(s.training.answers).filter((answer) => answer.optionIds.length > 0).length;
+  // Неполный ответ ещё требует возврата к вопросу (решение Даши 09.10.2026).
+  const overviewItems = s.training.session.items.map(({ position, question }) => ({ position,
+    answered: TrainingRules.isComplete(question, s.training.answers[String(position)]?.optionIds ?? []),
+  }));
+  const answered = overviewItems.filter((item) => item.answered).length;
   const flags = Object.values(s.training.answers).filter((answer) => answer.flagged).length;
   return <div className={`${styles.session} ${styles.screen}`} data-shell={shell} data-section={s.training.session.section}>
     <header className={styles.sessionHeader}>
@@ -86,7 +90,7 @@ function ActiveSession({ incoming }: { incoming: StoredTraining }) {
         <span>{text.question_of(s.position + 1, total)}</span>
       </div>
       {s.overview ? <span className={styles.headerSpace} /> : <div className={styles.headerActions}>
-        <Link to="/training/$trainingId/report/$position" params={{ trainingId: s.training.session.id, position: String(s.position) }} search={{ returnTo: 'session' }} className={styles.reportLink}>{text.question_report}</Link>
+        <Link to="/training/$trainingId/report/$position" params={{ trainingId: s.training.session.id, position: s.position }} search={{ returnTo: 'session' }} className={styles.reportLink}>{text.question_report}</Link>
         {s.checkMode && <div className={styles.headerActions}>
           <button className={styles.iconButton} disabled={s.busy} aria-label={s.flagged ? text.question_unflag : text.question_flag} aria-pressed={s.flagged} onClick={s.flag}><Flag filled={s.flagged} /></button>
           <button className={styles.iconButton} disabled={s.busy} aria-label={text.question_overview} onClick={() => s.setOverview(true)}><Grid /></button>
@@ -96,10 +100,10 @@ function ActiveSession({ incoming }: { incoming: StoredTraining }) {
     {s.overview ? <section className={styles.overview}>
       <h1 ref={heading} tabIndex={-1} className={styles.title}>{text.question_overview}</h1>
       <p className={styles.note}>{text.overview_summary(answered, total, flags)}</p>
-      <div className={styles.questionGrid}>{s.training.session.items.map(({ position }) => {
+      <div className={styles.questionGrid}>{overviewItems.map(({ position, answered }) => {
         const answer = s.training.answers[String(position)];
-        const state = [answer?.optionIds.length ? text.overview_answered : text.overview_empty, answer?.flagged ? text.overview_flagged : undefined].filter(Boolean).join(', ');
-        return <button key={position} className={styles.overviewCell} disabled={s.busy} data-answered={Boolean(answer?.optionIds.length)} aria-current={position === s.position ? 'step' : undefined} aria-label={text.overview_item(position + 1, state)} onClick={() => s.go(position)}>{position + 1}{answer?.flagged && <Flag filled />}</button>;
+        const state = [answered ? text.overview_answered : text.overview_empty, answer?.flagged ? text.overview_flagged : undefined].filter(Boolean).join(', ');
+        return <button key={position} className={styles.overviewCell} disabled={s.busy} data-answered={answered} aria-current={position === s.position ? 'step' : undefined} aria-label={text.overview_item(position + 1, state)} onClick={() => s.go(position)}>{position + 1}{answer?.flagged && <Flag filled />}</button>;
       })}</div>
     </section> : <div className={styles.questionLayout}>
       <section className={styles.question}>

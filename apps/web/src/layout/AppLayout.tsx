@@ -12,6 +12,7 @@ import { FullScreenStatus } from '../components/FullScreenStatus';
 import { BRAND_NAME } from '../config';
 import { useI18n } from '../i18n/i18n';
 import { useSession } from '../session/session';
+import { useTrainingSwipes } from '../telegram/hooks';
 import { useShell } from '../shellContext';
 import glass from '../styles/glass.module.css';
 import styles from './AppLayout.module.css';
@@ -26,6 +27,9 @@ export function useGlow(): (glow: Glow) => void {
 }
 
 export function AppGate(): ReactNode {
+  const { shell } = useShell();
+  const match = useMatchRoute();
+  useTrainingSwipes(shell === 'telegram' && Boolean(match({ to: '/training/$trainingId', fuzzy: true }) || match({ to: '/training/new' })));
   const { session } = useSession();
   const { t } = useI18n();
   if (session.status === 'signedOut') {

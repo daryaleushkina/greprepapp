@@ -7,9 +7,10 @@ test('проверка на время показывает в форме пар
 test('«вопрос 1 из 10» переносится целиком', async ({ miniApp }) => { await resumeCounterStaysTogether(miniApp); });
 test('недоступное хранилище отключает тренировки, но сохраняет вход и остальное приложение', async ({ miniApp }) => { await unavailableStorageKeepsSession(miniApp); });
 
-import { practiceThroughSummary, checkWithReturn, timeRunsOut, reloadSession, offlineSession, startSession, nativeButtonsFit } from '../training';
+import { practiceThroughSummary, checkWithReturn, partialCheckAnswer, timeRunsOut, reloadSession, offlineSession, startSession, nativeButtonsFit } from '../training';
 test('практика целиком: верный, неверный, RU/EN, «Не знаю», итог и повтор', async ({ miniApp: page }) => { await practiceThroughSummary(page); });
 test('проверка: пропустить, отметить, вернуться из списка и закончить', async ({ miniApp: page }) => { await checkWithReturn(page); });
+test('проверка: частичный TC3 не отвечен, выбор сохраняется после перезагрузки', async ({ miniApp: page }) => { await partialCheckAnswer(page); });
 test('время вышло на открытом экране', async ({ miniApp: page }) => { await timeRunsOut(page); });
 test('время вышло после закрытия экрана', async ({ miniApp: page }) => { await timeRunsOut(page, true); });
 test('перезагрузка сохраняет вопрос, выбор и раскрытый разбор', async ({ miniApp: page }) => { await reloadSession(page); });
@@ -50,3 +51,6 @@ import { reviewAllAnswers, reportFromQuestionAndReview } from '../training';
 test('все ответы из итога: фильтр, разбор RU/EN и назад', async ({ miniApp: page }) => { await reviewAllAnswers(page); });
 test('жалобы с вопроса и из разбора записаны сервером', async ({ miniApp: page, me }) => { await reportFromQuestionAndReview(page, me); });
 test('жалоба без сети отправляется после возвращения сети', async ({ miniApp: page, me }) => { await reportFromQuestionAndReview(page, me, true); });
+
+import { reportDraftAndLimit } from '../training';
+test('черновик жалобы после перезагрузки, лимит вставки и отмена', async ({ miniApp: page }) => { await reportDraftAndLimit(page); });

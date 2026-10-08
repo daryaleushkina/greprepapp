@@ -92,26 +92,6 @@ test('конструктор и темы тренировки', async ({ miniApp
   await checkScreen(page, 'today-training');
 });
 
-import { stableTrainingScreens } from '../training';
+import { stableTrainingScreens, stableReviewScreens } from '../training';
 test('вопросы, разбор, проверка со списком и итог', async ({ miniApp: page }) => { await stableTrainingScreens(page); });
-
-import { trainingBack } from '../training';
-test('все ответы, отдельный разбор и жалоба', async ({ miniApp: page }) => {
-  const session = await stableTrainingScreens(page, false);
-  await page.goto((new URL(page.url()).pathname.startsWith('/tg/') ? '/tg' : '') + '/training/' + session.id);
-  await page.getByRole('link', { name: 'Все ответы и разборы' }).click();
-  await expect(page.getByRole('heading', { name: 'Разбор тренировки' })).toBeVisible();
-  await checkScreen(page, 'training-review');
-  await page.getByRole('link', { name: /Вопрос 1, неверно/ }).click();
-  await page.getByRole('button', { name: /^Почему не/ }).click();
-  await checkScreen(page, 'training-review-item');
-  await page.getByRole('link', { name: 'Сообщить об ошибке' }).click();
-  await page.getByRole('button', { name: 'В разборе', exact: true }).click();
-  await page.getByRole('textbox', { name: 'Что не так' }).fill('Проверьте, пожалуйста, разбор этого задания.');
-  await checkScreen(page, 'training-report');
-  await page.getByRole('button', { name: 'Отправить', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Спасибо!' })).toBeVisible();
-  await checkScreen(page, 'training-report-saved');
-  await trainingBack(page);
-  await expect(page.getByRole('heading', { name: 'Вопрос 1', exact: true })).toBeVisible();
-});
+test('все ответы, отдельный разбор и жалоба', async ({ miniApp: page }) => { await stableReviewScreens(page); });

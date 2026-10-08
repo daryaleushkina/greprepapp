@@ -6,6 +6,8 @@ export const REPORT_TEXT_MAX = 2000;
 export const questionReportSchema = schemas.QuestionReport.omit({ text: true }).extend({
   text: z.string().refine((text) => Array.from(text).length <= REPORT_TEXT_MAX).optional(),
 });
+export const reportDraftSchema = questionReportSchema.pick({ kind: true, text: true }).partial();
+export type ReportDraft = z.infer<typeof reportDraftSchema>;
 export const pendingReportSchema = z.object({ id: z.uuid(), questionId: z.uuid(), report: questionReportSchema, order: z.number().int().nonnegative().default(0) });
 export type PendingReport = z.infer<typeof pendingReportSchema>;
 
@@ -14,6 +16,7 @@ export const storedTrainingSchema = z.object({
   session: schemas.TrainingSession,
   startedAtMillis: z.number().int(),
   answers: z.record(z.string(), schemas.GivenAnswer),
+  reportDrafts: z.record(z.string(), reportDraftSchema).optional(),
   drafts: z.record(z.string(), z.array(z.string())).optional(),
   unsent: z.array(z.number().int().nonnegative()),
   position: z.number().int().nonnegative(),
@@ -23,6 +26,7 @@ export const storedTrainingSchema = z.object({
   t.session.items.every((item, index) => item.position === index) &&
   Object.entries(t.answers).every(([key, answer]) => key === String(answer.position) && answer.position < t.session.items.length) &&
   Object.keys(t.drafts ?? {}).every((key) => t.session.items.some((item) => String(item.position) === key)) &&
+  Object.keys(t.reportDrafts ?? {}).every((key) => t.session.items.some((item) => String(item.position) === key)) &&
   t.unsent.every((position) => t.answers[String(position)] !== undefined), 'invalid stored positions');
 
 export type StoredTraining = z.infer<typeof storedTrainingSchema>;

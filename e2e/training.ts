@@ -198,6 +198,37 @@ export async function checkWithReturn(page: Page) {
   await expect(page.getByRole('link', { name: /Продолжить тренировку/ })).toHaveCount(0);
 }
 
+export async function partialCheckAnswer(page: Page) {
+  // Три случайных задания не гарантируют TC3; берём весь доступный набор этого типа.
+  const session = await startSession(page, 'check', 50);
+  const item = session.items.find(({ question }) => question.groups.length === 3);
+  if (!item) throw new Error('fixture TC3 missing');
+  await page.getByRole('button', { name: 'Все вопросы', exact: true }).click();
+  await page.getByRole('button', { name: `Вопрос ${item.position + 1}, без ответа`, exact: true }).click();
+  const first = page.getByRole('radiogroup').nth(0).getByRole('radio').nth(0);
+  await first.click();
+  await expect(first).toHaveAttribute('aria-checked', 'true');
+  await page.getByRole('button', { name: 'Отметить, чтобы вернуться' }).click();
+  const incomplete = page.getByRole('button', { name: `Вопрос ${item.position + 1}, без ответа, отмечен`, exact: true });
+  for (const reload of [false, true]) {
+    if (reload) {
+      await page.reload();
+      await expect(first).toHaveAttribute('aria-checked', 'true');
+    }
+    await page.getByRole('button', { name: 'Все вопросы', exact: true }).click();
+    await expect(page.getByText(`Отвечено 0 из ${session.items.length} · отмечено 1`, { exact: true })).toBeVisible();
+    await expect(incomplete).toHaveAttribute('data-answered', 'false');
+    if (!reload) await incomplete.click();
+  }
+  await incomplete.click();
+  await pick(page, item.question);
+  await page.getByRole('button', { name: 'Все вопросы', exact: true }).click();
+  await expect(page.getByText(`Отвечено 1 из ${session.items.length} · отмечено 1`, { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: `Вопрос ${item.position + 1}, отвечен, отмечен`, exact: true })).toHaveAttribute('data-answered', 'true');
+  await page.getByRole('button', { name: 'Закончить', exact: true }).click();
+  await expect(page.getByRole('heading', { name: `1 из ${session.items.length} верно` })).toBeVisible();
+}
+
 export async function timeRunsOut(page: Page, closed = false) {
   await page.clock.install();
   const session = await startSession(page, 'check');
@@ -403,4 +434,62 @@ export async function reportFromQuestionAndReview(page: Page, me: import('./fixt
   await expect.poll(() => reportCount(me, session.id)).toBe(2);
   await page.getByRole('button', { name: 'Вернуться к вопросу' }).click();
   await expect(page.getByRole('heading', { name: 'Вопрос 2', exact: true })).toBeVisible();
+}
+
+
+export async function stableReviewScreens(page: Page) {
+  const session = await stableTrainingScreens(page, false);
+  await page.goto((new URL(page.url()).pathname.startsWith('/tg/') ? '/tg' : '') + '/training/' + session.id);
+  await page.getByRole('link', { name: 'Все ответы и разборы' }).click();
+  await expect(page.getByRole('heading', { name: 'Разбор тренировки' })).toBeVisible();
+  await checkScreen(page, 'training-review');
+  await page.getByRole('link', { name: /Вопрос 1, неверно/ }).click();
+  await page.getByRole('button', { name: /^Почему не/ }).click();
+  await checkScreen(page, 'training-review-item');
+  await page.getByRole('link', { name: 'Сообщить об ошибке' }).click();
+  await page.getByRole('button', { name: 'В разборе', exact: true }).click();
+  await page.getByRole('textbox', { name: 'Что не так' }).fill('Проверьте, пожалуйста, разбор этого задания.');
+  await checkScreen(page, 'training-report');
+  await page.getByRole('button', { name: 'Отправить', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Спасибо!' })).toBeVisible();
+  await checkScreen(page, 'training-report-saved');
+  await trainingBack(page);
+  await expect(page.getByRole('heading', { name: 'Вопрос 1', exact: true })).toBeVisible();
+}
+
+
+export async function reportDraftAndLimit(page: Page) {
+  await startSession(page);
+  await page.getByRole('link', { name: 'Сообщить об ошибке' }).click();
+  const input = page.getByRole('textbox', { name: 'Что не так' });
+  await page.getByRole('button', { name: 'В переводе', exact: true }).click();
+  await input.fill('Synthetic draft');
+  await expect(page.getByRole('status').filter({ hasText: 'Черновик сохранён' })).toHaveCount(1);
+  await page.reload();
+  await expect(input).toHaveValue('Synthetic draft');
+  await expect(page.getByRole('button', { name: 'В переводе', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await input.fill('a'.repeat(1800));
+  await expect(page.getByText('1800 / 2000', { exact: true })).toBeVisible();
+  await input.evaluate((element) => {
+    if (!(element instanceof HTMLTextAreaElement)) throw new Error('fixture textarea missing');
+    element.setSelectionRange(10, 10);
+    const clipboardData = new DataTransfer(); clipboardData.setData('text/plain', 'b'.repeat(201));
+    element.dispatchEvent(new ClipboardEvent('paste', { clipboardData, bubbles: true, cancelable: true }));
+  });
+  await expect(page.locator('#report-truncated')).toContainText('Вставка сокращена');
+  await expect.poll(() => input.evaluate((element) => element instanceof HTMLTextAreaElement ? element.selectionStart : null)).toBe(210);
+  await expect(input).toHaveValue('a'.repeat(10) + 'b'.repeat(200) + 'a'.repeat(1790));
+  await page.keyboard.press('ArrowLeft'); await page.keyboard.press('Backspace');
+  await expect(page.getByText('1999 / 2000', { exact: true })).toBeVisible();
+  await trainingBack(page);
+  await page.getByRole('link', { name: 'Сообщить об ошибке' }).click();
+  await expect(input).toHaveValue('');
+  await expect(page.getByRole('button', { name: 'Отправить', exact: true })).toBeDisabled();
+  await page.getByRole('button', { name: 'Другое', exact: true }).click();
+  await input.fill('Synthetic queued draft');
+  await page.getByRole('button', { name: 'Отправить', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Спасибо!' })).toBeVisible();
+  await page.reload();
+  await expect(input).toHaveValue('');
+  await expect(page.getByRole('button', { name: 'Отправить', exact: true })).toBeDisabled();
 }

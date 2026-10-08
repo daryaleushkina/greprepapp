@@ -11,6 +11,7 @@ import { useSession } from '../session/session';
 import { useBackButton } from '../telegram/hooks';
 import { useOnline } from '../useOnline';
 import glass from '../styles/glass.module.css';
+import { TrainingStorageBlocked } from './ReadTraining';
 import { TrainingAction } from './Action';
 import { TYPE_LABELS, available, defaultForm, formOf, initialBuilder, minutes, presetsOf, requestOf, toggleTopic, topicsOf, updateOptions, type BuilderForm } from './builder';
 import { useTrainingStorage } from './hooks';
@@ -142,6 +143,7 @@ function ReadyBuilder({ options }: { options: TrainingOptions }) {
         </div>
       </div>
       {(!online || problem) && <p role="alert" className={styles.note}>{!online || problem === 'offline' ? text.builder_start_offline : problem === 'noQuestions' ? text.builder_no_questions : text.builder_start_failed}</p>}
+      {storage === 'blocked' && <TrainingStorageBlocked heading="h2" />}
       {storage === 'unavailable' && <p role="alert" className={styles.note}>{text.training_storage_title}</p>}
       {!request && <p role="status" className={styles.note}>{text.builder_nothing}</p>}
       <TrainingAction text={request ? text.builder_start(countLabel, minutes(options, request)) : text.builder_nothing}

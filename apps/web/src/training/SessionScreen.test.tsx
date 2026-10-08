@@ -418,3 +418,53 @@ test('подсказки клавиш отражают число вариант
   const { screen } = await boot(storedTraining(trainingSession({ items: [{ position: 0, question: q }] }), Date.now()));
   await expect.element(screen.getByText('A–F', { exact: true })).toBeInTheDocument();
 });
+
+test('список проверки: TC3 с одним или двумя пропусками не отвечен; полный неверный ответ отвечен', async () => {
+  const question = questionFixture('text_completion', 3);
+  const training = storedTraining(trainingSession({ mode: 'check', timeLimitSeconds: 270, items: [{ position: 0, question }] }), Date.now());
+  const { screen } = await boot(training);
+  await screen.getByRole('radio', { name: 'A word 0', exact: true }).click();
+  await expect.poll(async () => (await trainingRepository.get(training.session.id))?.answers['0']?.optionIds).toEqual(['A0']);
+  await screen.getByRole('button', { name: 'Отметить, чтобы вернуться' }).click();
+  for (const remaining of ['B word 1', 'C word 2']) {
+    await screen.getByRole('button', { name: 'Все вопросы', exact: true }).click();
+    await expect.element(screen.getByText('Отвечено 0 из 1 · отмечено 1', { exact: true })).toBeVisible();
+    const incomplete = screen.getByRole('button', { name: 'Вопрос 1, без ответа, отмечен', exact: true });
+    await expect.element(incomplete).toHaveAttribute('data-answered', 'false');
+    await incomplete.click();
+    await screen.getByRole('radio', { name: remaining, exact: true }).click();
+  }
+  await screen.getByRole('button', { name: 'Все вопросы', exact: true }).click();
+  await expect.element(screen.getByText('Отвечено 1 из 1 · отмечено 1', { exact: true })).toBeVisible();
+  await expect.element(screen.getByRole('button', { name: 'Вопрос 1, отвечен, отмечен', exact: true })).toHaveAttribute('data-answered', 'true');
+  await screen.getByRole('button', { name: 'Закончить', exact: true }).click();
+  await expect.element(screen.getByRole('heading', { name: '0 из 1 верно' })).toBeVisible();
+});
+
+test('итог проверки по-прежнему считает частичный TC3 неверным ответом', async () => {
+  const question = questionFixture('text_completion', 3);
+  const training = storedTraining(trainingSession({ mode: 'check', timeLimitSeconds: 270, items: [{ position: 0, question }] }), Date.now());
+  const { screen } = await boot(training);
+  await screen.getByRole('radio', { name: 'A word 0', exact: true }).click();
+  await screen.getByRole('button', { name: 'Все вопросы', exact: true }).click();
+  await screen.getByRole('button', { name: 'Закончить', exact: true }).click();
+  await expect.element(screen.getByRole('heading', { name: '0 из 1 верно' })).toBeVisible();
+  await expect.element(screen.getByRole('heading', { name: 'Что повторить' })).toBeVisible();
+  await expect.element(screen.getByText('1 ошибка · вопрос 1', { exact: true })).toBeVisible();
+});
+
+test('список проверки: SE отвечен только после выбора обоих вариантов', async () => {
+  const question = questionFixture('sentence_equivalence');
+  const training = storedTraining(trainingSession({ mode: 'check', timeLimitSeconds: 270, items: [{ position: 0, question }] }), Date.now());
+  const { screen } = await boot(training);
+  await screen.getByRole('checkbox', { name: /A word 0/ }).click();
+  await screen.getByRole('button', { name: 'Все вопросы', exact: true }).click();
+  await expect.element(screen.getByText('Отвечено 0 из 1 · отмечено 0', { exact: true })).toBeVisible();
+  const incomplete = screen.getByRole('button', { name: 'Вопрос 1, без ответа', exact: true });
+  await expect.element(incomplete).toHaveAttribute('data-answered', 'false');
+  await incomplete.click();
+  await screen.getByRole('checkbox', { name: /B word 0/ }).click();
+  await screen.getByRole('button', { name: 'Все вопросы', exact: true }).click();
+  await expect.element(screen.getByText('Отвечено 1 из 1 · отмечено 0', { exact: true })).toBeVisible();
+  await expect.element(screen.getByRole('button', { name: 'Вопрос 1, отвечен', exact: true })).toHaveAttribute('data-answered', 'true');
+});

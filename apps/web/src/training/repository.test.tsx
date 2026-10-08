@@ -95,10 +95,10 @@ test('постоянный отказ пачки проверяет ответы
   await m.repo.sync();
   expect(m.api.answers).toHaveBeenCalledTimes(3);
   expect((await m.repo.get(t.session.id))?.unsent).toEqual([1]);
-  expect(m.report).not.toHaveBeenCalledWith(expect.objectContaining({ message: 'training sync rejected: 400 fixture' }));
+  expect(m.report).not.toHaveBeenCalledWith(expect.objectContaining({ message: 'training sync rejected: 400' }));
   m.api.answers.mockRejectedValueOnce(fail(422)); await m.repo.sync();
   expect((await m.repo.get(t.session.id))?.unsent).toEqual([]);
-  expect(m.report).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ message: 'training sync rejected: 422 fixture' }));
+  expect(m.report).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ message: 'training sync rejected: 422' }));
 });
 
 test('неверный ответ пачки отклоняется отдельно, а верный отправляется', async () => {
@@ -109,7 +109,7 @@ test('неверный ответ пачки отклоняется отдель
   expect(m.api.answers).toHaveBeenNthCalledWith(2, t.session.id, { answers: [givenAnswer()] });
   expect(m.api.answers).toHaveBeenNthCalledWith(3, t.session.id, { answers: [givenAnswer({ position: 1 })] });
   expect((await m.repo.get(t.session.id))?.unsent).toEqual([]);
-  expect(m.report).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ message: 'training sync rejected: 400 fixture' }));
+  expect(m.report).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ message: 'training sync rejected: 400' }));
 });
 
 test('чтение недоступного устройства сообщается; остальное приложение может работать', async () => {
@@ -186,7 +186,7 @@ test('ответы отправляются перед концом, подтв�
 for (const status of [400, 404, 409, 410, 422]) for (const what of ['answers', 'finish'] as const) test(`${what}: ${status} удаляется из очереди и сообщает отказ`, async () => {
   const m = make(); const { owner, t } = await seed(m, undefined, true);
   m.api[what].mockRejectedValueOnce(fail(status)); await m.repo.sync(); await m.repo.sync();
-  expect(m.api[what]).toHaveBeenCalledTimes(1); expect(m.report).toHaveBeenCalledWith(expect.objectContaining({ message: `training sync rejected: ${status} fixture` }));
+  expect(m.api[what]).toHaveBeenCalledTimes(1); expect(m.report).toHaveBeenCalledWith(expect.objectContaining({ message: `training sync rejected: ${status}` }));
   expect(await m.store.get(owner, t.session.id)).toMatchObject({ unsent: [], finishSent: true });
 });
 for (const status of [403, 408, 429, 500, 503]) for (const what of ['answers', 'finish'] as const) test(`${what}: ${status} ждёт, остальные тренировки уходят`, async () => {
@@ -370,4 +370,38 @@ test('жалоба: ошибка устройства не теряет форм
   const sending = m.repo.sync(); await entered.promise; await m.repo.signOut(); held.resolve(); await sending;
   await m.repo.signedIn('a'); await m.repo.sync(); expect(m.api.report).toHaveBeenCalledTimes(1);
   await m.repo.signOut(); await expect(m.repo.recordReport(questionId, complaint)).rejects.toThrow('owner changed');
+});
+
+
+test('после фонового 401 жалоба записывается прежнему владельцу и ждёт повторного входа', async () => {
+  const m = make(); const { owner } = await seed(m);
+  m.api.answers.mockRejectedValueOnce(fail(401)); await m.repo.sync();
+  await m.repo.recordReport(questionId, complaint);
+  expect(await m.store.reports(owner)).toHaveLength(1);
+  await m.repo.sync(); expect(m.api.report).not.toHaveBeenCalled();
+  expect(m.report).not.toHaveBeenCalled();
+  await m.repo.signedIn('a'); await m.repo.sync(); expect(m.api.report).toHaveBeenCalledExactlyOnceWith(questionId, complaint);
+});
+
+test('смена владельца жалобы не выдаёт ошибку хранилища и не пишет чужую очередь', async () => {
+  const m = make(); await m.repo.signedIn('a'); await m.store.signIn('b');
+  await expect(m.repo.recordReport(questionId, complaint)).rejects.toHaveProperty('name', 'TrainingOwnerChangedError');
+  expect(m.report).not.toHaveBeenCalled();
+  expect(await m.store.reports(await m.store.signIn('b'))).toEqual([]);
+});
+
+
+test('черновик жалобы: отказ диска, неизвестный владелец и утраченная запись различаются', async () => {
+  const m = make(); await expect(m.repo.reportDraft(trainingSession().id, 0, { text: 'Synthetic' })).rejects.toHaveProperty('name', 'TrainingOwnerChangedError');
+  const { owner } = await seed(m);
+  await m.repo.reportDraft(trainingSession().id, 0, { kind: 'other' });
+  await m.repo.reportDraft(trainingSession().id, 99, { kind: 'other' });
+  expect((await m.store.get(owner, trainingSession().id))?.reportDrafts).toEqual({ 0: { kind: 'other' } });
+  await m.repo.reportDraft(trainingSession().id, 0); expect((await m.store.get(owner, trainingSession().id))?.reportDrafts).toEqual({});
+  const update = vi.spyOn(m.store, 'update').mockRejectedValueOnce(new DOMException('fixture', 'SecurityError'));
+  await expect(m.repo.reportDraft(trainingSession().id, 0, {})).rejects.toHaveProperty('name', 'SecurityError');
+  expect(m.report).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ message: 'training storage failed: SecurityError' }));
+  update.mockRestore();
+  await expect(m.repo.reportDraft('missing', 0, {})).rejects.toHaveProperty('name', 'TrainingOwnerChangedError');
+  await m.repo.signOut(); m.repo.retryStorage();
 });

@@ -6,7 +6,7 @@ import { useI18n } from '../i18n/i18n';
 import glass from '../styles/glass.module.css';
 import { TYPE_LABELS } from './builder';
 import type { StoredTraining } from './model';
-import { Explanation, Options, QuestionPrompt, SessionIcon } from './QuestionContent';
+import { Cross, Explanation, Options, QuestionPrompt, SessionIcon } from './QuestionContent';
 import { ReadTraining, TrainingHeading } from './ReadTraining';
 import { TrainingRules } from './rules';
 import styles from './Training.module.css';
@@ -43,9 +43,9 @@ function ReviewList({ training }: { training: StoredTraining }) {
     {shown.length === 0 ? <p>{text.review_no_mistakes}</p> : <ul className={styles.reviewList}>{shown.map(({ position, question }) => {
       const state = outcome(position);
       const description = state === 'correct' ? text.review_correct : state === 'wrong' ? text.review_wrong : text.review_unanswered;
-      return <li key={position}><Link to="/training/$trainingId/review/$position" params={{ trainingId: training.session.id, position: String(position) }} className={styles.reviewRow} aria-label={`${text.review_question(position + 1)}, ${description}, ${TYPE_LABELS[question.questionType]}, ${question.topicTitle[locale]}`}>
+      return <li key={position}><Link to="/training/$trainingId/review/$position" params={{ trainingId: training.session.id, position }} className={styles.reviewRow} aria-label={`${text.review_question(position + 1)}, ${description}, ${TYPE_LABELS[question.questionType]}, ${question.topicTitle[locale]}`}>
         <span className={styles.reviewNumber}>{position + 1}</span>
-        <span className={styles.reviewOutcome} data-outcome={state} aria-hidden="true">{state === 'correct' ? <CheckIcon /> : <SessionIcon>{state === 'wrong' ? <path d="m8 8 8 8m0-8-8 8" /> : <path d="M7 12h10" />}</SessionIcon>}</span>
+        <span className={styles.reviewOutcome} data-outcome={state} aria-hidden="true">{state === 'correct' ? <CheckIcon /> : state === 'wrong' ? <Cross /> : <SessionIcon><path d="M7 12h10" /></SessionIcon>}</span>
         <span className={styles.grow}><span lang="en">{TYPE_LABELS[question.questionType]}</span><span className={styles.note}>{question.topicTitle[locale]}</span></span>
         <ChevronRightIcon />
       </Link></li>;
@@ -63,12 +63,12 @@ export function ReviewItemScreen() {
   </ReadTraining>;
 }
 
-function ReviewItem({ training, position }: { training: StoredTraining; position: string }) {
+function ReviewItem({ training, position }: { training: StoredTraining; position: number | null }) {
   const { t, locale } = useI18n();
   const [language, setLanguage] = useState(locale);
-  const index = Number(position);
-  const item = Number.isSafeInteger(index) && index >= 0 ? training.session.items[index] : undefined;
-  if (!item) return <StatusScreen title={t.training.training_missing_title} text={t.training.training_missing_message} />;
+  const index = position;
+  const item = index === null ? undefined : training.session.items[index];
+  if (!item || index === null) return <StatusScreen title={t.training.training_missing_title} text={t.training.training_missing_message} />;
   const chosen = training.answers[String(index)]?.optionIds ?? [];
   return <>
     <TrainingHeading>{t.training.review_question(index + 1)}</TrainingHeading>

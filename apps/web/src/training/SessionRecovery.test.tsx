@@ -2,6 +2,7 @@ import { expect, test, vi } from 'vitest';
 import { apiError, fakeServer, json, renderApp, STARTER, user } from '../test/app';
 import { givenAnswer, trainingOptions, trainingSession } from '../test/training';
 import { storedTraining } from './model';
+import { TrainingStorageBlockedError } from './store';
 import { trainingRepository } from './repository';
 
 test('настоящий 401 очереди сохраняет ответы; вход через интерфейс того же человека отправляет их', async () => {
@@ -79,4 +80,30 @@ test('после сбоя хранилища кэш не предлагает н
   await trainingRepository.get(trainingSession().id);
   await expect.element(screen.getByRole('link', { name: /Продолжить тренировку/ })).not.toBeInTheDocument();
   await expect.element(screen.getByRole('link', { name: 'Своя тренировка' })).toBeVisible();
+});
+
+
+test('блокировка обновления IndexedDB объясняет ожидание и позволяет повторить вход в тренировки', async () => {
+  fakeServer({ 'GET /api/me': () => json(user()), 'GET /api/today': () => json(STARTER), 'GET /api/trainings/options': () => json(trainingOptions()) });
+  vi.spyOn(trainingRepository.store, 'signIn').mockRejectedValueOnce(new TrainingStorageBlockedError());
+  const { screen } = await renderApp({ path: '/training/new' });
+  await expect.element(screen.getByText('Закройте другие вкладки приложения и попробуйте снова.', { exact: true })).toBeVisible();
+  await screen.getByRole('button', { name: 'Повторить', exact: true }).click();
+  await expect.element(screen.getByRole('button', { name: /Начать ·/ })).toBeEnabled();
+});
+
+
+for (const route of ['', '/review', '/report/0']) test(`блокировка хранилища на экране тренировки ${route || 'вопрос'} объясняется и повторяется`, async () => {
+  const { TrainingStorageBlockedError } = await import('./store');
+  fakeServer({ 'GET /api/me': () => json(user()), 'GET /api/today': () => json(STARTER) });
+  const owner = await trainingRepository.store.signIn(user().id);
+  const training = { ...storedTraining(trainingSession(), Date.now()), finish: { finishedAt: new Date().toISOString(), timedOut: false } };
+  await trainingRepository.store.put(owner, training);
+  vi.spyOn(trainingRepository, 'requestSync').mockImplementation(() => {});
+  vi.spyOn(trainingRepository.store, 'signIn').mockRejectedValueOnce(new TrainingStorageBlockedError());
+  const { screen } = await renderApp({ path: `/training/${training.session.id}${route}` });
+  await expect.element(screen.getByRole('heading', { name: 'Обновляем тренировки', exact: true })).toBeVisible();
+  await screen.getByRole('button', { name: 'Повторить', exact: true }).click();
+  await expect.element(screen.getByRole('heading', { name: 'Обновляем тренировки', exact: true })).not.toBeInTheDocument();
+  await expect.element(screen.getByRole('heading', { level: 1 })).toBeVisible();
 });

@@ -134,3 +134,48 @@ test('жалобы: нечитаемое из очереди в карантин
   expect(await store.reports(owner)).toEqual([]); expect(await store.putReport(owner, pending)).toBe(false);
   await store.removeReport(owner, pending.id); expect(await store.reports(next)).toEqual([]);
 });
+
+
+test('заблокированное обновление не висит: повтор после закрытия старой вкладки сохраняет данные', async () => {
+  const { store, name } = makeStore();
+  const old = await openDB(name, 1, { upgrade(db) { for (const key of ['trainings', 'quarantine', 'meta']) db.createObjectStore(key); } });
+  const t = savedTraining(); await old.put('meta', { userId: 'a', revision: 1 }, 'owner'); await old.put('trainings', t, `a/${t.session.id}`);
+  let failure: unknown;
+  const opening = store.signIn('a').catch((error: unknown) => { failure = error; });
+  try { await expect.poll(() => failure instanceof Error ? failure.name : undefined).toBe('TrainingStorageBlockedError'); }
+  finally { old.close(); await opening; }
+  const owner = await store.signIn('a');
+  expect(await store.get(owner, t.session.id)).toEqual(t);
+});
+
+test('versionchange закрывает соединение старой сборки и позволяет следующую миграцию', async () => {
+  const { store, name } = makeStore(); await store.signIn('a');
+  let upgraded = false;
+  const updating = openDB(name, 3, { upgrade() { upgraded = true; } });
+  try { await expect.poll(() => upgraded).toBe(true); }
+  finally { await store.close(); (await updating).close(); }
+});
+
+test('миграция с версии 2 на 3 не создаёт reports повторно', async () => {
+  const { store, name } = makeStore(); const owner = await store.signIn('a'); const training = savedTraining(); await store.put(owner, training); await store.close();
+  const original = indexedDB.open.bind(indexedDB);
+  const opening = vi.spyOn(indexedDB, 'open').mockImplementation((database, version) => original(database, database === name && version === 2 ? 3 : version));
+  try {
+    const next = makeStore(name).store;
+    expect(await next.signIn('a')).toEqual(owner);
+    expect(await next.get(owner, training.session.id)).toEqual(training);
+  } finally { opening.mockRestore(); }
+});
+
+
+test('очередь жалобы и удаление черновика атомарны, уборка сохраняет оставшиеся черновики', async () => {
+  const { store } = makeStore(); const owner = await store.signIn('a'); const t = savedTraining();
+  const draft = { kind: 'other' as const, text: 'Synthetic draft' };
+  await store.put(owner, { ...t, reportDrafts: { 0: draft, 1: draft }, finish: { finishedAt: '2026-10-06T10:00:00Z', timedOut: false }, finishSent: true });
+  for (let i = 1; i <= 4; i++) await store.put(owner, { ...savedTraining(`00000000-0000-4000-8000-00000000020${i}`, t.startedAtMillis + i), finish: t.finish ?? { finishedAt: '2026-10-06T10:00:00Z', timedOut: false }, finishSent: true });
+  await store.prune(owner); expect((await store.get(owner, t.session.id))?.reportDrafts).toEqual({ 0: draft, 1: draft });
+  await store.putReport(owner, { id: crypto.randomUUID(), questionId: t.session.items[0]!.question.id, report: { kind: 'other', trainingId: t.session.id }, order: 0 }, 0);
+  expect((await store.get(owner, t.session.id))?.reportDrafts).toEqual({ 1: draft });
+  expect(await store.reports(owner)).toHaveLength(1);
+  await store.signOut(owner); expect(await store.get(owner, t.session.id)).toBeUndefined();
+});

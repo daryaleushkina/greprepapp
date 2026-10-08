@@ -5,6 +5,7 @@ import { FocusLayout } from '../layout/AppLayout';
 import { useShell } from '../shellContext';
 import { useBackButton } from '../telegram/hooks';
 import { useStoredTraining, useTrainingStorage } from './hooks';
+import { trainingRepository } from './repository';
 import type { StoredTraining } from './model';
 import styles from './Training.module.css';
 
@@ -18,9 +19,9 @@ export function ReadTraining({ id, finishedOnly = false, wide = false, back, onB
   const storage = useTrainingStorage();
   useBackButton(shell === 'telegram' ? onBack : null);
   return <FocusLayout glow={training.data?.session.section ?? 'verbal'} training wide={wide} session>
-    <div className={`${styles.screen} ${styles.readTraining}`} data-shell={shell} data-section={training.data?.session.section}>
+    <div className={`${styles.screen} ${styles.readTraining}`} data-shell={shell} data-wide={wide} data-section={training.data?.session.section}>
       {shell === 'site' && back}
-      {storage === 'unavailable' ? <StatusScreen title={t.training.training_storage_title} text={t.training.training_storage_message} /> :
+      {storage === 'blocked' ? <TrainingStorageBlocked /> : storage === 'unavailable' ? <StatusScreen title={t.training.training_storage_title} text={t.training.training_storage_message} /> :
         training.isPending ? <p role="status">{t.today.loading}</p> : !training.data || finishedOnly && !training.data.finish ?
           <StatusScreen title={t.training.training_missing_title} text={t.training.training_missing_message} /> : children(training.data)}
     </div>
@@ -31,4 +32,11 @@ export function TrainingHeading({ children }: { children: ReactNode }) {
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => { document.querySelector('main')?.scrollTo({ top: 0 }); heading.current?.focus({ preventScroll: true }); }, []);
   return <h1 ref={heading} tabIndex={-1} className={styles.title}>{children}</h1>;
+}
+
+
+export function TrainingStorageBlocked({ heading = 'h1' }: { heading?: 'h1' | 'h2' }) {
+  const { t } = useI18n();
+  return <StatusScreen live heading={heading} title={t.training.training_updating_title} text={t.training.training_updating_message}
+    action={{ label: t.today.retry, onClick: trainingRepository.retryStorage }} />;
 }

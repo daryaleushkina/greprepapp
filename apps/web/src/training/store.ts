@@ -18,6 +18,13 @@ type Edit = IDBPTransaction<TrainingDB, ['trainings', 'reports', 'quarantine', '
 const stores: ['trainings', 'reports', 'quarantine', 'meta'] = ['trainings', 'reports', 'quarantine', 'meta'];
 const KEEP_FINISHED = 3;
 
+export class TrainingStorageBlockedError extends Error {
+  constructor() { super('training database upgrade blocked'); this.name = 'TrainingStorageBlockedError'; }
+}
+export class TrainingOwnerChangedError extends Error {
+  constructor() { super('training report not saved: owner changed'); this.name = 'TrainingOwnerChangedError'; }
+}
+
 /** Поздняя запись и другая вкладка не возвращают данные после выхода: каждая операция сверяет владельца. */
 export class TrainingStore {
   private db: Promise<IDBPDatabase<TrainingDB>> | undefined;
@@ -33,13 +40,28 @@ export class TrainingStore {
   }
 
   private open() {
-    this.db ??= openDB<TrainingDB>(this.name, 2, {
+    if (this.db) return this.db;
+    let blocked = false;
+    let rejectBlocked: (error: Error) => void = () => {};
+    const blockedRequest = new Promise<never>((_resolve, reject) => { rejectBlocked = reject; });
+    const opening = openDB<TrainingDB>(this.name, 2, {
       upgrade(db, oldVersion) {
         if (oldVersion < 1) { db.createObjectStore('trainings'); db.createObjectStore('quarantine'); db.createObjectStore('meta'); }
-        db.createObjectStore('reports');
+        if (oldVersion < 2) db.createObjectStore('reports');
       },
-    }).catch((error: unknown) => { this.db = undefined; throw error; });
-    return this.db;
+      blocked() { blocked = true; rejectBlocked(new TrainingStorageBlockedError()); },
+      blocking: () => {
+        void opening.then((db) => { db.close(); if (this.db === cached) this.db = undefined; });
+      },
+    });
+    // Запрос IndexedDB нельзя отменить. После blocked он ещё откроется: закрываем позднее соединение.
+    const available = opening.then((db) => { if (blocked) db.close(); return db; });
+    const cached = Promise.race([available, blockedRequest]).catch((error: unknown) => {
+      if (this.db === cached) this.db = undefined;
+      throw error;
+    });
+    this.db = cached;
+    return cached;
   }
   subscribe = (listener: (change: TrainingChange) => void) => {
     this.listeners.add(listener);
@@ -188,7 +210,7 @@ export class TrainingStore {
       const ids: string[] = [];
       for (const candidate of [...finished, ...abandoned]) {
         const parsed = storedTrainingSchema.safeParse(await tx.objectStore('trainings').get(this.key(owner, candidate.session.id)));
-        if (!parsed.success || parsed.data.unsent.length > 0 || (parsed.data.finish && !parsed.data.finishSent)) continue;
+        if (!parsed.success || Object.keys(parsed.data.reportDrafts ?? {}).length > 0 || parsed.data.unsent.length > 0 || (parsed.data.finish && !parsed.data.finishSent)) continue;
         await tx.objectStore('trainings').delete(this.key(owner, candidate.session.id));
         ids.push(candidate.session.id);
       }
@@ -197,15 +219,26 @@ export class TrainingStore {
     if (removed?.length) this.changed({ kind: 'training', ids: removed, activeChanged: true });
   }
 
-  async putReport(owner: TrainingOwner, pending: PendingReport): Promise<boolean> {
+  async putReport(owner: TrainingOwner, pending: PendingReport, position?: number): Promise<boolean> {
     const checked = pendingReportSchema.parse(pending);
     const saved = await this.edit(owner, async (tx) => {
       const previous = z.number().int().nonnegative().optional().parse(await tx.objectStore('meta').get('reportOrder')) ?? 0;
       await tx.objectStore('reports').put({ ...checked, order: previous + 1 }, this.key(owner, checked.id));
       await tx.objectStore('meta').put(previous + 1, 'reportOrder');
+      if (checked.report.trainingId && position !== undefined) {
+        const key = this.key(owner, checked.report.trainingId);
+        const training = storedTrainingSchema.safeParse(await tx.objectStore('trainings').get(key));
+        if (training.success) {
+          const reportDrafts = { ...training.data.reportDrafts }; delete reportDrafts[String(position)];
+          await tx.objectStore('trainings').put({ ...training.data, reportDrafts }, key);
+        }
+      }
       return true;
     });
-    if (saved) this.changed({ kind: 'reports' });
+    if (saved) {
+      this.changed({ kind: 'reports' });
+      if (checked.report.trainingId && position !== undefined) this.changed({ kind: 'training', ids: [checked.report.trainingId], activeChanged: false });
+    }
     return saved ?? false;
   }
 

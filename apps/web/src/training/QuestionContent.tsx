@@ -69,4 +69,4 @@ export function Explanation({ question: q, chosen, language, onLanguage }: { que
 }
 
 export function SessionIcon({ children }: { children: ReactNode }) { return <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{children}</svg>; }
-function Cross() { return <SessionIcon><path d="m8 8 8 8m0-8-8 8" /></SessionIcon>; }
+export function Cross() { return <SessionIcon><path d="m8 8 8 8m0-8-8 8" /></SessionIcon>; }
