@@ -1,8 +1,25 @@
 import { describe, expect, it } from 'vitest';
-import { dictionaries } from './dict';
+import { dictionaries, type Dict } from './dict';
 
 const ru = dictionaries.ru.today;
 const en = dictionaries.en.today;
+
+it('количество вопросов остаётся неразрывной группой', () => {
+  expect(dictionaries.ru.training.questionsCount(10)).toBe('10\u00a0вопросов');
+  expect(dictionaries.en.training.questionsCount(10)).toBe('10\u00a0questions');
+});
+
+it('тексты тренировки с параметрами — функции; количество и позиция не разрываются', () => {
+  for (const locale of ['ru', 'en'] as const) {
+    const t = dictionaries[locale].training;
+    expect(typeof t.builder_start).toBe('function');
+    expect(t.questionsCount(10)).toBe(locale === 'ru' ? '10\u00a0вопросов' : '10\u00a0questions');
+    if (typeof t.builder_start === 'function' && typeof t.training_continue_subtitle === 'function') {
+      expect(t.builder_start(t.questionsCount(10), 15)).toContain('~15\u00a0');
+      expect(t.training_continue_subtitle('Verbal · Text Completion', 1, 10)).toContain(locale === 'ru' ? 'вопрос\u00a01\u00a0из\u00a010' : 'question\u00a01\u00a0of\u00a010');
+    }
+  }
+});
 
 describe('русские формы', () => {
   it.each([
@@ -57,19 +74,27 @@ describe('словари совпадают по составу', () => {
 });
 
 describe('все строки-функции отвечают текстом на обоих языках', () => {
-  // Сломанная строка (пустая, с «undefined» или «#» без подстановки) видна здесь, а не на экране человека.
-  const fns = (o: object, prefix = ''): [string, (x: never) => unknown][] =>
-    Object.entries(o).flatMap(([k, v]) =>
-      typeof v === 'function' ? [[`${prefix}${k}`, v as (x: never) => unknown]] : v && typeof v === 'object' ? fns(v, `${prefix}${k}.`) : [],
-    );
-  for (const locale of ['ru', 'en'] as const) {
-    it(locale, () => {
-      const all = fns(dictionaries[locale]);
-      expect(all.length).toBeGreaterThan(5);
-      for (const [name, fn] of all) {
-        const out = String(fn((name.endsWith('now') || name.endsWith('version') ? 'X' : 3) as never));
-        expect(out, name).not.toMatch(/undefined|NaN|#|^\s*$/);
-      }
-    });
-  }
+  const functionNames = (o: object, prefix = ''): string[] => Object.entries(o).flatMap(([key, value]) =>
+    typeof value === 'function' ? [`${prefix}${key}`] : value && typeof value === 'object' ? functionNames(value, `${prefix}${key}.`) : []);
+  // Аргументы проверяет TypeScript: у текстов тренировки теперь разные подписи, вызова всех с одним числом недостаточно.
+  const samples = (t: Dict): Record<string, string> => ({
+    'training.training_continue_subtitle': t.training.training_continue_subtitle('Verbal', 1, 10),
+    'training.builder_preset_timed_subtitle': t.training.builder_preset_timed_subtitle('Verbal', t.training.questionsCount(12), 18),
+    'training.builder_topics_some': t.training.builder_topics_some(1, 3),
+    'training.builder_start': t.training.builder_start(t.training.questionsCount(3), 5),
+    'training.topics_done': t.training.topics_done(t.training.questionsCount(3)),
+    'training.questionsCount': t.training.questionsCount(3),
+    'today.steps': t.today.steps(3),
+    'today.aboutMinutes': t.today.aboutMinutes(3),
+    'today.minutes': t.today.minutes(3),
+    'today.approxShort': t.today.approxShort(3),
+    'today.short': t.today.short(3),
+    'today.now': t.today.now('X'),
+    'settings.version': t.settings.version('X'),
+  });
+  for (const locale of ['ru', 'en'] as const) it(locale, () => {
+    const out = samples(dictionaries[locale]);
+    expect(Object.keys(out).sort()).toEqual(functionNames(dictionaries[locale]).sort());
+    for (const [name, text] of Object.entries(out)) expect(text, name).not.toMatch(/undefined|NaN|#|^\s*$/);
+  });
 });

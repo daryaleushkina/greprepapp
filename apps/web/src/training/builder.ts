@@ -25,6 +25,20 @@ export function initialBuilder(options: TrainingOptions, section?: BuilderForm['
   const last = presetsOf(options)[preset];
   return { options, form: last ? formOf(last.request, options) : defaultForm(options, section ?? 'verbal', type), preset: preset < 0 ? undefined : preset };
 }
+/** Каталог обновляется независимо от формы: убираем только выбор, которого больше нет. */
+export function updateOptions(state: BuilderState, options: TrainingOptions): BuilderState {
+  if (state.options === options) return state;
+  const typeExists = options.types.some((t) => t.questionType === state.form.type);
+  const form = typeExists ? state.form : { ...defaultForm(options, state.form.section), countText: state.form.countText,
+    mode: state.form.mode, difficulty: state.form.difficulty };
+  const ids = options.types.find((t) => t.questionType === form.type)?.topics.map((t) => t.id) ?? [];
+  const next = { ...state, options, form: { ...form, topicIds: form.topicIds?.filter((id) => ids.includes(id)) } };
+  const old = presetsOf(state.options)[state.preset ?? -1];
+  const index = old ? presetsOf(options).findIndex((p) => p.kind === old.kind && JSON.stringify(p.request) === JSON.stringify(old.request) &&
+    p.request.questionTypes.every((type) => options.types.some((t) => t.questionType === type)) &&
+    (p.request.topicIds ?? []).every((id) => options.types.some((t) => p.request.questionTypes.includes(t.questionType) && t.topics.some((topic) => topic.id === id)))) : -1;
+  return { ...next, preset: index < 0 ? undefined : index };
+}
 export function topicsOf({ options, form }: BuilderState) { return options.types.find((t) => t.questionType === form.type)?.topics ?? []; }
 export function available(state: BuilderState): number {
   const { form } = state;
@@ -38,7 +52,7 @@ export function requestOf(state: BuilderState): TrainingRequest | undefined {
   const questions = Math.min(count, available(state), options.maxQuestions);
   if (questions < 1) return undefined;
   return { section: form.section, questionTypes: [form.type], count: questions, mode: form.mode,
-    ...(form.topicIds && { topicIds: form.topicIds }), ...(form.difficulty && { difficulty: form.difficulty }) };
+    ...(form.topicIds && { topicIds: form.topicIds.filter((id) => topicsOf(state).some((topic) => topic.id === id)) }), ...(form.difficulty && { difficulty: form.difficulty }) };
 }
 export function minutes(options: TrainingOptions, request: TrainingRequest): number {
   const pace = options.types.find((t) => request.questionTypes.includes(t.questionType))?.paceSeconds ?? 0;
@@ -49,8 +63,4 @@ export function toggleTopic(state: BuilderState, id: string): BuilderForm {
   const current = state.form.topicIds ?? all;
   const next = current.includes(id) ? current.filter((t) => t !== id) : [...current, id];
   return { ...state.form, topicIds: all.length === next.length && all.every((id) => next.includes(id)) ? undefined : next };
-}
-/** Формат тех же строк, что в Android; вход здесь — только словарь и числа интерфейса. */
-export function trainingText(text: string, ...values: (string | number)[]): string {
-  return text.replace(/%(\d+)\$[sd]/g, (_, index: string) => String(values[Number(index) - 1]));
 }

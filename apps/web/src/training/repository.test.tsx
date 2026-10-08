@@ -26,6 +26,81 @@ const fail = (status: number, kind: 'server' | 'network' | 'contract' = 'server'
 const deferred = () => { let resolve = () => {}; const promise = new Promise<void>((r) => { resolve = r; }); return { promise, resolve }; };
 afterEach(async () => { for (const { store } of opened) await store.close(); for (const name of new Set(opened.map((s) => s.name))) await deleteDB(name); opened.length = 0; });
 
+test('постоянный отказ пачки проверяет ответы отдельно и не теряет верный при временном отказе', async () => {
+  const m = make(); const { owner, t } = await seed(m);
+  const second = givenAnswer({ position: 1 });
+  await m.store.put(owner, { ...t, answers: { 0: givenAnswer(), 1: second }, unsent: [0, 1] });
+  m.api.answers.mockRejectedValueOnce(fail(400)).mockResolvedValueOnce(undefined).mockRejectedValueOnce(fail(429));
+  await m.repo.sync();
+  expect(m.api.answers).toHaveBeenCalledTimes(3);
+  expect((await m.repo.get(t.session.id))?.unsent).toEqual([1]);
+  expect(m.report).not.toHaveBeenCalledWith(expect.objectContaining({ message: 'training sync rejected: 400 fixture' }));
+  m.api.answers.mockRejectedValueOnce(fail(422)); await m.repo.sync();
+  expect((await m.repo.get(t.session.id))?.unsent).toEqual([]);
+  expect(m.report).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ message: 'training sync rejected: 422 fixture' }));
+});
+
+test('неверный ответ пачки отклоняется отдельно, а верный отправляется', async () => {
+  const m = make(); const { owner, t } = await seed(m);
+  await m.store.put(owner, { ...t, answers: { 0: givenAnswer(), 1: givenAnswer({ position: 1 }) }, unsent: [0, 1] });
+  m.api.answers.mockRejectedValueOnce(fail(400)).mockRejectedValueOnce(fail(400)).mockResolvedValueOnce(undefined);
+  await m.repo.sync();
+  expect(m.api.answers).toHaveBeenNthCalledWith(2, t.session.id, { answers: [givenAnswer()] });
+  expect(m.api.answers).toHaveBeenNthCalledWith(3, t.session.id, { answers: [givenAnswer({ position: 1 })] });
+  expect((await m.repo.get(t.session.id))?.unsent).toEqual([]);
+  expect(m.report).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ message: 'training sync rejected: 400 fixture' }));
+});
+
+test('чтение недоступного устройства сообщается; остальное приложение может работать', async () => {
+  const m = make(); await seed(m);
+  vi.spyOn(m.store, 'list').mockRejectedValueOnce(new DOMException('private', 'SecurityError'));
+  expect(await m.repo.list()).toEqual([]); expect(m.repo.storageStatus()).toBe('unavailable');
+  expect(await m.repo.options()).toEqual(trainingOptions());
+  await m.repo.signedIn('a'); vi.spyOn(m.store, 'get').mockRejectedValueOnce(new DOMException('private', 'QuotaExceededError'));
+  expect(await m.repo.get(trainingSession().id)).toBeUndefined(); expect(m.repo.storageStatus()).toBe('unavailable');
+  expect(m.report).not.toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('private') }));
+});
+
+test('«Продолжить» перечитывает изменённую запись, а остальные тренировки повторно не разбирает', async () => {
+  const m = make(); await seed(m); const list = vi.spyOn(m.store, 'list');
+  expect((await m.repo.active())?.position).toBe(0);
+  await m.repo.moveTo(trainingSession().id, 2); expect((await m.repo.active())?.position).toBe(2);
+  expect(list).toHaveBeenCalledTimes(1);
+  await m.repo.finish(trainingSession().id, false); expect(await m.repo.active()).toBeUndefined();
+  expect(await m.repo.active()).toBeUndefined(); expect(list).toHaveBeenCalledTimes(2);
+});
+
+test('после выхода и входа того же аккаунта в другой вкладке принимается новая ревизия', async () => {
+  const m = make(); const { owner } = await seed(m);
+  const other = make(m.name); await other.repo.signedIn('a'); await other.repo.signOut(); await other.repo.signedIn('a');
+  const next = await other.store.signIn('a'); expect(next.revision).toBeGreaterThan(owner.revision);
+  await other.store.put(next, savedTraining(trainingSession().id, NOW));
+  await expect.poll(async () => {
+    try { await m.repo.moveTo(trainingSession().id, 2); return (await m.repo.get(trainingSession().id))?.position; }
+    catch { return undefined; } // Сигнал второй вкладки ещё может идти; ожидаем принятия ревизии.
+  }).toBe(2);
+  await m.repo.answer(trainingSession().id, givenAnswer()); await m.repo.finish(trainingSession().id, false);
+  expect(await other.store.get(next, trainingSession().id)).toMatchObject({ position: 2, unsent: [0], finish: { timedOut: false } });
+});
+
+test('непринятая запись из-за другой ревизии бросает ошибку и сообщает её', async () => {
+  const m = make(); await seed(m); const other = make(m.name);
+  await other.repo.signedIn('b');
+  await expect(m.repo.moveTo(trainingSession().id, 1)).rejects.toThrow();
+  expect(m.report).toHaveBeenCalled();
+});
+
+test('новый вход того же человека ждёт очистки после явного выхода', async () => {
+  const m = make(); await seed(m); const held = deferred();
+  const clear = m.store.signOut.bind(m.store);
+  const signOut = vi.spyOn(m.store, 'signOut').mockImplementationOnce(async (owner) => { await held.promise; await clear(owner); });
+  const leaving = m.repo.signOut();
+  await expect.poll(() => signOut.mock.calls.length).toBe(1);
+  const entering = m.repo.signedIn('a');
+  held.resolve(); await Promise.all([leaving, entering]);
+  await expect(m.repo.start({ ...request, questionTypes: [...request.questionTypes] })).resolves.toBe(trainingSession().id);
+});
+
 test('опции запрашиваются с четырьмя типами; старт скачивает всё и сохраняет до открытия', async () => {
   const m = make(); await m.repo.signedIn('a'); expect(await m.repo.options()).toEqual(trainingOptions());
   expect(m.api.options).toHaveBeenCalledWith({ types: ['text_completion', 'sentence_equivalence', 'quantitative_comparison', 'multiple_choice'] }, { signal: undefined });
@@ -36,7 +111,9 @@ test('опции запрашиваются с четырьмя типами; с
 test('до входа и после выхода нет тренировок и отправки', async () => {
   const m = make(); expect(await m.repo.list()).toEqual([]); expect(await m.repo.get('none')).toBeUndefined();
   await expect(m.repo.start({ ...request, questionTypes: [...request.questionTypes] })).rejects.toThrow('without session');
-  await m.repo.moveTo('none', 0); await m.repo.sync(); await m.repo.signOut(); expect(m.api.answers).not.toHaveBeenCalled();
+  // Без владельца несохранённое действие тоже отклоняется, а очередь ничего не отправляет.
+  await expect(m.repo.moveTo('none', 0)).rejects.toThrow();
+  await m.repo.sync(); await m.repo.signOut(); expect(m.api.answers).not.toHaveBeenCalled();
 });
 test('ответы отправляются перед концом, подтверждённое не повторяется', async () => {
   const m = make(); const { owner, t } = await seed(m, undefined, true);
@@ -169,10 +246,13 @@ test('из нескольких незавершённых «Продолжит�
   await m.store.put(owner, newer); expect((await m.repo.active())?.session.id).toBe(newer.session.id);
 });
 
-test('неудачу очистки при выходе можно повторить: владелец не теряется до удаления', async () => {
+test('неудача очистки не мешает выходу, а другой вход удаляет оставшееся', async () => {
   const m = make(); const { owner } = await seed(m); vi.spyOn(m.store, 'signOut').mockRejectedValueOnce(new Error('storage unavailable'));
-  await expect(m.repo.signOut()).rejects.toThrow('storage unavailable');
-  await m.repo.signOut(); expect(await m.store.owns(owner)).toBe(false);
+  await expect(m.repo.signOut()).resolves.toBeUndefined();
+  expect(await m.repo.list()).toEqual([]);
+  await m.repo.signedIn('b'); expect(await m.store.owns(owner)).toBe(false);
+  expect(await m.repo.list()).toEqual([]);
+  expect(m.report).toHaveBeenCalledWith(expect.objectContaining({ message: 'training account changed: 1 unsent answers lost' }));
 });
 
 test('ответ между последним кругом и снятием Web Lock отправляется следующим кругом', async () => {

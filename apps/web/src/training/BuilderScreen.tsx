@@ -12,7 +12,8 @@ import { useBackButton } from '../telegram/hooks';
 import { useOnline } from '../useOnline';
 import glass from '../styles/glass.module.css';
 import { TrainingAction } from './Action';
-import { TYPE_LABELS, available, defaultForm, formOf, initialBuilder, minutes, presetsOf, requestOf, toggleTopic, topicsOf, trainingText, type BuilderForm } from './builder';
+import { TYPE_LABELS, available, defaultForm, formOf, initialBuilder, minutes, presetsOf, requestOf, toggleTopic, topicsOf, updateOptions, type BuilderForm } from './builder';
+import { useTrainingStorage } from './hooks';
 import { trainingRepository } from './repository';
 import styles from './Training.module.css';
 
@@ -24,7 +25,7 @@ export function BuilderScreen() {
     // Последняя сборка меняется после старта: новый вход получает свежий каталог, редактирование его не перезагружает.
     staleTime: 0, gcTime: 0, refetchOnMount: 'always', refetchOnWindowFocus: false, refetchOnReconnect: false });
   const offline = !online || options.fetchStatus === 'paused' || (isApiError(options.error) && options.error.kind === 'network');
-  if (options.data && options.isSuccess && options.isFetchedAfterMount) return <ReadyBuilder key={options.dataUpdatedAt} options={options.data} />;
+  if (options.data && options.isFetchedAfterMount) return <ReadyBuilder key={session.status === 'signedIn' ? session.user.id : 'signedOut'} options={options.data} />;
   return <BuilderStatus offline={offline} unavailable={options.isError} retry={() => void options.refetch()} />;
 }
 
@@ -49,14 +50,19 @@ function ReadyBuilder({ options }: { options: TrainingOptions }) {
   const { shell } = useShell();
   const navigate = useNavigate();
   const search = useSearch({ from: '/app/training/new' });
-  const [state, setState] = useState(() => initialBuilder(options, search.section, search.type));
+  const [savedState, setState] = useState(() => initialBuilder(options, search.section, search.type));
+  const state = updateOptions(savedState, options);
+  if (state !== savedState) setState(state);
   const [topics, setTopics] = useState(false);
   const [busy, setBusy] = useState(false);
   const starting = useRef(false);
   const [problem, setProblem] = useState<'offline' | 'failed' | 'noQuestions' | null>(null);
   const online = useOnline();
+  const storage = useTrainingStorage();
   const { form } = state;
   const presets = presetsOf(options);
+  const preset = presets[state.preset ?? -1];
+  const multipleTypes = (preset?.request.questionTypes.length ?? 0) > 1;
   const selectedTopics = topicsOf(state);
   const request = requestOf(state);
   const countLabel = text.questionsCount(request?.count ?? available(state));
@@ -69,7 +75,7 @@ function ReadyBuilder({ options }: { options: TrainingOptions }) {
 
   const start = async () => {
     // Два сообщения моста могут прийти до следующего рендера: состояние ещё не выключило MainButton.
-    if (starting.current || !request) return;
+    if (starting.current || !request || storage !== 'ready') return;
     if (!online) { setProblem('offline'); return; }
     starting.current = true;
     setBusy(true); setProblem(null);
@@ -101,16 +107,16 @@ function ReadyBuilder({ options }: { options: TrainingOptions }) {
             onClick={() => edit((f) => ({ ...f, difficulty }))}>{text[`difficulty_${difficulty}`]}</button>)}
         </div>
       </fieldset>
-      <TrainingAction text={trainingText(text.topics_done, text.questionsCount(available(state)))} disabled={available(state) === 0} onClick={() => setTopics(false)} />
+      <TrainingAction text={text.topics_done(text.questionsCount(available(state)))} disabled={available(state) === 0} onClick={() => setTopics(false)} />
     </> : <>
       <div className={styles.builder}>
         {presets.length > 0 && <div className={`${styles.group} ${glass.strong}`}>
           {presets.map((preset, index) => <label key={`${preset.kind}-${index}`} className={styles.preset}>
             <span className={styles.grow}><span className={styles.presetTitle}>{preset.kind === 'last' ? text.builder_preset_last : text.builder_preset_timed}</span>
-              <span className={styles.note}>{preset.kind === 'timed' ? trainingText(text.builder_preset_timed_subtitle, t.sections[preset.request.section], text.questionsCount(preset.request.count), minutes(options, preset.request)) :
+              <span className={styles.note}>{preset.kind === 'timed' ? text.builder_preset_timed_subtitle(t.sections[preset.request.section], text.questionsCount(preset.request.count), minutes(options, preset.request)) :
                 `${t.sections[preset.request.section]} · ${preset.request.questionTypes.map((type) => TYPE_LABELS[type]).join(' · ')} · ${preset.request.count} · ${text[`mode_${preset.request.mode}`]}`}</span></span>
             <input type="radio" name="training-preset" checked={state.preset === index} aria-label={preset.kind === 'last' ? text.builder_preset_last : text.builder_preset_timed}
-              onChange={() => { setProblem(null); setState((s) => ({ ...s, preset: index, form: preset.request.questionTypes.length === 1 ? formOf(preset.request, options) : s.form })); }} />
+              onChange={() => { setProblem(null); setState((s) => ({ ...s, preset: index, form: formOf(preset.request, options) })); }} />
           </label>)}
         </div>}
         <div className={`${styles.group} ${styles.solid}`}>
@@ -118,25 +124,28 @@ function ReadyBuilder({ options }: { options: TrainingOptions }) {
             {(['verbal', 'quant'] as const).map((section) => <button type="button" key={section} aria-pressed={form.section === section} disabled={busy}
               onClick={() => edit((f) => f.section === section ? f : { ...defaultForm(options, section), countText: f.countText, mode: f.mode })}>{t.sections[section]}</button>)}
           </div></div>
-          <label className={`${styles.row} ${styles.typeRow}`}><span>{text.builder_type}</span><select lang="en" value={form.type} disabled={busy} onChange={(e) => {
+          <label className={`${styles.row} ${styles.typeRow}`}><span>{text.builder_type}</span><select lang="en" value={multipleTypes ? 'preset' : form.type} disabled={busy} onChange={(e) => {
+            if (e.target.value === 'preset') return;
             const type = schemas.QuestionType.parse(e.target.value);
             edit((f) => f.type === type ? f : { ...f, type, topicIds: undefined });
-          }}>{options.types.filter((type) => type.section === form.section).map((type) => <option key={type.questionType} value={type.questionType} disabled={type.topics.length === 0}>
+          }}>{multipleTypes && <option value="preset">{preset?.request.questionTypes.map((type) => TYPE_LABELS[type]).join(' · ')}</option>}
+          {options.types.filter((type) => type.section === form.section).map((type) => <option key={type.questionType} value={type.questionType} disabled={type.topics.length === 0}>
             {TYPE_LABELS[type.questionType]}{type.topics.length === 0 ? ` · ${text.builder_type_soon}` : ''}</option>)}</select></label>
           <label className={styles.row}><span>{text.builder_count}</span><input className={styles.count} inputMode="numeric" value={form.countText} disabled={busy}
             onChange={(e) => edit((f) => ({ ...f, countText: e.target.value.replace(/[^0-9]/g, '').slice(0, 2) }))} /></label>
           <div className={styles.modeRow}><div className={styles.row}><span>{text.builder_mode}</span><div role="group" aria-label={text.builder_mode} className={`${styles.segments} ${glass.glass}`}>
             {schemas.TrainingMode.options.map((mode) => <button type="button" key={mode} disabled={busy} aria-pressed={form.mode === mode} onClick={() => edit((f) => ({ ...f, mode }))}>{text[`mode_${mode}`]}</button>)}
           </div></div><p className={styles.note}>{text[`mode_${form.mode}_hint`]}</p></div>
-          <button type="button" className={styles.row} disabled={busy || selectedTopics.length === 0} onClick={() => setTopics(true)}>
-            <span>{text.builder_topics}</span><span className={styles.value}><span className={styles.note}>{form.topicIds === undefined ? text.builder_topics_all : trainingText(text.builder_topics_some, form.topicIds.length, selectedTopics.length)}</span><ChevronRightIcon /></span>
+          <button type="button" className={styles.row} disabled={busy || selectedTopics.length === 0 || multipleTypes} onClick={() => setTopics(true)}>
+            <span>{text.builder_topics}</span><span className={styles.value}><span className={styles.note}>{form.topicIds === undefined ? text.builder_topics_all : text.builder_topics_some(form.topicIds.length, selectedTopics.length)}</span><ChevronRightIcon /></span>
           </button>
         </div>
       </div>
       {(!online || problem) && <p role="alert" className={styles.note}>{!online || problem === 'offline' ? text.builder_start_offline : problem === 'noQuestions' ? text.builder_no_questions : text.builder_start_failed}</p>}
+      {storage === 'unavailable' && <p role="alert" className={styles.note}>{text.training_storage_title}</p>}
       {!request && <p role="status" className={styles.note}>{text.builder_nothing}</p>}
-      <TrainingAction text={request ? trainingText(text.builder_start, countLabel, minutes(options, request)) : text.builder_nothing}
-        disabled={!request || !online} busy={busy} onClick={() => void start()} />
+      <TrainingAction text={request ? text.builder_start(countLabel, minutes(options, request)) : text.builder_nothing}
+        disabled={!request || !online || storage !== 'ready'} busy={busy} onClick={() => void start()} />
     </>}
   </div></FocusLayout>;
 }

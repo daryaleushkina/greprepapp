@@ -30,8 +30,10 @@ const trainingRu = {
   training_new: "Новая тренировка",
   training_own: "Своя тренировка",
   training_continue: "Продолжить тренировку",
-  training_continue_subtitle: "%1$s · вопрос %2$d из %3$d",
+  training_continue_subtitle: (section: string, position: number, total: number) => `${section} · вопрос\u00a0${position}\u00a0из\u00a0${total}`,
   training_loading: "Загружаем темы",
+  training_storage_title: "Нет места на устройстве",
+  training_storage_message: "Не получилось сохранить тренировку на устройстве. Освободите место и попробуйте снова.",
   training_offline_title: "Нет сети",
   training_offline_message: "Чтобы начать тренировку, нужна сеть: задания скачаются целиком, и дальше можно без неё.",
   training_failed_title: "Не получилось загрузить темы",
@@ -42,16 +44,16 @@ const trainingRu = {
   question_close: "Закрыть тренировку",
   builder_preset_last: "Как в прошлый раз",
   builder_preset_timed: "Проверка на время",
-  builder_preset_timed_subtitle: "%1$s · %2$s · %3$d мин, как секция экзамена",
+  builder_preset_timed_subtitle: (section: string, count: string, minutes: number) => `${section} · ${count} · ${minutes}\u00a0мин, как секция экзамена`,
   builder_section: "Раздел",
   builder_type: "Тип",
   builder_count: "Вопросов",
   builder_mode: "Режим",
   builder_topics: "Темы и сложность",
   builder_topics_all: "все",
-  builder_topics_some: "%1$d из %2$d",
+  builder_topics_some: (selected: number, total: number) => `${selected} из ${total}`,
   builder_type_soon: "скоро",
-  builder_start: "Начать · %1$s · ~%2$d мин",
+  builder_start: (count: string, minutes: number) => `Начать · ${count} · ~${minutes}\u00a0мин`,
   builder_nothing: "Заданий пока нет",
   builder_no_questions: "Под этот выбор заданий пока нет — попробуйте другие темы или сложность.",
   builder_start_offline: "Нет сети — тренировку не начать. Попробуйте, когда она появится.",
@@ -65,14 +67,16 @@ const trainingRu = {
   difficulty_medium: "Средняя",
   difficulty_hard: "Трудная",
   topics_difficulty: "Сложность",
-  topics_done: "Готово · %1$s",
+  topics_done: (count: string) => `Готово · ${count}`,
 };
 const trainingEn = {
   training_new: "New practice",
   training_own: "Custom practice",
   training_continue: "Continue practice",
-  training_continue_subtitle: "%1$s · question %2$d of %3$d",
+  training_continue_subtitle: (section: string, position: number, total: number) => `${section} · question\u00a0${position}\u00a0of\u00a0${total}`,
   training_loading: "Loading topics",
+  training_storage_title: "No space on the device",
+  training_storage_message: "Couldn’t save the practice on your device. Free up some space and try again.",
   training_offline_title: "No connection",
   training_offline_message: "Starting a practice needs a connection: the questions download in full, and after that you can go offline.",
   training_failed_title: "Couldn’t load topics",
@@ -83,16 +87,16 @@ const trainingEn = {
   question_close: "Close practice",
   builder_preset_last: "Same as last time",
   builder_preset_timed: "Timed check",
-  builder_preset_timed_subtitle: "%1$s · %2$s · %3$d min, like an exam section",
+  builder_preset_timed_subtitle: (section: string, count: string, minutes: number) => `${section} · ${count} · ${minutes}\u00a0min, like an exam section`,
   builder_section: "Section",
   builder_type: "Type",
   builder_count: "Questions",
   builder_mode: "Mode",
   builder_topics: "Topics and difficulty",
   builder_topics_all: "all",
-  builder_topics_some: "%1$d of %2$d",
+  builder_topics_some: (selected: number, total: number) => `${selected} of ${total}`,
   builder_type_soon: "soon",
-  builder_start: "Start · %1$s · ~%2$d min",
+  builder_start: (count: string, minutes: number) => `Start · ${count} · ~${minutes}\u00a0min`,
   builder_nothing: "No questions yet",
   builder_no_questions: "No questions match this yet — try other topics or difficulty.",
   builder_start_offline: "No connection — the practice can’t start. Try again once you’re online.",
@@ -106,9 +110,9 @@ const trainingEn = {
   difficulty_medium: "Medium",
   difficulty_hard: "Hard",
   topics_difficulty: "Difficulty",
-  topics_done: "Done · %1$s",
+  topics_done: (count: string) => `Done · ${count}`,
 };
-type TrainingDict = { [K in keyof typeof trainingRu]: string } & { questionsCount: Plural };
+type TrainingDict = typeof trainingRu & { questionsCount: Plural };
 
 export interface Dict {
   training: TrainingDict;
@@ -166,7 +170,7 @@ export interface Dict {
 }
 
 const dictRu: Dict = {
-  training: { ...trainingRu, questionsCount: ru({ one: "# вопрос", few: "# вопроса", many: "# вопросов", other: "# вопроса" }) },
+  training: { ...trainingRu, questionsCount: ru({ one: "#\u00a0вопрос", few: "#\u00a0вопроса", many: "#\u00a0вопросов", other: "#\u00a0вопроса" }) },
   back: 'Назад',
   tabs: { today: 'Сегодня', words: 'Слова', exam: 'Экзамен', progress: 'Прогресс', settings: 'Настройки', sections: 'Разделы' },
   sections: { verbal: 'Verbal', quant: 'Quant', words: 'Слова', essay: 'Эссе' },
@@ -244,7 +248,7 @@ const dictRu: Dict = {
 };
 
 const dictEn: Dict = {
-  training: { ...trainingEn, questionsCount: en("# question", "# questions") },
+  training: { ...trainingEn, questionsCount: en("#\u00a0question", "#\u00a0questions") },
   back: 'Back',
   tabs: { today: 'Today', words: 'Words', exam: 'Exam', progress: 'Progress', settings: 'Settings', sections: 'Sections' },
   sections: { verbal: 'Verbal', quant: 'Quant', words: 'Words', essay: 'Essay' },

@@ -1,9 +1,37 @@
 import { describe, expect, test } from 'vitest';
 import { trainingOptions } from '../test/training';
-import { available, defaultForm, formOf, initialBuilder, minutes, presetsOf, requestOf, toggleTopic, trainingText } from './builder';
+import { available, defaultForm, formOf, initialBuilder, minutes, presetsOf, requestOf, toggleTopic, updateOptions } from './builder';
 
 const options = trainingOptions();
 describe('конструктор — поведение Android', () => {
+  test('обновление каталога сохраняет поля; исчезнувший тип и выбранные темы убираются', () => {
+    const state = initialBuilder(options);
+    state.form = { ...state.form, countText: '7', mode: 'check', difficulty: 'hard', topicIds: ['cause'] };
+    expect(updateOptions(state, options)).toBe(state);
+    const removedTopic = trainingOptions({ types: options.types.map((type) => ({ ...type, topics: type.topics.filter((topic) => topic.id !== 'cause') })) });
+    expect(updateOptions(state, removedTopic).form).toMatchObject({ countText: '7', mode: 'check', difficulty: 'hard', topicIds: [] });
+    const removedType = trainingOptions({ types: options.types.filter((type) => type.questionType !== 'text_completion') });
+    expect(updateOptions(state, removedType).form).toMatchObject({ type: 'sentence_equivalence', countText: '7', mode: 'check', difficulty: 'hard', topicIds: undefined });
+    expect(requestOf(updateOptions(state, trainingOptions({ types: [] })))).toBeUndefined();
+  });
+  test('набор сохраняется при перестановке, но пропавший фильтр или тип больше не запускается', () => {
+    const last = { kind: 'last', request: { section: 'verbal', questionTypes: ['text_completion'], count: 3, mode: 'practice', topicIds: ['cause'] } } as const;
+    const before = trainingOptions({ presets: [{ ...last, request: { ...last.request, questionTypes: [...last.request.questionTypes], topicIds: [...last.request.topicIds] } }] });
+    const state = initialBuilder(before);
+    const reordered = trainingOptions({ presets: [options.presets[0]!, before.presets[0]!] });
+    expect(updateOptions(state, reordered).preset).toBe(1);
+    const removedTopic = trainingOptions({ presets: before.presets, types: options.types.map((type) => ({ ...type, topics: [] })) });
+    expect(updateOptions(state, removedTopic).preset).toBeUndefined();
+    expect(updateOptions(state, trainingOptions({ presets: [] })).form.countText).toBe('3');
+    const mixed = { ...initialBuilder(options), preset: 0, form: formOf(options.presets[0]!.request, options) };
+    const removedType = trainingOptions({ types: options.types.filter((type) => type.questionType !== 'sentence_equivalence') });
+    expect(updateOptions(mixed, removedType).preset).toBeUndefined();
+  });
+  test('исчезнувшая тема не уходит в запрос тренировки', () => {
+    const state = initialBuilder(options);
+    state.form.topicIds = ['cause', 'deleted'];
+    expect(requestOf(state)?.topicIds).toEqual(['cause']);
+  });
   test('умолчание, прошлый набор и вход из шага', () => {
     expect(initialBuilder(options).form).toMatchObject({ section: 'verbal', type: 'text_completion', countText: '10', mode: 'practice' });
     const request = { section: 'quant', questionTypes: ['multiple_choice'], count: 7, mode: 'check', topicIds: ['cause'], difficulty: 'hard' } as const;
@@ -44,6 +72,5 @@ describe('конструктор — поведение Android', () => {
     expect(formOf({ ...request, questionTypes: [...request.questionTypes], topicIds: [] }, options).topicIds).toBeUndefined();
     expect(minutes(options, { ...request, questionTypes: [...request.questionTypes] })).toBe(5);
     expect(minutes({ ...options, types: [] }, { ...request, questionTypes: [...request.questionTypes] })).toBe(0);
-    expect(trainingText('%1$s · %2$d', 'Контраст', 3)).toBe('Контраст · 3');
   });
 });

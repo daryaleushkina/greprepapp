@@ -47,3 +47,16 @@ test('при смене темы Telegram цвет главной кнопки �
     if (before === undefined) delete html.dataset.theme; else html.dataset.theme = before;
   }
 });
+
+test('обновление disabled и busy не прячет MainButton и не переподписывает обработчик', async () => {
+  vi.clearAllMocks();
+  const onClick = vi.fn(); const screen = await render(action(false, false, onClick));
+  const handler = sdk.onClick.ifAvailable.mock.calls.at(-1)?.[0];
+  await screen.rerender(action(false, true, onClick)); handler?.(); expect(onClick).not.toHaveBeenCalled();
+  await screen.rerender(action(true, false, onClick)); handler?.(); expect(onClick).not.toHaveBeenCalled();
+  await screen.rerender(action(false, false, onClick)); handler?.(); expect(onClick).toHaveBeenCalledTimes(1);
+  expect(sdk.onClick.ifAvailable).toHaveBeenCalledTimes(1);
+  expect(sdk.unsubscribe).not.toHaveBeenCalled();
+  expect(sdk.setParams.ifAvailable).not.toHaveBeenCalledWith({ isVisible: false });
+  await screen.unmount(); expect(sdk.unsubscribe).toHaveBeenCalledTimes(1);
+});

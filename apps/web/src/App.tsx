@@ -5,6 +5,7 @@ import { useEffect, type ReactNode } from 'react';
 import { ErrorBoundary } from './errors/ErrorBoundary';
 import { I18nProvider } from './i18n/i18n';
 import { useTrainingUpdates } from './training/hooks';
+import { bindTrainingSession } from './training/session';
 import { browserLocale, telegramLocale, type Locale } from './i18n/locale';
 import type { makeRouter } from './router';
 import { SessionProvider, useSession } from './session/session';
@@ -20,6 +21,7 @@ interface Props {
 }
 
 export function App({ queryClient, router, shell, launch }: Props): ReactNode {
+  useEffect(() => bindTrainingSession(queryClient, shell), [queryClient, shell]);
   useEffect(() => {
     // После первого кадра с содержимым или скелетом: раньше — заглушка Telegram сменится пустым экраном (навык).
     if (shell === 'telegram') miniApp.ready.ifAvailable();

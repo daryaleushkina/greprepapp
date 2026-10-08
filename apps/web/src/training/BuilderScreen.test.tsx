@@ -18,6 +18,38 @@ test('с «Сегодня» можно открыть конструктор с�
   await expect.element(screen.getByRole('heading', { name: 'Новая тренировка' })).toBeVisible();
   await expect.element(screen.getByRole('textbox', { name: 'Вопросов' })).toHaveValue('10');
 });
+
+test('выбор набора показывает его раздел, типы, число и режим вместо старой формы', async () => {
+  const { screen, server } = await boot();
+  await screen.getByRole('button', { name: 'Quant', exact: true }).click();
+  await screen.getByRole('textbox', { name: 'Вопросов' }).fill('5');
+  await screen.getByRole('radio', { name: 'Проверка на время' }).click();
+  await expect.element(screen.getByRole('button', { name: 'Verbal', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect.element(screen.getByRole('textbox', { name: 'Вопросов' })).toHaveValue('12');
+  await expect.element(screen.getByRole('button', { name: 'Проверка', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect.element(screen.getByRole('combobox', { name: 'Тип' })).toHaveValue('preset');
+  await screen.getByRole('button', { name: /Начать ·/ }).click();
+  await expect.element(screen.getByRole('heading', { name: 'Продолжить тренировку' })).toBeVisible();
+  expect(await server.requests.find((r) => r.method === 'POST')?.json()).toMatchObject({ section: 'verbal', count: 12, mode: 'check', questionTypes: ['text_completion', 'sentence_equivalence'] });
+});
+
+test('повторная загрузка вариантов сохраняет недособранную форму и открытые темы', async () => {
+  const options = trainingOptions();
+  const { screen, queryClient } = await boot('/training/new', options);
+  await screen.getByRole('button', { name: 'Quant', exact: true }).click();
+  await screen.getByRole('textbox', { name: 'Вопросов' }).fill('5');
+  await screen.getByRole('button', { name: /Темы и сложность/ }).click();
+  await screen.getByRole('switch', { name: /Контраст/ }).click();
+  await screen.getByRole('button', { name: 'Трудная', exact: true }).click();
+  options.types[2]!.topics[0]!.title.ru = 'Обновлённый контраст';
+  await queryClient.invalidateQueries({ queryKey: ['training-options'] });
+  await expect.element(screen.getByText('Обновлённый контраст')).toBeVisible();
+  await expect.element(screen.getByRole('heading', { name: 'Темы и сложность' })).toBeVisible();
+  await expect.element(screen.getByRole('switch', { name: /контраст/i })).not.toBeChecked();
+  await expect.element(screen.getByRole('button', { name: 'Трудная', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await screen.getByRole('button', { name: /Готово ·/ }).click();
+  await expect.element(screen.getByRole('textbox', { name: 'Вопросов' })).toHaveValue('5');
+});
 test('поля, набор и темы меняют запрос; начать сохраняет и даёт единственный вход «Продолжить»', async () => {
   const { screen, server } = await boot();
   await screen.getByRole('radio', { name: 'Проверка на время' }).click();

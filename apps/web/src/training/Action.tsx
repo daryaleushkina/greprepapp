@@ -10,7 +10,7 @@ export function TrainingAction({ text, disabled, busy = false, onClick }: { text
   const { shell } = useShell();
   const native = shell === 'telegram' && mainButton.setParams.isAvailable();
   const handler = useRef(onClick);
-  useLayoutEffect(() => { handler.current = onClick; });
+  useLayoutEffect(() => { handler.current = () => { if (!disabled && !busy) onClick(); }; });
   useEffect(() => {
     if (!native) return;
     const apply = () => {
@@ -28,8 +28,8 @@ export function TrainingAction({ text, disabled, busy = false, onClick }: { text
   }, [native, text, disabled, busy]);
   useEffect(() => {
     if (!native) return;
-    const sub = mainButton.onClick.ifAvailable(() => { if (!disabled && !busy) handler.current(); });
+    const sub = mainButton.onClick.ifAvailable(() => handler.current());
     return () => { if (sub.ok) sub.data(); mainButton.setParams.ifAvailable({ isVisible: false }); };
-  }, [native, disabled, busy]);
+  }, [native]);
   return native ? null : <button type="button" className={styles.action} disabled={disabled || busy} aria-busy={busy} onClick={onClick}>{text}</button>;
 }

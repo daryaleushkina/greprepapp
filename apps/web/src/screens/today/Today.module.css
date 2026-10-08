@@ -405,9 +405,8 @@
   }
 }
 
-.continue { display: flex; flex-direction: column; gap: var(--space-4); margin-top: var(--space-20); padding: var(--space-16); border-radius: var(--radius-xxl); background: var(--color-surface); text-decoration: none; }
+.continue { display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: var(--space-12); margin-top: var(--space-20); padding: var(--space-16); border-radius: var(--radius-xxl); background: var(--color-surface); text-decoration: none; }
 .own { align-self: flex-start; display: inline-flex; align-items: center; min-height: var(--size-tap-target); margin-top: var(--space-24); font: var(--font-subhead); font-weight: var(--font-weight-medium); color: var(--color-text); text-underline-offset: var(--space-4); }
 
-.continue { flex-direction: row; align-items: center; justify-content: space-between; gap: var(--space-12); }
 .continueText { display: flex; flex-direction: column; gap: var(--space-4); }
 .continue svg { flex: none; width: var(--space-20); height: var(--space-20); color: var(--color-text-secondary); }

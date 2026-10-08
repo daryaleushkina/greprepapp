@@ -14,7 +14,7 @@ import { useGlow } from '../../layout/AppLayout';
 import { useSession } from '../../session/session';
 import { useOnline } from '../../useOnline';
 import { useActiveTraining } from '../../training/hooks';
-import { TYPE_LABELS, trainingText } from '../../training/builder';
+import { TYPE_LABELS } from '../../training/builder';
 import { RibbonSkeleton, StepRibbon } from './StepRibbon';
 import { todaySummary } from './summary';
 import styles from './Today.module.css';
@@ -89,7 +89,7 @@ export function TodayScreen(): ReactNode {
       {activeTraining && <Link to="/training/$trainingId" params={{ trainingId: activeTraining.session.id }} className={styles.continue}>
         <span className={styles.continueText}><span className={styles.rowTitle}>{t.training.training_continue}</span>
         <span className={styles.section} data-section={activeTraining.session.section}>
-          {trainingText(t.training.training_continue_subtitle,
+          {t.training.training_continue_subtitle(
             [t.sections[activeTraining.session.section], ...activeTraining.session.questionTypes.map((type) => TYPE_LABELS[type])].join(' · '),
             activeTraining.position + 1, activeTraining.session.items.length)}
         </span></span><ChevronRightIcon />

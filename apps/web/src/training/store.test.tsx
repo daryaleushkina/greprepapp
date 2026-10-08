@@ -77,3 +77,39 @@ test('уведомления своей и второй вкладки прих�
 test('до входа чужой владелец ничего не читает', async () => {
   const { store } = makeStore(); expect(await store.owns({ userId: 'a', revision: 1 })).toBe(false);
 });
+
+test('испорченный meta.owner очищается как неизвестный владелец и больше не мешает входу', async () => {
+  const { store, name, report } = makeStore(); const owner = await store.signIn('a');
+  await store.put(owner, savedTraining());
+  const db = await openDB(name); await db.put('meta', { userId: 'private', revision: 'broken' }, 'owner'); db.close();
+  const next = await store.signIn('a');
+  expect(await store.list(next)).toEqual([]);
+  expect(await store.owns(owner)).toBe(false);
+  expect(report).toHaveBeenCalledWith(expect.objectContaining({ message: 'training owner unreadable' }));
+  expect(await store.signIn('a')).toEqual(next);
+});
+
+test('чтение тренировок и владельца не захватывает транзакцию записи', async () => {
+  const { store } = makeStore(); const owner = await store.signIn('a'); const t = savedTraining(); await store.put(owner, t);
+  const transaction = vi.spyOn(IDBDatabase.prototype, 'transaction');
+  await store.get(owner, t.session.id); await store.list(owner); await store.owns(owner);
+  expect(transaction.mock.calls.every((call) => call[1] === 'readonly')).toBe(true);
+});
+
+test('ошибка открытия базы не запоминается навсегда; после восстановления устройство доступно', async () => {
+  const { store, name } = makeStore();
+  const newer = await openDB(name, 2); newer.close();
+  await expect(store.signIn('a')).rejects.toHaveProperty('name', 'VersionError');
+  await deleteDB(name);
+  const owner = await store.signIn('a'); expect(await store.owns(owner)).toBe(true);
+});
+
+test('get переносит нечитаемую запись отдельной транзакцией и смена пользователя удаляет её', async () => {
+  const { store, name, report } = makeStore(); const owner = await store.signIn('a');
+  const db = await openDB(name); await db.put('trainings', 'private', 'a/broken'); db.close();
+  expect(await store.get(owner, 'broken')).toBeUndefined();
+  expect(report).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ message: 'training record unreadable: invalid stored training' }));
+  const again = await openDB(name); await again.put('trainings', 'private', 'a/invalid'); again.close();
+  const next = await store.signIn('b'); expect(await store.list(next)).toEqual([]);
+  expect(report).not.toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('private') }));
+});
