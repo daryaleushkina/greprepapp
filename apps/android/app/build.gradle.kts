@@ -69,10 +69,6 @@ android {
         unitTests {
             isIncludeAndroidResources = true
             all {
-                // Общий файл — вход задачи: его правка обязательно запускает тест заново, включая сборки из кэша.
-                it.inputs
-                    .file(trainingConformance.file("training-rules.json"))
-                    .withPathSensitivity(PathSensitivity.RELATIVE)
                 // Robolectric с Android 16 лезет во внутренности JDK (разделяемая память приложения).
                 it.jvmArgs("--add-opens=java.base/jdk.internal.access=ALL-UNNAMED")
                 it.systemProperty("robolectric.graphicsMode", "NATIVE")
@@ -83,6 +79,7 @@ android {
         }
     }
 
+    // Ресурс входит в classpath тестов: правка общего файла запускает их заново, включая сборки из кэша.
     sourceSets
         .getByName("test")
         .resources.directories

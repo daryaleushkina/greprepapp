@@ -73,6 +73,15 @@ func TestSectionOf(t *testing.T) {
 	}
 }
 
+func TestTimedCountLimits(t *testing.T) {
+	if got := TimeLimitSeconds(Verbal, TimedCount); got != 18*60 {
+		t.Errorf("verbal timed limit = %d, want %d", got, 18*60)
+	}
+	if got := TimeLimitSeconds(Quant, TimedCount); got != 21*60 {
+		t.Errorf("quant timed limit = %d, want %d", got, 21*60)
+	}
+}
+
 func TestValidateAcceptsEveryType(t *testing.T) {
 	two := question(TextCompletion, "A ___ and ___.", 1, []string{"A", "F"}, opts("A", "B", "C"), opts("D", "E", "F"))
 	for name, q := range map[string]Question{"tc1": tc1(), "tc2": two, "tc3": tc3(), "se": se(), "qc": qc(), "mc": mc()} {

@@ -317,6 +317,60 @@
       "expected": {"correct": 1, "total": 1, "unanswered": 0, "durationSeconds": 60, "review": []}
     },
     {
+      "name": "practice_timeout_still_reviews_unanswered",
+      "startedAtMillis": 1791277200000,
+      "session": {
+        "id": "00000000-0000-4000-8000-000000000104", "mode": "practice", "section": "verbal", "questionTypes": ["text_completion"], "startedAt": "2026-10-06T09:00:00Z",
+        "items": [{"position": 0, "question": {
+          "id": "00000000-0000-4000-8000-000000000001", "questionType": "text_completion", "section": "verbal", "topicId": "contrast", "topicTitle": {"ru": "Контраст", "en": "Contrast"}, "difficulty": "easy", "prompt": "Fixture ___.",
+          "groups": [{"options": [{"id": "A", "text": "A"}, {"id": "B", "text": "B"}, {"id": "C", "text": "C"}, {"id": "D", "text": "D"}, {"id": "E", "text": "E"}]}], "selectCount": 1, "answer": ["A"],
+          "explanation": {"solution": {"ru": "Тестовый ключ A", "en": "Fixture key A"}, "options": [{"optionId": "B", "text": {"ru": "Тест", "en": "Fixture"}}, {"optionId": "C", "text": {"ru": "Тест", "en": "Fixture"}}, {"optionId": "D", "text": {"ru": "Тест", "en": "Fixture"}}, {"optionId": "E", "text": {"ru": "Тест", "en": "Fixture"}}]}
+        }}]
+      },
+      "finish": {"finishedAt": "2026-10-06T09:01:00Z", "timedOut": true},
+      "expected": {"correct": 0, "total": 1, "unanswered": 1, "durationSeconds": 60, "review": [{"topicId": "contrast", "title": {"ru": "Контраст", "en": "Contrast"}, "mistakes": 1, "positions": [0]}]}
+    },
+    {
+      "name": "mixed_types_partial_answers_are_mistakes",
+      "startedAtMillis": 1791277200000,
+      "session": {
+        "id": "00000000-0000-4000-8000-000000000105", "mode": "practice", "section": "verbal", "questionTypes": ["text_completion", "sentence_equivalence", "quantitative_comparison", "multiple_choice"], "startedAt": "2026-10-06T09:00:00Z",
+        "items": [
+          {"position": 0, "question": {
+            "id": "00000000-0000-4000-8000-000000000001", "questionType": "text_completion", "section": "verbal", "topicId": "contrast", "topicTitle": {"ru": "Контраст", "en": "Contrast"}, "difficulty": "easy", "prompt": "Fixture ___.",
+            "groups": [{"options": [{"id": "A", "text": "A"}, {"id": "B", "text": "B"}, {"id": "C", "text": "C"}, {"id": "D", "text": "D"}, {"id": "E", "text": "E"}]}], "selectCount": 1, "answer": ["A"],
+            "explanation": {"solution": {"ru": "Тестовый ключ A", "en": "Fixture key A"}, "options": [{"optionId": "B", "text": {"ru": "Тест", "en": "Fixture"}}, {"optionId": "C", "text": {"ru": "Тест", "en": "Fixture"}}, {"optionId": "D", "text": {"ru": "Тест", "en": "Fixture"}}, {"optionId": "E", "text": {"ru": "Тест", "en": "Fixture"}}]}
+          }, "answer": {"position": 0, "optionIds": ["A"], "dontKnow": false, "flagged": false, "answeredAt": "2026-10-06T09:01:00Z", "elapsedMs": 1000}},
+          {"position": 1, "question": {
+            "id": "00000000-0000-4000-8000-000000000003", "questionType": "text_completion", "section": "verbal", "topicId": "cause", "topicTitle": {"ru": "Причина", "en": "Cause"}, "difficulty": "hard", "prompt": "Fixture ___, ___ and ___.",
+            "groups": [{"options": [{"id": "A", "text": "A"}, {"id": "B", "text": "B"}, {"id": "C", "text": "C"}]}, {"options": [{"id": "D", "text": "D"}, {"id": "E", "text": "E"}, {"id": "F", "text": "F"}]}, {"options": [{"id": "G", "text": "G"}, {"id": "H", "text": "H"}, {"id": "I", "text": "I"}]}], "selectCount": 1, "answer": ["A", "D", "G"],
+            "explanation": {"solution": {"ru": "Тестовый ключ A, D, G", "en": "Fixture key A, D, G"}, "options": [{"optionId": "B", "text": {"ru": "Тест", "en": "Fixture"}}, {"optionId": "C", "text": {"ru": "Тест", "en": "Fixture"}}, {"optionId": "E", "text": {"ru": "Тест", "en": "Fixture"}}, {"optionId": "F", "text": {"ru": "Тест", "en": "Fixture"}}, {"optionId": "H", "text": {"ru": "Тест", "en": "Fixture"}}, {"optionId": "I", "text": {"ru": "Тест", "en": "Fixture"}}]}
+          }, "answer": {"position": 1, "optionIds": ["A", "D", "H"], "dontKnow": false, "flagged": false, "answeredAt": "2026-10-06T09:02:00Z", "elapsedMs": 1000}},
+          {"position": 2, "question": {
+            "id": "00000000-0000-4000-8000-000000000004", "questionType": "sentence_equivalence", "section": "verbal", "topicId": "synonyms", "topicTitle": {"ru": "Синонимы", "en": "Synonyms"}, "difficulty": "medium", "prompt": "Fixture ___.",
+            "groups": [{"options": [{"id": "A", "text": "A"}, {"id": "B", "text": "B"}, {"id": "C", "text": "C"}, {"id": "D", "text": "D"}, {"id": "E", "text": "E"}, {"id": "F", "text": "F"}]}], "selectCount": 2, "answer": ["A", "C"],
+            "explanation": {"solution": {"ru": "Тестовый ключ A, C", "en": "Fixture key A, C"}, "options": [{"optionId": "B", "text": {"ru": "Тест", "en": "Fixture"}}, {"optionId": "D", "text": {"ru": "Тест", "en": "Fixture"}}, {"optionId": "E", "text": {"ru": "Тест", "en": "Fixture"}}, {"optionId": "F", "text": {"ru": "Тест", "en": "Fixture"}}]}
+          }, "answer": {"position": 2, "optionIds": ["A"], "dontKnow": false, "flagged": false, "answeredAt": "2026-10-06T09:03:00Z", "elapsedMs": 1000}},
+          {"position": 3, "question": {
+            "id": "00000000-0000-4000-8000-000000000005", "questionType": "quantitative_comparison", "section": "quant", "topicId": "roots", "topicTitle": {"ru": "Корни", "en": "Roots"}, "difficulty": "medium", "prompt": "Compare fixture quantities.", "condition": "x = 1", "quantityA": "x", "quantityB": "x + 1",
+            "groups": [{"options": [{"id": "A", "text": "A"}, {"id": "B", "text": "B"}, {"id": "C", "text": "C"}, {"id": "D", "text": "D"}]}], "selectCount": 1, "answer": ["B"],
+            "explanation": {"solution": {"ru": "Тестовый ключ B", "en": "Fixture key B"}, "options": [{"optionId": "A", "text": {"ru": "Тест", "en": "Fixture"}}, {"optionId": "C", "text": {"ru": "Тест", "en": "Fixture"}}, {"optionId": "D", "text": {"ru": "Тест", "en": "Fixture"}}]}
+          }},
+          {"position": 4, "question": {
+            "id": "00000000-0000-4000-8000-000000000006", "questionType": "multiple_choice", "section": "quant", "topicId": "percents", "topicTitle": {"ru": "Проценты", "en": "Percents"}, "difficulty": "easy", "prompt": "Choose the fixture key.",
+            "groups": [{"options": [{"id": "A", "text": "A"}, {"id": "B", "text": "B"}, {"id": "C", "text": "C"}, {"id": "D", "text": "D"}, {"id": "E", "text": "E"}]}], "selectCount": 1, "answer": ["C"],
+            "explanation": {"solution": {"ru": "Тестовый ключ C", "en": "Fixture key C"}, "options": [{"optionId": "A", "text": {"ru": "Тест", "en": "Fixture"}}, {"optionId": "B", "text": {"ru": "Тест", "en": "Fixture"}}, {"optionId": "D", "text": {"ru": "Тест", "en": "Fixture"}}, {"optionId": "E", "text": {"ru": "Тест", "en": "Fixture"}}]}
+          }, "answer": {"position": 4, "optionIds": ["B"], "dontKnow": false, "flagged": false, "answeredAt": "2026-10-06T09:04:00Z", "elapsedMs": 1000}}
+        ]
+      },
+      "finish": {"finishedAt": "2026-10-06T09:11:30.500Z", "timedOut": false},
+      "expected": {"correct": 1, "total": 5, "unanswered": 1, "durationSeconds": 690, "review": [
+        {"topicId": "cause", "title": {"ru": "Причина", "en": "Cause"}, "mistakes": 1, "positions": [1]},
+        {"topicId": "synonyms", "title": {"ru": "Синонимы", "en": "Synonyms"}, "mistakes": 1, "positions": [2]},
+        {"topicId": "roots", "title": {"ru": "Корни", "en": "Roots"}, "mistakes": 1, "positions": [3]}
+      ]}
+    },
+    {
       "name": "explicit_empty_answer_is_unanswered",
       "startedAtMillis": 1791277200000,
       "session": {

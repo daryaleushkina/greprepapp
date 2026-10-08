@@ -127,7 +127,7 @@ object TrainingRules {
      * неотвеченное — «не успел»: это не ошибка темы (решение Даши 06.10.2026).
      */
     fun result(training: StoredTraining): TrainingResult {
-        val timedOut = training.finish?.timedOut == true
+        val timedOut = training.isCheck && training.finish?.timedOut == true
         var correct = 0
         var unanswered = 0
         val byTopic = LinkedHashMap<String, TopicReview>()

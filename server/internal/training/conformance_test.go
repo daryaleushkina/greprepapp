@@ -80,6 +80,7 @@ func TestTrainingRulesConformance(t *testing.T) {
 	t.Run("summaries", func(t *testing.T) {
 		for _, c := range cases.Summaries {
 			t.Run(c.Name, func(t *testing.T) {
+				// ogen проверяет всю цепочку TrainingSession → TrainingItem → GivenAnswer.
 				if err := c.Session.Validate(); err != nil {
 					t.Fatalf("TrainingSession: %v", err)
 				}
@@ -100,7 +101,7 @@ func TestTrainingRulesConformance(t *testing.T) {
 						Answered: len(answer.OptionIds) > 0, DontKnow: answer.DontKnow, Correct: correct,
 					})
 				}
-				got := Summarize(results, c.Finish.TimedOut)
+				got := Summarize(results, TimedOut(Mode(c.Session.Mode), c.Finish.TimedOut))
 				want := Summary{Correct: c.Expected.Correct, Total: c.Expected.Total, Unanswered: c.Expected.Unanswered}
 				for _, topic := range c.Expected.Review {
 					want.Review = append(want.Review, TopicToReview{
@@ -110,6 +111,13 @@ func TestTrainingRulesConformance(t *testing.T) {
 				}
 				if !reflect.DeepEqual(got, want) {
 					t.Errorf("Summarize = %+v\nwant %+v", got, want)
+				}
+				var limit *int
+				if value, ok := c.Session.TimeLimitSeconds.Get(); ok {
+					limit = &value
+				}
+				if got := DurationSeconds(c.Session.StartedAt, c.Finish.FinishedAt, limit); got != c.Expected.DurationSeconds {
+					t.Errorf("DurationSeconds = %d, want %d", got, c.Expected.DurationSeconds)
 				}
 			})
 		}

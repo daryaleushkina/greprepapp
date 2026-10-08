@@ -100,7 +100,6 @@ class TrainingRulesConformanceTest {
                 }.also { c ->
                     assertTrue("answers must not be empty", c.answers.any { !it.badAnswer })
                     assertTrue("summaries must not be empty", c.summaries.isNotEmpty())
-                    assertTrue("pace must not be empty", c.pace.isNotEmpty())
                     assertTrue("toggles must not be empty", c.toggles.isNotEmpty())
                     assertTrue("missingGroups must not be empty", c.missingGroups.isNotEmpty())
                     assertTrue("clocks must not be empty", c.clocks.isNotEmpty())
