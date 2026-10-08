@@ -12,6 +12,7 @@ plugins {
 // «Бэкенд», порт 8090). Релиз — свой сервер; пока его нет (ROADMAP §2, часть 7), адрес задаётся свойством
 // сборки gp.apiBaseUrl, а без него — заведомо несуществующий, и приложение честно говорит «нет сети».
 val releaseApiBaseUrl = providers.gradleProperty("gp.apiBaseUrl").orElse("https://api.greprepapp.invalid/")
+val trainingConformance = rootProject.layout.projectDirectory.dir("../../api/conformance")
 
 android {
     namespace = "dev.greprepapp.app"
@@ -77,6 +78,12 @@ android {
             }
         }
     }
+
+    // Ресурс входит в classpath тестов: правка общего файла запускает их заново, включая сборки из кэша.
+    sourceSets
+        .getByName("test")
+        .resources.directories
+        .add(trainingConformance.asFile.path)
 }
 
 kotlin {

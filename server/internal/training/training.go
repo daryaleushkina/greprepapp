@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"time"
 	"unicode/utf8"
 )
 
@@ -64,6 +65,19 @@ func PaceSeconds(s Section) int {
 
 // TimeLimitSeconds — время «Проверки» на n вопросов.
 func TimeLimitSeconds(s Section, n int) int { return PaceSeconds(s) * n }
+
+// TimedOut учитывает сигнал конца таймера только у «Проверки»: у «Практики» таймера нет.
+func TimedOut(mode Mode, requested bool) bool { return requested && mode == Check }
+
+// DurationSeconds — целые секунды от начала до конца, не больше лимита, если он есть.
+// Обработчик заранее ограничивает дату конца началом и временем получения запроса.
+func DurationSeconds(startedAt, finishedAt time.Time, timeLimitSeconds *int) int {
+	duration := finishedAt.Sub(startedAt)
+	if timeLimitSeconds != nil {
+		duration = min(duration, time.Duration(*timeLimitSeconds)*time.Second)
+	}
+	return int(duration / time.Second)
+}
 
 // MaxQuestions — больше вопросов в одной тренировке не бывает (TrainingRequest.count в договоре).
 const MaxQuestions = 50

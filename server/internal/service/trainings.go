@@ -340,8 +340,7 @@ func (s *Service) FinishTraining(ctx context.Context, req *api.TrainingFinish, p
 			// Конец — по часам устройства (тренировку могли закончить без сети), но не раньше начала и не
 			// позже, чем запрос дошёл: часы устройства могут врать.
 			end := clampTime(req.FinishedAt, tr.StartedAt, s.now())
-			// Таймер есть только у «Проверки».
-			timedOut := req.TimedOut && tr.Mode == string(api.TrainingModeCheck)
+			timedOut := training.TimedOut(training.Mode(tr.Mode), req.TimedOut)
 			if err := q.FinishTraining(tctx, db.FinishTrainingParams{ID: tr.ID, FinishedAt: &end, TimedOut: timedOut}); err != nil {
 				return fmt.Errorf("finish training: %w", err)
 			}
@@ -383,10 +382,6 @@ func summaryOf(tr db.Training, rows []db.ListTrainingItemsRow) *api.TrainingSumm
 		})
 	}
 	sum := training.Summarize(results, tr.TimedOut)
-	duration := tr.FinishedAt.Sub(tr.StartedAt)
-	if tr.TimeLimitSeconds != nil {
-		duration = min(duration, time.Duration(*tr.TimeLimitSeconds)*time.Second)
-	}
 	review := make([]api.TopicToReview, 0, len(sum.Review))
 	for _, t := range sum.Review {
 		review = append(review, api.TopicToReview{
@@ -395,7 +390,7 @@ func summaryOf(tr db.Training, rows []db.ListTrainingItemsRow) *api.TrainingSumm
 	}
 	return &api.TrainingSummary{
 		Correct: sum.Correct, Total: sum.Total, Unanswered: sum.Unanswered,
-		DurationSeconds: int(duration / time.Second), Review: review,
+		DurationSeconds: training.DurationSeconds(tr.StartedAt, *tr.FinishedAt, tr.TimeLimitSeconds), Review: review,
 	}
 }
 
