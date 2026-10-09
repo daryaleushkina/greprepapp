@@ -165,6 +165,26 @@ struct API: Sendable {
         }
     }
 
+    func reportQuestion(_ id: String, report: QuestionReport) async throws(APIFailure) {
+        do {
+            let output = try await call {
+                try await client.reportQuestion(path: .init(questionId: id), body: .json(report))
+            }
+            switch output {
+            case .noContent: return
+            case let .default(status, error): throw failure(status, error)
+            }
+        } catch {
+            // Ошибки генератора могут включать исходный запрос. Ни текст, ни эхо сервера не идут в журнал.
+            let safeFailure = APIFailure(error)
+            switch safeFailure {
+            case .offline, .unauthorized, .cancelled: throw safeFailure
+            case let .server(status, _, _): throw .server(status: status, code: "http_\(status)", requestID: nil)
+            case .unexpected: throw .unexpected("question report response invalid")
+            }
+        }
+    }
+
     func today() async throws(APIFailure) -> TodayDTO {
         let output = try await call { try await client.getToday() }
         switch output {

@@ -123,6 +123,24 @@ final class TrainingModel {
         enqueue { await repository.finish(id, timedOut: timedOut, epoch: epoch) }
     }
 
+    func editReport(
+        _ id: String, position: Int, draft: QuestionReportDraft?, send: Bool = false,
+        completion: @escaping @MainActor @Sendable (APIFailure?) -> Void = { _ in }
+    ) {
+        let epoch = revision
+        let repository = repository
+        enqueue {
+            do {
+                if send, let draft {
+                    try await repository.recordReport(id, position: position, draft: draft, epoch: epoch)
+                } else {
+                    try await repository.saveReportDraft(id, position: position, draft: draft, epoch: epoch)
+                }
+                await completion(nil)
+            } catch { await completion(APIFailure(error)) }
+        }
+    }
+
     private func enqueue(_ action: @escaping @Sendable () async -> Void) {
         let previous = edits
         let connection = connection

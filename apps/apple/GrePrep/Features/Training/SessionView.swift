@@ -9,26 +9,32 @@ struct TrainingSessionView: View {
     private let id: String
     private let trainings: TrainingModel
     private let runsClock: Bool
+    private let keyboardAvailable: Bool?
     let onClose: () -> Void
     let onRepeat: (String) -> Void
 
     init(
-        id: String, trainings: TrainingModel, onClose: @escaping () -> Void = {},
+        id: String, trainings: TrainingModel, keyboardAvailable: Bool? = nil, onClose: @escaping () -> Void = {},
         onRepeat: @escaping (String) -> Void = { _ in }
     ) {
         self.id = id
         self.trainings = trainings
         runsClock = true
+        self.keyboardAvailable = keyboardAvailable
         self.onClose = onClose
         self.onRepeat = onRepeat
     }
 
     /// Снимки получают уже подготовленную модель и не запускают часы.
-    init(model: SessionModel, onClose: @escaping () -> Void = {}, onRepeat: @escaping (String) -> Void = { _ in }) {
+    init(
+        model: SessionModel, keyboardAvailable: Bool? = nil, onClose: @escaping () -> Void = {},
+        onRepeat: @escaping (String) -> Void = { _ in }
+    ) {
         _model = State(initialValue: model)
         id = model.id
         trainings = model.trainings
         runsClock = false
+        self.keyboardAvailable = keyboardAvailable
         self.onClose = onClose
         self.onRepeat = onRepeat
     }
@@ -36,7 +42,9 @@ struct TrainingSessionView: View {
     var body: some View {
         Group {
             if let model {
-                TrainingSessionContent(model: model, runsClock: runsClock, onClose: onClose, onRepeat: onRepeat)
+                TrainingSessionContent(
+                    model: model, runsClock: runsClock, keyboardAvailable: keyboardAvailable, onClose: onClose,
+                    onRepeat: onRepeat)
             } else {
                 Color(.bg)
             }
@@ -50,18 +58,22 @@ struct TrainingSessionView: View {
 private struct TrainingSessionContent: View {
     let model: SessionModel
     let runsClock: Bool
+    let keyboardAvailable: Bool?
     let onClose: () -> Void
     let onRepeat: (String) -> Void
     @Environment(\.scenePhase) private var scenePhase
     @FocusState private var keyboardFocus: Bool
     @State private var keyboardConnected = GCKeyboard.coalesced != nil
     @State private var wideWindow = false
+    @State private var review = false
+    @State private var reportPosition: Int?
 
     private var hasKeyboard: Bool {
+        if let keyboardAvailable { return keyboardAvailable }
         #if os(macOS)
-            true
+            return true
         #else
-            keyboardConnected && UIDevice.current.userInterfaceIdiom == .pad
+            return keyboardConnected && UIDevice.current.userInterfaceIdiom == .pad
         #endif
     }
 
@@ -116,18 +128,18 @@ private struct TrainingSessionContent: View {
             phases: .down
         ) { press in
             guard press.modifiers.intersection([.command, .control, .option]).isEmpty,
-                !model.overview || wideWindow
+                !model.overview || wideWindow, !review, reportPosition == nil
             else { return .ignored }
             model.selectKey(press.characters)
             return .handled
         }
         .onKeyPress(keys: [.return], phases: .down) { press in
-            guard press.modifiers.isEmpty else { return .ignored }
+            guard press.modifiers.isEmpty, !review, reportPosition == nil else { return .ignored }
             primary()
             return .handled
         }
         .onKeyPress(keys: [.rightArrow], phases: .down) { press in
-            guard press.modifiers.isEmpty, !model.overview else { return .ignored }
+            guard press.modifiers.isEmpty, !model.overview, !review, reportPosition == nil else { return .ignored }
             model.next()
             return .handled
         }
@@ -156,6 +168,15 @@ private struct TrainingSessionContent: View {
             model.tick()
             keyboardFocus = hasKeyboard
         }
+        .navigationDestination(isPresented: $review) {
+            TrainingReviewView(model: ReviewModel(id: model.id, trainings: model.trainings))
+        }
+        .sheet(isPresented: Binding(get: { reportPosition != nil }, set: { if !$0 { reportPosition = nil } })) {
+            if let position = reportPosition {
+                QuestionReportView(
+                    model: QuestionReportModel(id: model.id, position: position, trainings: model.trainings))
+            }
+        }
         .accessibilityElement(children: .contain).accessibilityIdentifier("training.session")
     }
 
@@ -163,10 +184,16 @@ private struct TrainingSessionContent: View {
         ScrollView {
             Group {
                 if let result = s.result {
-                    SessionSummary(screen: s, result: result, wide: wide)
+                    VStack(alignment: .leading, spacing: GPSpace.s24) {
+                        SessionSummary(screen: s, result: result, wide: wide)
+                        Button("Все ответы и разборы") { review = true }
+                            .gpText(GPType.callout).frame(minHeight: GPSize.tapTarget)
+                            .accessibilityIdentifier("summary.review")
+                    }.frame(maxWidth: GPLayout.contentMax, alignment: .leading)
                 } else if wide && (s.revealed || s.training.isCheck) {
                     HStack(alignment: .top, spacing: GPSpace.s32) {
-                        SessionQuestion(screen: s, onSelect: model.select).frame(maxWidth: GPLayout.contentMax)
+                        SessionQuestion(screen: s, onSelect: model.select, onReport: { reportPosition = s.position })
+                            .frame(maxWidth: GPLayout.contentMax)
                         Group {
                             if s.revealed {
                                 SessionExplanation(model: model, screen: s)
@@ -179,7 +206,7 @@ private struct TrainingSessionContent: View {
                     SessionOverview(model: model, screen: s).frame(maxWidth: GPLayout.contentMax)
                 } else {
                     VStack(alignment: .leading, spacing: GPSpace.s24) {
-                        SessionQuestion(screen: s, onSelect: model.select)
+                        SessionQuestion(screen: s, onSelect: model.select, onReport: { reportPosition = s.position })
                         if s.revealed { SessionExplanation(model: model, screen: s) }
                     }.frame(maxWidth: GPLayout.contentMax)
                 }
@@ -223,6 +250,8 @@ private struct TrainingSessionContent: View {
             }
             ViewThatFits(in: .horizontal) {
                 HStack(spacing: GPSpace.s12) { buttons(s) }
+                    // Иначе бесконечная ширина главной кнопки скрывает переполнение от ViewThatFits на iOS 18.
+                    .fixedSize(horizontal: s.result?.review.isEmpty == false, vertical: false)
                 VStack(spacing: GPSpace.s8) { buttons(s) }
             }
         }

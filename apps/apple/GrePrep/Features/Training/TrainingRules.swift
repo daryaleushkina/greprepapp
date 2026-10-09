@@ -17,12 +17,34 @@ struct StoredTraining: Codable, Sendable, Equatable {
     var position = 0
     var finish: TrainingFinish?
     var finishSent = false
+    // Optional сохраняет совместимость с файлами первых частей тренировок.
+    var reports: [PendingQuestionReport]?
+    var reportDrafts: [Int: QuestionReportDraft]?
 
     var id: String { session.id }
     var total: Int { session.items.count }
     var isCheck: Bool { session.mode == .check }
     var isFinished: Bool { finish != nil }
-    var isSynced: Bool { unsent.isEmpty && (finish == nil || finishSent) }
+    var isSynced: Bool { unsent.isEmpty && (reports ?? []).isEmpty && (finish == nil || finishSent) }
+    var hasReportDrafts: Bool { !(reportDrafts ?? [:]).isEmpty }
+}
+
+typealias QuestionReport = Components.Schemas.QuestionReport
+typealias ReportKind = QuestionReport.KindPayload
+
+struct QuestionReportDraft: Codable, Sendable, Equatable {
+    var kind: ReportKind?
+    var text = ""
+    // Договор считает кодовые точки, а не графемы или байты UTF-8.
+    static let maxLength = 2000
+    var length: Int { text.unicodeScalars.count }
+    var canSend: Bool { kind != nil && length <= Self.maxLength }
+}
+
+struct PendingQuestionReport: Codable, Sendable, Equatable, Identifiable {
+    let id: UUID
+    let position: Int
+    let body: QuestionReport
 }
 
 /// Клиентские правила из общего договора; темп и лимит приходят готовыми с сервера.

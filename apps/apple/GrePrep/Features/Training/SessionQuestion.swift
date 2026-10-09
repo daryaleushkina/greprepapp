@@ -106,14 +106,17 @@ enum TrainingText {
 struct SessionQuestion: View {
     let screen: SessionModel.Screen
     let onSelect: (String) -> Void
+    var onReport: (() -> Void)?
     @Environment(\.textScale) private var textScale
     var section: StudySection { StudySection(screen.training.session.section) }
     var question: Question { screen.question }
 
     var body: some View {
         VStack(alignment: .leading, spacing: GPSpace.s20) {
-            Text(verbatim: TrainingText.typeLabel(question)).gpText(GPType.footnote)
-                .foregroundStyle(section.color).accessibilityAddTraits(.isHeader)
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: GPSpace.s12) { heading }
+                VStack(alignment: .leading, spacing: GPSpace.s4) { heading }
+            }
             if question.questionType == .quantitativeComparison {
                 quantities
             } else {
@@ -151,6 +154,16 @@ struct SessionQuestion: View {
                 }
             }
         }.foregroundStyle(Color(.text)).frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    @ViewBuilder private var heading: some View {
+        Text(verbatim: TrainingText.typeLabel(question)).gpText(GPType.footnote)
+            .foregroundStyle(section.color).accessibilityAddTraits(.isHeader)
+        if let onReport {
+            Button("Сообщить об ошибке", action: onReport).gpText(GPType.footnote)
+                .buttonStyle(.plain).foregroundStyle(Color(.textSecondary))
+                .frame(minHeight: GPSize.tapTarget).accessibilityIdentifier("question.report")
+        }
     }
 
     func prompt(scale: CGFloat) -> AttributedString {
@@ -280,15 +293,21 @@ struct SessionQuestion: View {
             ForEach(
                 group.options.filter { question.answer.contains($0.id) || screen.selection.contains($0.id) }, id: \.id
             ) { option in
-                optionRow(option, mark: question.answer.contains(option.id) ? .correct : .wrong)
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel(Text(verbatim: "\(option.id), \(option.text)"))
-                    .accessibilityValue(
-                        Text(
-                            verbatim: [
-                                question.answer.contains(option.id) ? String(localized: "верный") : "",
-                                screen.selection.contains(option.id) ? String(localized: "ваш ответ") : "",
-                            ].filter { !$0.isEmpty }.joined(separator: ", ")))
+                VStack(alignment: .leading, spacing: GPSpace.s4) {
+                    optionRow(option, mark: question.answer.contains(option.id) ? .correct : .wrong)
+                    if question.answer.contains(option.id), screen.selection.contains(option.id) {
+                        Text("ваш ответ").gpText(GPType.footnote).foregroundStyle(section.color)
+                            .padding(.horizontal, GPSpace.s12)
+                    }
+                }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(Text(verbatim: "\(option.id), \(option.text)"))
+                .accessibilityValue(
+                    Text(
+                        verbatim: [
+                            question.answer.contains(option.id) ? String(localized: "верный") : "",
+                            screen.selection.contains(option.id) ? String(localized: "ваш ответ") : "",
+                        ].filter { !$0.isEmpty }.joined(separator: ", ")))
             }
             let rest = group.options.filter { !question.answer.contains($0.id) && !screen.selection.contains($0.id) }
             if !rest.isEmpty {

@@ -311,14 +311,22 @@ struct ScreenSnapshotTests {
         server.on("POST /api/trainings", .json(201, TrainingFixture.json(TrainingFixture.session)))
         let id = try await app.trainings.start(TrainingFixture.options.presets[0].request)
         assertScreens(
-            NavigationStack { TrainingSessionView(id: id, trainings: app.trainings) }.environment(app),
+            NavigationStack {
+                TrainingSessionView(id: id, trainings: app.trainings, keyboardAvailable: Self.snapshotHasKeyboard)
+            }.environment(app),
             named: "training-session")
         assertScreens(
-            NavigationStack { TrainingSessionView(id: "missing", trainings: app.trainings) }.environment(app),
+            NavigationStack {
+                TrainingSessionView(
+                    id: "missing", trainings: app.trainings, keyboardAvailable: Self.snapshotHasKeyboard)
+            }.environment(app),
             named: "training-missing")
     }
 
-    private func sessionModel(_ question: Question, check: Bool = false, clock: TrainingTestClock = TrainingTestClock())
+    private func sessionModel(
+        _ question: Question, check: Bool = false, clock: TrainingTestClock = TrainingTestClock(),
+        store: TrainingStore = temporaryTrainingStore()
+    )
         async throws -> SessionModel
     {
         var t = TrainingFixture.stored()
@@ -329,7 +337,6 @@ struct ScreenSnapshotTests {
             t.session.mode = .check
             t.session.timeLimitSeconds = 270
         }
-        let store = temporaryTrainingStore()
         try store.saveOwner("person")
         try store.save(t)
         server.on("POST /api/trainings/\(t.id)/answers", .failure(.notConnectedToInternet))
@@ -346,7 +353,7 @@ struct ScreenSnapshotTests {
         _ model: SessionModel, name: String, file: StaticString = #filePath, testName: String = #function,
         line: UInt = #line
     ) {
-        let view = NavigationStack { TrainingSessionView(model: model) }
+        let view = NavigationStack { TrainingSessionView(model: model, keyboardAvailable: Self.snapshotHasKeyboard) }
         assertScreens(view, named: name, file: file, testName: testName, line: line)
         assertScreens(
             view.environment(\.textScale, GPType.textScaleLarge), named: name + "-larger", file: file,
@@ -403,9 +410,11 @@ struct ScreenSnapshotTests {
                 partial.select(q.answer[0])
                 partial.openOverview()
                 for larger in [false, true] {
-                    let view = NavigationStack { TrainingSessionView(model: partial) }
-                        .environment(\.glassEnabled, false)
-                        .environment(\.textScale, larger ? GPType.textScaleLarge : 1)
+                    let view = NavigationStack {
+                        TrainingSessionView(model: partial, keyboardAvailable: Self.snapshotHasKeyboard)
+                    }
+                    .environment(\.glassEnabled, false)
+                    .environment(\.textScale, larger ? GPType.textScaleLarge : 1)
                     for dark in [false, true] {
                         assertSnapshot(
                             of: view,
@@ -463,7 +472,7 @@ struct ScreenSnapshotTests {
             model.english = false
             model.whyNotOpen = true
             let view = AnyView(
-                NavigationStack { TrainingSessionView(model: model) }
+                NavigationStack { TrainingSessionView(model: model, keyboardAvailable: Self.snapshotHasKeyboard) }
                     .environment(\.textScale, GPType.textScaleLarge).environment(\.glassEnabled, false))
             let strategy = Snapshotting<AnyView, UIImage>.image(
                 drawHierarchyInKeyWindow: true, layout: .device(config: Self.pad),
@@ -485,15 +494,123 @@ struct ScreenSnapshotTests {
         func trainingDynamicType() async throws {
             let model = try await sessionModel(TrainingFixture.sample(.textCompletion, blanks: 3))
             assertScreens(
-                NavigationStack { TrainingSessionView(model: model) }.environment(\.dynamicTypeSize, .accessibility3),
+                NavigationStack { TrainingSessionView(model: model, keyboardAvailable: Self.snapshotHasKeyboard) }
+                    .environment(\.dynamicTypeSize, .accessibility3),
                 named: "training-dynamic-type", devices: [.phone])
             model.dontKnow()
             assertScreens(
-                NavigationStack { TrainingSessionView(model: model) }.environment(\.dynamicTypeSize, .accessibility3),
+                NavigationStack { TrainingSessionView(model: model, keyboardAvailable: Self.snapshotHasKeyboard) }
+                    .environment(\.dynamicTypeSize, .accessibility3),
                 named: "training-dynamic-explanation",
                 devices: [.phone])
         }
     #endif
+
+    @Test("все ответы: список, ошибки, вопрос, язык и крупный текст")
+    func trainingReview() async throws {
+        let session = try await sessionModel(TrainingFixture.sample(.textCompletion), check: true)
+        session.select("A")
+        session.next()
+        session.select("C")
+        session.end()
+        await eventually { session.trainings.trainings[session.id]?.isFinished == true }
+        let review = ReviewModel(id: session.id, trainings: session.trainings)
+        let view = NavigationStack { TrainingReviewView(model: review) }
+        assertScreens(view, named: "training-review")
+        assertScreens(view.environment(\.textScale, GPType.textScaleLarge), named: "training-review-larger")
+        review.onlyMistakes = true
+        assertScreens(view, named: "training-review-mistakes")
+        let screen = try #require(review.screen(1))
+        let item = NavigationStack { TrainingReviewItemView(screen: screen, trainings: session.trainings) }
+        assertScreens(item, named: "training-review-question")
+        assertScreens(item.environment(\.textScale, GPType.textScaleLarge), named: "training-review-question-larger")
+        assertScreens(
+            item.environment(\.dynamicTypeSize, .accessibility3), named: "training-review-dynamic", devices: [.phone])
+        let perfect = try await sessionModel(TrainingFixture.sample(.textCompletion))
+        for _ in 0..<3 {
+            perfect.select("A")
+            perfect.check()
+            perfect.next()
+        }
+        await eventually { perfect.trainings.trainings[perfect.id]?.isFinished == true }
+        let noMistakes = ReviewModel(id: perfect.id, trainings: perfect.trainings)
+        noMistakes.onlyMistakes = true
+        assertScreens(NavigationStack { TrainingReviewView(model: noMistakes) }, named: "training-review-perfect")
+    }
+
+    @Test("жалоба: выбор, лимит, подтверждение и крупный текст")
+    func trainingReport() async throws {
+        let store = temporaryTrainingStore()
+        let session = try await sessionModel(TrainingFixture.sample(.textCompletion), store: store)
+        let model = QuestionReportModel(id: session.id, position: 0, trainings: session.trainings)
+        assertScreens(QuestionReportView(model: model), named: "training-report-empty")
+        model.setKind(.explanation)
+        assertScreens(QuestionReportView(model: model), named: "training-report")
+        assertScreens(
+            QuestionReportView(model: model).environment(\.textScale, GPType.textScaleLarge),
+            named: "training-report-larger")
+        assertScreens(
+            QuestionReportView(model: model).environment(\.dynamicTypeSize, .accessibility3),
+            named: "training-report-dynamic", devices: [.phone])
+        model.setText(String(repeating: "x", count: 2001))
+        assertScreens(QuestionReportView(model: model), named: "training-report-over-limit")
+        model.setText("")
+        await eventually { session.trainings.trainings[session.id]?.reportDrafts?[0]?.text == "" }
+        let backup = store.directory.appendingPathExtension("backup")
+        try FileManager.default.moveItem(at: store.directory, to: backup)
+        try Data().write(to: store.directory)
+        model.send()
+        await eventually { model.problem && !model.saving }
+        assertScreens(QuestionReportView(model: model), named: "training-report-failed")
+        try FileManager.default.removeItem(at: store.directory)
+        try FileManager.default.moveItem(at: backup, to: store.directory)
+        model.send()
+        await eventually { model.sent }
+        assertScreens(QuestionReportView(model: model), named: "training-report-sent")
+    }
+
+    #if os(macOS)
+        @Test("клавиши настоящего широкого окна Mac")
+        func trainingMacKeyboard() async throws {
+            let model = try await sessionModel(TrainingFixture.sample(.textCompletion))
+            let controller = NSHostingController(rootView: NavigationStack { TrainingSessionView(model: model) })
+            let window = NSWindow(
+                contentRect: NSRect(x: -2000, y: -2000, width: 1100, height: 760),
+                styleMask: [.titled, .closable], backing: .buffered, defer: false)
+            window.contentViewController = controller
+            window.makeKeyAndOrderFront(nil)
+            defer { window.orderOut(nil) }
+            await eventually { window.firstResponder != nil }
+            func key(_ characters: String, code: UInt16) throws {
+                let event = try #require(
+                    NSEvent.keyEvent(
+                        with: .keyDown, location: .zero, modifierFlags: [],
+                        timestamp: ProcessInfo.processInfo.systemUptime, windowNumber: window.windowNumber,
+                        context: nil, characters: characters, charactersIgnoringModifiers: characters, isARepeat: false,
+                        keyCode: code))
+                window.sendEvent(event)
+            }
+            try key("a", code: 0)
+            await eventually { model.screen?.selection == ["A"] }
+            try key("\r", code: 36)
+            await eventually { model.screen?.revealed == true }
+            try key(String(UnicodeScalar(NSRightArrowFunctionKey)!), code: 124)
+            await eventually { model.screen?.position == 1 }
+            assertScreens(
+                NavigationStack { TrainingSessionView(model: model, keyboardAvailable: Self.snapshotHasKeyboard) },
+                named: "training-mac-keyboard")
+        }
+    #endif
+
+    /// Симулятор может сам подключить клавиатуру при первом окне. Эталон задаёт её явно:
+    /// iPad и Mac — с клавишами, iPhone — без них; живые экраны используют GCKeyboard.
+    static var snapshotHasKeyboard: Bool {
+        #if os(iOS)
+            UIDevice.current.userInterfaceIdiom == .pad
+        #else
+            true
+        #endif
+    }
 
     enum Device { case phone, pad }
     enum Theme { case light, dark }
@@ -567,18 +684,22 @@ struct ScreenSnapshotTests {
             for device in devices where device == current {
                 let config = device == .phone ? Self.phone : Self.pad
                 for style in themes.map({ $0 == .dark ? UIUserInterfaceStyle.dark : .light }) {
-                    assertSnapshot(
-                        of: view,
-                        as: .image(
-                            // Через окно симулятора: стекло iOS 26 и материалы вне окна не рисуются.
-                            drawHierarchyInKeyWindow: true,
-                            precision: precision, perceptualPrecision: Self.perceptual,
-                            layout: .device(config: config),
-                            traits: UITraitCollection(userInterfaceStyle: style)
-                        ),
-                        named: "\(name)-\(device == .phone ? "iphone" : "ipad")-\(style == .dark ? "dark" : "light")",
-                        fileID: fileID, file: file, testName: testName, line: line, column: column
-                    )
+                    // Смена traits тоже анимирует системные элементы. Снимок сравнивает их конечный вид.
+                    UIView.performWithoutAnimation {
+                        assertSnapshot(
+                            of: view,
+                            as: .image(
+                                // Через окно симулятора: стекло iOS 26 и материалы вне окна не рисуются.
+                                drawHierarchyInKeyWindow: true,
+                                precision: precision, perceptualPrecision: Self.perceptual,
+                                layout: .device(config: config),
+                                traits: UITraitCollection(userInterfaceStyle: style)
+                            ),
+                            named:
+                                "\(name)-\(device == .phone ? "iphone" : "ipad")-\(style == .dark ? "dark" : "light")",
+                            fileID: fileID, file: file, testName: testName, line: line, column: column
+                        )
+                    }
                 }
             }
         #elseif os(macOS)

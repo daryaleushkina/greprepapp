@@ -30,7 +30,8 @@ final class SessionModel {
         let remaining: Int?
         var question: Question { training.session.items[position].question }
         var answer: GivenAnswer? { training.answers[position] }
-        var revealed: Bool { !training.isCheck && answer != nil }
+        var revealed: Bool { reviewing || (!training.isCheck && answer != nil) }
+        let reviewing: Bool
         var flagged: Bool { answer?.flagged == true }
         var isLast: Bool { position == training.total - 1 }
         var canCheck: Bool { TrainingRules.isComplete(question, selection) }
@@ -42,13 +43,14 @@ final class SessionModel {
         let result: Components.Schemas.TrainingSummary?
         init(
             training: StoredTraining, position: Int, selection: [String], remaining: Int?,
-            result: Components.Schemas.TrainingSummary? = nil
+            result: Components.Schemas.TrainingSummary? = nil, reviewing: Bool = false
         ) {
             self.training = training
             self.position = position
             self.selection = selection
             self.remaining = remaining
             self.result = result
+            self.reviewing = reviewing
         }
         var keyboardGroup: Components.Schemas.OptionGroup? {
             let index = missing.first ?? (question.groups.count - 1)

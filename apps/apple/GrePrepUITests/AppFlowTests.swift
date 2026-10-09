@@ -11,6 +11,8 @@ final class AppFlowTests: XCTestCase {
     }
 
     /// Адрес, где точно никто не слушает: так выглядит «нет сети» для приложения.
+    private var userPrefix = "ui"
+
     private let unreachableServer = "http://127.0.0.1:9"
 
     override func setUp() async throws {
@@ -32,7 +34,7 @@ final class AppFlowTests: XCTestCase {
         let name = app.textFields["signin.dev.name"]
         XCTAssertTrue(name.waitForExistence(timeout: 10), "нет поля входа подменой")
         name.tap()
-        name.typeText("ui-\(UUID().uuidString.prefix(12).lowercased())")
+        name.typeText("\(userPrefix)-\(UUID().uuidString.prefix(12).lowercased())")
         app.buttons["signin.dev.submit"].tap()
         XCTAssertTrue(app.staticTexts["today.summary"].waitForExistence(timeout: 15), "после входа нет «Сегодня»")
     }
@@ -325,6 +327,99 @@ final class AppFlowTests: XCTestCase {
         offline.buttons["question.overview"].tap()
         offline.buttons["overview.finish"].tap()
         XCTAssertTrue(offline.buttons["summary.repeat"].waitForExistence(timeout: 5))
+    }
+
+    func testTrainingReviewAnswersAndBack() throws {
+        let app = launch(reset: true)
+        startSession(app, check: true)
+        try capture("question")
+        choose(app, correct: true)
+        app.buttons["question.next"].tap()
+        choose(app, correct: false)
+        app.buttons["question.next"].tap()
+        app.buttons["question.next"].tap()
+        app.buttons["overview.finish"].tap()
+        XCTAssertTrue(app.buttons["summary.review"].waitForExistence(timeout: 5))
+        try capture("summary")
+        app.buttons["summary.review"].tap()
+        XCTAssertTrue(app.buttons["review.item.0"].waitForExistence(timeout: 5))
+        try capture("review")
+        app.segmentedControls["review.filter"].buttons["Ошибки · 2"].tap()
+        XCTAssertFalse(app.buttons["review.item.0"].exists)
+        app.buttons["review.item.1"].tap()
+        XCTAssertTrue(app.staticTexts["explanation.verdict"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["explanation.verdict"].label.hasPrefix("Неверно."))
+        if !app.buttons["explanation.whyNotToggle"].isHittable { app.swipeUp() }
+        app.buttons["explanation.whyNotToggle"].tap()
+        XCTAssertTrue(app.staticTexts["explanation.whyNot"].firstMatch.waitForExistence(timeout: 5))
+        try capture("review-question")
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        XCTAssertTrue(app.buttons["review.item.1"].waitForExistence(timeout: 5))
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        XCTAssertTrue(app.buttons["summary.review"].waitForExistence(timeout: 5))
+    }
+
+    func testTrainingReviewReportAndCancel() throws {
+        let app = launch(reset: true)
+        startSession(app, check: true, threeBlanks: true)
+        app.buttons["question.overview"].tap()
+        app.buttons["overview.finish"].tap()
+        XCTAssertTrue(app.buttons["summary.review"].waitForExistence(timeout: 5))
+        app.buttons["summary.review"].tap()
+        XCTAssertTrue(app.buttons["review.item.0"].waitForExistence(timeout: 5))
+        app.buttons["review.item.0"].tap()
+        XCTAssertTrue(app.buttons["question.report"].waitForExistence(timeout: 5))
+        app.buttons["question.report"].tap()
+        XCTAssertTrue(app.buttons["report.kind.translation"].waitForExistence(timeout: 5))
+        try capture("report-review")
+        app.buttons["report.kind.translation"].tap()
+        app.buttons["report.cancel"].tap()
+        XCTAssertTrue(app.buttons["question.report"].waitForExistence(timeout: 5))
+        app.buttons["question.report"].tap()
+        XCTAssertTrue(app.buttons["report.send"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["report.send"].isEnabled)
+        app.buttons["report.cancel"].tap()
+        XCTAssertTrue(app.buttons["question.report"].waitForExistence(timeout: 5))
+    }
+
+    private func reportText(_ app: XCUIApplication) -> XCUIElement {
+        // SwiftUI представляет многострочный TextField как TextView на iOS 18 и TextField на iOS 27.
+        // Идентификатор договора доступности один на обеих версиях системы.
+        app.descendants(matching: .any).matching(identifier: "report.text").firstMatch
+    }
+
+    func testTrainingQuestionReportDraftAndSend() throws {
+        userPrefix = "report-ui"
+        let app = launch(reset: true)
+        startSession(app)
+        app.buttons["question.report"].tap()
+        XCTAssertTrue(app.buttons["report.send"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["report.send"].isEnabled)
+        try capture("report")
+        app.buttons["report.kind.explanation"].tap()
+        let text = reportText(app)
+        XCTAssertTrue(text.waitForExistence(timeout: 5))
+        text.tap()
+        text.typeText("ui-report-fixture")
+        app.terminate()
+        let again = launch(reset: false)
+        XCTAssertTrue(again.buttons["today.continueTraining"].waitForExistence(timeout: 10))
+        again.buttons["today.continueTraining"].tap()
+        XCTAssertTrue(again.buttons["question.report"].waitForExistence(timeout: 5))
+        again.buttons["question.report"].tap()
+        XCTAssertTrue(reportText(again).waitForExistence(timeout: 5))
+        XCTAssertEqual(reportText(again).value as? String, "ui-report-fixture")
+        XCTAssertTrue(again.buttons["report.kind.explanation"].isSelected)
+        again.buttons["report.send"].tap()
+        XCTAssertTrue(again.staticTexts["report.sent"].waitForExistence(timeout: 5))
+        try capture("report-sent")
+        again.buttons["report.back"].tap()
+        XCTAssertTrue(again.buttons["question.check"].waitForExistence(timeout: 5))
+        again.buttons["question.report"].tap()
+        XCTAssertTrue(again.buttons["report.send"].waitForExistence(timeout: 5))
+        XCTAssertFalse(again.buttons["report.send"].isEnabled)
+        again.buttons["report.cancel"].tap()
+        XCTAssertTrue(again.buttons["question.check"].waitForExistence(timeout: 5))
     }
 
     func testTrainingLayoutInBothOrientations() throws {

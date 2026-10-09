@@ -64,10 +64,12 @@ actor TrainingRepository {
                     // Владелец не проверен: даже совпавший id в файлах не разрешает показать прошлую очередь.
                     try access.withCurrent(revision) {
                         let lost = all.values.reduce(0) { $0 + $1.unsent.count }
+                        let lostReports = all.values.reduce(0) { $0 + ($1.reports ?? []).count }
                         all = [:]
                         ownerID = nil
                         clearPending = true
                         report("training account changed: lost \(lost) unsent answers", nil)
+                        report("training account changed: lost \(lostReports) unsent reports", nil)
                         try store.clear()
                         clearPending = false
                     }
@@ -186,6 +188,40 @@ actor TrainingRepository {
         await persist(t, epoch: epoch)
     }
 
+    func saveReportDraft(_ id: String, position: Int, draft: QuestionReportDraft?, epoch: Int) async throws(APIFailure)
+    {
+        guard var t = current(id, epoch), (0..<t.total).contains(position) else { throw .cancelled }
+        var drafts = t.reportDrafts ?? [:]
+        drafts[position] = draft
+        t.reportDrafts = drafts
+        try await persistReport(t, epoch: epoch)
+    }
+
+    func recordReport(_ id: String, position: Int, draft: QuestionReportDraft, epoch: Int) async throws(APIFailure) {
+        guard var t = current(id, epoch), (0..<t.total).contains(position) else { throw .cancelled }
+        guard draft.canSend, let kind = draft.kind else { throw .unexpected("question report invalid input") }
+        let text = draft.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        var pending = t.reports ?? []
+        pending.append(
+            .init(
+                id: UUID(), position: position,
+                body: .init(kind: kind, text: text.isEmpty ? nil : text, trainingId: id)))
+        t.reports = pending
+        t.reportDrafts?[position] = nil
+        // Одна атомарная запись: черновик исчезает только вместе с сохранённой жалобой.
+        try await persistReport(t, epoch: epoch)
+        Task { await sync() }
+    }
+
+    private func persistReport(_ training: StoredTraining, epoch: Int) async throws(APIFailure) {
+        do { try save(training, epoch: epoch) } catch {
+            if (error as? APIFailure) == .cancelled { throw .cancelled }
+            reportStorage(error)
+            throw .unexpected("question report storage failed")
+        }
+        await notify()
+    }
+
     func finish(_ id: String, timedOut: Bool, epoch: Int) async {
         guard var t = current(id, epoch), !t.isFinished else { return }
         t.finish = .init(finishedAt: now(), timedOut: timedOut)
@@ -224,11 +260,15 @@ actor TrainingRepository {
             let changed = ownerID.map({ $0 != id }) == true || all.values.contains(where: { $0.ownerID != id })
             if changed || clearPending {
                 let lost = all.values.filter { $0.ownerID != id }.reduce(0) { $0 + $1.unsent.count }
+                let lostReports = all.values.filter { $0.ownerID != id }.reduce(0) { $0 + ($1.reports ?? []).count }
                 // Отозвать память до удаления: отказ файловой системы не открывает старые данные новому входу.
                 all = [:]
                 ownerID = nil
                 clearPending = true
-                if changed { report("training account changed: lost \(lost) unsent answers", nil) }
+                if changed {
+                    report("training account changed: lost \(lost) unsent answers", nil)
+                    report("training account changed: lost \(lostReports) unsent reports", nil)
+                }
                 try store.clear()
                 clearPending = false
             }
@@ -298,6 +338,19 @@ actor TrainingRepository {
         let pending = all.values.filter { $0.ownerID == ownerID }.sorted { $0.startedAtMillis < $1.startedAtMillis }
         for t in pending {
             guard access.isCurrent(epoch) else { return }
+            // Жалоба независима от ответов: временный отказ одного запроса не держит остальные.
+            for pendingReport in t.reports ?? [] {
+                guard let fresh = current(t.id, epoch), (fresh.reports ?? []).contains(pendingReport) else { continue }
+                let sent = await send(epoch: epoch, what: "question report") {
+                    try await api.reportQuestion(
+                        fresh.session.items[pendingReport.position].question.id, report: pendingReport.body)
+                }
+                if sent == .stop { return }
+                if sent == .done || sent == .rejected, var latest = current(t.id, epoch) {
+                    latest.reports = (latest.reports ?? []).filter { $0.id != pendingReport.id }
+                    await persist(latest, epoch: epoch)
+                }
+            }
             if !t.unsent.isEmpty {
                 let answers = t.unsent.sorted().compactMap { t.answers[$0] }
                 if await sendAnswers(t.id, answers: answers, api: api, epoch: epoch) == .stop { return }
@@ -367,11 +420,12 @@ actor TrainingRepository {
 
     private func prune(epoch: Int) throws {
         try access.withCurrent(epoch) {
-            let finished = all.values.filter { $0.isFinished && $0.isSynced }.sorted {
+            let finished = all.values.filter { $0.isFinished && $0.isSynced && !$0.hasReportDrafts }.sorted {
                 $0.startedAtMillis > $1.startedAtMillis
             }
             let unfinished = all.values.filter { !$0.isFinished }.sorted { $0.startedAtMillis > $1.startedAtMillis }
-            let removed = Array(finished.dropFirst(3)) + unfinished.dropFirst().filter { $0.unsent.isEmpty }
+            let removed =
+                Array(finished.dropFirst(3)) + unfinished.dropFirst().filter { $0.isSynced && !$0.hasReportDrafts }
             for t in removed {
                 try store.remove(t.id)
                 all[t.id] = nil

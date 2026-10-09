@@ -65,6 +65,10 @@ final class TrainingStore: @unchecked Sendable {
                     training.total > 0,
                     training.session.items.enumerated().allSatisfy({ $0.offset == $0.element.position }),
                     (0..<training.total).contains(training.position),
+                    (training.reports ?? []).allSatisfy({
+                        (0..<training.total).contains($0.position) && $0.body.trainingId == training.id
+                    }),
+                    (training.reportDrafts ?? [:]).keys.allSatisfy({ (0..<training.total).contains($0) }),
                     training.unsent.allSatisfy({ training.answers[$0] != nil }),
                     training.answers.allSatisfy({ $0.key == $0.value.position && (0..<training.total).contains($0.key) }
                     )

@@ -80,4 +80,31 @@ struct TrainingStoreTests {
         #expect(try restored.load { _ in }.isEmpty)
         #expect(try restored.owner() == nil)
     }
+    @Test("Повреждённая цель жалобы изолируется без текста", arguments: [false, true])
+    func invalidReportTargetIsQuarantined(draft: Bool) throws {
+        var t = TrainingFixture.stored()
+        if draft {
+            t.reportDrafts = [t.total: .init(kind: .other, text: "private-test-marker")]
+        } else {
+            t.reports = [
+                .init(
+                    id: UUID(), position: t.total,
+                    body: .init(kind: .other, text: "private-test-marker", trainingId: t.id))
+            ]
+        }
+        try store.save(t)
+        var reports: [String] = []
+        #expect(try store.load { reports.append($0) }.isEmpty)
+        #expect(reports.count == 1)
+        #expect(reports.allSatisfy { !$0.contains("private-test-marker") })
+    }
+
+    @Test func filesBeforeReportsRemainReadable() throws {
+        let t = TrainingFixture.stored(pending: true)
+        try store.save(t)
+        let restored = try #require(store.load { _ in }[t.id])
+        #expect(restored.reports == nil && restored.reportDrafts == nil)
+        #expect(restored.answers == t.answers && restored.unsent == [0])
+    }
+
 }
