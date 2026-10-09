@@ -4,7 +4,7 @@
 //   • TabsLayout — экраны-разделы: в мини-аппе и на узком сайте — стеклянная капсула вкладок снизу; на сайте
 //     600–899 px — строка разделов сверху, шире — боковая панель (решение Даши 06.10.2026, DESIGN.md «Navigation»).
 import { isApiError } from '@greprep/api-client';
-import { Link, Navigate, Outlet, useMatchRoute, useRouter } from '@tanstack/react-router';
+import { Link, Navigate, Outlet, useMatch, useMatchRoute, useRouter } from '@tanstack/react-router';
 import { createContext, use, useState, type ReactNode } from 'react';
 import { BrandMark } from '../components/BrandMark';
 import { BackIcon, ExamIcon, ProgressIcon, SettingsIcon, TodayIcon, WordsIcon } from '../components/icons';
@@ -13,6 +13,8 @@ import { BRAND_NAME } from '../config';
 import { useI18n } from '../i18n/i18n';
 import { useSession } from '../session/session';
 import { useShell } from '../shellContext';
+import { useTrainingSwipes } from '../telegram/hooks';
+import { useStoredTraining } from '../training/hooks';
 import glass from '../styles/glass.module.css';
 import styles from './AppLayout.module.css';
 
@@ -28,6 +30,14 @@ export function useGlow(): (glow: Glow) => void {
 export function AppGate(): ReactNode {
   const { session } = useSession();
   const { t } = useI18n();
+  const { shell } = useShell();
+  // Сверяем id маршрута: сопоставление одного пути приняло бы /training/new за id тренировки.
+  const questionId = useMatch({ from: '/app/training/$trainingId', shouldThrow: false, select: (match) => match.params.trainingId });
+  const report = useMatch({ from: '/app/training/$trainingId/report/$position', shouldThrow: false, select: () => true });
+  const training = useStoredTraining(questionId ?? '', shell === 'telegram' && Boolean(questionId));
+  // Один владелец свайпа переживает переход вопрос ↔ жалоба, включая загрузку ленивого маршрута.
+  useTrainingSwipes(shell === 'telegram' && session.status === 'signedIn' &&
+    (Boolean(report) || Boolean(questionId && (training.isPending || training.data && !training.data.finish))));
   if (session.status === 'signedOut') {
     return <Navigate to="/signin" search={session.expired ? { reason: 'expired' } : {}} replace />;
   }
@@ -131,10 +141,10 @@ function SiteNav(): ReactNode {
  * Экран сессии без вкладок (шаг ленты): режим фокуса — без панели и капсулы, тот же свет и та же колонка
  * (DESIGN.md, «Navigation»: «сессии — режим фокуса без панели»).
  */
-export function FocusLayout({ glow, children }: { glow: Glow; children: ReactNode }): ReactNode {
+export function FocusLayout({ glow, children, training = false, wide = false, session = false }: { glow: Glow; children: ReactNode; training?: boolean; wide?: boolean; session?: boolean }): ReactNode {
   const { shell } = useShell();
   return (
-    <div className={styles.frame} data-shell={shell} data-glow={glow} data-nested>
+    <div className={styles.frame} data-shell={shell} data-glow={glow} data-nested data-training={training || undefined} data-wide={wide || undefined} data-session={session || undefined}>
       <main className={`app-shell ${styles.main}`} id="main">
         <div className={styles.column}>{children}</div>
       </main>

@@ -76,3 +76,22 @@ test('вход не прошёл (initData подделана) — «Не пол
   await expect(page.getByRole('heading', { name: 'Не получилось войти' })).toBeVisible();
   await checkScreen(page, 'signin-failed');
 });
+
+test('конструктор и темы тренировки', async ({ miniApp: page }) => {
+  await page.getByRole('link', { name: 'Своя тренировка' }).click();
+  await expect(page.getByRole('button', { name: /^Начать ·/ })).toBeEnabled();
+  await checkScreen(page, 'training-builder');
+  await page.getByRole('button', { name: /Темы и сложность/ }).click();
+  await expect(page.getByRole('heading', { name: 'Темы и сложность' })).toBeVisible();
+  await checkScreen(page, 'training-topics');
+  await page.getByRole('button', { name: /^Готово ·/ }).click();
+  await page.getByRole('button', { name: /^Начать ·/ }).click();
+  await expect(page.getByRole('heading', { name: /Text Completion/ })).toBeVisible();
+  await page.locator('#tg-mock-back').click();
+  await expect(page.getByRole('link', { name: /Продолжить тренировку/ })).toBeVisible();
+  await checkScreen(page, 'today-training');
+});
+
+import { stableTrainingScreens, stableReviewScreens } from '../training';
+test('вопросы, разбор, проверка со списком и итог', async ({ miniApp: page }) => { await stableTrainingScreens(page); });
+test('все ответы, отдельный разбор и жалоба', async ({ miniApp: page }) => { await stableReviewScreens(page); });

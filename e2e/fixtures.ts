@@ -1,8 +1,9 @@
 // Общее для сквозных тестов: свой человек на каждый тест, приложение, открытое под ним, и проверка экрана
 // (вёрстка + эталонный снимок).
 import { createHmac, randomInt } from 'node:crypto';
-import { expect, test as base, type Locator, type Page } from '@playwright/test';
+import { expect, test as base, type BrowserContext, type Locator, type Page } from '@playwright/test';
 import { E2E_BOT_TOKEN, type TgOptions } from '../playwright.config';
+import { schemas, type User } from '../packages/api-client/src';
 
 export interface TelegramUser {
   id: number;
@@ -47,15 +48,15 @@ export function miniAppUrl(user: TelegramUser, o: TgOptions, path = '/'): string
 
 /** Человек теста со своей сессией: запросы к API от его имени (проверка endpoint — AGENTS.md, «Тесты»). */
 export interface Me {
-  user: TelegramUser;
+  user: User;
   /** Запрос к API от имени этого человека; ответ не 2xx — исключение с текстом ответа. */
-  api: <T = unknown>(method: string, path: string, body?: unknown) => Promise<T>;
+  api: (method: string, path: string, body?: unknown) => Promise<unknown>;
 }
 
 type Fixtures = TgOptions & {
   /** Человек мини-аппа (Telegram). */
   tgUser: TelegramUser;
-  /** Тот же человек, вошедший по initData: me.api(...) — запросы от его имени. */
+  /** Человек, вошедший через miniApp или site: me.api(...) — запросы от его имени. */
   me: Me;
   /** Мини-апп, открытый под tgUser: вход по initData прошёл, «Сегодня» на экране. */
   miniApp: Page;
@@ -64,6 +65,8 @@ type Fixtures = TgOptions & {
   /** Ошибки страницы и ответы сервера 5xx роняют тест — собираются для каждой страницы. */
   watch: (page: Page) => void;
 };
+
+const siteUsers = new WeakMap<BrowserContext, User>();
 
 export const test = base.extend<Fixtures>({
   tgTheme: ['light', { option: true }],
@@ -80,16 +83,33 @@ export const test = base.extend<Fixtures>({
     await use(newTelegramUser());
   },
 
-  me: async ({ request, tgUser }, use) => {
+  me: async ({ request, context, tgUser }, use, testInfo) => {
+    if (testInfo.project.name.startsWith('site-')) {
+      // me может создаться раньше site: проверяем вход при обращении, не создавая страницу и второй аккаунт.
+      const currentUser = () => {
+        const user = siteUsers.get(context);
+        if (!user) throw new Error('fixture me requires site: request the site fixture before using me');
+        return user;
+      };
+      const api = async (method: string, path: string, body?: unknown): Promise<unknown> => {
+        currentUser();
+        const response = await context.request.fetch(`/api${path}`, { method, ...(body !== undefined && { data: body }) });
+        if (!response.ok()) throw new Error(`${method} ${path}: ${response.status()} ${await response.text()}`);
+        return response.status() === 204 ? undefined : await response.json();
+      };
+      await use({ get user() { return currentUser(); }, api });
+      return;
+    }
     const res = await request.post('/api/auth/telegram-mini-app', { data: { initData: signInitData(tgUser) } });
     expect(res.status(), await res.text()).toBe(200);
-    const { token } = (await res.json()) as { token: string };
-    const api = async <T,>(method: string, path: string, body?: unknown): Promise<T> => {
+    const { token, user } = schemas.Session.parse(await res.json());
+    if (!token) throw new Error('fixture session without bearer token');
+    const api = async (method: string, path: string, body?: unknown): Promise<unknown> => {
       const r = await request.fetch(`/api${path}`, { method, headers: { Authorization: `Bearer ${token}` }, ...(body !== undefined && { data: body }) });
       if (!r.ok()) throw new Error(`${method} ${path}: ${r.status()} ${await r.text()}`);
-      return (r.status() === 204 ? undefined : await r.json()) as T;
+      return r.status() === 204 ? undefined : await r.json();
     };
-    await use({ user: tgUser, api });
+    await use({ user, api });
   },
 
   watch: async ({}, use, testInfo) => {
@@ -124,9 +144,11 @@ export const test = base.extend<Fixtures>({
       data: { name: `site-${testInfo.testId}-${randomInt(1e9)}`, transport: 'cookie', clientKind: 'web', locale: 'ru' },
     });
     expect(res.status(), await res.text()).toBe(200);
+    siteUsers.set(page.context(), schemas.Session.parse(await res.json()).user);
     await page.goto('/');
     await expect(page.getByRole('heading', { level: 1, name: 'Сегодня' })).toBeVisible({ timeout: 30_000 });
     await use(page);
+    siteUsers.delete(page.context());
   },
 });
 export { expect };
