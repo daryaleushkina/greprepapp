@@ -74,7 +74,7 @@ class TrainingStore(
         credential: String,
     ): String? {
         ensureLoaded()
-        val changed = owner?.id != ownerId
+        val changed = owner != null && owner?.id != ownerId
         val answers = if (changed) mutableTrainings.value.values.sumOf { it.unsent.size } else 0
         val reports = if (changed) mutableReports.value.size else 0
         if (changed) clear()
@@ -202,20 +202,20 @@ class TrainingStore(
     @Synchronized
     fun putReports(reports: List<PendingReport>) {
         ensureLoaded()
-        mutableReports.value = reports
         write(reportsFile, ListSerializer(PendingReport.serializer()), reports)
+        mutableReports.value = reports
     }
 
     /** Выход: тренировки и жалобы прошлого человека стираются вместе с ним. */
     @Synchronized
     override fun clear() {
         loaded = true
-        owner = null
         connected = false
         publish()
         mutableTrainings.value = emptyMap()
         mutableReports.value = emptyList()
         if (dir.exists() && !dir.deleteRecursively()) throw IOException("trainings delete failed")
+        owner = null
     }
 
     /** Итог чтения файла: прочитан, нет его, испорчен или не открылся сейчас. */

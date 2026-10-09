@@ -34,13 +34,13 @@ class TodayCacheTest {
         }
 
     @Test
-    fun fileReadFailureIsReportedAndTheUnreadableFileIsRemoved() =
+    fun temporaryFileReadFailureIsReportedAndKeepsTheFile() =
         runTest(main.dispatcher) {
             val g = TestGraph(this, main.dispatcher, folder.root)
             val file = File(folder.root, "today.json").apply { mkdirs() }
             assertNull(g.cache.load())
             g.settle()
-            assertFalse(file.exists())
+            assertTrue(file.exists())
             assertTrue(
                 g.publicApi.reports
                     .single()
@@ -50,7 +50,7 @@ class TodayCacheTest {
         }
 
     @Test
-    fun anUnwritableAndUndeletableCacheStopsSignInBeforeSavingTheToken() =
+    fun anUnwritableAndUndeletableCacheIsReportedButSignInContinues() =
         runTest(main.dispatcher) {
             val g = TestGraph(this, main.dispatcher, folder.root)
             val file = File(folder.root, "today.json").apply { mkdirs() }
@@ -77,13 +77,23 @@ class TodayCacheTest {
                 } catch (error: java.io.IOException) {
                     error
                 }
-            org.junit.Assert.assertNotNull(failure)
-            assertNull(g.tokens.token)
-            assertNull(g.holder.token)
-            assertTrue(manager.state.value is dev.greprepapp.app.core.session.SessionState.SignedOut)
+            assertNull(failure)
+            org.junit.Assert.assertEquals("new-token", g.tokens.token)
+            org.junit.Assert.assertEquals("new-token", g.holder.token)
+            assertTrue(manager.state.value is dev.greprepapp.app.core.session.SessionState.SignedIn)
             assertNull(g.cache.load())
             g.settle()
-            assertTrue(g.publicApi.reports.any { it.message.startsWith("today cache clear failed") })
+            assertTrue(g.publicApi.reports.any { it.message.startsWith("personal data connect failed") })
+        }
+
+    @Test
+    fun emptyCacheIsAbsentAndDoesNotReportOnEveryRead() =
+        runTest(main.dispatcher) {
+            val g = TestGraph(this, main.dispatcher, folder.root)
+            File(folder.root, "today.json").writeText("")
+            repeat(2) { assertNull(g.cache.load()) }
+            g.settle()
+            assertTrue(g.publicApi.reports.isEmpty())
         }
 
     @Test

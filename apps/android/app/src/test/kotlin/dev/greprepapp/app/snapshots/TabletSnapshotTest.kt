@@ -96,6 +96,12 @@ class TabletSnapshotTest(
     @Test
     fun trainingOverviewLarge() = snap("tablet-training-overview-large", large = true) { TrainingScreens.Session(TrainingScreens.overview) }
 
+    @Test
+    fun trainingBuilderStartOffline() =
+        snap("tablet-training-builder-start-offline") {
+            TrainingScreens.Builder(TrainingScreens.builderCustom.copy(problem = dev.greprepapp.app.feature.training.StartProblem.Offline))
+        }
+
     companion object {
         @JvmStatic
         @ParameterizedRobolectricTestRunner.Parameters(name = "{0}")

@@ -73,6 +73,7 @@ class ReportViewModel
             val text: String = "",
             val sending: Boolean = false,
             val sent: Boolean = false,
+            val failed: Boolean = false,
         ) {
             val canSend: Boolean get() = kind != null && !sending && !sent
         }
@@ -90,8 +91,12 @@ class ReportViewModel
             if (!s.canSend) return
             // Жалоба — в очередь области приложения: «Назад» сразу после «Отправить» её не теряет.
             val text = s.text.trim().takeIf { it.isNotEmpty() }
-            repository.recordReport(questionId, QuestionReport(kind = kind, text = text, trainingId = trainingId))
-            mutableState.update { it.copy(sent = true) }
+            mutableState.update { it.copy(sending = true, failed = false) }
+            val saved = repository.recordReport(questionId, QuestionReport(kind = kind, text = text, trainingId = trainingId))
+            viewModelScope.launch {
+                val success = saved.await()
+                mutableState.update { it.copy(sending = false, sent = success, failed = !success) }
+            }
         }
 
         private companion object {

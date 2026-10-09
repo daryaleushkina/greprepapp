@@ -32,7 +32,7 @@ import androidx.compose.ui.input.key.isAltPressed
 import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.key.isMetaPressed
 import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
@@ -48,7 +48,7 @@ internal fun hasHardwareKeyboard(): Boolean =
         keyboard == Configuration.KEYBOARD_QWERTY && hardKeyboardHidden != Configuration.HARDKEYBOARDHIDDEN_YES
     }
 
-/** Событие обрабатывается один раз, без модификаторов: системные сочетания остаются системе. */
+/** После потомков: Enter в фокусе принадлежит кнопке, системные сочетания остаются системе. */
 @Composable
 internal fun TrainingKeyboard(
     onKey: (Key) -> Boolean,
@@ -62,8 +62,9 @@ internal fun TrainingKeyboard(
         modifier =
             modifier
                 .fillMaxSize()
+                .testTag("training.keyboard")
                 .focusRequester(focus)
-                .onPreviewKeyEvent { event: KeyEvent ->
+                .onKeyEvent { event: KeyEvent ->
                     enabled && event.type == KeyEventType.KeyUp && !event.isCtrlPressed && !event.isAltPressed && !event.isMetaPressed &&
                         onKey(event.key)
                 }.focusable(enabled),

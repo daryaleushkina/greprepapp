@@ -205,11 +205,7 @@ private fun BuilderForm(
                 TrainingSplit(PaddingValues(), "builder", left = {
                     if (c.presets.isNotEmpty()) Presets(c, actions.onPreset)
                     state.problem?.let {
-                        StatusLine(
-                            icon = R.drawable.ic_error,
-                            text = startProblemText(it),
-                            modifier = Modifier.testTag("builder.problem"),
-                        )
+                        BuilderProblem(it)
                     }
                 }, right = { CustomCard(c, actions) })
             } else {
@@ -227,11 +223,7 @@ private fun BuilderForm(
                     if (c.presets.isNotEmpty()) Presets(c, actions.onPreset)
                     CustomCard(c, actions)
                     state.problem?.let {
-                        StatusLine(
-                            icon = if (it == StartProblem.Offline) R.drawable.ic_wifi_off else R.drawable.ic_error,
-                            text = startProblemText(it),
-                            modifier = Modifier.testTag("builder.problem"),
-                        )
+                        BuilderProblem(it)
                     }
                 }
             }
@@ -256,6 +248,15 @@ private fun BuilderForm(
             )
         }
     }
+}
+
+@Composable
+private fun BuilderProblem(problem: StartProblem) {
+    StatusLine(
+        icon = if (problem == StartProblem.Offline) R.drawable.ic_wifi_off else R.drawable.ic_error,
+        text = startProblemText(problem),
+        modifier = Modifier.testTag("builder.problem"),
+    )
 }
 
 /** Готовые наборы — переключателем: выбранный уже стоит, «Начать» начнёт его (макет R1). */

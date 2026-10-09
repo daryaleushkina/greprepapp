@@ -22,6 +22,8 @@ import dev.greprepapp.app.core.session.SessionState
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -126,7 +128,10 @@ class TrainingRepository
         /** Начать: сессия со всеми заданиями и разборами ложится на устройство целиком. */
         suspend fun start(request: TrainingRequest): StartResult {
             val id = currentSession() ?: return StartResult.Failed(TrainingProblem.Failed)
-            if (!session.ensureOwner(id)) return StartResult.Failed(TrainingProblem.Failed)
+            val owner = session.ensureOwner(id)
+            if (owner is ApiResult.Failed) {
+                return StartResult.Failed(if (owner.failure == ApiFailure.Offline) TrainingProblem.Offline else TrainingProblem.Failed)
+            }
             return when (val result = apiCall { api.startTraining(request) }) {
                 is ApiResult.Ok -> {
                     val stored = StoredTraining(session = result.value, startedAtMillis = clock.millis())
@@ -183,7 +188,7 @@ class TrainingRepository
         fun recordReport(
             questionId: String,
             report: QuestionReport,
-        ) = durable { report(questionId, report) }
+        ): Deferred<Boolean> = scope.async(start = CoroutineStart.UNDISPATCHED) { report(questionId, report) }
 
         /** Ответ на позицию: ложится на устройство и встаёт в очередь отправки. */
         suspend fun answer(
@@ -207,7 +212,7 @@ class TrainingRepository
                 if (t.isFinished || position !in 0 until t.total) {
                     t
                 } else {
-                    t.copy(answers = t.answers + (position to given), unsent = t.unsent + position)
+                    t.copy(answers = t.answers + (position to given), unsent = if (t.rejected) emptySet() else t.unsent + position)
                 }
             }
             requestSync()
@@ -226,7 +231,7 @@ class TrainingRepository
             timedOut: Boolean,
         ) {
             val finish = TrainingFinish(finishedAt = clock.instant().toString(), timedOut = timedOut)
-            edit(trainingId) { t -> if (t.isFinished) t else t.copy(finish = finish) }
+            edit(trainingId) { t -> if (t.isFinished) t else t.copy(finish = finish, finishSent = t.rejected) }
             requestSync()
         }
 
@@ -234,13 +239,20 @@ class TrainingRepository
         suspend fun report(
             questionId: String,
             report: QuestionReport,
-        ) {
-            val id = currentSession() ?: return
-            if (!session.ensureOwner(id)) return
-            edits.withLock {
-                write(id) { store.putReports(store.reports.value + PendingReport(questionId, report)) }
-            }
-            requestSync()
+        ): Boolean {
+            val id = currentSession() ?: return false
+            val saved =
+                edits.withLock {
+                    try {
+                        // Проверка владельца нужна отправке, а запись в очередь — даже без /me и сети.
+                        session.writeIfCurrent(id) { store.putReports(store.reports.value + PendingReport(questionId, report)) }
+                    } catch (failure: IOException) {
+                        reporter.report("training report write failed: ${failure.javaClass.simpleName}", route = ROUTE)
+                        false
+                    }
+                }
+            if (saved) requestSync()
+            return saved
         }
 
         private suspend fun edit(
@@ -315,7 +327,7 @@ class TrainingRepository
         private suspend fun syncOnce() {
             val id = currentSession() ?: return
             withContext(io) { load() }
-            if (!session.ensureOwner(id)) return
+            if (session.ensureOwner(id) is ApiResult.Failed) return
             finishExpired()
             for (t in store.trainings.value.values
                 .sortedBy { it.startedAtMillis }) {
@@ -347,7 +359,7 @@ class TrainingRepository
             t: StoredTraining,
             id: Long,
         ): Sent {
-            if (t.unsent.isEmpty()) return Sent.Done
+            if (t.rejected || t.unsent.isEmpty()) return Sent.Done
             val sent = t.unsent.sorted().mapNotNull { t.answers[it] }
             return sendAnswerBatch(t.id, sent, id)
         }
@@ -359,15 +371,28 @@ class TrainingRepository
         ): Sent {
             val result = apiCallNoContent { api.submitTrainingAnswers(trainingId, AnswerBatch(sent)) }
             if (!session.isCurrent(id)) return Sent.Stop
-            if (sent.size > 1 && result is ApiResult.Failed &&
-                (result.failure as? ApiFailure.Server)?.status in PERMANENT
-            ) {
+            val failure = (result as? ApiResult.Failed)?.failure as? ApiFailure.Server
+            if (failure?.status in TRAINING_GONE) {
+                reporter.report("training rejected: ${failure?.code}", route = ROUTE, requestId = failure?.requestId)
+                edit(trainingId, id) { it.copy(unsent = emptySet(), finishSent = true, rejected = true) }
+                return Sent.Later
+            }
+            if (sent.size > 1 && failure != null && (failure.status == 422 || (failure.status == 400 && failure.code == "bad_request"))) {
                 var outcome = Sent.Done
                 for (answer in sent) {
                     when (sendAnswerBatch(trainingId, listOf(answer), id)) {
-                        Sent.Stop -> return Sent.Stop
-                        Sent.Later -> outcome = Sent.Later
-                        Sent.Done -> Unit
+                        Sent.Stop -> {
+                            return Sent.Stop
+                        }
+
+                        Sent.Later -> {
+                            if (store.trainings.value[trainingId]?.rejected == true) return Sent.Later
+                            outcome = Sent.Later
+                        }
+
+                        Sent.Done -> {
+                            continue
+                        }
                     }
                 }
                 return outcome
@@ -459,6 +484,7 @@ class TrainingRepository
 
             /** Отказы, которые при повторе не пройдут: запрос не по договору. */
             private val PERMANENT = setOf(400, 404, 409, 410, 422)
+            private val TRAINING_GONE = setOf(404, 409, 410)
             private const val ROUTE = "training"
         }
     }

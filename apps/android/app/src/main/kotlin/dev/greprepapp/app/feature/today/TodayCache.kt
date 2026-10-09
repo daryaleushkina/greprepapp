@@ -17,13 +17,18 @@ class TodayCache(
     private val reporter: ClientErrorReporter,
     private val file: File = File(directory, "today.json"),
 ) : PersonalData {
+    @Volatile private var discarded = false
+
     /** null — плана нет или он не читается (старый формат, испорчен): тогда экран просто ждёт сервер. */
     fun load(): TodayPlan? {
-        if (!file.exists()) return null
+        if (discarded || !file.exists()) return null
         return try {
-            TodayPlan.from(ApiJson.decodeFromString(Today.serializer(), file.readText()))
+            val text = file.readText()
+            if (text.isBlank()) null else TodayPlan.from(ApiJson.decodeFromString(Today.serializer(), text))
         } catch (failure: IOException) {
-            unreadable(failure)
+            // Недоступность в эту минуту — не порча: прошлый план прочтётся при следующем обращении.
+            reporter.report("today cache read failed: ${failure.javaClass.simpleName}", route = "today")
+            null
         } catch (failure: SerializationException) {
             unreadable(failure)
         } catch (failure: IllegalArgumentException) {
@@ -45,9 +50,12 @@ class TodayCache(
         val tmp = File(file.parentFile, "today.json.tmp")
         tmp.writeText(ApiJson.encodeToString(Today.serializer(), today))
         if (!tmp.renameTo(file)) throw IOException("today cache rename failed")
+        discarded = false
     }
 
     override fun clear() {
+        // Даже если диск отказал, экран нового входа не читает прежний файл в этом процессе.
+        discarded = true
         if (file.exists() && !file.delete()) {
             // Удаление может быть запрещено, хотя запись разрешена: чужой план не должен вернуться (#16).
             file.writeText("")

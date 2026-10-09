@@ -38,6 +38,27 @@ class SessionManagerTest {
     }
 
     @Test
+    fun trainingStoreConnectionFailureIsReportedAndDoesNotBlockSignIn() =
+        runTest(main.dispatcher) {
+            val g = TestGraph(this, main.dispatcher, folder.root)
+            g.trainingStore.connect("owner", "old-token")
+            java.io.File(folder.root, "trainings/owner.json.tmp").apply { mkdirs() }
+            g.settle()
+            val failure =
+                try {
+                    g.session.didSignIn("new-token", "owner")
+                    null
+                } catch (error: IOException) {
+                    error
+                }
+            assertNull(failure)
+            assertEquals("new-token", g.tokens.token)
+            assertTrue(g.session.state.value is SessionState.SignedIn)
+            g.settle()
+            assertTrue(g.publicApi.reports.any { it.message.contains("IOException") || it.message.contains("FileNotFoundException") })
+        }
+
+    @Test
     fun savedTokenSignsInWithoutWaitingForNetwork() =
         runTest(main.dispatcher) {
             val graph = graph(token = "saved")

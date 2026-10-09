@@ -19,6 +19,25 @@ class TrainingStoreTest {
     private val training = StoredTraining(Fixtures.session(Fixtures.tc1, Fixtures.se), startedAtMillis = 1L, position = 1)
 
     @Test
+    fun missingAndCorruptOwnersAdoptExistingTrainingsAndReports() {
+        for (corrupt in listOf(false, true)) {
+            val directory = folder.newFolder()
+            val previous = TrainingStore(directory)
+            previous.put(training)
+            previous.putReports(listOf(PendingReport("q-1", QuestionReport(QuestionReport.Kind.OTHER))))
+            if (corrupt) File(directory, "trainings/owner.json").writeText("{broken")
+            val current = TrainingStore(directory)
+            assertNull(current.connect("owner", "new-token"))
+            assertEquals(training, current.get(training.id))
+            assertEquals(1, current.reports.value.size)
+            assertTrue(current.isConnected("new-token"))
+            val again = TrainingStore(directory)
+            assertEquals(training, again.get(training.id))
+            assertEquals(1, again.reports.value.size)
+        }
+    }
+
+    @Test
     fun corruptOwnerIsReportedEvenIfConnectReadsItBeforeTheRepository() {
         val dir = File(folder.root, "trainings").apply { mkdirs() }
         File(dir, "owner.json").writeText("{broken")

@@ -233,9 +233,9 @@ class TrainingRepositoryTest {
         }
 
     @Test
-    fun eachPermanentStatusSplitsTheBatchAndKeepsTemporarySingleFailures() =
+    fun answerSpecificStatusesSplitTheBatchAndKeepTemporarySingleFailures() =
         runTest(main.dispatcher) {
-            for (status in listOf(400, 404, 409, 410, 422)) {
+            for (status in listOf(400, 422)) {
                 val g = graph()
                 val id = g.started()
                 g.trainingsApi.answers = Reply.NetworkDown
@@ -244,7 +244,7 @@ class TrainingRepositoryTest {
                 g.settle()
                 g.trainingsApi.answerReply = { batch ->
                     if (batch.answers.size > 1 || batch.answers.single().position == 0) {
-                        Reply.Error(status, "invalid")
+                        Reply.Error(status, if (status == 400) "bad_request" else "invalid")
                     } else {
                         Reply.Error(429, "later")
                     }
@@ -269,6 +269,88 @@ class TrainingRepositoryTest {
             gate.complete(Unit)
             g.settle()
             org.junit.Assert.assertNotNull(g.cache.load())
+        }
+
+    @Test
+    fun startingWithoutOwnerAndNetworkReportsOffline() =
+        runTest(main.dispatcher) {
+            val g = TestGraph(this, main.dispatcher, folder.root, token = "token")
+            g.ownerReply =
+                dev.greprepapp.api.ApiResult
+                    .Failed(dev.greprepapp.api.ApiFailure.Offline)
+            g.settle()
+            assertEquals(StartResult.Failed(TrainingProblem.Offline), g.trainings.start(request))
+            assertTrue(g.trainingsApi.starts.isEmpty())
+        }
+
+    @Test
+    fun trainingWideRefusalDoesNotSplitTheBatchOrSendTheFinish() =
+        runTest(main.dispatcher) {
+            for (status in listOf(404, 409, 410)) {
+                val g = graph()
+                val id = g.started()
+                g.trainingsApi.answers = Reply.NetworkDown
+                g.trainings.answer(id, 0, listOf("A"))
+                g.trainings.answer(id, 1, listOf("A", "C"))
+                g.trainings.finish(id, false)
+                g.settle()
+                g.trainingsApi.sentAnswers.clear()
+                g.trainingsApi.answers = Reply.Error(status, "training_unavailable")
+                g.trainings.sync()
+                g.settle()
+                assertEquals(1, g.trainingsApi.sentAnswers.size)
+                assertEquals(1, g.publicApi.reports.count { it.message.contains("rejected") })
+                assertTrue(g.trainingsApi.finishes.isEmpty())
+                assertTrue(g.trainingStore.get(id)!!.isSynced)
+                g.appScope.cancel()
+            }
+        }
+
+    @Test
+    fun badRequestSplitsTheBatchAndReportsOnlyTheBadAnswer() =
+        runTest(main.dispatcher) {
+            val g = graph()
+            val id = g.started()
+            g.trainingsApi.answers = Reply.NetworkDown
+            g.trainings.answer(id, 0, listOf("A"))
+            g.trainings.answer(id, 1, listOf("A", "C"))
+            g.settle()
+            g.trainingsApi.sentAnswers.clear()
+            g.trainingsApi.answerReply = { batch ->
+                if (batch.answers.size > 1 || batch.answers.single().position == 0) {
+                    Reply.Error(400, "bad_request")
+                } else {
+                    Reply.Ok(Unit)
+                }
+            }
+            g.trainings.sync()
+            g.settle()
+            assertEquals(listOf(2, 1, 1), g.trainingsApi.sentAnswers.map { it.second.answers.size })
+            assertEquals(1, g.publicApi.reports.count { it.message.contains("rejected") })
+        }
+
+    @Test
+    fun aTrainingThatDisappearsDuringSingleRetriesStopsTheRemainingRequests() =
+        runTest(main.dispatcher) {
+            val g = graph()
+            val id = g.started()
+            g.trainingsApi.answers = Reply.NetworkDown
+            g.trainings.answer(id, 0, listOf("A"))
+            g.trainings.answer(id, 1, listOf("A", "C"))
+            g.settle()
+            g.trainingsApi.sentAnswers.clear()
+            g.trainingsApi.answerReply = { batch ->
+                if (batch.answers.size > 1) Reply.Error(422, "invalid_answer") else Reply.Error(404, "not_found")
+            }
+            g.trainings.sync()
+            g.settle()
+            assertEquals(2, g.trainingsApi.sentAnswers.size)
+            assertEquals(1, g.publicApi.reports.count { it.message.contains("rejected") })
+            g.trainings.answer(id, 1, listOf("B", "D"))
+            g.trainings.finish(id, false)
+            g.settle()
+            assertEquals(2, g.trainingsApi.sentAnswers.size)
+            assertTrue(g.trainingsApi.finishes.isEmpty())
         }
 
     @Test

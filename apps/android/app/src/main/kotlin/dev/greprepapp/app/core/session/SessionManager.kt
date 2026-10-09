@@ -135,32 +135,35 @@ class SessionManager
         }
 
         /** Старый файл владельца доверяется только тому токену, с которым его записали. */
-        suspend fun ensureOwner(id: Long): Boolean =
+        suspend fun ensureOwner(id: Long): ApiResult<Unit> =
             try {
                 withContext(io) {
                     // Новый подтверждённый вход не ждёт запрос /me, оставшийся в полёте от прошлого входа.
                     val connected =
                         mutex.withLock {
-                            if (!isCurrent(id)) return@withContext false
-                            val token = holder.token ?: return@withContext false
+                            if (!isCurrent(id)) return@withContext ApiResult.Failed(ApiFailure.Unauthorized)
+                            val token = holder.token ?: return@withContext ApiResult.Failed(ApiFailure.Unauthorized)
                             personal.all { it.isConnected(token) }
                         }
-                    if (connected) return@withContext true
+                    if (connected) return@withContext ApiResult.Ok(Unit)
                     ownerChecks.withLock {
                         val credential =
                             mutex.withLock {
-                                if (!isCurrent(id)) return@withContext false
-                                val token = holder.token ?: return@withContext false
-                                if (personal.all { it.isConnected(token) }) return@withContext true
+                                if (!isCurrent(id)) return@withContext ApiResult.Failed(ApiFailure.Unauthorized)
+                                val token = holder.token ?: return@withContext ApiResult.Failed(ApiFailure.Unauthorized)
+                                if (personal.all { it.isConnected(token) }) return@withContext ApiResult.Ok(Unit)
                                 token
                             }
                         val result = account.owner()
                         mutex.withLock {
-                            if (!isCurrent(id) || holder.token != credential) return@withLock false
+                            if (!isCurrent(id) || holder.token != credential) return@withLock ApiResult.Failed(ApiFailure.Unauthorized)
                             when (result) {
                                 is ApiResult.Ok -> {
-                                    connectPersonal(result.value, credential, onlyDisconnected = true)
-                                    true
+                                    if (connectPersonal(result.value, credential, onlyDisconnected = true)) {
+                                        ApiResult.Ok(Unit)
+                                    } else {
+                                        ApiResult.Failed(ApiFailure.Unexpected("training ownership unavailable"))
+                                    }
                                 }
 
                                 is ApiResult.Failed -> {
@@ -169,7 +172,7 @@ class SessionManager
                                     } else if (result.failure.isReportable) {
                                         reporter.report("training owner: ${result.failure}", route = "training")
                                     }
-                                    false
+                                    result
                                 }
                             }
                         }
@@ -178,19 +181,27 @@ class SessionManager
             } catch (failure: Exception) {
                 if (!failure.isStorageFailure()) throw failure
                 reporter.report("training owner write failed: ${failure.javaClass.simpleName}", route = "training")
-                false
+                ApiResult.Failed(ApiFailure.Unexpected("training ownership unavailable"))
             }
 
         private fun connectPersonal(
             ownerId: String,
             credential: String,
             onlyDisconnected: Boolean = false,
-        ) {
+        ): Boolean {
+            var connected = true
             for (data in personal) {
-                // /me подтверждает очередь после восстановления, не сбрасывает свежий план дня.
-                if (onlyDisconnected && data.isConnected(credential)) continue
-                data.connect(ownerId, credential)?.let { reporter.report(it, route = "training") }
+                try {
+                    // /me подтверждает очередь после восстановления, не сбрасывает свежий план дня.
+                    if (onlyDisconnected && data.isConnected(credential)) continue
+                    data.connect(ownerId, credential)?.let { reporter.report(it, route = "training") }
+                } catch (failure: Exception) {
+                    if (!failure.isStorageFailure()) throw failure
+                    reporter.report("personal data connect failed: ${failure.javaClass.simpleName}", route = "sign-in")
+                    connected = false
+                }
             }
+            return connected
         }
 
         /**

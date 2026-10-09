@@ -3,6 +3,7 @@ package dev.greprepapp.app.feature.training
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
@@ -35,6 +37,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
@@ -43,8 +46,10 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -62,6 +67,7 @@ import dev.greprepapp.design.StudySection
 import greprep.design.GpLayout
 import greprep.design.GpSize
 import greprep.design.GpSpace
+import kotlinx.coroutines.flow.first
 
 /** Разбор всей тренировки (макет R16): все вопросы или только ошибки; вопрос открывается с разбором. */
 @Composable
@@ -154,13 +160,8 @@ private fun ReviewPanes(
     TrainingKeyboard(onKey = { key ->
         val index = shown.indexOfFirst { it.position == position }
         when {
-            position != null && (key == Key.DirectionUp || key == Key.DirectionDown) -> {
+            wide && position != null && (key == Key.DirectionUp || key == Key.DirectionDown) -> {
                 selected = shown[(index + if (key == Key.DirectionDown) 1 else -1).coerceIn(0, shown.lastIndex)].position
-                true
-            }
-
-            position != null && key == Key.Enter -> {
-                if (!wide) onOpen(position)
                 true
             }
 
@@ -207,12 +208,11 @@ private fun ReviewList(
     val shown = if (onlyMistakes) mistakes else training.session.items
     val english = LocalConfiguration.current.locales[0].language == "en"
     val scroll = rememberLazyListState()
-    LaunchedEffect(selected, onlyMistakes) {
-        val index = shown.indexOfFirst { it.position == selected }
-        if (index > 0) {
-            scroll.scrollToItem(index + 1)
-        } else {
-            scroll.scrollToItem(0)
+    LaunchedEffect(selected, onlyMistakes, wide) {
+        // На телефоне rememberLazyListState восстанавливает позицию после возврата из вопроса.
+        if (wide) {
+            val index = shown.indexOfFirst { it.position == selected }
+            if (index >= 0) revealReviewRow(scroll, index + 1, shown.size + 1)
         }
     }
     Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.TopCenter) {
@@ -239,7 +239,7 @@ private fun ReviewList(
                         onSelect = { onFilter(it == 1) },
                         tags = listOf("review.filter.all", "review.filter.mistakes"),
                     )
-                    KeyHint("↑ / ↓", stringResource(R.string.keyboard_review))
+                    if (wide) KeyHint("↑ / ↓", stringResource(R.string.keyboard_review))
                 }
             }
             if (shown.isEmpty()) {
@@ -258,6 +258,39 @@ private fun ReviewList(
             }
         }
     }
+}
+
+/** Видимая строка остаётся на месте; частично скрытую сдвигаем ровно на недостающую высоту. */
+internal suspend fun revealReviewRow(
+    scroll: LazyListState,
+    index: Int,
+    itemCount: Int,
+) {
+    val layout = snapshotFlow { scroll.layoutInfo }.first { it.totalItemsCount == itemCount && it.visibleItemsInfo.isNotEmpty() }
+    val item = layout.visibleItemsInfo.firstOrNull { it.index == index }
+    if (item == null) {
+        val below = index > layout.visibleItemsInfo.last().index
+        val height =
+            layout.visibleItemsInfo
+                .last()
+                .size
+                .coerceAtLeast(1)
+        val offset = if (below) -(layout.viewportEndOffset - height).coerceAtLeast(0) else 0
+        scroll.scrollToItem(index, offset)
+        // Высота новой строки может отличаться: после измерения подводим её точно к ближайшему краю.
+        val measured = snapshotFlow { scroll.layoutInfo }.first { it.visibleItemsInfo.any { row -> row.index == index } }
+        val row = measured.visibleItemsInfo.first { it.index == index }
+        val delta = if (below) row.offset + row.size - measured.viewportEndOffset else row.offset - measured.viewportStartOffset
+        if (delta != 0) scroll.scrollBy(delta.toFloat())
+        return
+    }
+    val delta =
+        when {
+            item.offset < layout.viewportStartOffset -> item.offset - layout.viewportStartOffset
+            item.offset + item.size > layout.viewportEndOffset -> item.offset + item.size - layout.viewportEndOffset
+            else -> 0
+        }
+    if (delta != 0) scroll.scrollBy(delta.toFloat())
 }
 
 @Composable
@@ -606,7 +639,20 @@ fun ReportContent(
                     )
                 }
             }
-            BottomActions {
+            BottomActions(
+                note =
+                    if (state.failed) {
+                        {
+                            dev.greprepapp.app.ui.StatusLine(
+                                icon = R.drawable.ic_error,
+                                text = stringResource(R.string.report_save_failed),
+                                modifier = Modifier.testTag("report.problem").semantics { liveRegion = LiveRegionMode.Polite },
+                            )
+                        }
+                    } else {
+                        null
+                    },
+            ) {
                 GpPrimaryButton(
                     text = stringResource(R.string.report_send),
                     onClick = onSend,

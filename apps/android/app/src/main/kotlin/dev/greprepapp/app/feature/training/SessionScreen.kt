@@ -198,12 +198,7 @@ private fun sessionKey(
         return true
     }
     if (s.result != null || s.overview || s.revealed) return false
-    val group =
-        if (s.question.groups.size == 1) {
-            s.question.groups.first()
-        } else {
-            s.question.groups.getOrNull(s.missing.firstOrNull() ?: 0)
-        }
+    val group = s.keyboardGroup
     val index = AnswerKeys.indexOf(key)
     val option = group?.options?.getOrNull(index) ?: return false
     actions.onSelect(option.id)
@@ -285,13 +280,7 @@ private fun QuestionPane(
             QuestionHeading(s.question, section, onReport = { actions.onReport(s.position) })
             QuestionBody(s, section, actions)
             if (!s.revealed && !s.overview) {
-                val group =
-                    if (s.question.groups.size == 1) {
-                        s.question.groups.first()
-                    } else {
-                        s.question.groups.getOrNull(s.missing.firstOrNull() ?: 0)
-                    }
-                val last = group?.options?.lastIndex ?: 0
+                val last = s.keyboardGroup?.options?.lastIndex ?: 0
                 KeyHint("A–${('A'.code + last).toChar()}", stringResource(R.string.keyboard_choose))
             }
         }

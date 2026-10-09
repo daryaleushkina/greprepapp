@@ -24,6 +24,72 @@ class ReportViewModelTest {
     @get:Rule val folder = TemporaryFolder()
 
     @Test
+    fun withoutOwnerConfirmationTheReportIsPersistedAndWaitsForTheNetwork() =
+        runTest(main.dispatcher) {
+            val g = TestGraph(this, main.dispatcher, folder.root, token = "token")
+            g.ownerReply =
+                dev.greprepapp.api.ApiResult
+                    .Failed(dev.greprepapp.api.ApiFailure.Offline)
+            g.settle()
+            val vm = ReportViewModel("q-1", "t-1", g.trainings)
+            vm.setKind(QuestionReport.Kind.TRANSLATION)
+            vm.setText("test text")
+            vm.send()
+            g.settle()
+            assertEquals(1, g.trainingStore.reports.value.size)
+            assertEquals(
+                1,
+                TrainingStore(folder.root)
+                    .also { it.load() }
+                    .reports.value.size,
+            )
+            assertTrue(vm.state.value.sent)
+            assertTrue(g.trainingsApi.reports.isEmpty())
+            g.ownerReply =
+                dev.greprepapp.api.ApiResult
+                    .Ok(
+                        dev.greprepapp.app.testing
+                            .session()
+                            .user.id,
+                    )
+            g.foreground.events.tryEmit(Unit)
+            g.settle()
+            assertEquals(1, g.trainingsApi.reports.size)
+            assertTrue(
+                g.trainingStore.reports.value
+                    .isEmpty(),
+            )
+        }
+
+    @Test
+    fun failedReportWriteLeavesTheFormAndCanBeRetriedWithoutDuplicates() =
+        runTest(main.dispatcher) {
+            val g = TestGraph(this, main.dispatcher, folder.root, token = "token")
+            g.trainings
+            g.settle()
+            val blocked = java.io.File(folder.root, "trainings/reports.json.tmp").apply { mkdirs() }
+            val vm = ReportViewModel("q-1", "t-1", g.trainings)
+            vm.setKind(QuestionReport.Kind.TRANSLATION)
+            vm.setText("test text")
+            vm.send()
+            g.settle()
+            assertFalse(vm.state.value.sent)
+            assertEquals("test text", vm.state.value.text)
+            assertEquals(QuestionReport.Kind.TRANSLATION, vm.state.value.kind)
+            assertTrue(vm.state.value.canSend)
+            assertTrue(
+                g.trainingStore.reports.value
+                    .isEmpty(),
+            )
+            assertTrue(g.publicApi.reports.any { it.message.contains("write failed") })
+            blocked.delete()
+            vm.send()
+            g.settle()
+            assertTrue(vm.state.value.sent)
+            assertEquals(1, g.trainingsApi.reports.size)
+        }
+
+    @Test
     fun sendsOnceWithTheTextCutToTheContract() =
         runTest(main.dispatcher) {
             val graph = TestGraph(this, main.dispatcher, folder.root, token = "token-1").also { it.settle() }

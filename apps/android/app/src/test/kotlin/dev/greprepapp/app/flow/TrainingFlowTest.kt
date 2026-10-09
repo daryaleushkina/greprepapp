@@ -126,6 +126,30 @@ class TrainingFlowTest {
     }
 
     @Test
+    fun failedReportSaveKeepsTheFormShowsAnErrorAndCanBeRetried() {
+        openBuilder()
+        click("builder.start")
+        click("question.report")
+        click("report.kind.translation")
+        compose.onNodeWithTag("report.text").performTextInput("Тестовая опечатка")
+        val context =
+            androidx.test.core.app.ApplicationProvider
+                .getApplicationContext<android.content.Context>()
+        val blocked = java.io.File(context.cacheDir, "flow/trainings/reports.json.tmp").apply { mkdirs() }
+        click("report.send")
+        waitFor("report.problem")
+        compose.onNodeWithTag("report.sent").assertDoesNotExist()
+        compose.onNodeWithTag("report.text").assertTextContains("Тестовая опечатка")
+        compose.onNodeWithTag("report.kind.translation").assertIsSelected()
+        compose.onNodeWithText("Не удалось сохранить жалобу. Попробуйте ещё раз.").assertIsDisplayed()
+        assertTrue(trainings.reports.value.isEmpty())
+        assertTrue(blocked.delete())
+        click("report.send")
+        waitFor("report.sent")
+        compose.waitUntil(TIMEOUT) { server.reports.size == 1 }
+    }
+
+    @Test
     fun practiceExplainsEachAnswerAndEndsWithWhatToReview() {
         openBuilder()
         // Набор «Проверка на время» есть, но выбрана своя сборка: Verbal · Text Completion · Практика.
