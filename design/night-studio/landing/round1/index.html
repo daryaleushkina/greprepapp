@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Главная — четыре варианта</title>
+<!-- Варианты главной страницы (просьба Даши 10.10.2026: «главная должна быть дорогой, у нас должны хотеть
+     купить»). Каждый вариант — самостоятельная страница; открываются прямо из файла. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geologica:wght@300;500;600&amp;display=swap">
+<style>
+:root { --bg: #0A0F1F; --surface: #121931; --text: #EDF1FB; --text-2: #A8B1CC; --accent: #5CCFFF; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 400 16px/1.5 'Geologica', system-ui, sans-serif; padding: 48px 24px; }
+main { max-width: 960px; margin: 0 auto; display: grid; gap: 28px; }
+h1 { margin: 0; font-weight: 300; font-size: clamp(32px, 6vw, 56px); letter-spacing: -0.03em; }
+p.lead { margin: 0; color: var(--text-2); max-width: 60ch; }
+ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 14px; }
+a { display: grid; gap: 6px; padding: 22px; border-radius: 22px; background: var(--surface); color: inherit; text-decoration: none; min-height: 44px; }
+a:hover b, a:focus-visible b { color: var(--accent); }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+b { font-weight: 600; font-size: 20px; letter-spacing: -0.01em; }
+span { color: var(--text-2); font-size: 15px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Главная страница — четыре варианта</h1>
+  <p class="lead">Лендинг и вход одновременно, «Ночная студия», светлая и тёмная тема — переключатель на каждой странице. Отзывов и цифр аудитории нет: мы в бете, доверие — методом и демонстрацией.</p>
+  <ul>
+    <li><a href="a.html"><b>А · Разбор в действии</b><span>Справа в первом экране человек ошибается — и на глазах появляется разбор по-русски, тема для повторения и рост балла.</span></a></li>
+    <li><a href="b.html"><b>Б · Ночной кадр</b><span>Тишина, лазурный рассвет над планетой, затем фильм по прокрутке из пяти глав с растущей цифрой балла.</span></a></li>
+    <li><a href="c.html"><b>В · Редакционная</b><span>Огромная типографика: «Сколько баллов вам нужно?», шкалы GRE и TOEFL, манифест, вырезки продукта как в журнале.</span></a></li>
+    <li><a href="d.html"><b>Г · Попробуй прямо здесь</b><span>Настоящий вопрос GRE или TOEFL в первом экране: ответили — разбор — и вход как продолжение.</span></a></li>
+  </ul>
+</main>
+</body>
+</html>

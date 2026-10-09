@@ -1,0 +1,635 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>[Имя] · Голос ночью</title>
+<!-- Главная, вариант «Голос ночью» (переделка с нуля после замечания Даши 10.10.2026 «слегка дешёвые — нейрослоп»).
+     Одна идея: один экран — одно слово и одно действие. Человек занимается вечером, поэтому свет идёт от слова,
+     как от настольной лампы, а всё вокруг — ночь. Звук и движение выключаются в шапке. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geologica:wght@100..700&amp;family=IBM+Plex+Mono:wght@400&amp;family=Roboto:wght@500&amp;display=swap">
+<style>
+/* Раскладка: широкие «листы» во весь экран, у каждого слева узкая колонка-поле с подписью, справа — одно
+   действие. Свет на листе — только там, где лежит слово. */
+:root {
+  --bg: #F3F5FB; --surface: #FFFFFF; --surface-2: #E9EDF7;
+  --text: #0E1430; --text-2: #48516F; --text-3: #5D6685;
+  --line: rgb(14 20 48 / 0.12); --line-strong: rgb(14 20 48 / 0.26);
+  --accent: #0067B5; --on-accent: #FFFFFF;
+  --right: #0B7A4E; --right-soft: rgb(11 122 78 / 0.1);
+  --wrong: #C23A1E; --wrong-soft: rgb(194 58 30 / 0.08);
+  --almost: #985800; --almost-soft: rgb(152 88 0 / 0.1);
+  /* Свет: утром — от окна слева, холодный и ровный. */
+  --light-core: rgb(255 255 255 / 0.95);
+  --light-edge: rgb(226 233 247 / 0);
+  --shade: rgb(14 20 48 / 0.045);
+  --tg-bg: #119AF5; --tg-fg: #FFFFFF;
+  --apple-bg: #000000; --apple-fg: #FFFFFF;
+  --google-bg: #FFFFFF; --google-stroke: #747775; --google-fg: #1F1F1F;
+  --font: 'Geologica', 'Onest', system-ui, sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0A0F1F; --surface: #121931; --surface-2: #1A2343;
+    --text: #EDF1FB; --text-2: #A8B1CC; --text-3: #8892B0;
+    --line: rgb(168 184 232 / 0.12); --line-strong: rgb(168 184 232 / 0.26);
+    --accent: #5CCFFF; --on-accent: #051425;
+    --right: #6BE3A4; --right-soft: rgb(107 227 164 / 0.12);
+    --wrong: #FF8B78; --wrong-soft: rgb(255 139 120 / 0.12);
+    --almost: #FFBE63; --almost-soft: rgb(255 190 99 / 0.12);
+    /* Вечером — настольная лампа: тёплая середина, холодный край. */
+    --light-core: rgb(255 236 206 / 0.12);
+    --light-edge: rgb(120 150 220 / 0);
+    --shade: rgb(0 0 0 / 0.35);
+    --apple-bg: #FFFFFF; --apple-fg: #000000;
+    --google-bg: #131314; --google-stroke: #8E918F; --google-fg: #E3E3E3;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0A0F1F; --surface: #121931; --surface-2: #1A2343;
+  --text: #EDF1FB; --text-2: #A8B1CC; --text-3: #8892B0;
+  --line: rgb(168 184 232 / 0.12); --line-strong: rgb(168 184 232 / 0.26);
+  --accent: #5CCFFF; --on-accent: #051425;
+  --right: #6BE3A4; --right-soft: rgb(107 227 164 / 0.12);
+  --wrong: #FF8B78; --wrong-soft: rgb(255 139 120 / 0.12);
+  --almost: #FFBE63; --almost-soft: rgb(255 190 99 / 0.12);
+  --light-core: rgb(255 236 206 / 0.12);
+  --light-edge: rgb(120 150 220 / 0);
+  --shade: rgb(0 0 0 / 0.35);
+  --apple-bg: #FFFFFF; --apple-fg: #000000;
+  --google-bg: #131314; --google-stroke: #8E918F; --google-fg: #E3E3E3;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+html[data-motion="off"] { scroll-behavior: auto; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 400 17px/1.55 var(--font); letter-spacing: -0.005em;
+  -webkit-font-smoothing: antialiased; overflow-x: clip;
+}
+a { color: inherit; }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+::selection { background: color-mix(in srgb, var(--accent) 25%, transparent); }
+p, h1, h2, h3, figure { margin: 0; }
+.wrap { width: 100%; max-width: 1320px; margin: 0 auto; padding-inline: max(20px, env(safe-area-inset-left)) max(20px, env(safe-area-inset-right)); }
+
+/* ---------- Шапка ---------- */
+.head {
+  position: sticky; top: 0; z-index: 10;
+  background: color-mix(in srgb, var(--bg) 86%, transparent);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.4s var(--ease);
+}
+.head.scrolled { border-bottom-color: var(--line); }
+.head .wrap { display: flex; align-items: center; gap: 8px; min-height: 64px; padding-top: env(safe-area-inset-top); }
+.mark { font-weight: 500; font-size: 17px; letter-spacing: -0.01em; text-decoration: none; margin-right: auto; padding: 10px 0; }
+.toggles { display: flex; align-items: center; gap: 2px; }
+.tgl {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 10px;
+  border: 0; background: transparent; color: var(--text-2); font-size: 14px; border-radius: 10px;
+}
+.tgl:hover { color: var(--text); }
+.tgl .dot { width: 26px; height: 16px; border-radius: 8px; border: 1px solid var(--line-strong); position: relative; flex: none; transition: background 0.25s var(--ease), border-color 0.25s var(--ease); }
+.tgl .dot::after { content: ''; position: absolute; top: 2px; left: 2px; width: 10px; height: 10px; border-radius: 50%; background: var(--text-3); transition: transform 0.25s var(--ease), background 0.25s var(--ease); }
+.tgl[aria-checked="true"] .dot { border-color: var(--accent); }
+.tgl[aria-checked="true"] .dot::after { transform: translateX(10px); background: var(--accent); }
+.tgl .ic { display: none; width: 20px; height: 20px; }
+.signin-link { min-height: 44px; display: inline-flex; align-items: center; padding: 0 14px; margin-left: 6px; border-radius: 10px; border: 1px solid var(--line-strong); text-decoration: none; font-size: 15px; font-weight: 500; }
+.signin-link:hover { border-color: var(--text-2); }
+@media (max-width: 720px) {
+  .tgl { padding: 0; width: 44px; justify-content: center; }
+  .tgl .label, .tgl .dot { display: none; }
+  .tgl .ic { display: block; }
+  .tgl[aria-checked="false"] .ic { opacity: 0.45; }
+  .tgl[aria-checked="true"] .ic { color: var(--accent); }
+}
+
+/* ---------- Лист ---------- */
+.sheet { position: relative; overflow-x: clip; min-height: 100svh; display: flex; align-items: center; padding-block: 72px; }
+.sheet + .sheet { border-top: 1px solid var(--line); }
+.sheet .wrap { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 9fr); gap: 40px; align-items: start; }
+.margin { padding-top: 10px; color: var(--text-3); font-size: 14px; line-height: 1.5; }
+.margin b { display: block; color: var(--text); font-weight: 500; font-size: 15px; margin-bottom: 4px; }
+.body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; min-width: 0; }
+.say { max-width: 34ch; font-size: clamp(22px, 2.3vw, 30px); line-height: 1.32; font-weight: 300; letter-spacing: -0.015em; text-wrap: balance; }
+.note { max-width: 52ch; color: var(--text-2); font-size: 17px; }
+@media (max-width: 860px) {
+  .sheet { min-height: auto; padding-block: 64px; }
+  .sheet .wrap { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .margin { padding-top: 0; }
+}
+
+/* Свет лампы: освещает только поверхность под словом, края листа уходят в темноту. */
+.lit { position: relative; isolation: isolate; }
+.lit::before {
+  content: ''; position: absolute; z-index: -1; inset: -12% -18% -30% -18%;
+  background: radial-gradient(56% 48% at 50% 58%, var(--light-core), var(--light-edge) 74%);
+  pointer-events: none;
+}
+
+/* ---------- Первый лист: слово ---------- */
+.hero { min-height: calc(100svh - 64px); padding-block: 40px 56px; }
+.hero .wrap { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); align-items: center; }
+.hero h1 { font-weight: 400; font-size: clamp(26px, 2.6vw, 36px); line-height: 1.22; letter-spacing: -0.02em; text-wrap: balance; max-width: 18ch; }
+.hero .lede { margin-top: 18px; color: var(--text-2); max-width: 38ch; }
+.hero .cta-row { margin-top: 28px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; }
+.cta {
+  display: inline-flex; align-items: center; min-height: 52px; padding: 0 22px; border-radius: 12px;
+  background: var(--text); color: var(--bg); text-decoration: none; font-weight: 500; font-size: 16px;
+}
+.cta:hover { background: color-mix(in srgb, var(--text) 88%, var(--accent)); }
+.hero .small { color: var(--text-3); font-size: 14px; }
+.exams { margin-top: 36px; display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 14px; color: var(--text-3); }
+.exams b { color: var(--text); font-weight: 500; }
+
+.word { display: grid; justify-items: center; text-align: center; gap: 14px; padding: 6vh 0 4vh; }
+.word .w { font-weight: 170; font-size: clamp(84px, 13.5vw, 212px); line-height: 0.95; letter-spacing: -0.045em; margin: 0; }
+.word .meta { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 14px; color: var(--text-2); font-size: 16px; }
+.word .ipa { font-family: var(--mono); font-size: 15px; }
+.word .ru { color: var(--text-2); font-size: 18px; max-width: 30ch; }
+.play {
+  display: inline-flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 18px 0 8px;
+  border-radius: 999px; border: 1px solid var(--line-strong); background: transparent; font-size: 15px;
+}
+.play .disc { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: var(--on-accent); }
+.play .disc svg { width: 16px; height: 16px; }
+.play:hover { border-color: var(--accent); }
+.play[aria-disabled="true"] { opacity: 0.55; cursor: default; }
+.play[aria-disabled="true"] .disc { background: var(--surface-2); color: var(--text-3); }
+.wave { width: min(520px, 86%); height: 48px; display: block; color: var(--accent); }
+.wave path { fill: none; stroke: currentColor; stroke-width: 1.25; stroke-linecap: round; }
+@media (max-width: 860px) {
+  .hero { min-height: auto; padding-top: 12px; }
+  .hero .wrap { grid-template-columns: minmax(0, 1fr); }
+  .hero .text { order: 2; }
+  .hero .word { order: 1; padding: 4vh 0 2vh; }
+}
+
+/* ---------- Написать ---------- */
+.spell { display: grid; gap: 16px; max-width: 560px; }
+.spell label { font-size: 15px; color: var(--text-2); }
+.spell .field { display: flex; align-items: stretch; gap: 10px; }
+.spell input {
+  flex: 1; width: 100%; min-width: 0; min-height: 60px; padding: 0 18px; border-radius: 14px;
+  border: 1px solid var(--line-strong); background: var(--surface); color: var(--text);
+  font: 300 28px/1 var(--font); letter-spacing: 0.01em;
+}
+.spell input:focus { outline: none; border-color: var(--accent); }
+.spell .check { min-height: 60px; padding: 0 20px; border-radius: 14px; border: 1px solid var(--line-strong); background: transparent; font-weight: 500; }
+.spell .check:hover { border-color: var(--text-2); }
+.diff { display: flex; flex-wrap: wrap; gap: 4px; font: 300 34px/1 var(--font); letter-spacing: 0.02em; min-height: 44px; align-items: flex-end; }
+.diff span { display: inline-block; padding: 2px 3px 6px; border-bottom: 2px solid transparent; }
+.diff .ok { border-color: var(--line-strong); }
+.diff .bad { color: var(--almost); border-color: var(--almost); text-decoration: line-through; text-decoration-thickness: 2px; }
+.diff .add { color: var(--almost); border-color: var(--almost); }
+.verdict { font-size: 16px; color: var(--text-2); min-height: 26px; }
+.verdict b { font-weight: 500; }
+.verdict .almost { color: var(--almost); }
+.verdict .good { color: var(--right); }
+
+/* ---------- Сказать ---------- */
+.speak { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 22px 28px; align-items: center; max-width: 640px; }
+.mic { width: 96px; height: 96px; padding: 0; background: transparent; border-radius: 50%; border: 1px solid var(--line-strong); display: grid; place-items: center; color: var(--text); position: relative; }
+.mic svg { width: 30px; height: 30px; }
+.mic::after { content: ''; position: absolute; inset: -9px; border-radius: 50%; border: 1px solid var(--accent); opacity: 0.55; }
+.heard { display: grid; gap: 6px; }
+.heard .k { color: var(--text-3); font-size: 14px; }
+.heard .v { font-weight: 300; font-size: 34px; letter-spacing: -0.02em; }
+.heard .v span { color: var(--right); }
+.heard .tick { display: inline-flex; align-items: center; gap: 6px; color: var(--right); font-size: 15px; }
+.heard .tick svg { width: 16px; height: 16px; }
+.cant { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; color: var(--text-3); font-size: 15px; }
+.cant .btnline { min-height: 44px; padding: 0 2px; border: 0; background: transparent; color: var(--text-2); text-decoration: underline; text-underline-offset: 4px; text-decoration-color: var(--line-strong); }
+@media (max-width: 520px) { .speak { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------- В задании ---------- */
+.task { display: grid; gap: 18px; max-width: 780px; }
+.task .tag { font-size: 14px; color: var(--text-3); }
+.task .stem { font-family: var(--font); font-weight: 300; font-size: clamp(22px, 2.3vw, 30px); line-height: 1.4; letter-spacing: -0.01em; }
+.task .gap { display: inline-block; min-width: 4.2em; border-bottom: 1.5px solid var(--text); transform: translateY(-0.12em); }
+.opts { display: flex; flex-wrap: wrap; gap: 8px; }
+.opt {
+  display: inline-flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 16px 0 12px;
+  border-radius: 10px; border: 1px solid var(--line-strong); background: transparent; font-size: 17px;
+}
+.opt .box { width: 18px; height: 18px; border-radius: 4px; border: 1.5px solid var(--text-3); display: grid; place-items: center; flex: none; }
+.opt .box svg { width: 12px; height: 12px; opacity: 0; }
+.opt[aria-checked="true"] { border-color: var(--text); }
+.opt[aria-checked="true"] .box { background: var(--text); border-color: var(--text); color: var(--bg); }
+.opt[aria-checked="true"] .box svg { opacity: 1; }
+.opt.is-right { border-color: var(--right); color: var(--right); }
+.opt.is-right .box { background: var(--right); border-color: var(--right); color: var(--bg); }
+.opt.is-wrong { border-color: var(--wrong); color: var(--wrong); }
+.opt.is-wrong .box { border-color: var(--wrong); background: transparent; }
+.why { display: grid; gap: 8px; max-width: 60ch; padding-left: 16px; border-left: 1px solid var(--line-strong); color: var(--text-2); font-size: 16px; }
+.why[hidden] { display: none; }
+.why b { color: var(--text); font-weight: 500; }
+.task .go { justify-self: start; min-height: 48px; padding: 0 18px; border-radius: 10px; border: 1px solid var(--line-strong); background: transparent; font-weight: 500; }
+.task .go:hover { border-color: var(--text-2); }
+.letters { display: inline-flex; gap: 2px; vertical-align: baseline; margin-left: 1px; }
+.letters i { font-style: normal; display: inline-grid; place-items: center; min-width: 0.62em; border-bottom: 1.5px solid var(--accent); color: var(--accent); }
+
+/* ---------- Цена и вход ---------- */
+.price { font-weight: 300; font-size: clamp(26px, 3vw, 40px); line-height: 1.3; letter-spacing: -0.02em; max-width: 26ch; text-wrap: balance; }
+.price em { font-style: normal; color: var(--text-3); }
+.inside { max-width: 60ch; color: var(--text-2); }
+.signin { display: grid; gap: 12px; max-width: 420px; }
+.signin h2 { font-weight: 300; font-size: clamp(30px, 3.4vw, 46px); line-height: 1.15; letter-spacing: -0.025em; margin-bottom: 10px; }
+.sb { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 0 20px; font: 500 16px/1 var(--font); text-decoration: none; border: 0; }
+.sb svg { flex: none; }
+.sb-tg { background: var(--tg-bg); color: var(--tg-fg); border-radius: 999px; }
+.sb-tg svg { width: 22px; height: 22px; }
+.sb-apple { background: var(--apple-bg); color: var(--apple-fg); border-radius: 12px; }
+.sb-apple svg { width: 16px; height: 19px; }
+.sb-google { background: var(--google-bg); color: var(--google-fg); border: 1px solid var(--google-stroke); border-radius: 12px; font-family: 'Roboto', var(--font); }
+.sb-google svg { width: 18px; height: 18px; }
+.signin .fine { color: var(--text-3); font-size: 14px; margin-top: 4px; }
+
+
+/* Компьютер: действие листа крупное — экран принадлежит ему одному. */
+@media (min-width: 861px) {
+  .sheet { min-height: 88svh; }
+  .say { font-size: clamp(30px, 3.1vw, 46px); max-width: 22ch; }
+  .note { font-size: 18px; }
+  .spell { max-width: 720px; gap: 20px; }
+  .spell input { min-height: 84px; font-size: 44px; padding: 0 26px; border-radius: 18px; }
+  .spell .check { min-height: 84px; padding: 0 28px; font-size: 18px; border-radius: 18px; }
+  .diff { font-size: 64px; gap: 6px; min-height: 80px; }
+  .verdict { font-size: 18px; }
+  .speak { max-width: 860px; gap: 28px 48px; }
+  .mic { width: 168px; height: 168px; }
+  .mic svg { width: 48px; height: 48px; }
+  .mic::after { inset: -14px; }
+  .heard .v { font-size: 72px; font-weight: 200; }
+  .heard .k, .heard .tick { font-size: 17px; }
+  .cant { font-size: 17px; }
+  .task { max-width: 980px; gap: 26px; }
+  .task .stem { font-size: clamp(32px, 3.2vw, 48px); line-height: 1.32; }
+  .opt { min-height: 60px; font-size: 21px; padding: 0 22px 0 16px; border-radius: 12px; }
+  .opt .box { width: 22px; height: 22px; }
+  .task .go { min-height: 56px; padding: 0 24px; font-size: 17px; }
+  .why { font-size: 18px; }
+  .price { font-size: clamp(36px, 3.8vw, 56px); }
+  .inside { font-size: 18px; }
+  .signin { max-width: 460px; }
+}
+
+/* ---------- Подвал ---------- */
+.foot { border-top: 1px solid var(--line); padding-block: 40px calc(40px + env(safe-area-inset-bottom)); color: var(--text-3); font-size: 13px; line-height: 1.6; }
+.foot .wrap { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 9fr); gap: 24px 40px; }
+.stores { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+.store { display: inline-flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--line-strong); color: var(--text); text-decoration: none; font-size: 13px; line-height: 1.2; }
+.store svg { width: 20px; height: 20px; flex: none; }
+.store small { display: block; color: var(--text-3); font-size: 11px; }
+.disclaimer { max-width: 80ch; }
+@media (max-width: 860px) { .foot .wrap { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------- Движение ---------- */
+.reveal { opacity: 0; transform: translateY(14px); transition: opacity 1.1s var(--ease), transform 1.1s var(--ease); }
+.reveal.in { opacity: 1; transform: none; }
+.word .w { animation: wake 1.6s var(--ease) 0.35s both; }
+.word .meta, .word .ru, .word .play-row { animation: wake 1.2s var(--ease) 1.1s both; }
+@keyframes wake { from { opacity: 0; filter: blur(8px); } to { opacity: 1; filter: blur(0); } }
+html[data-motion="off"] .reveal { opacity: 1; transform: none; transition: none; }
+html[data-motion="off"] .word .w, html[data-motion="off"] .word .meta, html[data-motion="off"] .word .ru, html[data-motion="off"] .word .play-row { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .word .w, .word .meta, .word .ru, .word .play-row { animation: none; }
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-play" viewBox="0 0 16 16"><path d="M5 3.2v9.6L12.5 8z" fill="currentColor"/></symbol>
+    <symbol id="i-check" viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5.5 11.5a6.5 6.5 0 0013 0M12 18v3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+    <symbol id="i-sound" viewBox="0 0 24 24"><path d="M11 5L6.5 9H3v6h3.5L11 19V5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M15.5 9a4 4 0 010 6M18.5 6.5a8 8 0 010 11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+    <symbol id="i-motion" viewBox="0 0 24 24"><path d="M3 12c2.5-5 5.5-5 8 0s5.5 5 8 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M21 12h0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+    <symbol id="i-theme" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<header class="head" id="head">
+  <div class="wrap">
+    <a class="mark" href="#top">[Имя]</a>
+    <div class="toggles">
+      <button type="button" class="tgl" id="t-sound" role="switch" aria-checked="true" aria-label="Звук"><svg class="ic"><use href="#i-sound"/></svg><span class="label">Звук</span><span class="dot"></span></button>
+      <button type="button" class="tgl" id="t-motion" role="switch" aria-checked="true" aria-label="Движение"><svg class="ic"><use href="#i-motion"/></svg><span class="label">Движение</span><span class="dot"></span></button>
+      <button type="button" class="tgl" id="t-theme" role="switch" aria-checked="false" aria-label="Светлая тема"><svg class="ic"><use href="#i-theme"/></svg><span class="label">Светлая</span><span class="dot"></span></button>
+    </div>
+    <a class="signin-link" href="#vhod">Войти</a>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- Первый лист: слово под лампой. -->
+  <section class="sheet hero" aria-labelledby="h1">
+    <div class="wrap">
+      <div class="text">
+        <h1 id="h1">Подготовка к&nbsp;GRE и&nbsp;TOEFL на русском, по одному заданию за раз</h1>
+        <p class="lede">Каждую ошибку разбираем по-русски и&nbsp;показываем, что повторить. Слова слушаете, пишете и&nbsp;произносите вслух. Первое занятие занимает минут десять.</p>
+        <div class="cta-row">
+          <a class="cta" href="#vhod">Начать бесплатно</a>
+          <span class="small">пока идёт бета</span>
+        </div>
+        <p class="exams"><span><b>GRE</b> Verbal, Quant, эссе</span><span><b>TOEFL</b> Reading, Listening, Writing, Speaking</span><span>Скоро SAT и&nbsp;GMAT</span></p>
+      </div>
+      <figure class="word lit" aria-label="Слово laconic">
+        <p class="w" lang="en">laconic</p>
+        <p class="meta"><span lang="en">adjective</span><span class="ipa" lang="en">/ləˈkɒnɪk/</span></p>
+        <p class="ru">лаконичный, немногословный</p>
+        <div class="play-row"><button type="button" class="play" id="play"><span class="disc"><svg><use href="#i-play"/></svg></span><span class="pl">Послушать</span></button></div>
+        <svg class="wave" id="wave" viewBox="0 0 520 48" preserveAspectRatio="none" aria-hidden="true"><path d="M0 24 H520"/></svg>
+      </figure>
+    </div>
+  </section>
+
+  <!-- Написать: проверка по буквам. -->
+  <section class="sheet" aria-labelledby="s-write">
+    <div class="wrap">
+      <p class="margin"><b>Написать</b>После того как услышали</p>
+      <div class="body reveal">
+        <h2 class="say" id="s-write">Напишите слово, которое только что прозвучало</h2>
+        <form class="spell" id="spell" novalidate>
+          <label for="spell-in">Слово по-английски</label>
+          <div class="field">
+            <input id="spell-in" name="spell" type="text" size="8" lang="en" autocomplete="off" autocapitalize="off" spellcheck="false" value="lakonic">
+            <button type="submit" class="check">Проверить</button>
+          </div>
+          <div class="diff" id="diff" aria-hidden="true"></div>
+          <p class="verdict" id="verdict" role="status"></p>
+        </form>
+        <p class="note">Если ошиблись в&nbsp;одной букве, покажем её и&nbsp;попросим переписать слово. Засчитываем ответ, написанный без подсказок.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Сказать вслух. -->
+  <section class="sheet" aria-labelledby="s-say">
+    <div class="wrap">
+      <p class="margin"><b>Сказать</b>Через микрофон телефона или ноутбука</p>
+      <div class="body reveal">
+        <h2 class="say" id="s-say">Нажмите и&nbsp;скажите слово вслух</h2>
+        <div class="speak">
+          <button type="button" class="mic" aria-label="Записать слово"><svg aria-hidden="true"><use href="#i-mic"/></svg></button>
+          <div class="heard">
+            <span class="k">Услышано</span>
+            <span class="v" lang="en">“<span>laconic</span>”</span>
+            <span class="tick"><svg><use href="#i-check"/></svg>Слово узнали</span>
+          </div>
+          <p class="cant">Вокруг шумно или вы в&nbsp;метро? <button type="button" class="btnline">Не можете говорить сейчас?</button> Спросим письменно.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Слово в задании GRE: Sentence Equivalence и разбор по-русски. -->
+  <section class="sheet" aria-labelledby="s-gre">
+    <div class="wrap">
+      <p class="margin"><b>В&nbsp;задании GRE</b>Sentence Equivalence: два слова, один смысл</p>
+      <div class="body reveal">
+        <h2 class="say" id="s-gre">Потом то же слово встретится в&nbsp;задании</h2>
+        <div class="task" id="task">
+          <p class="stem" lang="en">The director’s <span class="gap"></span> reply, a single “No,” ended the meeting.</p>
+          <div class="opts" role="group" aria-label="Выберите два слова">
+            <button type="button" class="opt" role="checkbox" aria-checked="false" data-ok="1" lang="en"><span class="box"><svg><use href="#i-check"/></svg></span>laconic</button>
+            <button type="button" class="opt" role="checkbox" aria-checked="false" lang="en"><span class="box"><svg><use href="#i-check"/></svg></span>verbose</button>
+            <button type="button" class="opt" role="checkbox" aria-checked="false" data-ok="1" lang="en"><span class="box"><svg><use href="#i-check"/></svg></span>terse</button>
+            <button type="button" class="opt" role="checkbox" aria-checked="false" lang="en"><span class="box"><svg><use href="#i-check"/></svg></span>effusive</button>
+            <button type="button" class="opt" role="checkbox" aria-checked="false" lang="en"><span class="box"><svg><use href="#i-check"/></svg></span>tentative</button>
+            <button type="button" class="opt" role="checkbox" aria-checked="false" lang="en"><span class="box"><svg><use href="#i-check"/></svg></span>cordial</button>
+          </div>
+          <button type="button" class="go" id="go">Проверить</button>
+          <div class="why" id="why" role="status" hidden>
+            <p><b>Верно: laconic и&nbsp;terse.</b> Ответ в&nbsp;одно слово, «No», и&nbsp;есть немногословность. Оба слова значат «краткий, скупой на слова».</p>
+            <p><b>Почему не verbose.</b> Verbose значит «многословный»: смысл обратный. Его выбирают те, кто помнит, что слово описывает речь, но путает, много её или мало.</p>
+          </div>
+        </div>
+        <p class="note">Разбор пишем к&nbsp;каждому варианту ответа: почему он соблазняет и&nbsp;чем плох. Он по-русски, с&nbsp;переключателем на английский.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- То же для TOEFL: Complete the Words. -->
+  <section class="sheet" aria-labelledby="s-toefl">
+    <div class="wrap">
+      <p class="margin"><b>В&nbsp;задании TOEFL</b>Complete the Words: дописать буквы в&nbsp;тексте</p>
+      <div class="body reveal">
+        <h2 class="say" id="s-toefl">В&nbsp;TOEFL его дописывают по буквам</h2>
+        <div class="task">
+          <p class="stem" lang="en">Her answer was lac<span class="letters" aria-label="o n i c"><i>o</i><i>n</i><i>i</i><i>c</i></span>: three words and a nod.</p>
+        </div>
+        <p class="note">Для TOEFL свой словарь академических слов. В&nbsp;Listening фразы звучат один раз, как на экзамене. Ответы в&nbsp;Speaking записываем, ставим примерный балл и&nbsp;подсказываем, какие слова произнести иначе.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Цена одной строкой. -->
+  <section class="sheet" aria-labelledby="s-price">
+    <div class="wrap">
+      <p class="margin"><b>Цена</b>Одна подписка для сайта, Telegram и&nbsp;приложений</p>
+      <div class="body reveal">
+        <h2 class="price" id="s-price">Пока идёт бета, всё бесплатно. Потом 7&nbsp;дней бесплатно, дальше <em>[ЦЕНА]</em> в&nbsp;месяц.</h2>
+        <p class="inside">В&nbsp;подписку входят тренировки по каждому типу заданий, словарь с&nbsp;озвучкой, по два пробных экзамена для GRE и&nbsp;для TOEFL и&nbsp;оценка эссе. Подписку можно отменить в&nbsp;настройках в&nbsp;любой день. Тем, кто занимался в&nbsp;бете, сохраним скидку.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Вход: последний лист. -->
+  <section class="sheet" id="vhod" aria-labelledby="s-in">
+    <div class="wrap">
+      <p class="margin"><b>Вход</b>Аккаунт появится при первом входе</p>
+      <div class="body reveal">
+        <div class="signin">
+          <h2 id="s-in">Продолжить с&nbsp;этого слова</h2>
+          <a class="sb sb-tg" href="#"><svg viewBox="0 0 22 22" aria-hidden="true"><path fill="currentColor" d="M2.81376 10.5943C7.36914 8.61002 10.406 7.30175 11.9245 6.66971C16.265 4.86489 17.1658 4.55143 17.7542 4.54094C17.8836 4.53874 18.1716 4.57072 18.3596 4.72281C18.5158 4.85097 18.5598 5.0243 18.5818 5.14588C18.6013 5.26745 18.6282 5.54454 18.6062 5.76083C18.3719 8.23138 17.3539 14.2266 16.8363 16.9938C16.619 18.1647 16.1869 18.5572 15.7695 18.5955C14.8613 18.679 14.1728 17.996 13.294 17.42C11.9196 16.5185 11.1433 15.9575 9.80793 15.0779C8.26505 14.0613 9.26594 13.5025 10.1448 12.5895C10.3743 12.3505 14.373 8.71426 14.4487 8.38445C14.4585 8.34319 14.4683 8.18939 14.3755 8.10834C14.2852 8.02705 14.1508 8.05488 14.0532 8.07685C13.914 8.1081 11.7193 9.56015 7.4618 12.4328C6.83928 12.861 6.27536 13.0697 5.76758 13.0587C5.21097 13.0468 4.13689 12.7433 3.3386 12.484C2.3621 12.166 1.5833 11.9977 1.65166 11.4575C1.68583 11.1763 2.07406 10.8884 2.81376 10.5943Z"/></svg>Войти через Telegram</a>
+          <a class="sb sb-apple" href="#"><svg viewBox="0 0 814 1000" aria-hidden="true"><path fill="currentColor" d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76.5 0-103.7 40.8-165.9 40.8s-105.6-57-155.5-127C46.7 790.7 0 663 0 541.8c0-194.4 126.4-297.5 250.8-297.5 66.1 0 121.2 43.4 162.7 43.4 39.5 0 101.1-46 176.3-46 28.5 0 130.9 2.6 198.3 99.2zm-234-181.5c31.1-36.9 53.1-88.1 53.1-139.3 0-7.1-.6-14.3-1.9-20.1-50.6 1.9-110.8 33.7-147.1 75.8-28.5 32.4-55.1 83.6-55.1 135.5 0 7.8 1.3 15.6 1.9 18.1 3.2.6 8.4 1.3 13.6 1.3 45.4 0 102.5-30.4 135.5-71.3z"/></svg>Войти с&nbsp;Apple</a>
+          <a class="sb sb-google" href="#"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>Войти с&nbsp;Google</a>
+          <p class="fine">В&nbsp;бете карта не нужна. Прогресс общий на сайте, в&nbsp;Telegram и&nbsp;в&nbsp;приложениях.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p>[Имя]<br>Подготовка к&nbsp;GRE® и&nbsp;TOEFL®</p>
+    <div>
+      <div class="stores">
+        <a class="store" href="#" aria-label="Скоро в App Store"><svg viewBox="0 0 814 1000" aria-hidden="true"><path fill="currentColor" d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76.5 0-103.7 40.8-165.9 40.8s-105.6-57-155.5-127C46.7 790.7 0 663 0 541.8c0-194.4 126.4-297.5 250.8-297.5 66.1 0 121.2 43.4 162.7 43.4 39.5 0 101.1-46 176.3-46 28.5 0 130.9 2.6 198.3 99.2zm-234-181.5c31.1-36.9 53.1-88.1 53.1-139.3 0-7.1-.6-14.3-1.9-20.1-50.6 1.9-110.8 33.7-147.1 75.8-28.5 32.4-55.1 83.6-55.1 135.5 0 7.8 1.3 15.6 1.9 18.1 3.2.6 8.4 1.3 13.6 1.3 45.4 0 102.5-30.4 135.5-71.3z"/></svg><span><small>Скоро в</small>App Store</span></a>
+        <a class="store" href="#" aria-label="Скоро в Google Play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5v17l9-8.5-9-8.5zM14 12l3.2-3 3.3 1.9c.9.5.9 1.7 0 2.2L17.2 15 14 12zM5 3.5l9 8.5M5 20.5l9-8.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span><small>Скоро в</small>Google Play</span></a>
+      </div>
+      <p class="disclaimer"><span lang="en">GRE® and TOEFL® are registered trademarks of Educational Testing Service (ETS). This product is not endorsed or approved by ETS.</span> Задания, разборы и&nbsp;слова пишем сами. Тексты из пособий ETS и&nbsp;коммерческих курсов не берём.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+(() => {
+  const root = document.documentElement;
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch { /* без памяти — по умолчанию */ } },
+  };
+
+  // Тема: сначала как в системе, переключатель запоминается.
+  const saved = store.get('landing-theme');
+  if (saved === 'light' || saved === 'dark') root.dataset.theme = saved;
+  const isDark = () => root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  const tTheme = document.getElementById('t-theme');
+  const syncTheme = () => tTheme.setAttribute('aria-checked', String(!isDark()));
+  tTheme.addEventListener('click', () => {
+    root.dataset.theme = isDark() ? 'light' : 'dark';
+    store.set('landing-theme', root.dataset.theme);
+    syncTheme();
+  });
+  syncTheme();
+
+  // Движение: выключатель и системная настройка гасят появления и волну.
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const tMotion = document.getElementById('t-motion');
+  const setMotion = (on) => { root.dataset.motion = on ? 'on' : 'off'; tMotion.setAttribute('aria-checked', String(on)); };
+  setMotion(store.get('landing-motion') ? store.get('landing-motion') === 'on' : !reduce);
+  tMotion.addEventListener('click', () => { const on = root.dataset.motion !== 'on'; setMotion(on); store.set('landing-motion', on ? 'on' : 'off'); });
+  const motionOn = () => root.dataset.motion === 'on';
+
+  // Звук: только по нажатию «Послушать». Выключатель запрещает воспроизведение совсем.
+  const tSound = document.getElementById('t-sound');
+  const play = document.getElementById('play');
+  const synth = 'speechSynthesis' in window ? window.speechSynthesis : null;
+  const setSound = (on) => {
+    tSound.setAttribute('aria-checked', String(on));
+    const can = on && !!synth;
+    play.setAttribute('aria-disabled', String(!can));
+    play.querySelector('.pl').textContent = !synth ? 'Озвучка недоступна в этом браузере' : on ? 'Послушать' : 'Звук выключен';
+  };
+  setSound(store.get('landing-sound') !== 'off');
+  tSound.addEventListener('click', () => { const on = tSound.getAttribute('aria-checked') !== 'true'; setSound(on); store.set('landing-sound', on ? 'on' : 'off'); if (!on && synth) synth.cancel(); });
+
+  // Волна — тонкая линия, дышит, пока звучит слово. Это рисунок, а не анализ звука.
+  const wavePath = document.querySelector('#wave path');
+  let raf = 0;
+  const flat = () => wavePath.setAttribute('d', 'M0 24 H520');
+  const draw = (t0) => {
+    const step = (t) => {
+      const k = (t - t0) / 1000;
+      let d = 'M0 24';
+      for (let x = 0; x <= 520; x += 4) {
+        const env = Math.sin(Math.PI * x / 520);
+        const y = 24 + env * 16 * Math.sin(x / 11 + k * 9) * Math.sin(x / 37 - k * 3) * (0.6 + 0.4 * Math.sin(k * 5));
+        d += ` L${x} ${y.toFixed(2)}`;
+      }
+      wavePath.setAttribute('d', d);
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+  };
+  const stopWave = () => { cancelAnimationFrame(raf); flat(); };
+  play.addEventListener('click', () => {
+    if (play.getAttribute('aria-disabled') === 'true') return;
+    synth.cancel();
+    const u = new SpeechSynthesisUtterance('laconic');
+    u.lang = 'en-US'; u.rate = 0.85;
+    const voice = synth.getVoices().find((v) => v.lang === 'en-US') || synth.getVoices().find((v) => v.lang.startsWith('en'));
+    if (voice) u.voice = voice;
+    u.onstart = () => { if (motionOn()) draw(performance.now()); };
+    u.onend = stopWave; u.onerror = stopWave;
+    synth.speak(u);
+  });
+
+  // Написать: сравнение по буквам. Одна ошибка — «почти»: показываем, где, и просим переписать.
+  const target = 'laconic';
+  const input = document.getElementById('spell-in');
+  const diffEl = document.getElementById('diff');
+  const verdict = document.getElementById('verdict');
+  // Выравнивание по Левенштейну: ok — буква на месте, bad — лишняя или неверная, add — пропущенная (верная).
+  const align = (a, b) => {
+    const m = a.length, n = b.length;
+    const D = Array.from({ length: m + 1 }, (_, i) => Array.from({ length: n + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0)));
+    for (let i = 1; i <= m; i += 1) for (let j = 1; j <= n; j += 1)
+      D[i][j] = Math.min(D[i - 1][j] + 1, D[i][j - 1] + 1, D[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    const out = []; let i = m, j = n;
+    while (i > 0 || j > 0) {
+      if (i > 0 && j > 0 && a[i - 1] === b[j - 1] && D[i][j] === D[i - 1][j - 1]) { out.unshift(['ok', a[i - 1]]); i -= 1; j -= 1; }
+      else if (i > 0 && j > 0 && D[i][j] === D[i - 1][j - 1] + 1) { out.unshift(['add', b[j - 1]]); out.unshift(['bad', a[i - 1]]); i -= 1; j -= 1; }
+      else if (i > 0 && D[i][j] === D[i - 1][j] + 1) { out.unshift(['bad', a[i - 1]]); i -= 1; }
+      else { out.unshift(['add', b[j - 1]]); j -= 1; }
+    }
+    return { cells: out, dist: D[m][n] };
+  };
+  const check = () => {
+    const v = input.value.trim().toLowerCase();
+    diffEl.textContent = '';
+    if (!v) { verdict.textContent = 'Напишите слово, которое прозвучало.'; return; }
+    const { cells, dist } = align(v, target);
+    if (dist === 0) {
+      verdict.innerHTML = '<b class="good">Верно.</b> Слово засчитано.';
+      for (const ch of target) { const s = document.createElement('span'); s.className = 'ok'; s.textContent = ch; diffEl.append(s); }
+      return;
+    }
+    for (const [kind, ch] of cells) { const s = document.createElement('span'); s.className = kind; s.textContent = ch; diffEl.append(s); }
+    verdict.innerHTML = dist <= 2
+      ? (dist === 1 ? '<b class="almost">Почти.</b> Лишнюю букву зачеркнули, нужную поставили рядом. Перепишите слово целиком.' : '<b class="almost">Почти.</b> Две буквы не на своих местах, мы их отметили. Перепишите слово целиком.')
+      : 'Пока не то слово. Послушайте его ещё раз.';
+  };
+  document.getElementById('spell').addEventListener('submit', (e) => { e.preventDefault(); check(); });
+  check();
+
+  // Задание GRE: выбрать два, проверить, раскрыть разбор.
+  const opts = [...document.querySelectorAll('#task .opt')];
+  const why = document.getElementById('why');
+  const go = document.getElementById('go');
+  opts.forEach((o) => o.addEventListener('click', () => {
+    if (go.dataset.done) return;
+    const on = o.getAttribute('aria-checked') !== 'true';
+    if (on && opts.filter((x) => x.getAttribute('aria-checked') === 'true').length >= 2) return;
+    o.setAttribute('aria-checked', String(on));
+  }));
+  go.addEventListener('click', () => {
+    if (go.dataset.done) { // «Ещё раз»
+      delete go.dataset.done; go.textContent = 'Проверить'; why.hidden = true;
+      opts.forEach((o) => { o.classList.remove('is-right', 'is-wrong'); o.setAttribute('aria-checked', 'false'); });
+      return;
+    }
+    // Ничего не выбрано — показываем, как выглядит частая ошибка: laconic и verbose.
+    if (!opts.some((o) => o.getAttribute('aria-checked') === 'true')) { opts[0].setAttribute('aria-checked', 'true'); opts[1].setAttribute('aria-checked', 'true'); }
+    opts.forEach((o) => {
+      const picked = o.getAttribute('aria-checked') === 'true';
+      if (o.dataset.ok) o.classList.add('is-right');
+      else if (picked) o.classList.add('is-wrong');
+    });
+    why.hidden = false; go.dataset.done = '1'; go.textContent = 'Ещё раз';
+  });
+
+  // Появление листов при прокрутке; для автоматических снимков всё видно сразу.
+  const reveals = [...document.querySelectorAll('.reveal')];
+  if (navigator.webdriver || !('IntersectionObserver' in window)) reveals.forEach((r) => r.classList.add('in'));
+  else {
+    const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: 0.18 });
+    reveals.forEach((r) => io.observe(r));
+  }
+
+  // Линия под шапкой появляется, когда первый лист ушёл.
+  const head = document.getElementById('head');
+  const onScroll = () => head.classList.toggle('scrolled', scrollY > 24);
+  addEventListener('scroll', onScroll, { passive: true }); onScroll();
+})();
+</script>
+</body>
+</html>

@@ -3,35 +3,74 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Главная — четыре варианта</title>
-<!-- Варианты главной страницы (просьба Даши 10.10.2026: «главная должна быть дорогой, у нас должны хотеть
-     купить»). Каждый вариант — самостоятельная страница; открываются прямо из файла. -->
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geologica:wght@300;500;600&amp;display=swap">
+<title>Главная — раунд 2</title>
+<!-- Раунд 2 главной (10.10.2026): переделка с нуля после «дёшево, нейрослоп». Каждый вариант — телефон и
+     компьютер рядом, живые страницы во фреймах. Тема переключается здесь для всех сразу: варианты читают
+     её из localStorage 'landing-theme'. Раунд 1 — round1/. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geologica:wght@300;400;500;600&amp;display=swap">
 <style>
-:root { --bg: #0A0F1F; --surface: #121931; --text: #EDF1FB; --text-2: #A8B1CC; --accent: #5CCFFF; color-scheme: dark; }
+:root { --bg: #E9EBF0; --fg: #14161C; --muted: #5A5F6B; --line: #CDD1DA; --chip: #FFFFFF; --on: #14161C; --on-fg: #FFFFFF; }
+@media (prefers-color-scheme: dark) { :root { --bg: #15171C; --fg: #ECEEF2; --muted: #A0A5B0; --line: #2C2F36; --chip: #1F2228; --on: #ECEEF2; --on-fg: #14161C; color-scheme: dark; } }
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--bg); color: var(--text); font: 400 16px/1.5 'Geologica', system-ui, sans-serif; padding: 48px 24px; }
-main { max-width: 960px; margin: 0 auto; display: grid; gap: 28px; }
-h1 { margin: 0; font-weight: 300; font-size: clamp(32px, 6vw, 56px); letter-spacing: -0.03em; }
-p.lead { margin: 0; color: var(--text-2); max-width: 60ch; }
-ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 14px; }
-a { display: grid; gap: 6px; padding: 22px; border-radius: 22px; background: var(--surface); color: inherit; text-decoration: none; min-height: 44px; }
-a:hover b, a:focus-visible b { color: var(--accent); }
-a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-b { font-weight: 600; font-size: 20px; letter-spacing: -0.01em; }
-span { color: var(--text-2); font-size: 15px; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 400 15px/1.5 'Geologica', system-ui, sans-serif; }
+header { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; justify-content: space-between; padding: 14px 24px; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+h1 { margin: 0; font-size: 18px; font-weight: 600; }
+header p { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+.seg { display: flex; gap: 4px; }
+.seg button { font: inherit; font-size: 13px; padding: 7px 12px; min-height: 36px; border-radius: 999px; border: 1px solid var(--line); background: var(--chip); color: var(--fg); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--on); color: var(--on-fg); border-color: var(--on); }
+main { padding: 28px 24px 64px; display: grid; gap: 56px; }
+section h2 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+section h2 a { color: inherit; }
+section > p { margin: 4px 0 16px; color: var(--muted); max-width: 80ch; }
+.pair { display: flex; gap: 28px; align-items: flex-start; flex-wrap: wrap; }
+.dev { display: grid; gap: 6px; }
+.dev span { font-size: 12px; color: var(--muted); }
+.phone { width: 390px; height: 844px; border: 0; border-radius: 32px; background: #000; box-shadow: 0 10px 30px rgb(0 0 0 / 0.18); }
+.desk-wrap { width: 1008px; height: 630px; overflow: hidden; border-radius: 14px; box-shadow: 0 10px 30px rgb(0 0 0 / 0.18); }
+.desk { width: 1440px; height: 900px; border: 0; transform: scale(0.7); transform-origin: 0 0; }
+@media (max-width: 1500px) { .desk-wrap { width: 720px; height: 450px; } .desk { transform: scale(0.5); } }
+@media (max-width: 760px) { main, header { padding-inline: 16px; } .desk-wrap { width: 100%; height: auto; aspect-ratio: 16 / 10; } .desk { transform: scale(0.24); } .phone { width: 100%; max-width: 390px; } }
 </style>
 </head>
 <body>
+<header>
+  <div><h1>Главная · раунд 2 — с нуля</h1><p>Телефон и компьютер рядом, страницы живые: листаются и нажимаются. Первый раунд — <a href="round1/index.html">round1</a>.</p></div>
+  <div class="seg" role="group" aria-label="Тема всех вариантов">
+    <button type="button" data-t="dark">Тёмная</button>
+    <button type="button" data-t="light">Светлая</button>
+  </div>
+</header>
 <main>
-  <h1>Главная страница — четыре варианта</h1>
-  <p class="lead">Лендинг и вход одновременно, «Ночная студия», светлая и тёмная тема — переключатель на каждой странице. Отзывов и цифр аудитории нет: мы в бете, доверие — методом и демонстрацией.</p>
-  <ul>
-    <li><a href="a.html"><b>А · Разбор в действии</b><span>Справа в первом экране человек ошибается — и на глазах появляется разбор по-русски, тема для повторения и рост балла.</span></a></li>
-    <li><a href="b.html"><b>Б · Ночной кадр</b><span>Тишина, лазурный рассвет над планетой, затем фильм по прокрутке из пяти глав с растущей цифрой балла.</span></a></li>
-    <li><a href="c.html"><b>В · Редакционная</b><span>Огромная типографика: «Сколько баллов вам нужно?», шкалы GRE и TOEFL, манифест, вырезки продукта как в журнале.</span></a></li>
-    <li><a href="d.html"><b>Г · Попробуй прямо здесь</b><span>Настоящий вопрос GRE или TOEFL в первом экране: ответили — разбор — и вход как продолжение.</span></a></li>
-  </ul>
+  <section>
+    <h2><a href="polya.html">1 · Поля</a></h2>
+    <p>Трудное предложение GRE набрано антиквой — голос экзамена. Ошиблись — и на поле лазурной ручкой появляется пометка по-русски: почему соблазнило и что повторить.</p>
+    <div class="pair"><div class="dev"><span>Телефон, 390</span><iframe class="phone" src="polya.html" title="Поля — телефон"></iframe></div><div class="dev"><span>Компьютер, 1440</span><div class="desk-wrap"><iframe class="desk" src="polya.html" title="Поля — компьютер"></iframe></div></div></div>
+  </section>
+  <section>
+    <h2><a href="shkala.html">2 · Шкала</a></h2>
+    <p>Балл как прибор: тянете стрелку к своей цели — страница считает недели, тренировки и разделы, которые весят больше.</p>
+    <div class="pair"><div class="dev"><span>Телефон, 390</span><iframe class="phone" src="shkala.html" title="Шкала — телефон"></iframe></div><div class="dev"><span>Компьютер, 1440</span><div class="desk-wrap"><iframe class="desk" src="shkala.html" title="Шкала — компьютер"></iframe></div></div></div>
+  </section>
+  <section>
+    <h2><a href="golos.html">3 · Голос ночью</a></h2>
+    <p>Одно слово на экран: услышать, написать, сказать вслух, встретить в задании. Свет идёт от слова, как от лампы; звук и движение выключаются.</p>
+    <div class="pair"><div class="dev"><span>Телефон, 390</span><iframe class="phone" src="golos.html" title="Голос ночью — телефон"></iframe></div><div class="dev"><span>Компьютер, 1440</span><div class="desk-wrap"><iframe class="desk" src="golos.html" title="Голос ночью — компьютер"></iframe></div></div></div>
+  </section>
 </main>
+<script>
+// Тема общая для всех фреймов: пишем её туда, откуда её читают варианты, и перезагружаем фреймы.
+let theme = 'dark';
+try { theme = localStorage.getItem('landing-theme') || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'); } catch (e) { /* по умолчанию тёмная */ }
+const sync = () => document.querySelectorAll('[data-t]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.t === theme)));
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-t]'); if (!b) return;
+  theme = b.dataset.t;
+  try { localStorage.setItem('landing-theme', theme); } catch (err) { /* без памяти — только этот показ */ }
+  document.querySelectorAll('iframe').forEach(f => { try { f.contentDocument.documentElement.dataset.theme = theme; } catch (err) { f.src = f.src; } });
+  sync();
+});
+sync();
+</script>
 </body>
 </html>

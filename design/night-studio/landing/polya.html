@@ -1,0 +1,714 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>[Имя] — подготовка к GRE и TOEFL</title>
+<meta name="description" content="Подготовка к GRE и TOEFL с разбором каждой ошибки на русском: тренировки, словарь, пробный экзамен.">
+<!-- Главная, направление «Поля» (раунд 2, 10.10.2026). Идея: страница — лист с полями. Английский текст
+     задания набран антиквой, это голос экзамена; разбор пишется на полях шрифтом Geologica лазурной ручкой,
+     это голос наставника. Свечения, плашек и сеток карточек нет намеренно (отчёт о наградных сайтах). -->
+<script>
+  // Тема до первой отрисовки: сначала как в системе, выбор человека — поверх.
+  (function () {
+    var t = null;
+    try { t = localStorage.getItem('landing-theme'); } catch (e) { /* без памяти */ }
+    if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+  })();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geologica:wght@200;300;400;500;600&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;1,8..60,400&amp;display=swap">
+<style>
+/* Лист с полями: колонка подписей · текст · поле для пометок. На телефоне поле уходит под строку. */
+:root {
+  --ink: #F3F5FB;        /* бумага */
+  --sheet: #FBFCFE;
+  --text: #0E1430;
+  --text-2: #48516F;
+  --text-3: #5D6685;
+  --rule: rgb(14 20 48 / 0.12);
+  --rule-strong: rgb(14 20 48 / 0.28);
+  --pen: #0067B5;        /* ручка */
+  --pen-soft: rgb(0 103 181 / 0.08);
+  --wrong: #C23A1E;
+  --serif: 'Source Serif 4', 'Iowan Old Style', Georgia, serif;
+  --sans: 'Geologica', 'Onest', system-ui, sans-serif;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --tg: #119AF5; --tg-text: #FFFFFF;
+  --apple-bg: #000000; --apple-text: #FFFFFF;
+  --google-bg: #FFFFFF; --google-stroke: #747775; --google-text: #1F1F1F;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ink: #0A0F1F; --sheet: #0D1328; --text: #EDF1FB; --text-2: #A8B1CC; --text-3: #8F99B8;
+    --rule: rgb(168 184 232 / 0.12); --rule-strong: rgb(168 184 232 / 0.3);
+    --pen: #5CCFFF; --pen-soft: rgb(92 207 255 / 0.1); --wrong: #FF8B78;
+    --apple-bg: #FFFFFF; --apple-text: #000000;
+    --google-bg: #131314; --google-stroke: #8E918F; --google-text: #E3E3E3;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --ink: #0A0F1F; --sheet: #0D1328; --text: #EDF1FB; --text-2: #A8B1CC; --text-3: #8F99B8;
+  --rule: rgb(168 184 232 / 0.12); --rule-strong: rgb(168 184 232 / 0.3);
+  --pen: #5CCFFF; --pen-soft: rgb(92 207 255 / 0.1); --wrong: #FF8B78;
+  --apple-bg: #FFFFFF; --apple-text: #000000;
+  --google-bg: #131314; --google-stroke: #8E918F; --google-text: #E3E3E3;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--ink); color: var(--text);
+  font: 400 17px/1.55 var(--sans); letter-spacing: -0.003em;
+  -webkit-font-smoothing: antialiased; overflow-x: clip;
+}
+a { color: inherit; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--pen); outline-offset: 3px; border-radius: 2px; }
+::selection { background: var(--pen-soft); }
+.en { font-family: var(--serif); font-optical-sizing: auto; }
+.num { font-variant-numeric: tabular-nums; }
+
+/* Сетка листа */
+.wrap { max-width: 1320px; margin: 0 auto; padding-inline: 40px; }
+.row { display: grid; grid-template-columns: 200px minmax(0, 1fr) 340px; column-gap: 48px; }
+.label { grid-column: 1; font-size: 13px; line-height: 1.5; color: var(--text-3); padding-top: 6px; }
+.label b { display: block; font-weight: 500; color: var(--text-2); }
+.body { grid-column: 2; min-width: 0; }
+.margin { grid-column: 3; min-width: 0; }
+
+/* Шапка */
+.top { border-bottom: 1px solid var(--rule); }
+.top .wrap { display: flex; align-items: center; gap: 28px; min-height: 64px; }
+.mark { font-weight: 600; font-size: 18px; letter-spacing: -0.02em; text-decoration: none; }
+.top nav { display: flex; gap: 24px; margin-left: auto; font-size: 14px; color: var(--text-2); }
+.top nav a { text-decoration: none; padding: 12px 0; }
+.top nav a:hover { color: var(--text); }
+.theme { display: flex; gap: 2px; font-size: 13px; }
+.theme button { border: 0; background: none; padding: 12px 6px; color: var(--text-3); cursor: pointer; }
+.theme button[aria-pressed="true"] { color: var(--text); text-decoration: underline; text-decoration-color: var(--pen); text-underline-offset: 5px; text-decoration-thickness: 1.5px; }
+.signin-link { font-size: 14px; font-weight: 500; text-decoration: none; padding: 12px 0; border-bottom: 1.5px solid var(--pen); line-height: 1; }
+
+/* Первый лист: задание и пометка */
+.hero { position: relative; padding-block: 72px 88px; }
+.hero h1 { font: 500 15px/1.5 var(--sans); color: var(--text-2); margin: 0 0 28px; max-width: 44ch; letter-spacing: 0; }
+.hero h1 b { color: var(--text); font-weight: 500; }
+.task-meta { font-size: 13px; color: var(--text-3); margin: 0 0 14px; }
+.sentence {
+  font-family: var(--serif); font-weight: 400; font-size: clamp(30px, 3.6vw, 52px); line-height: 1.32;
+  letter-spacing: -0.012em; margin: 0; text-wrap: pretty; max-width: 22em;
+}
+.blank { display: inline-block; position: relative; min-width: 4.6em; text-align: center; white-space: nowrap; }
+.blank::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0.08em; height: 1.5px; background: var(--text); }
+.blank .word { display: inline-block; padding: 0 0.15em; color: var(--text); }
+.blank .word.is-wrong { color: var(--text-3); }
+.blank .word.is-right { color: var(--pen); }
+.strike { position: absolute; left: -2%; width: 104%; top: 46%; height: 0.5em; overflow: visible; pointer-events: none; }
+.strike path, .under path, .leader path, .circle path { fill: none; stroke: var(--pen); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.under { position: absolute; left: -4%; width: 108%; bottom: -0.22em; height: 0.35em; overflow: visible; pointer-events: none; }
+
+.choices { display: flex; flex-wrap: wrap; gap: 6px 28px; margin: 36px 0 0; padding: 0; list-style: none; }
+.choice {
+  display: inline-flex; align-items: center; gap: 12px; min-height: 48px; padding: 4px 2px; border: 0; background: none;
+  font-family: var(--serif); font-size: 22px; cursor: pointer; color: var(--text);
+}
+.choice .oval { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--text-3); flex: none; display: grid; place-items: center; }
+.choice[aria-checked="true"] .oval { border-color: var(--text); }
+.choice[aria-checked="true"] .oval::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--text); }
+.choice.was-wrong { color: var(--text-3); text-decoration: line-through; text-decoration-color: var(--pen); text-decoration-thickness: 1.5px; }
+.choice.is-key { color: var(--pen); }
+.choice:hover:not([aria-checked="true"]) .oval { border-color: var(--text); }
+
+.leader { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+.note { font-size: 16px; line-height: 1.55; color: var(--pen); padding-top: 4px; min-height: 1px; }
+.note p { margin: 0 0 10px; }
+.note .w { font-family: var(--serif); font-style: italic; font-size: 1.08em; }
+.note[hidden] { display: none; }
+.note .line { display: block; opacity: 0; transform: translateY(4px); }
+.note.is-on .line { animation: write 520ms var(--ease) forwards; }
+@keyframes write { to { opacity: 1; transform: none; } }
+
+.after { margin-top: 44px; max-width: 760px; grid-row: 2; }
+.hero .margin { grid-row: 1 / span 2; }
+.after p { margin: 0 0 16px; color: var(--text-2); }
+.after p b { color: var(--text); font-weight: 500; }
+.again { border: 0; background: none; padding: 12px 0; font-size: 14px; color: var(--text-3); cursor: pointer; text-decoration: underline; text-underline-offset: 4px; text-decoration-color: var(--rule-strong); }
+
+/* Кнопки входа — официальный вид каждой компании */
+.signin { display: flex; flex-wrap: wrap; gap: 10px; }
+.sb { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 48px; padding: 0 18px; font: 500 15px/1 var(--sans); border: 0; cursor: pointer; text-decoration: none; }
+.sb svg { flex: none; }
+.sb-tg { background: var(--tg); color: var(--tg-text); border-radius: 999px; }
+.sb-apple { background: var(--apple-bg); color: var(--apple-text); border-radius: 8px; }
+.sb-google { background: var(--google-bg); color: var(--google-text); border-radius: 8px; box-shadow: inset 0 0 0 1px var(--google-stroke); font-family: 'Roboto', var(--sans); }
+.sb-apple svg { width: 15px; height: 18px; fill: currentColor; }
+.signin-note { font-size: 13px; color: var(--text-3); margin-top: 14px; }
+
+/* Листы ниже */
+.sheet { border-top: 1px solid var(--rule); padding-block: 80px; }
+.sheet h2 { font: 500 clamp(26px, 2.6vw, 36px)/1.18 var(--sans); letter-spacing: -0.022em; margin: 0 0 18px; max-width: 22ch; text-wrap: balance; }
+.sheet .body > p { color: var(--text-2); max-width: 58ch; margin: 0 0 14px; }
+.fig { margin-top: 40px; }
+.fig-cap { font-size: 13px; color: var(--text-3); margin-top: 14px; }
+
+.pen-note { color: var(--pen); font-size: 15px; line-height: 1.55; padding-top: 112px; }
+.pen-note p { margin: 0; padding-left: 14px; border-left: 1.5px solid var(--pen); }
+.pen-note .w { font-family: var(--serif); font-style: italic; font-size: 1.06em; }
+@media (max-width: 820px) { .pen-note { padding-top: 24px; } }
+
+/* Рис. 2 — карточка слова как вырезка из словаря */
+.entry { display: grid; grid-template-columns: auto 1fr; gap: 6px 24px; padding: 28px 0; border-top: 1.5px solid var(--text); border-bottom: 1px solid var(--rule); max-width: 680px; }
+.entry .hw { grid-column: 1 / -1; display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px 18px; }
+.entry .hw .en { font-size: 44px; line-height: 1.1; letter-spacing: -0.02em; }
+.entry .pos { font-size: 14px; color: var(--text-3); }
+.entry .ipa { font-family: var(--serif); font-size: 18px; color: var(--text-2); }
+.listen { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 2px; border: 0; background: none; color: var(--pen); font-size: 14px; cursor: pointer; }
+.listen svg { width: 18px; height: 18px; }
+.entry dt { font-size: 13px; color: var(--text-3); padding-top: 3px; }
+.entry dd { margin: 0; }
+.entry dd .en { font-style: italic; }
+.drill { display: flex; flex-wrap: wrap; gap: 8px 28px; margin-top: 22px; font-size: 15px; color: var(--text-2); max-width: 680px; }
+.drill span::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; border: 1.5px solid var(--pen); margin-right: 10px; vertical-align: 2px; }
+
+/* Рис. 3 — журнал ошибок одной темы */
+.log { max-width: 680px; border-top: 1.5px solid var(--text); }
+.log-row { display: grid; grid-template-columns: 88px minmax(0, 1fr) auto; gap: 18px; padding: 14px 0; border-bottom: 1px solid var(--rule); align-items: baseline; }
+.log-row .d { font-size: 13px; color: var(--text-3); }
+.log-row .en { font-size: 18px; }
+.log-row .en i { color: var(--pen); font-style: normal; border-bottom: 1.5px solid var(--pen); }
+.log-row .s { font-size: 13px; color: var(--text-3); white-space: nowrap; }
+.plan { margin-top: 26px; font-size: 16px; max-width: 560px; color: var(--pen); }
+
+/* Рис. 4 — шкала */
+.scale { max-width: 760px; margin-top: 8px; }
+.scale svg { width: 100%; height: auto; display: block; overflow: visible; }
+.scale text { font-family: var(--sans); font-size: 13px; fill: var(--text-3); font-variant-numeric: tabular-nums; }
+.scale .axis { stroke: var(--rule-strong); stroke-width: 1; }
+.scale .tick { stroke: var(--rule-strong); stroke-width: 1; }
+.scale .range { stroke: var(--pen); stroke-width: 3; stroke-linecap: round; }
+.scale .val { font-weight: 200; font-size: clamp(64px, 8vw, 104px); line-height: 1; letter-spacing: -0.04em; margin: 0 0 18px; }
+.scale .pen { fill: var(--pen); font-size: 14px; }
+
+/* Рис. 5 — две решётки */
+.sheets2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0; max-width: 840px; border-top: 1.5px solid var(--text); }
+.solve { padding: 22px 28px 26px 0; }
+.solve + .solve { padding-left: 28px; border-left: 1px solid var(--rule); }
+.solve h3 { font: 500 14px/1.4 var(--sans); margin: 0 0 14px; color: var(--text-2); }
+.solve ol { margin: 0; padding: 0 0 0 20px; font-size: 15px; line-height: 1.6; color: var(--text); }
+.solve ol li { padding-left: 4px; margin-bottom: 6px; }
+.solve ol li::marker { color: var(--text-3); font-size: 13px; }
+.solve .ans { margin-top: 16px; font-size: 15px; display: flex; align-items: center; gap: 12px; }
+.solve .ans .en { position: relative; display: inline-block; font-size: 22px; padding: 2px 14px; }
+.circle { position: absolute; left: -6px; top: -6px; width: calc(100% + 12px); height: calc(100% + 12px); overflow: visible; pointer-events: none; }
+.match { grid-column: 1 / -1; border-top: 1px solid var(--rule); padding: 16px 0 0; font-size: 15px; color: var(--pen); }
+
+/* Экзамены — оглавление */
+.toc { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; max-width: 900px; }
+.toc h3 { font: 500 22px/1.2 var(--sans); letter-spacing: -0.015em; margin: 0 0 4px; }
+.toc .sub { font-size: 14px; color: var(--text-3); margin: 0 0 14px; }
+.toc dl { margin: 0; border-top: 1.5px solid var(--text); }
+.toc .tr { display: flex; align-items: baseline; gap: 10px; padding: 11px 0; border-bottom: 1px solid var(--rule); font-size: 16px; }
+.toc dt { flex: none; }
+.toc .dots { flex: 1; border-bottom: 1px dotted var(--rule-strong); transform: translateY(-4px); min-width: 16px; }
+.toc dd { margin: 0; flex: none; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.toc .tr.total dt, .toc .tr.total dd { color: var(--text); font-weight: 500; }
+.next-exams { margin-top: 26px; font-size: 15px; color: var(--text-3); }
+
+/* Цена — врезка */
+.price { max-width: 720px; border-top: 1.5px solid var(--text); border-bottom: 1px solid var(--rule); padding: 28px 0 30px; }
+.price .now { font-weight: 200; font-size: clamp(56px, 7vw, 96px); line-height: 1; letter-spacing: -0.04em; margin: 0 0 6px; }
+.price .now small { font-size: 0.24em; font-weight: 400; letter-spacing: 0; color: var(--text-2); margin-left: 12px; vertical-align: 0.9em; }
+.price ul { margin: 18px 0 26px; padding: 0; list-style: none; }
+.price li { padding: 8px 0; border-bottom: 1px solid var(--rule); color: var(--text-2); font-size: 16px; }
+.price li:last-child { border-bottom: 0; }
+.price li b { color: var(--text); font-weight: 500; }
+
+/* Вопросы — заметками на полях */
+.qa { display: grid; grid-template-columns: 1fr 1fr; gap: 36px 48px; max-width: 900px; }
+.qa h3 { font: 500 17px/1.35 var(--sans); margin: 0 0 8px; }
+.qa p { margin: 0; color: var(--text-2); font-size: 15px; }
+
+/* Подвал */
+.foot { border-top: 1px solid var(--rule); padding-block: 48px 64px; font-size: 13px; color: var(--text-3); }
+.foot .row > div { min-width: 0; }
+.stores { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 22px; }
+.store { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 6px 14px; border: 1px solid var(--rule-strong); border-radius: 9px; color: var(--text); text-decoration: none; font-size: 12px; line-height: 1.2; }
+.store svg { width: 18px; height: 18px; fill: currentColor; flex: none; }
+.store b { display: block; font-size: 15px; font-weight: 500; }
+.legal { max-width: 70ch; margin: 0 0 10px; }
+
+/* Появление листов при прокрутке — один раз, из видимого покоя для тех, кто без JS и без движения */
+.reveal { opacity: 1; }
+.js .reveal { opacity: 0; transform: translateY(14px); transition: opacity 700ms var(--ease), transform 700ms var(--ease); }
+.js .reveal.in { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .js .reveal { opacity: 1; transform: none; transition: none; }
+  .note.is-on .line { animation: none; opacity: 1; transform: none; }
+}
+
+/* Планшет */
+@media (max-width: 1100px) {
+  .row { grid-template-columns: 150px minmax(0, 1fr) 280px; column-gap: 32px; }
+}
+/* Телефон: подписи над текстом, поле — под строкой */
+@media (max-width: 820px) {
+  .wrap { padding-inline: 20px; }
+  .row { grid-template-columns: minmax(0, 1fr); }
+  .label, .body, .margin { grid-column: 1; }
+  .label { padding-top: 0; margin-bottom: 14px; }
+  .top nav { display: none; }
+  .top .wrap { gap: 14px; }
+  .theme { margin-left: auto; }
+  .hero { padding-block: 40px 56px; }
+  .hero h1 { margin-bottom: 22px; }
+  .sentence { font-size: 29px; line-height: 1.36; }
+  .choices { gap: 0 22px; margin-top: 26px; }
+  .choice { font-size: 20px; }
+  .margin { margin-top: 30px; }
+  .note { font-size: 16px; }
+  .after { margin-top: 28px; grid-row: auto; }
+  .hero .margin { grid-row: auto; }
+  .sheet { padding-block: 56px; }
+  .entry .hw .en { font-size: 36px; }
+  .log-row { grid-template-columns: 64px minmax(0, 1fr); }
+  .log-row .s { grid-column: 2; }
+  .sheets2 { grid-template-columns: 1fr; }
+  .solve, .solve + .solve { padding: 20px 0; border-left: 0; }
+  .solve + .solve { border-top: 1px solid var(--rule); }
+  .toc, .qa { grid-template-columns: 1fr; gap: 40px; }
+  .scale text { font-size: 26px; }
+  .scale .pen { font-size: 26px; }
+  .sb { flex: 1 1 100%; }
+}
+</style>
+</head>
+<body>
+<script>document.documentElement.classList.add('js');</script>
+
+<header class="top">
+  <div class="wrap">
+    <a class="mark" href="#" aria-label="[Имя] — на главную">[Имя]</a>
+    <nav aria-label="Разделы страницы">
+      <a href="#razbor">Как разбираем</a>
+      <a href="#exams">Экзамены</a>
+      <a href="#price">Цена</a>
+    </nav>
+    <div class="theme" role="group" aria-label="Тема">
+      <button type="button" data-set-theme="light" aria-pressed="false">Светлая</button>
+      <button type="button" data-set-theme="dark" aria-pressed="false">Тёмная</button>
+    </div>
+    <a class="signin-link" href="#price">Войти</a>
+  </div>
+</header>
+
+<main>
+  <!-- Первый лист: задание, ответ, пометка на полях -->
+  <section class="hero" id="razbor" aria-labelledby="hero-h">
+    <div class="wrap row" id="hero-row">
+      <p class="label"><b>Рис. 1</b>Задание из тренировки<br>GRE · Verbal<br>Text Completion</p>
+      <div class="body">
+        <h1 id="hero-h">Подготовка к <b>GRE и TOEFL</b>, где каждую ошибку разбирают по-русски. Вставьте слово в пропуск.</h1>
+        <p class="sentence en" lang="en" id="sentence">The senator’s apology was so <span class="blank" id="blank"><span class="word" id="blank-word">&nbsp;</span></span> that it seemed designed less to make amends than to end the conversation.</p>
+        <ul class="choices" role="radiogroup" aria-label="Варианты для пропуска" id="choices">
+          <li><button type="button" class="choice" role="radio" aria-checked="false" data-w="contrite" lang="en"><span class="oval"></span>contrite</button></li>
+          <li><button type="button" class="choice" role="radio" aria-checked="false" data-w="perfunctory" lang="en"><span class="oval"></span>perfunctory</button></li>
+          <li><button type="button" class="choice" role="radio" aria-checked="false" data-w="effusive" lang="en"><span class="oval"></span>effusive</button></li>
+          <li><button type="button" class="choice" role="radio" aria-checked="false" data-w="heartfelt" lang="en"><span class="oval"></span>heartfelt</button></li>
+        </ul>
+      </div>
+      <aside class="margin" aria-live="polite" id="margin">
+        <div class="note" id="note" hidden></div>
+      </aside>
+        <div class="after body" id="after" hidden>
+          <p>Так разбирается <b>каждый ответ</b> в тренировках и пробниках: почему соблазнил неверный вариант и какое слово в задании подсказывает верный.</p>
+          <div class="signin" aria-label="Войти и начать">
+            <a class="sb sb-tg" href="#"><svg width="20" height="20" viewBox="0 0 22 22" aria-hidden="true"><path fill="currentColor" d="M2.81376 10.5943C7.36914 8.61002 10.406 7.30175 11.9245 6.66971C16.265 4.86489 17.1658 4.55143 17.7542 4.54094C17.8836 4.53874 18.1716 4.57072 18.3596 4.72281C18.5158 4.85097 18.5598 5.0243 18.5818 5.14588C18.6013 5.26745 18.6282 5.54454 18.6062 5.76083C18.3719 8.23138 17.3539 14.2266 16.8363 16.9938C16.619 18.1647 16.1869 18.5572 15.7695 18.5955C14.8613 18.679 14.1728 17.996 13.294 17.42C11.9196 16.5185 11.1433 15.9575 9.80793 15.0779C8.26505 14.0613 9.26594 13.5025 10.1448 12.5895C10.3743 12.3505 14.373 8.71426 14.4487 8.38445C14.4585 8.34319 14.4683 8.18939 14.3755 8.10834C14.2852 8.02705 14.1508 8.05488 14.0532 8.07685C13.914 8.1081 11.7193 9.56015 7.4618 12.4328C6.83928 12.861 6.27536 13.0697 5.76758 13.0587C5.21097 13.0468 4.13689 12.7433 3.3386 12.484C2.3621 12.166 1.5833 11.9977 1.65166 11.4575C1.68583 11.1763 2.07406 10.8884 2.81376 10.5943Z"/></svg>Войти через Telegram</a>
+            <a class="sb sb-apple" href="#"><svg viewBox="0 0 814 1000" aria-hidden="true"><path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76.5 0-103.7 40.8-165.9 40.8s-105.6-57-155.5-127C46.7 790.7 0 663 0 541.8c0-194.4 126.4-297.5 250.8-297.5 66.1 0 121.2 43.4 162.7 43.4 39.5 0 101.1-46 176.3-46 28.5 0 130.9 2.6 198.3 99.2zm-234-181.5c31.1-36.9 53.1-88.1 53.1-139.3 0-7.1-.6-14.3-1.9-20.1-50.6 1.9-110.8 33.7-147.1 75.8-28.5 32.4-55.1 83.6-55.1 135.5 0 7.8 1.3 15.6 1.9 18.1 3.2.6 8.4 1.3 13.6 1.3 45.4 0 102.5-30.4 135.5-71.3z"/></svg>Войти с Apple</a>
+            <a class="sb sb-google" href="#"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>Войти с Google</a>
+          </div>
+          <p class="signin-note">Пока идёт бета, всё бесплатно. Аккаунт создастся при первом входе.</p>
+          <button type="button" class="again" id="again">Выбрать другой вариант</button>
+        </div>
+    </div>
+    <svg class="leader" id="leader" aria-hidden="true"><path id="leader-path" d=""/></svg>
+  </section>
+
+  <!-- Рис. 2: слово уходит в словарь -->
+  <section class="sheet reveal" aria-labelledby="h-word">
+    <div class="wrap row">
+      <p class="label"><b>Рис. 2</b>Словарь</p>
+      <div class="body">
+        <h2 id="h-word">Слово из ошибки попадает в ваш словарь</h2>
+        <p>Через день <span class="en" lang="en"><i>perfunctory</i></span> вернётся в карточках. Вам предстоит узнать его среди четырёх значений, написать по буквам и сказать вслух. Выученным слово считается, только когда вы ответили верно.</p>
+        <div class="fig">
+          <dl class="entry">
+            <div class="hw">
+              <span class="en" lang="en">perfunctory</span>
+              <span class="pos">прилагательное</span>
+              <span class="ipa" lang="en">/pərˈfʌŋk.tər.i/</span>
+              <button type="button" class="listen" id="listen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Послушать</button>
+            </div>
+            <dt>Значение</dt>
+            <dd>сделанный для галочки, без интереса и старания</dd>
+            <dt>Пример</dt>
+            <dd><span class="en" lang="en">He gave the report a perfunctory glance.</span><br>Он мельком, не вчитываясь, взглянул на отчёт.</dd>
+            <dt>Синонимы</dt>
+            <dd><span class="en" lang="en">cursory, token, mechanical</span></dd>
+          </dl>
+          <p class="drill"><span>выбрать значение</span><span>написать по буквам</span><span>сказать вслух</span></p>
+          <p class="fig-cap">Произношение проверяет распознавание речи на телефоне. Если рядом шумно, этот шаг можно пропустить.</p>
+        </div>
+      </div>
+      <aside class="margin pen-note"><p>От латинского <span class="w" lang="la">perfungi</span>: «отбыть, исполнить». Сделал, чтобы отделаться.</p></aside>
+    </div>
+  </section>
+
+  <!-- Рис. 3: тема, на которой ошибаются -->
+  <section class="sheet reveal" aria-labelledby="h-topic">
+    <div class="wrap row">
+      <p class="label"><b>Рис. 3</b>Что повторить</p>
+      <div class="body">
+        <h2 id="h-topic">Следующая тренировка начнётся со слабой темы</h2>
+        <p>В этом задании смысл переворачивает конструкция <span class="en" lang="en"><i>less … than</i></span>. Если такие ошибки повторяются, мы ставим тему в начало плана и даём её теорию на одну страницу.</p>
+        <div class="fig">
+          <div class="log" role="table" aria-label="Ошибки на теме «Сравнение less … than»">
+            <div class="log-row" role="row"><span class="d" role="cell">Пн</span><span class="en" role="cell" lang="en">designed <i>less</i> to make amends <i>than</i> to end…</span><span class="s" role="cell">Text Completion</span></div>
+            <div class="log-row" role="row"><span class="d" role="cell">Ср</span><span class="en" role="cell" lang="en">valued <i>less</i> for its accuracy <i>than</i> for…</span><span class="s" role="cell">Sentence Equivalence</span></div>
+            <div class="log-row" role="row"><span class="d" role="cell">Чт</span><span class="en" role="cell" lang="en">read <i>less</i> as a rebuttal <i>than</i> as…</span><span class="s" role="cell">Reading</span></div>
+          </div>
+          <p class="plan">Три ошибки за неделю на одной конструкции. В пятницу начнём с неё: 8 вопросов, около 10 минут.</p>
+        </div>
+      </div>
+      <aside class="margin pen-note"><p><span class="w" lang="en">less A than B</span>: важнее B. Здесь важнее закончить разговор, поэтому извинение формальное.</p></aside>
+    </div>
+  </section>
+
+  <!-- Рис. 4: прогноз балла -->
+  <section class="sheet reveal" aria-labelledby="h-score">
+    <div class="wrap row">
+      <p class="label"><b>Рис. 4</b>Прогноз</p>
+      <div class="body">
+        <h2 id="h-score">Сколько это в баллах</h2>
+        <p>После пробного экзамена вы видите диапазон, в котором, скорее всего, окажется ваш балл. Мы считаем его по опубликованным ETS таблицам баллов и перцентилей. Официальный балл ставит только ETS, поэтому рядом с диапазоном стоит пометка «наша оценка».</p>
+        <div class="fig scale">
+          <p class="val num">151–155</p>
+          <p class="fig-cap">наша оценка, не официальный балл</p>
+          <svg viewBox="0 0 760 74" role="img" aria-label="Шкала Verbal от 130 до 170, отмечен диапазон 151–155">
+            <line class="axis" x1="0" y1="34" x2="760" y2="34"/>
+            <line class="tick" x1="1" y1="28" x2="1" y2="40"/><text x="0" y="66">130</text>
+            <line class="tick" x1="190" y1="28" x2="190" y2="40"/><text x="190" y="66" text-anchor="middle">140</text>
+            <line class="tick" x1="380" y1="28" x2="380" y2="40"/><text x="380" y="66" text-anchor="middle">150</text>
+            <line class="tick" x1="570" y1="28" x2="570" y2="40"/><text x="570" y="66" text-anchor="middle">160</text>
+            <line class="tick" x1="759" y1="28" x2="759" y2="40"/><text x="760" y="66" text-anchor="end">170</text>
+            <line class="range" x1="399" y1="34" x2="475" y2="34"/>
+            <text class="pen" x="437" y="18" text-anchor="middle">вероятнее всего 153</text>
+          </svg>
+          <p class="fig-cap">Пример: Verbal после двух пробников. Шкала GRE: от 130 до 170.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Рис. 5: ключ проверен дважды -->
+  <section class="sheet reveal" aria-labelledby="h-key">
+    <div class="wrap row">
+      <p class="label"><b>Рис. 5</b>Проверка ключа</p>
+      <div class="body">
+        <h2 id="h-key">Каждое задание решают дважды</h2>
+        <p>Автор пишет задание и ответ. Второй проход решает его заново и ответа не видит. Если ответы разошлись, задание разбирают, и в банк оно не попадает, пока расхождение не снято.</p>
+        <div class="fig">
+          <div class="sheets2">
+            <div class="solve">
+              <h3>Решение автора</h3>
+              <ol>
+                <li><span class="en" lang="en">less to make amends than to end</span>: главное в извинении — закончить разговор.</li>
+                <li>Значит, извинение формальное.</li>
+                <li>Из четырёх вариантов так называется только одно слово.</li>
+              </ol>
+              <p class="ans">Ответ <span class="en" lang="en">perfunctory<svg class="circle" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true"><path d="M8 22 C 6 8, 40 3, 62 5 C 88 7, 98 16, 93 26 C 88 36, 50 38, 26 35 C 10 33, 4 26, 12 17"/></svg></span></p>
+            </div>
+            <div class="solve">
+              <h3>Решение проверяющего, без ключа</h3>
+              <ol>
+                <li><span class="en" lang="en">contrite</span> и <span class="en" lang="en">heartfelt</span> противоречат второй половине фразы.</li>
+                <li><span class="en" lang="en">effusive</span> — долгое извинение, а разговор хотят закончить.</li>
+                <li>Остаётся извинение «для вида».</li>
+              </ol>
+              <p class="ans">Ответ <span class="en" lang="en">perfunctory<svg class="circle" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true"><path d="M10 18 C 14 6, 46 2, 70 5 C 92 8, 99 18, 92 28 C 84 37, 44 38, 22 34 C 6 31, 3 22, 14 14"/></svg></span></p>
+            </div>
+            <p class="match">Ответы совпали, задание вошло в банк.</p>
+          </div>
+          <p class="fig-cap">Задания пишем сами. Формат и темы берём из открытых описаний экзаменов. Текстов из пособий ETS в заданиях нет.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Экзамены -->
+  <section class="sheet reveal" id="exams" aria-labelledby="h-exams">
+    <div class="wrap row">
+      <p class="label"><b>Экзамены</b>Тренировки по каждому типу заданий и пробник с таким же лимитом времени, как на экзамене</p>
+      <div class="body">
+        <h2 id="h-exams">GRE и TOEFL целиком</h2>
+        <div class="fig toc">
+          <div>
+            <h3>GRE General Test</h3>
+            <p class="sub">шкала 130–170 по Verbal и Quant</p>
+            <dl>
+              <div class="tr"><dt>Analytical Writing (эссе)</dt><span class="dots"></span><dd>30 мин</dd></div>
+              <div class="tr"><dt>Verbal, две секции</dt><span class="dots"></span><dd>18 + 23 мин</dd></div>
+              <div class="tr"><dt>Quant, две секции</dt><span class="dots"></span><dd>21 + 26 мин</dd></div>
+              <div class="tr total"><dt>Пробник целиком</dt><span class="dots"></span><dd>1 ч 58 мин</dd></div>
+            </dl>
+          </div>
+          <div>
+            <h3>TOEFL iBT</h3>
+            <p class="sub">формат с января 2026, шкала 1–6</p>
+            <dl>
+              <div class="tr"><dt>Reading</dt><span class="dots"></span><dd>около 30 мин</dd></div>
+              <div class="tr"><dt>Listening</dt><span class="dots"></span><dd>около 29 мин</dd></div>
+              <div class="tr"><dt>Writing</dt><span class="dots"></span><dd>23 мин</dd></div>
+              <div class="tr"><dt>Speaking, с записью голоса</dt><span class="dots"></span><dd>8 мин</dd></div>
+            </dl>
+          </div>
+        </div>
+        <p class="next-exams">Следом добавим SAT и GMAT.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Цена -->
+  <section class="sheet reveal" id="price" aria-labelledby="h-price">
+    <div class="wrap row">
+      <p class="label"><b>Цена</b>Одна подписка на сайт, мини-приложение Telegram и приложения</p>
+      <div class="body">
+        <h2 id="h-price" class="sr">Цена</h2>
+        <div class="price">
+          <p class="now num">0 ₽<small>пока идёт бета</small></p>
+          <ul>
+            <li>После беты: <b>7 дней бесплатно</b>, затем <b>[ЦЕНА] в месяц</b>.</li>
+            <li>Тем, кто занимался в бете, сделаем скидку. Её размер скажем до конца беты.</li>
+            <li>Оплата картой или по СБП. Отменить можно в настройках.</li>
+          </ul>
+          <div class="signin">
+            <a class="sb sb-tg" href="#"><svg width="20" height="20" viewBox="0 0 22 22" aria-hidden="true"><path fill="currentColor" d="M2.81376 10.5943C7.36914 8.61002 10.406 7.30175 11.9245 6.66971C16.265 4.86489 17.1658 4.55143 17.7542 4.54094C17.8836 4.53874 18.1716 4.57072 18.3596 4.72281C18.5158 4.85097 18.5598 5.0243 18.5818 5.14588C18.6013 5.26745 18.6282 5.54454 18.6062 5.76083C18.3719 8.23138 17.3539 14.2266 16.8363 16.9938C16.619 18.1647 16.1869 18.5572 15.7695 18.5955C14.8613 18.679 14.1728 17.996 13.294 17.42C11.9196 16.5185 11.1433 15.9575 9.80793 15.0779C8.26505 14.0613 9.26594 13.5025 10.1448 12.5895C10.3743 12.3505 14.373 8.71426 14.4487 8.38445C14.4585 8.34319 14.4683 8.18939 14.3755 8.10834C14.2852 8.02705 14.1508 8.05488 14.0532 8.07685C13.914 8.1081 11.7193 9.56015 7.4618 12.4328C6.83928 12.861 6.27536 13.0697 5.76758 13.0587C5.21097 13.0468 4.13689 12.7433 3.3386 12.484C2.3621 12.166 1.5833 11.9977 1.65166 11.4575C1.68583 11.1763 2.07406 10.8884 2.81376 10.5943Z"/></svg>Войти через Telegram</a>
+            <a class="sb sb-apple" href="#"><svg viewBox="0 0 814 1000" aria-hidden="true"><path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76.5 0-103.7 40.8-165.9 40.8s-105.6-57-155.5-127C46.7 790.7 0 663 0 541.8c0-194.4 126.4-297.5 250.8-297.5 66.1 0 121.2 43.4 162.7 43.4 39.5 0 101.1-46 176.3-46 28.5 0 130.9 2.6 198.3 99.2zm-234-181.5c31.1-36.9 53.1-88.1 53.1-139.3 0-7.1-.6-14.3-1.9-20.1-50.6 1.9-110.8 33.7-147.1 75.8-28.5 32.4-55.1 83.6-55.1 135.5 0 7.8 1.3 15.6 1.9 18.1 3.2.6 8.4 1.3 13.6 1.3 45.4 0 102.5-30.4 135.5-71.3z"/></svg>Войти с Apple</a>
+            <a class="sb sb-google" href="#"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>Войти с Google</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Вопросы — заметками -->
+  <section class="sheet reveal" aria-labelledby="h-qa">
+    <div class="wrap row">
+      <p class="label"><b>Заметки</b>Что обычно спрашивают</p>
+      <div class="body">
+        <h2 id="h-qa" class="sr">Вопросы</h2>
+        <div class="qa">
+          <div>
+            <h3>Чем это отличается от POWERPREP?</h3>
+            <p>POWERPREP — официальный бесплатный пробник ETS, пройдите его обязательно. Там видно, верно или нет. У нас каждый ответ разобран по-русски, а слабые темы собираются в план.</p>
+          </div>
+          <div>
+            <h3>Насколько точен прогноз балла?</h3>
+            <p>Пока неизвестно: в бете мы сверяем прогноз с настоящими результатами участников. Поэтому показываем диапазон по двум-трём пробникам, а не одно число.</p>
+          </div>
+          <div>
+            <h3>Где заниматься?</h3>
+            <p>Сейчас — на сайте и в мини-приложении Telegram. Приложения для iPhone, iPad, Mac и Android появятся после беты. Прогресс один на все устройства.</p>
+          </div>
+          <div>
+            <h3>Сколько времени в день нужно?</h3>
+            <p>Одна тренировка из 10 вопросов занимает около 12 минут, слова — около 7. Этого хватает как ежедневного шага. Прогресс сохраняется на каждом ответе, можно прерваться в любой момент.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap row">
+    <p class="label"><b>[Имя]</b>Подготовка к GRE® и TOEFL®</p>
+    <div class="body">
+      <div class="stores">
+        <span class="store" aria-label="Скоро в App Store"><svg viewBox="0 0 814 1000" aria-hidden="true"><path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76.5 0-103.7 40.8-165.9 40.8s-105.6-57-155.5-127C46.7 790.7 0 663 0 541.8c0-194.4 126.4-297.5 250.8-297.5 66.1 0 121.2 43.4 162.7 43.4 39.5 0 101.1-46 176.3-46 28.5 0 130.9 2.6 198.3 99.2zm-234-181.5c31.1-36.9 53.1-88.1 53.1-139.3 0-7.1-.6-14.3-1.9-20.1-50.6 1.9-110.8 33.7-147.1 75.8-28.5 32.4-55.1 83.6-55.1 135.5 0 7.8 1.3 15.6 1.9 18.1 3.2.6 8.4 1.3 13.6 1.3 45.4 0 102.5-30.4 135.5-71.3z"/></svg><span>Скоро в<b>App Store</b></span></span>
+        <span class="store" aria-label="Скоро в Google Play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 2.6 13.6 12 4 21.4c-.3-.2-.5-.6-.5-1V3.6c0-.4.2-.8.5-1zm10.6 10.4 2.5 2.5-11.3 6.4 8.8-8.9zm3.8-3.4 2.4 1.4c.7.4.7 1.6 0 2l-2.4 1.4-2.8-2.4 2.8-2.4zM5.8 2.1l11.3 6.4-2.5 2.5-8.8-8.9z"/></svg><span>Скоро в<b>Google Play</b></span></span>
+      </div>
+      <p class="legal">GRE® and TOEFL® are registered trademarks of Educational Testing Service (ETS). This product is not endorsed or approved by ETS.</p>
+      <p class="legal">Оценку балла считаем мы, официальный результат даёт только ETS. Условия · Конфиденциальность · Написать нам</p>
+    </div>
+  </div>
+</footer>
+
+<style>.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }</style>
+<script>
+(function () {
+  var root = document.documentElement;
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Автоматический браузер снимков видит страницу в покое: всё раскрыто сразу.
+  var still = reduce || navigator.webdriver === true;
+
+  // ---- Тема ----
+  function currentTheme() {
+    if (root.dataset.theme) return root.dataset.theme;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  function syncTheme() {
+    var t = currentTheme();
+    document.querySelectorAll('[data-set-theme]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.setTheme === t)); });
+  }
+  document.querySelectorAll('[data-set-theme]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      root.dataset.theme = b.dataset.setTheme;
+      try { localStorage.setItem('landing-theme', b.dataset.setTheme); } catch (e) { /* без памяти */ }
+      syncTheme(); requestAnimationFrame(drawLeader);
+    });
+  });
+  syncTheme();
+
+  // ---- Задание и пометки ----
+  var KEY = 'perfunctory';
+  var NOTES = {
+    contrite: [
+      '<span class="w" lang="en">contrite</span> — раскаивающийся.',
+      'Соблазняет, потому что рядом стоит <span class="w" lang="en">apology</span>.',
+      'Но во второй половине фразы сказано, зачем извинялись: чтобы закончить разговор. Так извиняются для вида.',
+      'Это <span class="w" lang="en">perfunctory</span>: формальный, без старания.'
+    ],
+    heartfelt: [
+      '<span class="w" lang="en">heartfelt</span> — искренний.',
+      'Фраза <span class="w" lang="en">less to make amends than to end the conversation</span> говорит, что загладить вину хотели меньше, чем закончить разговор.',
+      'Нужно слово про формальное извинение: <span class="w" lang="en">perfunctory</span>.'
+    ],
+    effusive: [
+      '<span class="w" lang="en">effusive</span> — бурный, многословный.',
+      'Длинное извинение плохо вяжется с желанием поскорее закончить разговор.',
+      'Подходит <span class="w" lang="en">perfunctory</span>: коротко и формально.'
+    ],
+    perfunctory: [
+      'Верно.',
+      '<span class="w" lang="en">perfunctory</span> — сделанный для галочки.',
+      'Подсказка во второй половине фразы: извинялись, чтобы поскорее закончить разговор.'
+    ]
+  };
+  var blank = document.getElementById('blank');
+  var blankWord = document.getElementById('blank-word');
+  var note = document.getElementById('note');
+  var after = document.getElementById('after');
+  var leaderPath = document.getElementById('leader-path');
+  var leaderSvg = document.getElementById('leader');
+  var choices = Array.prototype.slice.call(document.querySelectorAll('.choice'));
+  var chosen = null;
+
+  function strikeSvg() {
+    return '<svg class="strike" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true"><path d="M2 6 C 30 3, 60 7, 98 4"/></svg>';
+  }
+  function underSvg() {
+    return '<svg class="under" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true"><path d="M2 5 C 25 8, 70 2, 98 6"/></svg>';
+  }
+  function animatePath(path, ms, delay) {
+    if (still) { path.style.strokeDasharray = ''; path.style.strokeDashoffset = ''; return; }
+    var len = path.getTotalLength ? path.getTotalLength() : 200;
+    path.style.transition = 'none';
+    path.style.strokeDasharray = len; path.style.strokeDashoffset = len;
+    path.getBoundingClientRect();
+    path.style.transition = 'stroke-dashoffset ' + ms + 'ms cubic-bezier(0.22,1,0.36,1) ' + (delay || 0) + 'ms';
+    path.style.strokeDashoffset = 0;
+  }
+
+  // Выноска от слова в пропуске к пометке на полях. Идёт по межстрочному пробелу под строкой с пропуском,
+  // как корректорская линия, и не перечёркивает текст. Пометка встаёт вровень со строкой пропуска.
+  // На телефоне поле под вариантами — выноски нет, пометка просто следует за ответом.
+  var wide = window.matchMedia('(min-width: 821px)');
+  function drawLeader() {
+    if (!chosen || note.hidden || !wide.matches) { leaderPath.setAttribute('d', ''); note.style.marginTop = ''; return; }
+    var sentence = document.getElementById('sentence').getBoundingClientRect();
+    var m = document.getElementById('margin').getBoundingClientRect();
+    var w0 = blank.getBoundingClientRect();
+    note.style.marginTop = Math.max(0, w0.top - m.top - 6) + 'px';
+    var host = leaderSvg.getBoundingClientRect();
+    var w = blank.getBoundingClientRect();
+    var n = note.getBoundingClientRect();
+    // Пометка на поле: короткая дуга в просвете между текстом и полем, на высоте строки с пропуском.
+    var y = w.top - host.top + w.height * 0.62;
+    var sx = Math.max(sentence.right, w.right) - host.left + 16;
+    var ex = n.left - host.left - 12, ey = n.top - host.top + 13;
+    var d = 'M' + sx + ' ' + y + ' C ' + (sx + (ex - sx) * 0.5) + ' ' + y + ', ' + (ex - 24) + ' ' + ey + ', ' + ex + ' ' + ey;
+    leaderPath.setAttribute('d', d);
+  }
+
+  function choose(word, animate) {
+    chosen = word;
+    var right = word === KEY;
+    choices.forEach(function (c) {
+      var w = c.dataset.w;
+      c.setAttribute('aria-checked', String(w === word));
+      c.classList.toggle('was-wrong', !right && w === word);
+      c.classList.toggle('is-key', !right && w === KEY);
+    });
+    blankWord.textContent = word;
+    blankWord.className = 'word ' + (right ? 'is-right' : 'is-wrong');
+    var old = blank.querySelectorAll('svg'); old.forEach(function (s) { s.remove(); });
+    blank.insertAdjacentHTML('beforeend', right ? underSvg() : strikeSvg());
+    var mark = blank.querySelector('svg path');
+
+    note.innerHTML = NOTES[word].map(function (l) { return '<p><span class="line">' + l + '</span></p>'; }).join('');
+    note.hidden = false;
+    note.classList.remove('is-on');
+    var lines = note.querySelectorAll('.line');
+    lines.forEach(function (l, i) { l.style.animationDelay = (520 + i * 160) + 'ms'; });
+    after.hidden = false;
+    requestAnimationFrame(function () {
+      drawLeader();
+      if (animate && !still) {
+        animatePath(mark, 420, 0);
+        animatePath(leaderPath, 640, 260);
+        note.classList.add('is-on');
+      } else {
+        lines.forEach(function (l) { l.style.animation = 'none'; l.style.opacity = '1'; l.style.transform = 'none'; });
+      }
+    });
+  }
+
+  choices.forEach(function (c) { c.addEventListener('click', function () { choose(c.dataset.w, true); }); });
+  document.getElementById('again').addEventListener('click', function () {
+    var first = choices.find(function (c) { return c.dataset.w !== chosen; });
+    if (first) first.focus();
+  });
+  window.addEventListener('resize', function () { requestAnimationFrame(drawLeader); });
+
+  // Первый показ: страница сама «ошибается» самым частым ответом, чтобы было видно, что такое разбор.
+  // Без движения — сразу в готовом виде.
+  if (still) choose('contrite', false);
+  else setTimeout(function () { if (!chosen) choose('contrite', true); }, 1400);
+
+  // ---- Произношение ----
+  document.getElementById('listen').addEventListener('click', function () {
+    if (!('speechSynthesis' in window)) return; // без синтеза речи кнопка просто молчит; в продукте — записанный файл
+    var u = new SpeechSynthesisUtterance('perfunctory');
+    u.lang = 'en-US'; u.rate = 0.9;
+    window.speechSynthesis.cancel(); window.speechSynthesis.speak(u);
+  });
+
+  // ---- Появление листов ----
+  var sheets = document.querySelectorAll('.reveal');
+  if (still || !('IntersectionObserver' in window)) {
+    sheets.forEach(function (s) { s.classList.add('in'); });
+  } else {
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, { rootMargin: '0px 0px -12% 0px' });
+    sheets.forEach(function (s) { io.observe(s); });
+  }
+})();
+</script>
+</body>
+</html>

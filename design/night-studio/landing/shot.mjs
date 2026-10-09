@@ -1,5 +1,5 @@
 // Снимок варианта главной из файла:
-//   node design/night-studio/landing/shot.mjs <a|b|c|d> <ширина 1440|390> <light|dark> <out.png> [задержка мс=4000] [full]
+//   node design/night-studio/landing/shot.mjs <имя файла без .html> <ширина 1440|390> <light|dark> <out.png> [задержка мс=4000] [full]
 // Тема задаётся атрибутом data-theme на <html>, как это делает переключатель на странице.
 import { chromium } from 'playwright';
 import { fileURLToPath, pathToFileURL } from 'node:url';
