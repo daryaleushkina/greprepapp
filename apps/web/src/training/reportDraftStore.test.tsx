@@ -52,3 +52,9 @@ test('после единичного переполнения следующе�
   expect(store.put('a', 'id', 0, { text: 'Synthetic last' })).toBe(true);
   expect(store.get('a', 'id', 0)).toEqual({ text: 'Synthetic last' }); expect(report).toHaveBeenCalledTimes(1);
 });
+
+test('черновик, не прошедший схему, не сохраняется и не бросает', () => {
+  const store = new ReportDraftStore(`draft-test-${crypto.randomUUID()}`);
+  expect(store.put('a', 'id', 0, { text: 'a'.repeat(REPORT_TEXT_MAX + 1) })).toBe(false);
+  expect(store.get('a', 'id', 0)).toBeUndefined();
+});

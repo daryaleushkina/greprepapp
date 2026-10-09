@@ -35,7 +35,10 @@ export class ReportDraftStore {
   }
 
   put(userId: string, id: string, position: number, draft?: ReportDraft): boolean {
-    const checked = draft === undefined ? undefined : reportDraftSchema.parse(draft);
+    // Черновик, не прошедший схему, не сохраняется — набор текста не должен ронять экран.
+    const parsed = draft === undefined ? undefined : reportDraftSchema.safeParse(draft);
+    if (parsed && !parsed.success) return false;
+    const checked = parsed?.data;
     return this.access((storage) => {
       const key = this.key(userId, id, position);
       if (checked?.kind || checked?.text) storage.setItem(key, JSON.stringify(checked));
