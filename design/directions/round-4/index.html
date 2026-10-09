@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Раунд 4 — направления</title>
+<!-- Каталог раунда 4 (решение Даши 09.10.2026): общий сайт для нескольких экзаменов, шесть экранов в четырёх
+     направлениях, светлая и тёмная тема, телефон и компьютер. Разметка экранов общая (шаблоны ниже), вид —
+     в файлах направлений: a.css «Конспект», b.css «Пульт», c.css «Цветовые поля», d.css «Ночная студия».
+     Раскладка компьютера включается контейнерным запросом по ширине рамки, а не отдельной разметкой. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&amp;family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;family=Unbounded:wght@500;600;700&amp;family=Manrope:wght@400;500;600;700;800&amp;family=Golos+Text:wght@400;500;600;700&amp;family=Inter+Tight:wght@300;400;500;600;700&amp;family=Geologica:wght@200;300;400;500;600;700&amp;display=swap">
+<link rel="stylesheet" href="catalog.css">
+<link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="a.css">
+<link rel="stylesheet" href="b.css">
+<link rel="stylesheet" href="c.css">
+<link rel="stylesheet" href="d.css">
+</head>
+<body>
+
+<header class="cat-head">
+  <div class="cat-title">
+    <h1>Раунд 4 · общий сайт для экзаменов</h1>
+    <p>Структура прежняя, вид — четыре новых направления. Главная — «Тренировка», экзамен выбирается, у вариантов ответа нет букв, подсказок клавиш нет. Пример — GRE, на выборе экзамена — и TOEFL.</p>
+  </div>
+  <div class="cat-controls" role="group" aria-label="Что показать">
+    <fieldset class="cat-seg" id="f-dir">
+      <legend>Направление</legend>
+      <button type="button" data-dir="all" aria-pressed="true">Все</button>
+      <button type="button" data-dir="a" aria-pressed="false">А · Конспект</button>
+      <button type="button" data-dir="b" aria-pressed="false">Б · Пульт</button>
+      <button type="button" data-dir="c" aria-pressed="false">В · Цветовые поля</button>
+      <button type="button" data-dir="d" aria-pressed="false">Г · Ночная студия</button>
+    </fieldset>
+    <fieldset class="cat-seg" id="f-screen">
+      <legend>Экран</legend>
+      <button type="button" data-screen="all" aria-pressed="true">Все</button>
+      <button type="button" data-screen="home" aria-pressed="false">Тренировка</button>
+      <button type="button" data-screen="question" aria-pressed="false">Вопрос</button>
+      <button type="button" data-screen="review" aria-pressed="false">Разбор</button>
+      <button type="button" data-screen="stats" aria-pressed="false">Прогресс</button>
+      <button type="button" data-screen="exam" aria-pressed="false">Выбор экзамена</button>
+      <button type="button" data-screen="word" aria-pressed="false">Слово</button>
+    </fieldset>
+    <fieldset class="cat-seg" id="f-theme">
+      <legend>Тема</legend>
+      <button type="button" data-theme-pick="both" aria-pressed="true">Обе</button>
+      <button type="button" data-theme-pick="light" aria-pressed="false">Светлая</button>
+      <button type="button" data-theme-pick="dark" aria-pressed="false">Тёмная</button>
+    </fieldset>
+    <fieldset class="cat-seg" id="f-device">
+      <legend>Устройство</legend>
+      <button type="button" data-device="phone" aria-pressed="true">Телефон</button>
+      <button type="button" data-device="desktop" aria-pressed="false">Компьютер</button>
+    </fieldset>
+  </div>
+</header>
+
+<main id="board" class="cat-board"></main>
+
+<!-- Иконки: одна толщина линии, рисуются цветом текста. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-cross" viewBox="0 0 24 24"><path d="M7 7l10 10M17 7L7 17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M11 5L6 9H3v6h3l5 4V5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M15.5 8.5a5 5 0 010 7M18.5 5.5a9 9 0 010 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-train" viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-words" viewBox="0 0 24 24"><path d="M4 5.5A1.5 1.5 0 015.5 4H11v16H5.5A1.5 1.5 0 014 18.5v-13zM20 5.5A1.5 1.5 0 0018.5 4H13v16h5.5a1.5 1.5 0 001.5-1.5v-13z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-exam" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 9v4l2.5 2.5M9.5 2.5h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-progress" viewBox="0 0 24 24"><path d="M3 17l5.5-5.5 4 4L21 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 7h6v6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-repeat" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0113.7-5.6L20 8.5M20 4v4.5h-4.5M20 12a8 8 0 01-13.7 5.6L4 15.5M4 20v-4.5h4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V4M5 4h11l-2 4 2 4H5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="16" cy="7" r="2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="10" cy="17" r="2" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3V4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M5 17a3 3 0 013-3h11" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+  </defs>
+</svg>
+
+<!-- ============ Шаблоны экранов ============ -->
+
+<template id="t-home">
+<div class="app has-nav" data-screen="home">
+  <nav class="nav" aria-label="Разделы">
+    <button type="button" class="exam-switch" aria-label="Экзамен: GRE, сменить"><span class="exam-switch-name">GRE</span><svg class="ic-sm"><use href="#i-chevron-down"/></svg></button>
+    <a class="nav-item" href="#" aria-current="page"><svg class="ic"><use href="#i-train"/></svg><span>Тренировка</span></a>
+    <a class="nav-item" href="#"><svg class="ic"><use href="#i-words"/></svg><span>Слова</span></a>
+    <a class="nav-item" href="#"><svg class="ic"><use href="#i-exam"/></svg><span>Экзамен</span></a>
+    <a class="nav-item" href="#"><svg class="ic"><use href="#i-progress"/></svg><span>Прогресс</span></a>
+  </nav>
+  <div class="main">
+    <header class="top">
+      <button type="button" class="exam-switch exam-switch-top" aria-label="Экзамен: GRE, сменить"><span class="exam-switch-name">GRE</span><svg class="ic-sm"><use href="#i-chevron-down"/></svg></button>
+    </header>
+    <div class="home-grid">
+      <section class="home-primary">
+        <h1 class="h1">Тренировка</h1>
+        <article class="start-card sec-verbal">
+          <p class="eyebrow">Как в прошлый раз</p>
+          <h2 class="start-title">Text Completion</h2>
+          <p class="start-meta"><span class="sec-dot"></span>Verbal · 10 вопросов · Практика · ~12 мин</p>
+          <div class="start-actions">
+            <button type="button" class="btn btn-primary">Начать</button>
+            <button type="button" class="btn btn-ghost"><svg class="ic-sm"><use href="#i-sliders"/></svg>Настроить</button>
+          </div>
+        </article>
+        <h2 class="h2">Выбрать раздел</h2>
+        <ul class="sections" role="list">
+          <li class="section-row sec-verbal">
+            <a href="#" class="section-link">
+              <span class="section-mark"></span>
+              <span class="section-body">
+                <span class="section-name">Verbal</span>
+                <span class="section-types">Text Completion · Sentence Equivalence · Reading Comprehension</span>
+              </span>
+              <span class="section-stat"><b>68 %</b><small>верно</small></span>
+              <svg class="ic-sm section-chev"><use href="#i-chevron-right"/></svg>
+            </a>
+          </li>
+          <li class="section-row sec-quant">
+            <a href="#" class="section-link">
+              <span class="section-mark"></span>
+              <span class="section-body">
+                <span class="section-name">Quant</span>
+                <span class="section-types">Quantitative Comparison · Задачи · Data Interpretation</span>
+              </span>
+              <span class="section-stat"><b>74 %</b><small>верно</small></span>
+              <svg class="ic-sm section-chev"><use href="#i-chevron-right"/></svg>
+            </a>
+          </li>
+          <li class="section-row sec-essay">
+            <a href="#" class="section-link">
+              <span class="section-mark"></span>
+              <span class="section-body">
+                <span class="section-name">Эссе</span>
+                <span class="section-types">Analyze an Issue · 30 минут</span>
+              </span>
+              <span class="section-stat"><b>4,5</b><small>из 6</small></span>
+              <svg class="ic-sm section-chev"><use href="#i-chevron-right"/></svg>
+            </a>
+          </li>
+        </ul>
+      </section>
+      <aside class="home-side">
+        <a href="#" class="side-card side-mistakes">
+          <svg class="ic"><use href="#i-repeat"/></svg>
+          <span><b>Повторить мои ошибки</b><small>12 заданий из прошлых тренировок</small></span>
+          <svg class="ic-sm"><use href="#i-chevron-right"/></svg>
+        </a>
+        <a href="#" class="side-card side-weak">
+          <svg class="ic"><use href="#i-book"/></svg>
+          <span><b>Слабое место: Inference</b><small>Reading Comprehension · 52 % верно</small></span>
+          <svg class="ic-sm"><use href="#i-chevron-right"/></svg>
+        </a>
+        <div class="side-week">
+          <p class="eyebrow">Эта неделя</p>
+          <p class="week-line"><b>4 дня</b> · 2 ч 10 мин · 86 заданий</p>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>
+</template>
+
+<template id="t-question">
+<div class="app no-nav" data-screen="question">
+  <div class="main">
+    <header class="session-top sec-verbal">
+      <button type="button" class="icon-btn" aria-label="Закрыть тренировку"><svg class="ic"><use href="#i-close"/></svg></button>
+      <div class="session-meta">
+        <span class="session-sec"><span class="sec-dot"></span>Verbal · Text Completion</span>
+        <span class="session-count">3 из 10</span>
+      </div>
+      <div class="session-bar" role="progressbar" aria-valuemin="0" aria-valuemax="10" aria-valuenow="2" aria-label="Пройдено 2 из 10"><span style="width:20%"></span></div>
+    </header>
+    <div class="q-layout">
+      <section class="q-stem">
+        <p class="q-instr">Выберите по одному варианту для каждого пропуска.</p>
+        <p class="q-text">Although the committee’s report was praised for its <span class="blank">(i)</span>, critics noted that its brevity came at a cost: several crucial objections were dismissed in a single <span class="blank">(ii)</span> sentence.</p>
+      </section>
+      <section class="q-answers">
+        <fieldset class="opt-group">
+          <legend>Пропуск (i)</legend>
+          <button type="button" class="opt" role="radio" aria-checked="false"><span class="oval"></span>thoroughness</button>
+          <button type="button" class="opt" role="radio" aria-checked="true"><span class="oval"></span>concision</button>
+          <button type="button" class="opt" role="radio" aria-checked="false"><span class="oval"></span>candor</button>
+        </fieldset>
+        <fieldset class="opt-group">
+          <legend>Пропуск (ii)</legend>
+          <button type="button" class="opt" role="radio" aria-checked="false"><span class="oval"></span>perfunctory</button>
+          <button type="button" class="opt" role="radio" aria-checked="true"><span class="oval"></span>meticulous</button>
+          <button type="button" class="opt" role="radio" aria-checked="false"><span class="oval"></span>impassioned</button>
+        </fieldset>
+      </section>
+    </div>
+    <footer class="bottom-bar">
+      <button type="button" class="btn btn-ghost">Не знаю</button>
+      <button type="button" class="btn btn-primary">Проверить</button>
+    </footer>
+  </div>
+</div>
+</template>
+
+<template id="t-review">
+<div class="app no-nav" data-screen="review" data-lang="ru">
+  <div class="main">
+    <header class="session-top sec-verbal">
+      <button type="button" class="icon-btn" aria-label="Закрыть тренировку"><svg class="ic"><use href="#i-close"/></svg></button>
+      <div class="session-meta">
+        <span class="session-sec"><span class="sec-dot"></span>Verbal · Text Completion</span>
+        <span class="session-count">3 из 10</span>
+      </div>
+      <div class="session-bar" role="progressbar" aria-valuemin="0" aria-valuemax="10" aria-valuenow="3" aria-label="Пройдено 3 из 10"><span style="width:30%"></span></div>
+    </header>
+    <div class="r-layout">
+      <section class="r-question">
+        <div class="verdict verdict-wrong" role="status">
+          <svg class="ic"><use href="#i-cross"/></svg>
+          <span><b>Неверно</b> — первый пропуск верно, второй нет.</span>
+        </div>
+        <p class="q-text q-text-sm">Although the committee’s report was praised for its <span class="blank blank-right">concision</span>, critics noted that its brevity came at a cost: several crucial objections were dismissed in a single <span class="blank blank-wrong">meticulous</span> sentence.</p>
+        <dl class="answer-table">
+          <div class="ans-row">
+            <dt>Пропуск (i)</dt>
+            <dd><span class="ans ans-right"><svg class="ic-sm"><use href="#i-check"/></svg>concision</span></dd>
+          </div>
+          <div class="ans-row">
+            <dt>Пропуск (ii)</dt>
+            <dd>
+              <span class="ans ans-wrong"><svg class="ic-sm"><use href="#i-cross"/></svg>meticulous<small>ваш ответ</small></span>
+              <span class="ans ans-right"><svg class="ic-sm"><use href="#i-check"/></svg>perfunctory<small>верно</small></span>
+            </dd>
+          </div>
+        </dl>
+      </section>
+      <section class="r-explain">
+        <div class="explain-head">
+          <h2 class="h2">Разбор</h2>
+          <div class="seg" role="group" aria-label="Язык разбора">
+            <button type="button" data-lang-set="ru" aria-pressed="true">RU</button>
+            <button type="button" data-lang-set="en" aria-pressed="false">EN</button>
+          </div>
+        </div>
+        <div class="explain-body" data-lang-block="ru">
+          <p>«Brevity came at a cost» и «dismissed in a single sentence» говорят, что возражения разобрали наспех. Нужно слово с оттенком «для галочки».</p>
+          <p><b>Perfunctory</b> — сделанный формально, поверхностно. Это и есть цена краткости.</p>
+          <p class="trap"><b>Почему соблазняет meticulous.</b> Звучит как похвала отчёту, но «скрупулёзный» противоречит «dismissed»: тщательно возражения не отбрасывают.</p>
+        </div>
+        <div class="explain-body" data-lang-block="en">
+          <p>“Brevity came at a cost” and “dismissed in a single sentence” signal that the objections were handled hastily. The blank needs a word meaning “done only as a formality.”</p>
+          <p><b>Perfunctory</b> — carried out with minimal effort. That is the cost of brevity.</p>
+          <p class="trap"><b>Why meticulous tempts.</b> It sounds like praise for the report, but “meticulous” clashes with “dismissed”: careful work doesn’t brush objections aside.</p>
+        </div>
+        <a href="#" class="topic-link"><svg class="ic-sm"><use href="#i-book"/></svg><span>Тема: контраст после <i>although</i></span><svg class="ic-sm"><use href="#i-chevron-right"/></svg></a>
+        <a href="#" class="report-link"><svg class="ic-sm"><use href="#i-flag"/></svg>Сообщить об ошибке</a>
+      </section>
+    </div>
+    <footer class="bottom-bar">
+      <button type="button" class="btn btn-primary btn-wide">Дальше</button>
+    </footer>
+  </div>
+</div>
+</template>
+
+<template id="t-stats">
+<div class="app has-nav" data-screen="stats">
+  <nav class="nav" aria-label="Разделы">
+    <button type="button" class="exam-switch" aria-label="Экзамен: GRE, сменить"><span class="exam-switch-name">GRE</span><svg class="ic-sm"><use href="#i-chevron-down"/></svg></button>
+    <a class="nav-item" href="#"><svg class="ic"><use href="#i-train"/></svg><span>Тренировка</span></a>
+    <a class="nav-item" href="#"><svg class="ic"><use href="#i-words"/></svg><span>Слова</span></a>
+    <a class="nav-item" href="#"><svg class="ic"><use href="#i-exam"/></svg><span>Экзамен</span></a>
+    <a class="nav-item" href="#" aria-current="page"><svg class="ic"><use href="#i-progress"/></svg><span>Прогресс</span></a>
+  </nav>
+  <div class="main">
+    <header class="top">
+      <button type="button" class="exam-switch exam-switch-top" aria-label="Экзамен: GRE, сменить"><span class="exam-switch-name">GRE</span><svg class="ic-sm"><use href="#i-chevron-down"/></svg></button>
+    </header>
+    <h1 class="h1">Прогресс</h1>
+    <div class="stats-grid">
+      <section class="score-card">
+        <p class="eyebrow">Примерный балл · наша оценка</p>
+        <div class="score-pair">
+          <div class="score sec-verbal"><span class="score-label">Verbal</span><span class="score-num">152–156</span></div>
+          <div class="score sec-quant"><span class="score-label">Quant</span><span class="score-num">158–162</span></div>
+        </div>
+        <p class="score-note">По пробнику 2 октября. Не официальный балл ETS.</p>
+      </section>
+
+      <section class="acc-card">
+        <h2 class="h3">Точность</h2>
+        <ul class="acc-list" role="list">
+          <li class="acc-row sec-verbal"><span class="acc-name">Text Completion</span><span class="acc-bar"><span style="width:61%"></span></span><span class="acc-val">61 %</span></li>
+          <li class="acc-row sec-verbal"><span class="acc-name">Sentence Equivalence</span><span class="acc-bar"><span style="width:77%"></span></span><span class="acc-val">77 %</span></li>
+          <li class="acc-row sec-verbal acc-weak"><span class="acc-name">Reading Comprehension</span><span class="acc-bar"><span style="width:52%"></span></span><span class="acc-val">52 %</span></li>
+          <li class="acc-row sec-quant"><span class="acc-name">Quantitative Comparison</span><span class="acc-bar"><span style="width:81%"></span></span><span class="acc-val">81 %</span></li>
+          <li class="acc-row sec-quant"><span class="acc-name">Задачи</span><span class="acc-bar"><span style="width:70%"></span></span><span class="acc-val">70 %</span></li>
+        </ul>
+        <a href="#" class="weak-cta"><span><b>Reading Comprehension</b> — слабее всего. Потренировать 10 вопросов</span><svg class="ic-sm"><use href="#i-chevron-right"/></svg></a>
+      </section>
+
+      <section class="cal-card">
+        <h2 class="h3">Октябрь</h2>
+        <p class="cal-sum"><b>9 дней</b> · 6 ч 40 мин</p>
+        <div class="cal" role="img" aria-label="Календарь занятий за октябрь: 9 дней с занятиями">
+          <span class="cal-wd">Пн</span><span class="cal-wd">Вт</span><span class="cal-wd">Ср</span><span class="cal-wd">Чт</span><span class="cal-wd">Пт</span><span class="cal-wd">Сб</span><span class="cal-wd">Вс</span>
+          <span class="cal-d" data-l="0"></span><span class="cal-d" data-l="0"></span><span class="cal-d" data-l="2"></span><span class="cal-d" data-l="1"></span><span class="cal-d" data-l="0"></span><span class="cal-d" data-l="3"></span><span class="cal-d" data-l="0"></span>
+          <span class="cal-d" data-l="1"></span><span class="cal-d" data-l="2"></span><span class="cal-d" data-l="0"></span><span class="cal-d" data-l="2"></span><span class="cal-d" data-l="0"></span><span class="cal-d" data-l="0"></span><span class="cal-d" data-l="1"></span>
+          <span class="cal-d" data-l="3"></span><span class="cal-d cal-today" data-l="2"></span><span class="cal-d cal-future"></span><span class="cal-d cal-future"></span><span class="cal-d cal-future"></span><span class="cal-d cal-future"></span><span class="cal-d cal-future"></span>
+        </div>
+      </section>
+
+      <section class="hist-card">
+        <h2 class="h3">История</h2>
+        <ul class="hist" role="list">
+          <li class="hist-row sec-verbal"><span class="sec-dot"></span><span class="hist-main"><b>Text Completion</b><small>Сегодня, 14:20 · Практика · 12 мин</small></span><span class="hist-res">8/10</span></li>
+          <li class="hist-row sec-quant"><span class="sec-dot"></span><span class="hist-main"><b>Quantitative Comparison</b><small>Вчера · Проверка · 15 мин</small></span><span class="hist-res">13/15</span></li>
+          <li class="hist-row sec-exam"><span class="sec-dot"></span><span class="hist-main"><b>Пробный экзамен 1</b><small>2 октября · 1 ч 58 мин</small></span><span class="hist-res">V 154 · Q 160</span></li>
+          <li class="hist-row sec-verbal"><span class="sec-dot"></span><span class="hist-main"><b>Reading Comprehension</b><small>1 октября · Практика · 18 мин</small></span><span class="hist-res">5/10</span></li>
+        </ul>
+      </section>
+    </div>
+  </div>
+</div>
+</template>
+
+<template id="t-exam">
+<div class="app no-nav" data-screen="exam">
+  <div class="main exam-main">
+    <div class="exam-head">
+      <h1 class="h1">К какому экзамену готовишься?</h1>
+      <p class="lead">Задания, слова и пробник подстроятся под него. Сменить можно в любой момент.</p>
+    </div>
+    <div class="exam-cards" role="list">
+      <button type="button" class="exam-card exam-gre" role="listitem">
+        <span class="exam-name">GRE</span>
+        <span class="exam-what">Магистратура и PhD</span>
+        <span class="exam-parts">Verbal · Quant · эссе</span>
+        <span class="exam-go"><svg class="ic-sm"><use href="#i-chevron-right"/></svg></span>
+      </button>
+      <button type="button" class="exam-card exam-toefl" role="listitem">
+        <span class="exam-name">TOEFL</span>
+        <span class="exam-what">Английский для учёбы</span>
+        <span class="exam-parts">Reading · Listening · Writing · Speaking</span>
+        <span class="exam-go"><svg class="ic-sm"><use href="#i-chevron-right"/></svg></span>
+      </button>
+    </div>
+    <p class="exam-soon">Скоро: SAT, GMAT</p>
+  </div>
+</div>
+</template>
+
+<template id="t-word">
+<div class="app has-nav" data-screen="word">
+  <nav class="nav" aria-label="Разделы">
+    <button type="button" class="exam-switch" aria-label="Экзамен: GRE, сменить"><span class="exam-switch-name">GRE</span><svg class="ic-sm"><use href="#i-chevron-down"/></svg></button>
+    <a class="nav-item" href="#"><svg class="ic"><use href="#i-train"/></svg><span>Тренировка</span></a>
+    <a class="nav-item" href="#" aria-current="page"><svg class="ic"><use href="#i-words"/></svg><span>Слова</span></a>
+    <a class="nav-item" href="#"><svg class="ic"><use href="#i-exam"/></svg><span>Экзамен</span></a>
+    <a class="nav-item" href="#"><svg class="ic"><use href="#i-progress"/></svg><span>Прогресс</span></a>
+  </nav>
+  <div class="main">
+    <header class="top top-back">
+      <button type="button" class="icon-btn" aria-label="Назад к словам"><svg class="ic"><use href="#i-back"/></svg></button>
+      <span class="top-title">Слова</span>
+    </header>
+    <article class="word sec-words">
+      <header class="word-head">
+        <h1 class="headword">laconic</h1>
+        <p class="word-meta"><span>adjective</span><span class="ipa">/ləˈkɒnɪk/</span>
+          <button type="button" class="icon-btn icon-btn-soft" aria-label="Послушать"><svg class="ic"><use href="#i-play"/></svg></button></p>
+      </header>
+      <section class="sense">
+        <p class="sense-en">using very few words; brief to the point of seeming rude</p>
+        <p class="sense-ru">лаконичный, немногословный</p>
+        <blockquote class="example"><p>His laconic reply — “Fine.” — ended the discussion.</p><p class="example-ru">Его лаконичный ответ «Хорошо» закончил разговор.</p></blockquote>
+      </section>
+      <section class="relations">
+        <div class="rel"><span class="rel-label">Синонимы</span><span class="chips"><span class="chip">terse</span><span class="chip">succinct</span><span class="chip">pithy</span></span></div>
+        <div class="rel"><span class="rel-label">Антонимы</span><span class="chips"><span class="chip">verbose</span><span class="chip">loquacious</span></span></div>
+      </section>
+    </article>
+    <footer class="bottom-bar bottom-bar-inline">
+      <button type="button" class="btn btn-primary btn-wide">Проверить себя</button>
+    </footer>
+  </div>
+</div>
+</template>
+
+<script>
+// Каталог: собирает рамки из шаблонов по выбранным фильтрам. Выбор фильтров помнится в браузере — удобство,
+// без него страница открывается со всеми направлениями.
+const DIRS = [
+  { id: 'a', name: 'А · Конспект', note: 'Тёплая бумага, заголовки с засечками, один маркер на главном. Плоско, без теней — спокойствие учебника.' },
+  { id: 'b', name: 'Б · Экзаменационный пульт', note: 'Строго, как в день экзамена: холодный серо-синий, сетка и тонкие рамки, цифры моноширинным.' },
+  { id: 'c', name: 'В · Цветовые поля', note: 'Раздел узнаётся по цвету с первого взгляда: крупные цветные поля, тяжёлые заголовки, большие зоны нажатия.' },
+  { id: 'd', name: 'Г · Ночная студия', note: 'Сначала тёмная: глубокий фон, один яркий акцент, крупные тонкие цифры. Светлая — та же сдержанность на белом.' },
+];
+const SCREENS = [
+  { id: 'home', name: 'Тренировка' },
+  { id: 'question', name: 'Вопрос' },
+  { id: 'review', name: 'Разбор' },
+  { id: 'stats', name: 'Прогресс' },
+  { id: 'exam', name: 'Выбор экзамена' },
+  { id: 'word', name: 'Слово' },
+];
+const state = { dir: 'all', screen: 'all', theme: 'both', device: 'phone' };
+try { Object.assign(state, JSON.parse(localStorage.getItem('round4') || '{}')); } catch (e) { /* без памяти — по умолчанию */ }
+
+function syncControls() {
+  const map = { 'f-dir': ['dir', 'data-dir'], 'f-screen': ['screen', 'data-screen'], 'f-theme': ['theme', 'data-theme-pick'], 'f-device': ['device', 'data-device'] };
+  for (const [id, [key, attr]] of Object.entries(map)) {
+    document.querySelectorAll(`#${id} button`).forEach(b => b.setAttribute('aria-pressed', String(b.getAttribute(attr) === state[key])));
+  }
+}
+
+function render() {
+  const board = document.getElementById('board');
+  board.textContent = '';
+  board.dataset.device = state.device;
+  const dirs = DIRS.filter(d => state.dir === 'all' || d.id === state.dir);
+  const screens = SCREENS.filter(s => state.screen === 'all' || s.id === state.screen);
+  const themes = state.theme === 'both' ? ['light', 'dark'] : [state.theme];
+  for (const d of dirs) {
+    const sec = document.createElement('section');
+    sec.className = 'cat-dir';
+    const h = document.createElement('h2'); h.textContent = d.name;
+    const p = document.createElement('p'); p.textContent = d.note;
+    const row = document.createElement('div'); row.className = 'cat-row';
+    sec.append(h, p, row);
+    for (const s of screens) {
+      const group = document.createElement('figure'); group.className = 'cat-screen';
+      const cap = document.createElement('figcaption'); cap.textContent = s.name;
+      const frames = document.createElement('div'); frames.className = 'cat-frames';
+      group.append(cap, frames);
+      for (const t of themes) {
+        const frame = document.createElement('div');
+        frame.className = `frame dir-${d.id} device-${state.device}`;
+        frame.dataset.theme = t;
+        frame.append(document.getElementById(`t-${s.id}`).content.cloneNode(true));
+        frames.append(frame);
+      }
+      row.append(group);
+    }
+    board.append(sec);
+  }
+}
+
+document.addEventListener('click', (e) => {
+  const ctl = e.target.closest('.cat-seg button');
+  if (ctl) {
+    if (ctl.dataset.dir) state.dir = ctl.dataset.dir;
+    if (ctl.dataset.screen) state.screen = ctl.dataset.screen;
+    if (ctl.dataset.themePick) state.theme = ctl.dataset.themePick;
+    if (ctl.dataset.device) state.device = ctl.dataset.device;
+    try { localStorage.setItem('round4', JSON.stringify(state)); } catch (err) { /* необязательно */ }
+    syncControls(); render();
+    return;
+  }
+  // Живые мелочи внутри экранов: выбор варианта в своей группе и язык разбора.
+  const opt = e.target.closest('.frame .opt');
+  if (opt) {
+    opt.closest('.opt-group').querySelectorAll('.opt').forEach(o => o.setAttribute('aria-checked', String(o === opt)));
+    return;
+  }
+  const lang = e.target.closest('.frame [data-lang-set]');
+  if (lang) {
+    const app = lang.closest('.app');
+    app.dataset.lang = lang.dataset.langSet;
+    app.querySelectorAll('[data-lang-set]').forEach(b => b.setAttribute('aria-pressed', String(b === lang)));
+    return;
+  }
+  if (e.target.closest('.frame a')) e.preventDefault();
+});
+
+syncControls();
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,183 @@
+/* Направление Б «Экзаменационный пульт». Строго и предсказуемо, как в день экзамена: холодный серо-синий,
+   один синий акцент, IBM Plex Sans для текста и IBM Plex Mono для всего измеримого (счётчики, баллы,
+   проценты, время, транскрипция). Тонкие рамки в 1 px, радиусы 2–6 px, без теней и декора. Варианты ответа —
+   горизонтальные овалы, как на экране GRE: пустой, выбранный закрашен. Полоса сессии — служебная полоса
+   экзамена во всю ширину, прогресс — десять сегментов. */
+
+.frame.dir-b {
+  --bg: #EEF1F5; --surface: #FFFFFF; --surface-2: #E5E9EF;
+  --text: #0F1B2D; --text-2: #3F4C63; --text-3: #56637A;
+  --line: #D5DBE4; --line-strong: #A9B4C4;
+  --accent: #1E4ED2; --on-accent: #FFFFFF; --accent-soft: rgb(30 78 210 / 0.08); --focus: #1E4ED2;
+  --right: #0D6A4C; --right-soft: rgb(13 106 76 / 0.1); --wrong: #B2261C; --wrong-soft: rgb(178 38 28 / 0.08);
+  --c-verbal: #4A43A6; --c-verbal-soft: rgb(74 67 166 / 0.14);
+  --c-quant: #1F7A70; --c-quant-soft: rgb(31 122 112 / 0.14);
+  --c-essay: #94600F; --c-essay-soft: rgb(148 96 15 / 0.14);
+  --c-words: #8B3A5C; --c-words-soft: rgb(139 58 92 / 0.12);
+  --c-exam: #0F1B2D; --c-exam-soft: rgb(15 27 45 / 0.08);
+  --font-display: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-body: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+  --r-s: 2px; --r-m: 4px; --r-l: 6px;
+  font-size: 16px; line-height: 1.5;
+}
+.frame.dir-b[data-theme="dark"] {
+  --bg: #111925; --surface: #172130; --surface-2: #1E2A3B;
+  --text: #E4EAF3; --text-2: #A8B4C6; --text-3: #8D9AAE;
+  --line: #29364A; --line-strong: #40506A;
+  --accent: #7AA2FF; --on-accent: #0A1424; --accent-soft: rgb(122 162 255 / 0.12); --focus: #9DBBFF;
+  --right: #4FC59C; --right-soft: rgb(79 197 156 / 0.13); --wrong: #FF8173; --wrong-soft: rgb(255 129 115 / 0.12);
+  --c-verbal: #A39CF4; --c-verbal-soft: rgb(163 156 244 / 0.18);
+  --c-quant: #5CC2B4; --c-quant-soft: rgb(92 194 180 / 0.18);
+  --c-essay: #DFAA55; --c-essay-soft: rgb(223 170 85 / 0.18);
+  --c-words: #E68DB2; --c-words-soft: rgb(230 141 178 / 0.16);
+  --c-exam: #E4EAF3; --c-exam-soft: rgb(228 234 243 / 0.1);
+  color-scheme: dark;
+}
+.frame.dir-b ::selection { background: var(--accent); color: var(--on-accent); }
+
+/* ---------- Типографика ---------- */
+.frame.dir-b .h1 { font-size: 28px; font-weight: 600; letter-spacing: -0.012em; line-height: 1.2; }
+.frame.dir-b .h2 { font-size: 18px; font-weight: 600; letter-spacing: 0; }
+.frame.dir-b .h3 { font-size: 15px; font-weight: 600; letter-spacing: 0; }
+.frame.dir-b .eyebrow { font: 500 13px/1.3 var(--font-body); letter-spacing: 0.01em; text-transform: none; color: var(--text-3); }
+.frame.dir-b .lead { font-size: 16px; }
+
+/* ---------- Оболочка ---------- */
+.frame.dir-b .nav { padding: 6px 6px 28px; background: var(--surface); border-top: 1px solid var(--line-strong); }
+.frame.dir-b .nav-item { position: relative; padding-top: 8px; color: var(--text-3); }
+.frame.dir-b .nav-item[aria-current="page"] { color: var(--accent); }
+.frame.dir-b .nav-item[aria-current="page"]::before { content: ''; position: absolute; top: -7px; left: 22%; right: 22%; height: 2px; background: var(--accent); }
+.frame.dir-b .exam-switch { border-radius: var(--r-m); border-color: var(--line-strong); font: 600 14px/1 var(--font-mono); letter-spacing: 0.04em; padding: 6px 10px 6px 12px; }
+.frame.dir-b .icon-btn { border-radius: var(--r-m); }
+.frame.dir-b .icon-btn-soft { border: 1px solid var(--line); background: var(--surface); color: var(--text); }
+
+.frame.dir-b .btn { border-radius: var(--r-m); min-height: 48px; font-weight: 600; font-size: 15px; letter-spacing: 0.005em; }
+.frame.dir-b .btn-ghost { background: var(--surface); }
+
+/* ---------- Тренировка ---------- */
+.frame.dir-b .start-card { padding: 0; gap: 0; border-radius: var(--r-l); border-color: var(--line-strong); overflow: hidden; }
+.frame.dir-b .start-card .eyebrow { padding: 10px 16px; border-bottom: 1px solid var(--line); background: var(--surface-2); }
+.frame.dir-b .start-title { padding: 16px 16px 4px; font-size: 24px; font-weight: 600; letter-spacing: -0.01em; }
+.frame.dir-b .start-meta { padding: 0 16px; font-size: 14px; }
+.frame.dir-b .start-meta .sec-dot { border-radius: 1px; }
+.frame.dir-b .start-actions { padding: 16px; margin-top: 4px; }
+.frame.dir-b .sections { border-radius: var(--r-l); border-color: var(--line-strong); }
+.frame.dir-b .section-link { padding: 12px 14px; gap: 12px; }
+.frame.dir-b .section-mark { width: 10px; height: 10px; align-self: center; border-radius: 1px; }
+.frame.dir-b .section-name { font-size: 16px; }
+.frame.dir-b .section-stat b { font: 500 15px/1.2 var(--font-mono); }
+.frame.dir-b .section-stat small { font-size: 12px; }
+.frame.dir-b .side-card { border-radius: var(--r-m); padding: 12px 14px; }
+.frame.dir-b .side-card > .ic { color: var(--accent); }
+.frame.dir-b .side-week { border-style: solid; border-color: var(--line); border-radius: var(--r-m); background: var(--surface); }
+.frame.dir-b .week-line b { font-family: var(--font-mono); font-weight: 500; }
+
+/* ---------- Сессия: служебная полоса во всю ширину, прогресс сегментами ---------- */
+.frame.dir-b .session-top { margin: -12px -20px 0; padding: 6px 20px 12px; background: var(--surface); border-bottom: 1px solid var(--line-strong); }
+.frame.dir-b .session-sec { color: var(--text-2); font-size: 14px; }
+.frame.dir-b .session-sec .sec-dot { border-radius: 1px; }
+.frame.dir-b .session-count { font: 500 14px/1 var(--font-mono); padding: 5px 8px; border: 1px solid var(--line-strong); border-radius: var(--r-s); }
+.frame.dir-b .session-bar {
+  height: 6px; border-radius: 0; margin-top: 6px; background: var(--surface-2);
+  -webkit-mask: repeating-linear-gradient(90deg, #000 0 calc(10% - 3px), transparent calc(10% - 3px) 10%);
+          mask: repeating-linear-gradient(90deg, #000 0 calc(10% - 3px), transparent calc(10% - 3px) 10%);
+}
+.frame.dir-b .session-bar > span { border-radius: 0; background: var(--accent); }
+
+.frame.dir-b .q-instr { font-size: 14px; color: var(--text-3); padding-bottom: 10px; border-bottom: 1px dashed var(--line-strong); margin-bottom: 14px; }
+.frame.dir-b .q-text { font-size: 18px; line-height: 1.65; }
+.frame.dir-b .blank { min-width: 84px; border-bottom-width: 1.5px; border-bottom-color: var(--text-2); font: 500 15px/1.4 var(--font-mono); color: var(--text-2); }
+.frame.dir-b .blank-right { color: var(--right); border-color: var(--right); font-family: var(--font-body); font-size: inherit; }
+.frame.dir-b .blank-wrong { color: var(--wrong); border-color: var(--wrong); font-family: var(--font-body); font-size: inherit; }
+.frame.dir-b .q-answers { gap: 16px; }
+.frame.dir-b .opt-group { gap: 0; }
+.frame.dir-b .opt-group legend { font: 500 13px/1.3 var(--font-body); letter-spacing: 0.01em; text-transform: none; margin-bottom: 8px; }
+.frame.dir-b .opt { position: relative; min-height: 48px; gap: 14px; padding: 10px 14px; border-radius: 0; border: 1px solid var(--line-strong); font-size: 17px; }
+.frame.dir-b .opt + .opt { margin-top: -1px; }
+.frame.dir-b .opt:first-of-type { border-radius: var(--r-m) var(--r-m) 0 0; }
+.frame.dir-b .opt:last-of-type { border-radius: 0 0 var(--r-m) var(--r-m); }
+.frame.dir-b .opt .oval { width: 24px; height: 15px; border: 1.5px solid var(--text-2); border-radius: 50%; }
+.frame.dir-b .opt[aria-checked="true"] { z-index: 1; border-color: var(--accent); box-shadow: none; background: var(--accent-soft); }
+.frame.dir-b .opt[aria-checked="true"] .oval { border-color: var(--accent); background: var(--accent); }
+.frame.dir-b .opt[aria-checked="true"] .oval::after { display: none; }
+.frame.dir-b .bottom-bar { margin: auto -20px 0; padding: 12px 20px 30px; background: var(--surface); border-top: 1px solid var(--line-strong); }
+.frame.dir-b .has-nav .bottom-bar { margin: 0; padding: 0; background: none; border: 0; }
+
+.frame.dir-b .verdict { border-radius: var(--r-m); border: 1px solid color-mix(in srgb, var(--wrong) 45%, transparent); }
+.frame.dir-b .ans-row dt { font: 500 13px/1.3 var(--font-body); }
+.frame.dir-b .ans { border-radius: var(--r-s); padding: 3px 8px; border: 1px solid color-mix(in srgb, currentColor 30%, transparent); }
+.frame.dir-b .ans small { font-size: 12px; }
+.frame.dir-b .seg { border-radius: var(--r-m); padding: 2px; background: var(--surface); border: 1px solid var(--line-strong); }
+.frame.dir-b .seg button { border-radius: var(--r-s); font-family: var(--font-mono); font-weight: 500; min-height: 30px; }
+.frame.dir-b .seg button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); box-shadow: none; }
+.frame.dir-b .trap { border-radius: var(--r-m); border: 1px solid var(--line); background: var(--surface); }
+.frame.dir-b .topic-link { border-radius: var(--r-m); border-color: var(--line-strong); background: var(--surface); }
+.frame.dir-b .topic-link > .ic-sm:first-child { color: var(--accent); }
+
+/* ---------- Прогресс ---------- */
+.frame.dir-b .score-card, .frame.dir-b .acc-card, .frame.dir-b .cal-card, .frame.dir-b .hist-card { border-radius: var(--r-l); padding: 16px; gap: 12px; }
+.frame.dir-b .score-pair { gap: 0; border: 1px solid var(--line); border-radius: var(--r-m); }
+.frame.dir-b .score { padding: 10px 12px; }
+.frame.dir-b .score + .score { border-left: 1px solid var(--line); }
+.frame.dir-b .score-num { font: 500 28px/1.1 var(--font-mono); letter-spacing: -0.03em; color: var(--text); }
+.frame.dir-b .score-note { font-size: 13px; }
+.frame.dir-b .acc-row { grid-template-columns: 1fr 80px 48px; }
+.frame.dir-b .acc-bar { height: 8px; border-radius: 0; background: var(--surface-2); }
+.frame.dir-b .acc-bar > span { border-radius: 0; }
+.frame.dir-b .acc-val { font: 500 14px/1 var(--font-mono); }
+.frame.dir-b .weak-cta { border-radius: var(--r-m); border: 1px solid var(--line); background: var(--surface-2); }
+.frame.dir-b .cal-sum { font-size: 14px; }
+.frame.dir-b .cal-sum b { font-family: var(--font-mono); font-weight: 500; }
+.frame.dir-b .cal-wd { font-family: var(--font-mono); font-size: 11px; }
+.frame.dir-b .cal-d { border-radius: var(--r-s); }
+.frame.dir-b .cal-today { box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px var(--accent); }
+.frame.dir-b .hist-row .sec-dot { border-radius: 1px; }
+.frame.dir-b .hist-res { font: 500 14px/1 var(--font-mono); }
+
+/* ---------- Выбор экзамена ---------- */
+.frame.dir-b .exam-head .eyebrow { display: none; }
+.frame.dir-b .exam-cards { gap: 10px; }
+.frame.dir-b .exam-card { border-radius: var(--r-l); padding: 18px; min-height: 104px; }
+.frame.dir-b .exam-name { font: 600 28px/1 var(--font-mono); letter-spacing: 0.02em; }
+.frame.dir-b .exam-what { font-size: 15px; }
+.frame.dir-b .exam-go { border-radius: var(--r-m); width: 44px; height: 44px; background: var(--accent); color: var(--on-accent); }
+.frame.dir-b .exam-soon { font-size: 14px; }
+
+/* ---------- Слово ---------- */
+.frame.dir-b .headword { font-size: 42px; font-weight: 600; letter-spacing: -0.02em; }
+.frame.dir-b .word-meta { gap: 10px; }
+.frame.dir-b .word-meta > span:first-child { font: 500 13px/1 var(--font-body); padding: 5px 7px; border: 1px solid var(--line-strong); border-radius: var(--r-s); }
+.frame.dir-b .word-meta .ipa { font-size: 15px; color: var(--text-2); }
+.frame.dir-b .sense { padding-top: 16px; border-top: 1px solid var(--line); }
+.frame.dir-b .sense-en { font-size: 19px; }
+.frame.dir-b .example { border-left: 1px solid var(--line-strong); padding-left: 14px; margin-top: 10px; }
+.frame.dir-b .relations { padding-top: 16px; border-top: 1px solid var(--line); }
+.frame.dir-b .rel-label { font: 500 13px/1.3 var(--font-body); letter-spacing: 0.01em; text-transform: none; }
+.frame.dir-b .chip { border-radius: var(--r-s); background: var(--surface); border: 1px solid var(--line-strong); padding: 5px 10px; }
+
+/* =================== Компьютер =================== */
+@container (min-width: 900px) {
+  .frame.dir-b .nav { background: var(--surface); border-top: 0; border-right: 1px solid var(--line-strong); padding: 20px 12px; }
+  .frame.dir-b .nav .exam-switch { margin: 0 4px 24px; }
+  .frame.dir-b .nav-item { border-radius: var(--r-m); padding: 0 12px; font-size: 15px; color: var(--text-2); }
+  .frame.dir-b .nav-item[aria-current="page"] { background: var(--accent-soft); color: var(--accent); }
+  .frame.dir-b .nav-item[aria-current="page"]::before { display: none; }
+  .frame.dir-b .h1 { font-size: 34px; }
+  .frame.dir-b .start-title { font-size: 30px; padding: 20px 24px 6px; }
+  .frame.dir-b .start-card .eyebrow { padding: 12px 24px; }
+  .frame.dir-b .start-meta { padding: 0 24px; }
+  .frame.dir-b .start-actions { padding: 20px 24px 24px; }
+
+  .frame.dir-b .session-top { margin: -28px -64px 0; padding: 12px 64px 14px; grid-template-columns: auto 1fr; }
+  .frame.dir-b .session-bar { max-width: 520px; }
+  .frame.dir-b .q-text { font-size: 21px; }
+  .frame.dir-b .r-question .q-text-sm { font-size: 18px; }
+  .frame.dir-b .bottom-bar { margin: auto -64px 0; padding: 14px 64px 20px; }
+  .frame.dir-b .has-nav .bottom-bar { margin: 0; padding: 0; }
+
+  .frame.dir-b .score-num { font-size: 34px; }
+  .frame.dir-b .exam-card { min-height: 168px; padding: 22px; }
+  .frame.dir-b .exam-go { margin-top: 20px; }
+  .frame.dir-b .headword { font-size: 60px; }
+}

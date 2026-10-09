@@ -1,0 +1,229 @@
+/* В · «Цветовые поля». Раздел узнаётся по цвету с первого взгляда: главное на экране — цветное поле
+   раздела, вокруг — тишина (белый или почти чёрный, нейтральные плашки без рамок). На поле — один уровень
+   текста: тёмный на светлом насыщенном (Quant, эссе, слова) или белый на глубоком (Verbal). Заголовки —
+   Unbounded, текст — Manrope. Цвет раздела живёт в двух ролях: поле (--fld и текст на нём --on-fld) и
+   «чернила» (--c-*: точки, полосы, подписи на нейтральном фоне), чтобы жёлтый не шёл текстом по белому. */
+
+.frame.dir-c {
+  --bg: #FFFFFF; --surface: #FFFFFF; --surface-2: #F2F2F4;
+  --text: #121215; --text-2: #4A4A53; --text-3: #676772;
+  --line: rgb(18 18 21 / 0.1); --line-strong: rgb(18 18 21 / 0.2);
+  --accent: #121215; --on-accent: #FFFFFF; --accent-soft: rgb(18 18 21 / 0.06); --focus: #2457E6;
+  --right: #0B7556; --right-soft: rgb(11 117 86 / 0.12); --wrong: #C2410C; --wrong-soft: rgb(194 65 12 / 0.1);
+  --c-verbal: #4B2FE0; --c-verbal-soft: rgb(75 47 224 / 0.12);
+  --c-quant: #8A5A00;  --c-quant-soft: rgb(255 201 60 / 0.4);
+  --c-essay: #B43C14;  --c-essay-soft: rgb(255 155 118 / 0.35);
+  --c-words: #0B7556;  --c-words-soft: rgb(143 227 200 / 0.45);
+  --c-exam: #121215;   --c-exam-soft: rgb(18 18 21 / 0.08);
+  --font-display: 'Unbounded', 'Manrope', system-ui, sans-serif;
+  --font-body: 'Manrope', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --r-s: 12px; --r-m: 18px; --r-l: 28px;
+
+  /* Поля разделов и экзаменов: фон и текст на нём. */
+  --fld-verbal: #4B2FE0; --on-verbal: #FFFFFF;
+  --fld-quant: #FFC93C;  --on-quant: #1C1300;
+  --fld-essay: #FF9B76;  --on-essay: #2B0D02;
+  --fld-words: #8FE3C8;  --on-words: #052A20;
+  --fld-exam: #121215;   --on-exam: #FFFFFF;
+  --fld-gre: #FF5A36;    --on-gre: #1F0700;
+  --fld-toefl: #2457E6;  --on-toefl: #FFFFFF;
+  --veil: rgb(255 255 255 / 0.5);
+  --fld: var(--fld-exam); --on-fld: var(--on-exam);
+  font-family: var(--font-body);
+  font-feature-settings: 'ss01';
+}
+.frame.dir-c[data-theme="dark"] {
+  --bg: #0D0D10; --surface: #17171B; --surface-2: #1D1D22;
+  --text: #F2F2F4; --text-2: #B9B9C2; --text-3: #8F8F9A;
+  --line: rgb(255 255 255 / 0.09); --line-strong: rgb(255 255 255 / 0.2);
+  --accent: #F2F2F4; --on-accent: #121215; --accent-soft: rgb(255 255 255 / 0.08); --focus: #8FB0FF;
+  --right: #5FD3A9; --right-soft: rgb(95 211 169 / 0.14); --wrong: #FF8A5C; --wrong-soft: rgb(255 138 92 / 0.14);
+  --c-verbal: #AFA2FF; --c-verbal-soft: rgb(175 162 255 / 0.16);
+  --c-quant: #FFC93C;  --c-quant-soft: rgb(255 201 60 / 0.16);
+  --c-essay: #FF9B76;  --c-essay-soft: rgb(255 155 118 / 0.16);
+  --c-words: #7FDDBF;  --c-words-soft: rgb(127 221 191 / 0.16);
+  --c-exam: #F2F2F4;   --c-exam-soft: rgb(255 255 255 / 0.1);
+
+  /* Тёмная — те же поля, но глубже: густой цвет и светлый текст его же оттенка, без неона. */
+  --fld-verbal: #2E2391; --on-verbal: #E6E0FF;
+  --fld-quant: #5C4300;  --on-quant: #FFE7A3;
+  --fld-essay: #6E2913;  --on-essay: #FFD9CB;
+  --fld-words: #0D4F3E;  --on-words: #CBF6E7;
+  --fld-exam: #232329;   --on-exam: #F2F2F4;
+  --fld-gre: #7A2210;    --on-gre: #FFDCD2;
+  --fld-toefl: #16367F;  --on-toefl: #DCE6FF;
+  --veil: rgb(0 0 0 / 0.22);
+  color-scheme: dark;
+}
+
+/* Поле раздела задаёт цвет вместе с «чернилами» раздела. */
+.frame.dir-c .sec-verbal { --fld: var(--fld-verbal); --on-fld: var(--on-verbal); }
+.frame.dir-c .sec-quant  { --fld: var(--fld-quant);  --on-fld: var(--on-quant); }
+.frame.dir-c .sec-essay  { --fld: var(--fld-essay);  --on-fld: var(--on-essay); }
+.frame.dir-c .sec-words  { --fld: var(--fld-words);  --on-fld: var(--on-words); }
+.frame.dir-c .sec-exam   { --fld: var(--fld-exam);   --on-fld: var(--on-exam); }
+/* Вопрос и разбор целиком — в разделе Verbal: овалы, пропуски и ссылка на тему берут его цвет. */
+.frame.dir-c .app[data-screen="question"], .frame.dir-c .app[data-screen="review"] {
+  --sec: var(--c-verbal); --sec-soft: var(--c-verbal-soft); --fld: var(--fld-verbal); --on-fld: var(--on-verbal);
+}
+.frame.dir-c ::selection { background: var(--c-verbal-soft); }
+
+/* ---------- Оболочка ---------- */
+.frame.dir-c .h1 { font: 600 30px/1.15 var(--font-display); letter-spacing: -0.02em; }
+.frame.dir-c .h2 { font: 600 18px/1.3 var(--font-display); letter-spacing: -0.01em; }
+.frame.dir-c .h3 { font: 600 16px/1.3 var(--font-display); }
+.frame.dir-c .eyebrow { font-weight: 700; letter-spacing: 0.04em; }
+.frame.dir-c .main { gap: 18px; }
+.frame.dir-c .nav { background: var(--bg); border-top: 1px solid var(--line); padding-top: 6px; }
+.frame.dir-c .nav-item { font-weight: 600; color: var(--text-3); }
+.frame.dir-c .nav-item .ic { width: 44px; height: 28px; padding: 3px 11px; border-radius: 999px; }
+.frame.dir-c .nav-item[aria-current="page"] { color: var(--text); }
+.frame.dir-c .nav-item[aria-current="page"] .ic { background: var(--accent); color: var(--on-accent); }
+.frame.dir-c .exam-switch { border: 0; background: var(--surface-2); font: 600 14px/1 var(--font-display); min-height: 40px; padding: 0 14px; }
+.frame.dir-c .btn { border-radius: 999px; font-weight: 700; min-height: 54px; }
+.frame.dir-c .btn-ghost { border: 0; background: var(--surface-2); }
+
+/* ---------- Тренировка ---------- */
+.frame.dir-c .start-card { background: var(--fld); color: var(--on-fld); border: 0; border-radius: var(--r-l); padding: 22px 22px 20px; gap: 8px; }
+.frame.dir-c .start-card .eyebrow { color: var(--on-fld); opacity: 0.82; }
+.frame.dir-c .start-title { font: 600 25px/1.15 var(--font-display); letter-spacing: -0.02em; }
+.frame.dir-c .start-meta { color: var(--on-fld); font-weight: 500; }
+.frame.dir-c .start-meta .sec-dot { background: var(--on-fld); }
+.frame.dir-c .start-card .btn-primary { background: var(--on-fld); color: var(--fld); }
+.frame.dir-c .start-card .btn-ghost { background: color-mix(in srgb, var(--on-fld) 16%, transparent); color: var(--on-fld); }
+
+.frame.dir-c .sections { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; background: transparent; border: 0; border-radius: 0; overflow: visible; }
+.frame.dir-c .section-row + .section-row { border-top: 0; }
+.frame.dir-c .section-row { background: var(--fld); color: var(--on-fld); border-radius: 22px; }
+.frame.dir-c .section-link { min-height: 72px; padding: 14px 18px; gap: 12px; }
+.frame.dir-c .section-mark { display: none; }
+.frame.dir-c .section-name { font: 600 16px/1.2 var(--font-display); }
+.frame.dir-c .section-types { color: var(--on-fld); opacity: 0.82; font-weight: 500; }
+.frame.dir-c .section-stat b { font: 600 17px/1.2 var(--font-display); }
+.frame.dir-c .section-stat small, .frame.dir-c .section-chev { color: var(--on-fld); opacity: 0.82; }
+.frame.dir-c .side-card { border: 0; background: var(--surface-2); border-radius: var(--r-m); min-height: 64px; }
+.frame.dir-c .side-card b { font-weight: 700; }
+.frame.dir-c .side-mistakes > .ic { color: var(--c-essay); }
+.frame.dir-c .side-weak > .ic { color: var(--c-verbal); }
+
+/* ---------- Сессия: шапка — поле раздела во всю ширину ---------- */
+.frame.dir-c .session-top {
+  margin: -12px -20px 0; padding: 12px 20px 18px;
+  background: var(--fld); color: var(--on-fld);
+  border-radius: 0 0 var(--r-l) var(--r-l);
+}
+.frame.dir-c .session-sec { color: var(--on-fld); font-weight: 600; }
+.frame.dir-c .session-sec .sec-dot { background: var(--on-fld); }
+.frame.dir-c .session-count { font-family: var(--font-display); font-size: 15px; }
+.frame.dir-c .session-bar { height: 6px; border-radius: 3px; background: rgb(255 255 255 / 0.24); }
+.frame.dir-c .session-bar > span { background: var(--on-fld); }
+.frame.dir-c .q-text { font-size: 19px; line-height: 1.6; font-weight: 500; }
+.frame.dir-c .blank { border-bottom: 3px solid var(--sec); color: var(--sec); }
+.frame.dir-c .blank-right { border-color: var(--right); color: var(--right); }
+.frame.dir-c .blank-wrong { border-color: var(--wrong); color: var(--wrong); }
+.frame.dir-c .opt-group legend { font-weight: 700; letter-spacing: 0.04em; }
+.frame.dir-c .opt { min-height: 54px; border-radius: var(--r-m); border: 2px solid var(--line); background: var(--surface); font-weight: 600; }
+.frame.dir-c[data-theme="dark"] .opt { background: var(--surface-2); }
+.frame.dir-c .opt .oval { width: 22px; height: 22px; border-color: var(--text-3); }
+.frame.dir-c .opt[aria-checked="true"] { border-color: var(--sec); background: var(--sec-soft); box-shadow: none; }
+.frame.dir-c .opt[aria-checked="true"] .oval { border-color: var(--sec); }
+.frame.dir-c .opt[aria-checked="true"] .oval::after { background: var(--sec); }
+
+.frame.dir-c .verdict { border-radius: var(--r-m); padding: 14px 16px; font-weight: 500; }
+.frame.dir-c .verdict b { font-family: var(--font-display); font-weight: 600; }
+.frame.dir-c .ans { padding: 5px 12px; }
+.frame.dir-c .seg { background: var(--surface-2); }
+.frame.dir-c .seg button { min-height: 36px; padding: 0 16px; }
+.frame.dir-c .seg button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); box-shadow: none; }
+.frame.dir-c .trap { border-radius: var(--r-m); background: var(--c-essay-soft); }
+.frame.dir-c .topic-link { border: 0; background: var(--sec-soft); border-radius: var(--r-m); min-height: 52px; font-weight: 600; }
+.frame.dir-c .topic-link > .ic-sm:first-child { color: var(--sec); }
+
+/* ---------- Прогресс ---------- */
+.frame.dir-c .score-card, .frame.dir-c .acc-card, .frame.dir-c .cal-card, .frame.dir-c .hist-card { border: 0; background: var(--surface-2); border-radius: var(--r-l); }
+.frame.dir-c .score-card { padding: 8px; gap: 8px; background: transparent; }
+.frame.dir-c .score-card > .eyebrow { padding: 0 2px; }
+.frame.dir-c .score-pair { gap: 8px; }
+.frame.dir-c .score { background: var(--fld); color: var(--on-fld); border-radius: 22px; padding: 14px 16px 16px; gap: 6px; }
+.frame.dir-c .score-label { color: var(--on-fld); font-weight: 700; }
+.frame.dir-c .score-num { font: 600 24px/1.1 var(--font-display); letter-spacing: -0.02em; }
+.frame.dir-c .score-note { padding: 0 2px; }
+.frame.dir-c .acc-row { grid-template-columns: 1fr 76px 44px; }
+.frame.dir-c .acc-bar { height: 10px; border-radius: 5px; }
+.frame.dir-c .acc-val { font-family: var(--font-display); font-size: 13px; }
+.frame.dir-c .weak-cta { background: var(--fld-verbal); color: var(--on-verbal); border-radius: var(--r-m); min-height: 56px; }
+.frame.dir-c .cal-d { border-radius: 8px; background: var(--surface); }
+.frame.dir-c .cal-d[data-l="1"] { background: color-mix(in srgb, var(--c-verbal) 30%, var(--surface)); }
+.frame.dir-c .cal-d[data-l="2"] { background: color-mix(in srgb, var(--c-verbal) 62%, var(--surface)); }
+.frame.dir-c .cal-d[data-l="3"] { background: var(--c-verbal); }
+.frame.dir-c .cal-today { box-shadow: 0 0 0 2px var(--surface-2), 0 0 0 4px var(--text); }
+.frame.dir-c .hist-row .sec-dot { width: 12px; height: 12px; }
+.frame.dir-c .hist-res { font: 600 14px/1 var(--font-display); }
+
+/* ---------- Выбор экзамена: два поля ---------- */
+.frame.dir-c .exam-card { border: 0; min-height: 150px; padding: 22px; border-radius: var(--r-l); }
+.frame.dir-c .exam-gre { background: var(--fld-gre); color: var(--on-gre); --on-fld: var(--on-gre); --fld: var(--fld-gre); }
+.frame.dir-c .exam-toefl { background: var(--fld-toefl); color: var(--on-toefl); --on-fld: var(--on-toefl); --fld: var(--fld-toefl); }
+.frame.dir-c .exam-name { font: 700 34px/1 var(--font-display); letter-spacing: -0.03em; }
+.frame.dir-c .exam-what { font-weight: 700; margin-top: 10px; }
+.frame.dir-c .exam-parts { color: inherit; opacity: 0.85; font-weight: 500; }
+.frame.dir-c .exam-go { width: 48px; height: 48px; background: var(--on-fld); color: var(--fld); }
+.frame.dir-c .exam-go .ic-sm { width: 20px; height: 20px; }
+.frame.dir-c .exam-soon { font-weight: 600; }
+
+/* ---------- Слово: карточка — поле «слов» ---------- */
+.frame.dir-c .word { background: var(--fld); color: var(--on-fld); border-radius: var(--r-l); padding: 24px 22px; gap: 20px; }
+.frame.dir-c .headword { font: 600 42px/1.05 var(--font-display); letter-spacing: -0.03em; }
+.frame.dir-c .word-meta { color: var(--on-fld); font-weight: 600; }
+.frame.dir-c .word-meta .ipa { font-weight: 400; }
+.frame.dir-c .word .icon-btn-soft { width: 44px; height: 44px; background: var(--on-fld); color: var(--fld); }
+.frame.dir-c .sense-en { font-weight: 600; font-size: 18px; }
+.frame.dir-c .sense-ru { color: var(--on-fld); opacity: 0.85; }
+/* Пример — подложкой на поле, а не цветной чертой сбоку. */
+.frame.dir-c .example { border-left: 0; padding: 12px 14px; border-radius: 16px; background: var(--veil); font-style: normal; font-weight: 600; }
+.frame.dir-c .example-ru { color: var(--on-fld); font-weight: 500; opacity: 0.85; }
+.frame.dir-c .rel-label { color: var(--on-fld); opacity: 0.82; font-weight: 700; letter-spacing: 0.04em; }
+.frame.dir-c .chip { background: var(--veil); font-weight: 600; padding: 7px 14px; }
+
+/* ================= Компьютер ================= */
+@container (min-width: 900px) {
+  .frame.dir-c .main { padding-top: 36px; }
+  .frame.dir-c .nav { border-top: 0; border-right: 1px solid var(--line); padding-top: 28px; }
+  .frame.dir-c .nav-item { min-height: 48px; border-radius: 999px; font-size: 15px; }
+  .frame.dir-c .nav-item .ic { width: 22px; height: 22px; padding: 0; background: none; }
+  .frame.dir-c .nav-item[aria-current="page"] { background: var(--accent); color: var(--on-accent); }
+  .frame.dir-c .nav-item[aria-current="page"] .ic { background: none; color: inherit; }
+  .frame.dir-c .h1 { font-size: 40px; }
+
+  /* Главная: поле «как в прошлый раз» крупно, разделы — три плитки в ряд. */
+  .frame.dir-c .start-card { padding: 32px; min-height: 230px; justify-content: flex-end; }
+  .frame.dir-c .start-title { font-size: 40px; }
+  .frame.dir-c .sections { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .frame.dir-c .section-link { flex-direction: column; align-items: flex-start; min-height: 172px; padding: 20px; gap: 6px; position: relative; }
+  .frame.dir-c .section-name { font-size: 20px; }
+  .frame.dir-c .section-types { font-size: 13px; }
+  .frame.dir-c .section-stat { margin-top: auto; flex-direction: row; align-items: baseline; gap: 6px; }
+  .frame.dir-c .section-stat b { font-size: 26px; }
+  .frame.dir-c .section-chev { position: absolute; top: 20px; right: 18px; }
+  .frame.dir-c .side-week { border: 0; background: var(--surface-2); border-radius: var(--r-m); }
+
+  /* Сессия: шапка — поле на всю ширину окна. */
+  .frame.dir-c .session-top { margin: -28px -64px 0; padding: 22px 64px 24px; }
+  .frame.dir-c .q-text { font-size: 23px; }
+
+  .frame.dir-c .score-card { padding: 0; }
+  .frame.dir-c .score { padding: 20px 22px 22px; }
+  .frame.dir-c .score-num { font-size: 32px; }
+
+  .frame.dir-c .exam-card { min-height: 240px; padding: 28px; }
+  .frame.dir-c .exam-name { font-size: 46px; }
+
+  .frame.dir-c .word { padding: 40px 44px; }
+  .frame.dir-c .headword { font-size: 72px; }
+  .frame.dir-c .has-nav[data-screen="word"] .bottom-bar, .frame.dir-c .app[data-screen="word"] .bottom-bar { max-width: 720px; }
+}
+
+/* Мелкий текст не меньше 13 px: подписи и примечания общего каркаса здесь по 12. */
+.frame.dir-c .eyebrow, .frame.dir-c .opt-group legend, .frame.dir-c .rel-label,
+.frame.dir-c .section-stat small, .frame.dir-c .score-note, .frame.dir-c .ans small { font-size: 13px; }

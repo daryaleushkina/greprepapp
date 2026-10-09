@@ -1,0 +1,214 @@
+/* Г · «Ночная студия». Задумано от тёмной темы: глубокий чернильно-синий, глубина — слоями поверхности,
+   а не тенями; один электрический лазурный акцент, и светится только главное действие. Цифры (балл,
+   «3 из 10», проценты) — крупные и тонкие, Geologica 200–300; заголовки и текст — Geologica 500–600.
+   Светлая — не инверсия: холодный белый, тот же лазурный, затемнённый до AA, те же тонкие цифры. */
+
+/* ---------- Токены: светлая ---------- */
+.frame.dir-d {
+  --bg: #F3F5FB; --surface: #FFFFFF; --surface-2: #E9EDF7;
+  --text: #0E1430; --text-2: #48516F; --text-3: #5D6685;
+  --line: rgb(14 20 48 / 0.09); --line-strong: rgb(14 20 48 / 0.2);
+  --accent: #0067B5; --on-accent: #FFFFFF; --accent-soft: rgb(0 103 181 / 0.09); --focus: #0067B5;
+  --right: #0B7A4E; --right-soft: rgb(11 122 78 / 0.1); --wrong: #C23A1E; --wrong-soft: rgb(194 58 30 / 0.09);
+  --c-verbal: #5A3FD6; --c-verbal-soft: rgb(90 63 214 / 0.1);
+  --c-quant: #00775B; --c-quant-soft: rgb(0 119 91 / 0.1);
+  --c-essay: #985800; --c-essay-soft: rgb(152 88 0 / 0.1);
+  --c-words: #B02F69; --c-words-soft: rgb(176 47 105 / 0.1);
+  --c-exam: #0E1430; --c-exam-soft: rgb(14 20 48 / 0.07);
+  --font-display: 'Geologica', 'Onest', system-ui, sans-serif;
+  --font-body: 'Geologica', 'Onest', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+  --r-s: 10px; --r-m: 16px; --r-l: 24px;
+  /* Свои: свечение главной кнопки и вес тонких цифр. */
+  --glow: 0 10px 28px -8px rgb(0 103 181 / 0.45);
+  --thin: 300;
+  --nav-bg: #FFFFFF;
+  font-weight: 400;
+  letter-spacing: -0.005em;
+}
+
+/* ---------- Токены: тёмная ---------- */
+.frame.dir-d[data-theme="dark"] {
+  --bg: #0A0F1F; --surface: #121931; --surface-2: #1A2343;
+  --text: #EDF1FB; --text-2: #A8B1CC; --text-3: #8892B0;
+  --line: rgb(168 184 232 / 0.1); --line-strong: rgb(168 184 232 / 0.22);
+  --accent: #5CCFFF; --on-accent: #051425; --accent-soft: rgb(92 207 255 / 0.13); --focus: #5CCFFF;
+  --right: #6BE3A4; --right-soft: rgb(107 227 164 / 0.13); --wrong: #FF8B78; --wrong-soft: rgb(255 139 120 / 0.13);
+  --c-verbal: #A897FF; --c-verbal-soft: rgb(168 151 255 / 0.16);
+  --c-quant: #4FD9B0; --c-quant-soft: rgb(79 217 176 / 0.15);
+  --c-essay: #FFBE63; --c-essay-soft: rgb(255 190 99 / 0.15);
+  --c-words: #FF86B4; --c-words-soft: rgb(255 134 180 / 0.15);
+  --c-exam: #EDF1FB; --c-exam-soft: rgb(237 241 251 / 0.1);
+  --glow: 0 10px 32px -6px rgb(92 207 255 / 0.5);
+  --thin: 200;
+  --nav-bg: #0D1328;
+  color-scheme: dark;
+}
+
+.frame.dir-d ::selection { background: var(--accent-soft); color: var(--text); }
+.frame.dir-d { caret-color: var(--accent); }
+
+/* ---------- Оболочка ---------- */
+.frame.dir-d .main { padding-inline: 22px; }
+.frame.dir-d .nav { background: var(--nav-bg); border-top: 1px solid var(--line); padding-top: 6px; }
+.frame.dir-d[data-theme="dark"] .nav { border-top-color: transparent; box-shadow: 0 -1px 0 var(--line); }
+.frame.dir-d .nav-item { color: var(--text-3); font-weight: 500; gap: 4px; padding: 6px 6px 4px; border-radius: 14px; }
+.frame.dir-d .nav-item[aria-current="page"] { color: var(--accent); }
+.frame.dir-d .nav-item[aria-current="page"] .ic { filter: drop-shadow(0 0 6px var(--accent-soft)); }
+.frame.dir-d .exam-switch {
+  border: 0; background: var(--surface-2); color: var(--text);
+  font-weight: 600; letter-spacing: 0.02em; min-height: 40px; padding: 6px 12px 6px 14px;
+}
+.frame.dir-d .exam-switch .ic-sm { color: var(--accent); }
+
+.frame.dir-d .h1 { font-weight: 600; font-size: 34px; letter-spacing: -0.03em; }
+.frame.dir-d .h2 { font-weight: 600; font-size: 19px; letter-spacing: -0.015em; }
+.frame.dir-d .h3 { font-weight: 600; font-size: 16px; letter-spacing: -0.01em; color: var(--text-2); }
+/* Подпись над заголовком — тихая строка обычным регистром, а не капс-метка. */
+.frame.dir-d .eyebrow { text-transform: none; letter-spacing: 0; font-size: 13px; font-weight: 500; color: var(--text-3); }
+
+.frame.dir-d .btn { border-radius: 999px; font-weight: 600; letter-spacing: 0.005em; min-height: 52px; }
+.frame.dir-d .btn-primary { background: var(--accent); color: var(--on-accent); box-shadow: var(--glow); }
+.frame.dir-d .btn-ghost { border-color: transparent; background: var(--surface-2); color: var(--text); }
+
+/* ---------- Тренировка ---------- */
+.frame.dir-d .start-card {
+  border: 0; background: var(--surface); padding: 22px; gap: 8px; border-radius: var(--r-l);
+}
+.frame.dir-d[data-theme="dark"] .start-card {
+  background:
+    radial-gradient(120% 90% at 100% 0%, var(--c-verbal-soft), transparent 60%),
+    var(--surface);
+}
+.frame.dir-d .start-card .eyebrow { color: var(--sec); }
+.frame.dir-d .start-title { font-weight: 600; font-size: 30px; letter-spacing: -0.03em; }
+.frame.dir-d .start-meta { color: var(--text-2); }
+.frame.dir-d .sections { border: 0; background: var(--surface); border-radius: var(--r-l); }
+.frame.dir-d .section-row + .section-row { border-top-color: var(--line); }
+.frame.dir-d .section-link { padding: 16px 18px; gap: 14px; }
+/* Цвет раздела — точкой, а не цветной полосой у края. */
+.frame.dir-d .section-mark { width: 10px; height: 10px; align-self: center; border-radius: 50%; box-shadow: 0 0 0 4px var(--sec-soft); }
+.frame.dir-d .section-name { font-weight: 600; font-size: 17px; letter-spacing: -0.01em; }
+.frame.dir-d .section-types { color: var(--text-3); }
+.frame.dir-d .section-stat b { font-weight: var(--thin); font-size: 24px; letter-spacing: -0.02em; line-height: 1.05; }
+.frame.dir-d .section-stat small { color: var(--text-3); }
+.frame.dir-d .side-card { border: 0; background: var(--surface); border-radius: var(--r-m); }
+.frame.dir-d .side-card > .ic { color: var(--accent); }
+.frame.dir-d .side-card b { font-weight: 600; }
+.frame.dir-d .side-card small { color: var(--text-3); }
+
+/* ---------- Сессия ---------- */
+.frame.dir-d .session-sec { color: var(--text-2); }
+.frame.dir-d .session-count { font-weight: var(--thin); font-size: 22px; letter-spacing: -0.02em; }
+.frame.dir-d .session-bar { height: 3px; background: var(--surface-2); }
+.frame.dir-d .session-bar > span { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+.frame.dir-d .q-instr { color: var(--text-3); }
+.frame.dir-d .q-text { font-weight: 400; font-size: 20px; line-height: 1.6; letter-spacing: -0.01em; }
+.frame.dir-d .blank { border-bottom-color: var(--accent); color: var(--accent); }
+.frame.dir-d .blank-right { border-color: var(--right); color: var(--right); }
+.frame.dir-d .blank-wrong { border-color: var(--wrong); color: var(--wrong); }
+.frame.dir-d .opt-group legend { text-transform: none; letter-spacing: 0; font-size: 13px; font-weight: 500; color: var(--text-3); }
+.frame.dir-d .opt { border: 1px solid transparent; background: var(--surface); border-radius: var(--r-m); min-height: 52px; font-weight: 500; transition: background-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1), border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+.frame.dir-d:not([data-theme="dark"]) .opt { border-color: var(--line); }
+.frame.dir-d .opt .oval { border-color: var(--text-3); border-width: 1.5px; }
+.frame.dir-d .opt[aria-checked="true"] { border-color: var(--accent); box-shadow: none; background: var(--accent-soft); }
+.frame.dir-d .opt[aria-checked="true"] .oval { border-color: var(--accent); }
+.frame.dir-d .opt[aria-checked="true"] .oval::after { background: var(--accent); }
+.frame.dir-d .bottom-bar .btn-ghost { flex: none; }
+
+.frame.dir-d .verdict { border-radius: var(--r-m); }
+.frame.dir-d .ans { font-weight: 500; }
+.frame.dir-d .ans-row dt { color: var(--text-3); }
+.frame.dir-d .seg { background: var(--surface-2); }
+.frame.dir-d .seg button[aria-pressed="true"] { background: var(--surface); color: var(--text); box-shadow: none; }
+.frame.dir-d[data-theme="dark"] .seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); }
+.frame.dir-d .explain-body { color: var(--text); }
+.frame.dir-d .trap { background: var(--surface); border-radius: var(--r-m); }
+.frame.dir-d[data-theme="dark"] .trap { background: var(--surface-2); }
+.frame.dir-d .topic-link { border: 0; background: var(--surface); border-radius: var(--r-m); }
+.frame.dir-d[data-theme="dark"] .topic-link { background: var(--surface-2); }
+.frame.dir-d .topic-link > .ic-sm:first-child { color: var(--accent); }
+
+/* ---------- Прогресс ---------- */
+.frame.dir-d .score-card, .frame.dir-d .acc-card, .frame.dir-d .cal-card, .frame.dir-d .hist-card {
+  border: 0; background: var(--surface); border-radius: var(--r-l);
+}
+.frame.dir-d .score-num { font-weight: var(--thin); font-size: 32px; letter-spacing: -0.04em; line-height: 1; white-space: nowrap; }
+.frame.dir-d .score-pair { gap: 20px; }
+.frame.dir-d .score-label { font-weight: 500; }
+.frame.dir-d .score-note { color: var(--text-3); }
+.frame.dir-d .acc-bar { height: 4px; }
+.frame.dir-d .acc-row { grid-template-columns: 1fr 64px 56px; }
+.frame.dir-d .acc-val { font-weight: var(--thin); font-size: 18px; letter-spacing: -0.02em; white-space: nowrap; }
+.frame.dir-d .acc-weak .acc-val { color: var(--wrong); font-weight: 400; }
+.frame.dir-d .weak-cta { background: var(--accent-soft); color: var(--text); }
+.frame.dir-d .weak-cta .ic-sm { color: var(--accent); }
+.frame.dir-d .cal { gap: 6px; }
+.frame.dir-d .cal-d { border-radius: 8px; }
+.frame.dir-d .cal-d[data-l="3"] { box-shadow: 0 0 12px -2px var(--accent); }
+.frame.dir-d .cal-today { box-shadow: 0 0 0 2px var(--surface), 0 0 0 3.5px var(--accent); }
+.frame.dir-d .hist-res { font-weight: var(--thin); font-size: 18px; letter-spacing: -0.02em; }
+
+/* ---------- Выбор экзамена ---------- */
+.frame.dir-d .exam-main { gap: 32px; }
+.frame.dir-d .exam-main .eyebrow { color: var(--accent); }
+.frame.dir-d .exam-main .h1 { font-size: 36px; }
+.frame.dir-d .exam-card { border: 0; background: var(--surface); border-radius: var(--r-l); min-height: 124px; padding: 22px; transition: background-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+.frame.dir-d:not([data-theme="dark"]) .exam-card { box-shadow: inset 0 0 0 1px var(--line); }
+.frame.dir-d .exam-name { font-weight: 200; font-size: 44px; letter-spacing: -0.04em; }
+.frame.dir-d:not([data-theme="dark"]) .exam-name { font-weight: 300; }
+.frame.dir-d .exam-what { font-weight: 600; }
+.frame.dir-d .exam-parts { color: var(--text-3); }
+.frame.dir-d .exam-go { background: var(--accent); color: var(--on-accent); box-shadow: var(--glow); width: 44px; height: 44px; }
+.frame.dir-d .exam-soon { color: var(--text-3); }
+
+/* ---------- Слово ---------- */
+.frame.dir-d .headword { font-weight: 200; font-size: 56px; letter-spacing: -0.04em; line-height: 1; }
+.frame.dir-d:not([data-theme="dark"]) .headword { font-weight: 300; }
+.frame.dir-d .word-meta { color: var(--text-2); }
+.frame.dir-d .icon-btn-soft { background: var(--sec-soft); color: var(--sec); width: 44px; height: 44px; }
+.frame.dir-d .sense-en { font-size: 20px; font-weight: 400; letter-spacing: -0.01em; }
+.frame.dir-d .sense-ru { color: var(--text-2); }
+/* Пример — отдельной поверхностью, а не цветной полосой слева. */
+.frame.dir-d .example { border-left: 0; padding: 14px 16px; border-radius: var(--r-m); background: var(--surface); font-style: normal; }
+.frame.dir-d[data-theme="dark"] .example { background: var(--surface-2); }
+.frame.dir-d .example p:first-child { font-size: 17px; }
+.frame.dir-d .rel-label { text-transform: none; letter-spacing: 0; font-size: 13px; font-weight: 500; color: var(--text-3); }
+.frame.dir-d .chip { background: var(--surface); font-weight: 500; }
+.frame.dir-d[data-theme="dark"] .chip { background: var(--surface-2); }
+
+/* =================== Компьютер =================== */
+@container (min-width: 900px) {
+  .frame.dir-d .nav { background: var(--surface); box-shadow: none; border-right: 0; padding: 28px 16px; gap: 6px; }
+  .frame.dir-d[data-theme="dark"] .nav { background: #0D1328; }
+  .frame.dir-d .nav .exam-switch { margin: 0 4px 24px; }
+  .frame.dir-d .nav-item { min-height: 46px; padding: 0 14px; border-radius: 14px; color: var(--text-2); }
+  .frame.dir-d .nav-item[aria-current="page"] { background: var(--accent-soft); color: var(--accent); }
+  .frame.dir-d .main { padding: 44px 64px 0; }
+  .frame.dir-d .h1 { font-size: 44px; }
+
+  .frame.dir-d .start-card { padding: 32px 34px; }
+  .frame.dir-d .start-title { font-size: 44px; letter-spacing: -0.035em; }
+  .frame.dir-d .section-stat b { font-size: 28px; }
+  .frame.dir-d .side-week { border: 0; background: var(--surface); }
+  .frame.dir-d .week-line b { font-weight: var(--thin); font-size: 28px; letter-spacing: -0.03em; color: var(--text); }
+
+  .frame.dir-d .no-nav .main { padding: 30px 72px 0; }
+  .frame.dir-d .q-text { font-size: 24px; }
+  .frame.dir-d .session-count { font-size: 26px; }
+  .frame.dir-d .bottom-bar { border-top-color: var(--line); }
+
+  .frame.dir-d .score-num { font-size: 44px; }
+  .frame.dir-d .score-pair { gap: 28px; }
+  .frame.dir-d .score-card { padding: 26px; }
+
+  .frame.dir-d .exam-main .h1 { font-size: 48px; }
+  .frame.dir-d .exam-card { width: 360px; min-height: 200px; padding: 28px; }
+  .frame.dir-d .exam-name { font-size: 64px; }
+
+  .frame.dir-d .headword { font-size: 88px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .frame.dir-d .opt, .frame.dir-d .exam-card { transition: none; }
+}
