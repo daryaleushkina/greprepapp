@@ -277,6 +277,7 @@ class FakeTrainingsApi : TrainingsApi {
 
     /** Задержать отправку ответов, пока тест не отпустит (ответ «в пути»). */
     var answersGate: CompletableDeferred<Unit>? = null
+    var answerReply: ((AnswerBatch) -> Reply<Unit>)? = null
 
     val optionCalls = mutableListOf<List<QuestionType>>()
     val starts = mutableListOf<TrainingRequest>()
@@ -302,7 +303,7 @@ class FakeTrainingsApi : TrainingsApi {
     ): Response<Unit> {
         answersGate?.await()
         sentAnswers += trainingId to answerBatch
-        return (answersFor[trainingId] ?: answers).toResponseNoContent()
+        return (answerReply?.invoke(answerBatch) ?: answersFor[trainingId] ?: answers).toResponseNoContent()
     }
 
     override suspend fun finishTraining(

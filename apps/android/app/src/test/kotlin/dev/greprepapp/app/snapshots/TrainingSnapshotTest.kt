@@ -98,6 +98,9 @@ class TrainingSnapshotTest(
             }
         }
 
+    @Test
+    fun reportSaveFailed() = snap("training-report-save-failed") { TrainingScreens.Report(failed = true) }
+
     companion object {
         @JvmStatic
         @ParameterizedRobolectricTestRunner.Parameters(name = "{0}")

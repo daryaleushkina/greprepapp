@@ -68,6 +68,15 @@ class SessionViewModel
             val flagged: Boolean get() = flaggedAt(position)
             val canCheck: Boolean get() = TrainingRules.isComplete(question, selection)
             val missing: List<Int> get() = TrainingRules.missingGroups(question, selection)
+            val keyboardGroup: dev.greprepapp.api.models.OptionGroup?
+                get() =
+                    if (question.groups.size ==
+                        1
+                    ) {
+                        question.groups.firstOrNull()
+                    } else {
+                        question.groups.getOrNull(missing.firstOrNull() ?: 0)
+                    }
             val result: TrainingResult? get() = if (training.isFinished) TrainingRules.result(training) else null
         }
 

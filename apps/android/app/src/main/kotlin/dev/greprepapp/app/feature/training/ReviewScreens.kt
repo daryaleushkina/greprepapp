@@ -3,6 +3,7 @@ package dev.greprepapp.app.feature.training
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,7 +18,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -29,19 +32,24 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -59,6 +67,7 @@ import dev.greprepapp.design.StudySection
 import greprep.design.GpLayout
 import greprep.design.GpSize
 import greprep.design.GpSpace
+import kotlinx.coroutines.flow.first
 
 /** Разбор всей тренировки (макет R16): все вопросы или только ошибки; вопрос открывается с разбором. */
 @Composable
@@ -67,11 +76,12 @@ fun ReviewScreen(
     onBack: () -> Unit,
     onOpen: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    onReport: (ReportTarget) -> Unit = {},
     viewModel: ReviewViewModel =
         hiltViewModel<ReviewViewModel, ReviewViewModel.Factory>(key = trainingId) { it.create(trainingId) },
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    ReviewContent(state = state, onBack = onBack, onOpen = onOpen, modifier = modifier)
+    ReviewContent(state = state, onBack = onBack, onOpen = onOpen, onReport = onReport, modifier = modifier)
 }
 
 @Composable
@@ -80,6 +90,7 @@ fun ReviewContent(
     onBack: () -> Unit,
     onOpen: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    onReport: (ReportTarget) -> Unit = {},
 ) {
     val ready = state as? ReviewViewModel.UiState.Ready
     val title =
@@ -98,7 +109,7 @@ fun ReviewContent(
         when (state) {
             ReviewViewModel.UiState.Loading -> Box(Modifier.fillMaxSize())
             ReviewViewModel.UiState.Missing -> MissingTraining(padding, onBack)
-            is ReviewViewModel.UiState.Ready -> ReviewList(state, padding, onOpen)
+            is ReviewViewModel.UiState.Ready -> ReviewPanes(state, padding, onOpen, onReport)
         }
     }
 }
@@ -133,20 +144,80 @@ private fun outcome(
 }
 
 @Composable
-private fun ReviewList(
+private fun ReviewPanes(
     state: ReviewViewModel.UiState.Ready,
     padding: PaddingValues,
     onOpen: (Int) -> Unit,
+    onReport: (ReportTarget) -> Unit,
+) {
+    var onlyMistakes by rememberSaveable(state.training.id) { mutableStateOf(false) }
+    var selected by rememberSaveable(state.training.id) { mutableStateOf(0) }
+    val shown =
+        state.training.session.items
+            .filter { !onlyMistakes || outcome(state.training, it.position) != Outcome.Correct }
+    val position = selected.takeIf { chosen -> shown.any { it.position == chosen } } ?: shown.firstOrNull()?.position
+    val wide = Gp.isWide
+    TrainingKeyboard(onKey = { key ->
+        val index = shown.indexOfFirst { it.position == position }
+        when {
+            wide && position != null && (key == Key.DirectionUp || key == Key.DirectionDown) -> {
+                selected = shown[(index + if (key == Key.DirectionDown) 1 else -1).coerceIn(0, shown.lastIndex)].position
+                true
+            }
+
+            else -> {
+                false
+            }
+        }
+    }) {
+        val list: @Composable () -> Unit = {
+            ReviewList(
+                state,
+                if (wide) PaddingValues() else padding,
+                onlyMistakes,
+                { onlyMistakes = it },
+                position,
+                { if (wide) selected = it else onOpen(it) },
+                wide,
+            )
+        }
+        if (wide) {
+            TrainingSplit(padding, "review", left = list, right = {
+                if (position != null) ReviewQuestion(state.training, position, { onReport(state.training.reportTarget(position)) })
+            }, leftScrollable = false)
+        } else {
+            list()
+        }
+    }
+}
+
+@Composable
+private fun ReviewList(
+    state: ReviewViewModel.UiState.Ready,
+    padding: PaddingValues,
+    onlyMistakes: Boolean,
+    onFilter: (Boolean) -> Unit,
+    selected: Int?,
+    onOpen: (Int) -> Unit,
+    wide: Boolean,
 ) {
     val training = state.training
     val result = state.result
     val section = training.session.section.study()
-    var onlyMistakes by rememberSaveable { mutableStateOf(false) }
     val mistakes = training.session.items.filter { outcome(training, it.position) != Outcome.Correct }
     val shown = if (onlyMistakes) mistakes else training.session.items
     val english = LocalConfiguration.current.locales[0].language == "en"
+    val scroll = rememberLazyListState()
+    LaunchedEffect(selected, onlyMistakes, wide) {
+        // На телефоне rememberLazyListState восстанавливает позицию после возврата из вопроса.
+        if (wide) {
+            val index = shown.indexOfFirst { it.position == selected }
+            if (index >= 0) revealReviewRow(scroll, index + 1, shown.size + 1)
+        }
+    }
     Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.TopCenter) {
         LazyColumn(
+            state = scroll,
             modifier = Modifier.widthIn(max = GpLayout.contentMax + GpLayout.gutter * 2).fillMaxWidth().testTag("review.list"),
             contentPadding = PaddingValues(horizontal = GpLayout.gutter, vertical = GpSpace.s8),
             verticalArrangement = Arrangement.spacedBy(GpSpace.s4),
@@ -165,9 +236,10 @@ private fun ReviewList(
                                 stringResource(R.string.review_mistakes, mistakes.size),
                             ),
                         selected = if (onlyMistakes) 1 else 0,
-                        onSelect = { onlyMistakes = it == 1 },
+                        onSelect = { onFilter(it == 1) },
                         tags = listOf("review.filter.all", "review.filter.mistakes"),
                     )
+                    if (wide) KeyHint("↑ / ↓", stringResource(R.string.keyboard_review))
                 }
             }
             if (shown.isEmpty()) {
@@ -175,6 +247,7 @@ private fun ReviewList(
             }
             items(shown, key = { it.position }) { item ->
                 ReviewRow(
+                    selected = wide && item.position == selected,
                     number = item.position + 1,
                     type = item.question.questionType,
                     topic = item.question.topicTitle.pick(english),
@@ -187,8 +260,42 @@ private fun ReviewList(
     }
 }
 
+/** Видимая строка остаётся на месте; частично скрытую сдвигаем ровно на недостающую высоту. */
+internal suspend fun revealReviewRow(
+    scroll: LazyListState,
+    index: Int,
+    itemCount: Int,
+) {
+    val layout = snapshotFlow { scroll.layoutInfo }.first { it.totalItemsCount == itemCount && it.visibleItemsInfo.isNotEmpty() }
+    val item = layout.visibleItemsInfo.firstOrNull { it.index == index }
+    if (item == null) {
+        val below = index > layout.visibleItemsInfo.last().index
+        val height =
+            layout.visibleItemsInfo
+                .last()
+                .size
+                .coerceAtLeast(1)
+        val offset = if (below) -(layout.viewportEndOffset - height).coerceAtLeast(0) else 0
+        scroll.scrollToItem(index, offset)
+        // Высота новой строки может отличаться: после измерения подводим её точно к ближайшему краю.
+        val measured = snapshotFlow { scroll.layoutInfo }.first { it.visibleItemsInfo.any { row -> row.index == index } }
+        val row = measured.visibleItemsInfo.first { it.index == index }
+        val delta = if (below) row.offset + row.size - measured.viewportEndOffset else row.offset - measured.viewportStartOffset
+        if (delta != 0) scroll.scrollBy(delta.toFloat())
+        return
+    }
+    val delta =
+        when {
+            item.offset < layout.viewportStartOffset -> item.offset - layout.viewportStartOffset
+            item.offset + item.size > layout.viewportEndOffset -> item.offset + item.size - layout.viewportEndOffset
+            else -> 0
+        }
+    if (delta != 0) scroll.scrollBy(delta.toFloat())
+}
+
 @Composable
 private fun ReviewRow(
+    selected: Boolean,
     number: Int,
     type: QuestionType,
     topic: String,
@@ -211,6 +318,7 @@ private fun ReviewRow(
         modifier =
             Modifier
                 .fillMaxWidth()
+                .background(if (selected) section.tint(colors) else androidx.compose.ui.graphics.Color.Transparent)
                 .clickable(role = Role.Button, onClick = onClick)
                 .heightIn(min = GpSize.rowTall)
                 .padding(vertical = GpSpace.s8)
@@ -359,6 +467,51 @@ fun ReviewItemContent(
     }
 }
 
+/** Выбранное задание остаётся рядом со списком; язык и раскрытие сбрасываются при смене строки. */
+@Composable
+private fun ReviewQuestion(
+    training: StoredTraining,
+    position: Int,
+    onReport: () -> Unit,
+) {
+    val systemEnglish = LocalConfiguration.current.locales[0].language == "en"
+    var english by rememberSaveable(training.id, position) { mutableStateOf(systemEnglish) }
+    var whyNotOpen by rememberSaveable(training.id, position) { mutableStateOf(false) }
+    val question = training.question(position)
+    val section = training.session.section.study()
+    val answer = training.answer(position)
+    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(GpSpace.s20)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                stringResource(R.string.review_question, position + 1),
+                style = Gp.title3,
+                color = Gp.colors.text,
+                modifier = Modifier.weight(1f),
+            )
+            TextButton(onClick = onReport, modifier = Modifier.testTag("question.report")) {
+                Text(stringResource(R.string.question_report), style = Gp.type.caption, color = Gp.colors.textSecondary)
+            }
+        }
+        Text(question.typeLabel(), style = Gp.type.footnote, color = section.color(Gp.colors))
+        when (question.questionType) {
+            QuestionType.QUANTITATIVE_COMPARISON -> Quantities(question)
+            QuestionType.MULTIPLE_CHOICE -> Text(question.prompt, style = Gp.type.prompt.copy(localeList = English), color = Gp.colors.text)
+            else -> PromptText(question, question.answer, section)
+        }
+        RevealedOptions(question, answer?.optionIds.orEmpty(), section)
+        ExplanationPanel(
+            question = question,
+            answer = answer,
+            english = english,
+            whyNotOpen = whyNotOpen,
+            section = section,
+            onLanguage = { english = it },
+            onToggleWhyNot = { whyNotOpen = !whyNotOpen },
+            modifier = Modifier.padding(bottom = GpSpace.s32),
+        )
+    }
+}
+
 /** «Сообщить об ошибке» (макет R17): где ошибка, что не так, «Отправить»; после — «Спасибо». */
 @Composable
 fun ReportScreen(
@@ -486,7 +639,20 @@ fun ReportContent(
                     )
                 }
             }
-            BottomActions {
+            BottomActions(
+                note =
+                    if (state.failed) {
+                        {
+                            dev.greprepapp.app.ui.StatusLine(
+                                icon = R.drawable.ic_error,
+                                text = stringResource(R.string.report_save_failed),
+                                modifier = Modifier.testTag("report.problem").semantics { liveRegion = LiveRegionMode.Polite },
+                            )
+                        }
+                    } else {
+                        null
+                    },
+            ) {
                 GpPrimaryButton(
                     text = stringResource(R.string.report_send),
                     onClick = onSend,
