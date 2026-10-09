@@ -3,9 +3,92 @@ import Testing
 
 @testable import GrePrep
 
+final class TrainingWriteBarrier: @unchecked Sendable {
+    private let lock = NSLock()
+    private let resume = DispatchSemaphore(value: 0)
+    let draftFinished = DispatchSemaphore(value: 0)
+    private var armed = false
+    private var didStart = false
+    private var didRelease = false
+    var started: Bool { lock.withLock { didStart } }
+    var released: Bool { lock.withLock { didRelease } }
+    func arm() { lock.withLock { armed = true } }
+    func blockIfArmed() {
+        let block = lock.withLock {
+            guard armed else { return false }
+            armed = false
+            didStart = true
+            return true
+        }
+        if block { resume.wait() }
+    }
+    func release() {
+        lock.withLock {
+            guard !didRelease else { return }
+            didRelease = true
+            resume.signal()
+        }
+    }
+}
+
 @Suite("Тренировки на диске")
 struct TrainingStoreTests {
     let store = temporaryTrainingStore()
+
+    @Test func draftFileDoesNotShareTrainingWriteLock() async throws {
+        let barrier = TrainingWriteBarrier()
+        let completed = Reports()
+        let storage = TrainingStore(directory: store.directory, onTrainingWrite: { barrier.blockIfArmed() })
+        let t = TrainingFixture.stored()
+        try storage.saveOwner(t.ownerID)
+        try storage.save(t)
+        barrier.arm()
+        defer { barrier.release() }
+        let trainingWrite = Task.detached { try storage.save(t) }
+        await eventually { barrier.started }
+        let draftWrite = Task.detached {
+            try storage.saveReportDraft(t.id, position: 0, draft: .init(kind: .other, text: "x"), ownerID: t.ownerID)
+            completed.add("written")
+        }
+        await eventually { completed.messages == ["written"] }
+        #expect(!barrier.released)
+        barrier.release()
+        try await trainingWrite.value
+        try await draftWrite.value
+    }
+
+    @Test func reportCommitKeepsDraftEditedDuringTrainingWrite() async throws {
+        let barrier = TrainingWriteBarrier()
+        let completed = Reports()
+        let storage = TrainingStore(directory: store.directory, onTrainingWrite: { barrier.blockIfArmed() })
+        var t = TrainingFixture.stored()
+        try storage.saveOwner(t.ownerID)
+        try storage.save(t)
+        try storage.saveReportDraft(t.id, position: 0, draft: .init(kind: .other, text: "x"), ownerID: t.ownerID)
+        t.reports = [.init(id: UUID(), position: 0, body: .init(kind: .other, text: "x", trainingId: t.id))]
+        let submitted = t
+        barrier.arm()
+        defer { barrier.release() }
+        let commit = Task.detached {
+            try storage.saveReport(submitted, position: 0) { _ in Issue.record("сбой удаления") }
+        }
+        await eventually { barrier.started }
+        let edit = Task.detached {
+            try storage.saveReportDraft(
+                submitted.id, position: 0, draft: .init(kind: .answer), ownerID: submitted.ownerID)
+            completed.add("written")
+        }
+        await eventually { completed.messages == ["written"] }
+        barrier.release()
+        try await edit.value
+        let saved = try await commit.value
+        #expect(saved.reports?.count == 1 && saved.reportDraftClearances?[t.position] != nil)
+        let cold = TrainingStore(directory: storage.directory)
+        try cold.reconcileReportDrafts(ownerID: t.ownerID, trainings: [t.id: saved]) { _ in
+            Issue.record("повреждён файл")
+        }
+        #expect(try cold.reportDraft(t.id, position: 0, ownerID: t.ownerID)?.kind == .answer)
+    }
 
     private struct DraftFile: Codable {
         let ownerID: String

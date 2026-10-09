@@ -274,7 +274,6 @@ struct QuestionReportView: View {
     @State var model: QuestionReportModel
     @Environment(\.dismiss) private var dismiss
     @Environment(\.textScale) private var textScale
-    @Environment(\.scenePhase) private var scenePhase
     @ScaledMetric(relativeTo: .callout) private var kindWidth = GPSize.rowTall * 2
     var body: some View {
         NavigationStack {
@@ -380,8 +379,6 @@ struct QuestionReportView: View {
                     .navigationBarTitleDisplayMode(.inline)
                 #endif
         }.tint(Color(.accent))
-            .onDisappear { model.flush() }
-            .onChange(of: scenePhase) { _, phase in if phase != .active { model.flush() } }
             .interactiveDismissDisabled(model.saving)
             #if os(macOS)
                 // Системный Escape иначе закрывает лист мимо «Отмены» и оставляет черновик.

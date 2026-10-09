@@ -99,10 +99,7 @@ final class QuestionReportModel {
         guard !saving, !sent, question != nil else { return }
         draft = value
         do {
-            try trainings.saveReportDraft(id, position: position, draft: value, epoch: epoch) { [weak self] failure in
-                guard let self, self.draft == value, !self.saving, !self.sent else { return }
-                self.problem = failure != nil && failure != .cancelled
-            }
+            try trainings.saveReportDraft(id, position: position, draft: value, epoch: epoch)
             problem = false
         } catch { problem = error != .cancelled }
     }
@@ -132,11 +129,9 @@ final class QuestionReportModel {
         guard epoch == trainings.revision else { return }
         do {
             try trainings.saveReportDraft(id, position: position, draft: nil, epoch: epoch)
-            Task { await trainings.flushReportDrafts() }
         } catch {
             // TrainingModel уже сообщает о сбое диска; отмена эпохи ожидаема и не требует второго отчёта.
             problem = error != .cancelled
         }
     }
-    func flush() { Task { await trainings.flushReportDrafts() } }
 }

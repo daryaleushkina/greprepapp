@@ -188,38 +188,59 @@ struct TrainingReviewTests {
         #expect(trainings.reportDraft(id, position: 0).isEmpty)
     }
 
-    @Test func typingDoesNotWriteEveryCharacter() async throws {
+    @Test func eachEditIsOnDiskBeforeReturning() async throws {
         let (trainings, id) = try await ready()
         let form = QuestionReportModel(id: id, position: 0, trainings: trainings)
         for count in 1...300 { form.setText(String(repeating: "x", count: count)) }
-        #expect(!FileManager.default.fileExists(atPath: store.directory.appending(path: "report-drafts.json").path))
+        #expect(
+            try TrainingStore(directory: store.directory).reportDraft(id, position: 0, ownerID: "person")?.length == 300
+        )
         #expect(QuestionReportModel(id: id, position: 0, trainings: trainings).draft.length == 300)
     }
 
-    @Test func latestDraftFlushIsCoalescedAndRunsOffMain() async throws {
+    @Test func draftSaveDoesNotWaitForRepositoryTrainingWrite() async throws {
+        let barrier = TrainingWriteBarrier()
+        let storage = TrainingStore(
+            directory: temporaryTrainingStore().directory, onTrainingWrite: { barrier.blockIfArmed() })
+        let (trainings, id) = try await ready(storage: storage)
+        barrier.arm()
+        defer { barrier.release() }
+        trainings.recordPosition(id, position: 1)
+        await eventually { barrier.started }
+        // Сторож освобождает зависшую запись только по таймауту ожидания; красный тест не подвесит MainActor.
+        let watchdog = Task.detached {
+            await withCheckedContinuation { continuation in
+                DispatchQueue.global().async {
+                    if barrier.draftFinished.wait(timeout: .now() + 5) == .timedOut { barrier.release() }
+                    continuation.resume()
+                }
+            }
+        }
+        try trainings.saveReportDraft(id, position: 0, draft: .init(kind: .other, text: "x"), epoch: trainings.revision)
+        barrier.draftFinished.signal()
+        #expect(!barrier.released)
+        #expect(
+            try TrainingStore(directory: storage.directory).reportDraft(id, position: 0, ownerID: "person")?.length == 1
+        )
+        barrier.release()
+        await watchdog.value
+        await eventually { trainings.trainings[id]?.position == 1 }
+    }
+
+    @Test func everyChangedDraftIsWrittenSynchronously() async throws {
         let writes = Reports()
         let directory = temporaryTrainingStore().directory
-        let storage = TrainingStore(
-            directory: directory, onDraftWrite: { writes.add(Thread.isMainThread ? "main" : "worker") })
+        let storage = TrainingStore(directory: directory, onDraftWrite: { writes.add("written") })
         let (trainings, id) = try await ready(storage: storage)
         let form = QuestionReportModel(id: id, position: 0, trainings: trainings)
         for count in 1...300 { form.setText(String(repeating: "x", count: count)) }
-        async let first: Void = trainings.flushReportDrafts()
-        async let second: Void = trainings.flushReportDrafts()
-        async let third: Void = trainings.flushReportDrafts()
-        _ = await (first, second, third)
-        #expect(writes.messages == ["worker"])
-        let cold = TrainingStore(directory: directory)
-        #expect(try cold.reportDraft(id, position: 0, ownerID: "person")?.length == 300)
-        form.setText("later")
-        await eventually { writes.messages.count == 2 }
-        #expect(
-            try TrainingStore(directory: directory).reportDraft(id, position: 0, ownerID: "person")?.text == "later")
-        form.setText("last")
-        form.flush()
-        await eventually { writes.messages.count == 3 }
-        #expect(try TrainingStore(directory: directory).reportDraft(id, position: 0, ownerID: "person")?.text == "last")
-        #expect(writes.messages.allSatisfy { $0 == "worker" })
+        #expect(writes.messages.count == 300)
+        #expect(try TrainingStore(directory: directory).reportDraft(id, position: 0, ownerID: "person")?.length == 300)
+        form.setText(String(repeating: "x", count: 300))
+        #expect(writes.messages.count == 300)
+        form.setText("")
+        #expect(writes.messages.count == 301)
+        #expect(try TrainingStore(directory: directory).reportDraft(id, position: 0, ownerID: "person") == nil)
     }
 
     @Test func acceptedReportDoesNotReopenItsDraftAfterCleanupFailure() async throws {
@@ -271,7 +292,6 @@ struct TrainingReviewTests {
         try store.remove(id)
         let form = QuestionReportModel(id: id, position: 0, trainings: trainings)
         form.setText("x")
-        await trainings.flushReportDrafts()
         #expect(!FileManager.default.fileExists(atPath: store.directory.appending(path: "report-drafts.json").path))
     }
     @Test func formPreservesDraftAndSendsOnce() async throws {

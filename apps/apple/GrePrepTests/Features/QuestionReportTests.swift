@@ -35,7 +35,6 @@ struct QuestionReportTests {
         server.on(route, .failure(.notConnectedToInternet))
         let model = try await model()
         try model.saveReportDraft(t.id, position: 0, draft: draft, epoch: model.revision)
-        await model.flushReportDrafts()
         try await model.repository.recordReport(t.id, position: 0, draft: draft, epoch: model.revision)
         await model.repository.sync()
         #expect(try store.load { _ in }[t.id]?.reports?.count == 1)
@@ -54,11 +53,9 @@ struct QuestionReportTests {
         try prepare()
         let model = try await model()
         try model.saveReportDraft(t.id, position: 0, draft: draft, epoch: model.revision)
-        await model.flushReportDrafts()
         let again = try await self.model()
         #expect(try store.reportDraft(t.id, position: 0, ownerID: "person") == draft)
         try again.saveReportDraft(t.id, position: 0, draft: nil, epoch: again.revision)
-        await again.flushReportDrafts()
         #expect(try store.load { _ in }[t.id]?.reportDrafts?[0] == nil)
         #expect(server.requests(route).isEmpty)
     }
@@ -103,7 +100,6 @@ struct QuestionReportTests {
         server.on(route, .failure(.notConnectedToInternet))
         let model = try await model()
         try model.saveReportDraft(t.id, position: 1, draft: draft, epoch: model.revision)
-        await model.flushReportDrafts()
         try await model.repository.recordReport(t.id, position: 0, draft: draft, epoch: model.revision)
         await model.repository.sync()
         let other = try await self.model(owner: "other")
@@ -176,7 +172,6 @@ struct QuestionReportTests {
         try prepare()
         let model = try await model()
         try model.saveReportDraft(t.id, position: 0, draft: draft, epoch: model.revision)
-        await model.flushReportDrafts()
         for (position, value) in [
             (0, QuestionReportDraft(kind: .other, text: String(repeating: "x", count: 2001))), (-1, draft),
         ] {
