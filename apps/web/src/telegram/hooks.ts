@@ -2,7 +2,7 @@
 // обработчик в ref, чтобы новая функция на каждый рендер не переподписывала кнопку; отписка обязательна —
 // иначе обработчики копятся.
 import { useEffect, useLayoutEffect, useRef } from 'react';
-import { backButton, swipeBehavior } from '@tma.js/sdk-react';
+import { telegramRuntime } from './runtime';
 
 const SWIPE_RESTORE_KEY = 'greprep.training.swipes';
 
@@ -30,7 +30,8 @@ function forgetSetting(key: string): void {
 /** Во время тренировки случайный свайп не закрывает мини-апп (решение Даши 08.10.2026). */
 export function useTrainingSwipes(active: boolean): void {
   useLayoutEffect(() => {
-    if (!active || !swipeBehavior.disableVertical.isAvailable()) return;
+    const swipeBehavior = telegramRuntime()?.swipeBehavior;
+    if (!active || !swipeBehavior?.disableVertical.isAvailable()) return;
     // SDK сохраняет выключенные свайпы между загрузками; помним состояние до входа в сессию отдельно.
     const enabled = rememberSetting(SWIPE_RESTORE_KEY, swipeBehavior.isVerticalEnabled());
     swipeBehavior.disableVertical.ifAvailable();
@@ -46,6 +47,8 @@ export function useBackButton(onBack: (() => void) | null): void {
   const visible = onBack !== null;
 
   useEffect(() => {
+    const backButton = telegramRuntime()?.backButton;
+    if (!backButton) return;
     if (!visible) {
       backButton.hide.ifAvailable();
       return;

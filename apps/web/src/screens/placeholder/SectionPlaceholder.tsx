@@ -6,6 +6,9 @@ import { useI18n } from '../../i18n/i18n';
 import { useGlow } from '../../layout/AppLayout';
 import styles from '../screens.module.css';
 
+export function WordsScreen(): ReactNode { return <SectionPlaceholder section="words" />; }
+export function ExamScreen(): ReactNode { return <SectionPlaceholder section="exam" />; }
+
 export function SectionPlaceholder({ section }: { section: 'words' | 'exam' }): ReactNode {
   const { t } = useI18n();
   const setGlow = useGlow();

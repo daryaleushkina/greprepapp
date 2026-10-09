@@ -36,5 +36,13 @@ export default defineConfig({
   // за свой (docs/HANDOFF.md, «Грабли»).
   server: { port: 5190, strictPort: true, proxy: api },
   preview: { port: 5190, strictPort: true, proxy: api },
-  build: { target: 'es2023', sourcemap: true },
+  build: {
+    target: 'es2023', sourcemap: true,
+    rolldownOptions: {
+      output: {
+        // React меняется реже экранов и кэшируется отдельно. SDK Telegram сюда не входит: сайт его не скачивает.
+        codeSplitting: { groups: [{ name: 'react', test: /\/node_modules\/(react|react-dom|scheduler)\// }] },
+      },
+    },
+  },
 });

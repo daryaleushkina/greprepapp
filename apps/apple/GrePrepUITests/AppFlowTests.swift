@@ -19,9 +19,13 @@ final class AppFlowTests: XCTestCase {
         continueAfterFailure = false
     }
 
-    private func launch(reset: Bool, server: String? = nil, largeText: Bool = false) -> XCUIApplication {
+    private func launch(reset: Bool, server: String? = nil, largeText: Bool = false, language: String = "ru")
+        -> XCUIApplication
+    {
         let app = XCUIApplication()
-        app.launchArguments = ["-AppleLanguages", "(ru)", "-AppleLocale", "ru_RU"] + (reset ? ["-GPResetState"] : [])
+        app.launchArguments =
+            ["-AppleLanguages", "(\(language))", "-AppleLocale", language == "ru" ? "ru_RU" : "en_US"]
+            + (reset ? ["-GPResetState"] : [])
         if largeText {
             app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
         }
@@ -30,13 +34,39 @@ final class AppFlowTests: XCTestCase {
         return app
     }
 
-    private func signIn(_ app: XCUIApplication) {
+    @discardableResult
+    private func signIn(_ app: XCUIApplication) -> String {
         let name = app.textFields["signin.dev.name"]
         XCTAssertTrue(name.waitForExistence(timeout: 10), "нет поля входа подменой")
         name.tap()
-        name.typeText("\(userPrefix)-\(UUID().uuidString.prefix(12).lowercased())")
+        let userName = "\(userPrefix)-\(UUID().uuidString.prefix(12).lowercased())"
+        name.typeText(userName)
         app.buttons["signin.dev.submit"].tap()
         XCTAssertTrue(app.staticTexts["today.summary"].waitForExistence(timeout: 15), "после входа нет «Сегодня»")
+        return userName
+    }
+
+    func testEnglishNewAccountUsesInterfaceLanguage() async throws {
+        let app = launch(reset: true, language: "en")
+        let name = signIn(app)
+        // Повторный вход в тот же тестовый аккаунт язык не меняет: ответ проверяет, с чем его создало приложение.
+        var request = URLRequest(url: try XCTUnwrap(URL(string: serverURL + "/api/auth/dev")))
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: [
+            "name": name, "transport": "bearer", "clientKind": "ios",
+        ])
+        let (data, response) = try await URLSession.shared.data(for: request)
+        XCTAssertEqual((response as? HTTPURLResponse)?.statusCode, 200)
+        struct Session: Decodable {
+            struct User: Decodable { let locale: String }
+            let user: User
+        }
+        XCTAssertEqual(try JSONDecoder().decode(Session.self, from: data).user.locale, "en")
+        app.tabBars.buttons["Progress"].firstMatch.tap()
+        app.buttons["progress.settings"].firstMatch.tap()
+        XCTAssertTrue(app.staticTexts["settings.etsDisclaimer"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["settings.etsDisclaimer"].label.hasPrefix("GRE® is a registered trademark"))
     }
 
     func testSignInShowsTodayAndOpensStep() {
@@ -71,6 +101,12 @@ final class AppFlowTests: XCTestCase {
         signIn(app)
         app.tabBars.buttons["Прогресс"].firstMatch.tap()
         app.buttons["progress.settings"].firstMatch.tap()
+        let disclaimer = app.staticTexts["settings.etsDisclaimer"]
+        XCTAssertTrue(disclaimer.waitForExistence(timeout: 5))
+        XCTAssertEqual(
+            disclaimer.label,
+            "GRE® is a registered trademark of Educational Testing Service (ETS). This product is not endorsed or approved by ETS."
+        )
         app.buttons["settings.signOut"].tap()
         XCTAssertTrue(app.buttons["signin.telegram"].waitForExistence(timeout: 5))
         app.terminate()

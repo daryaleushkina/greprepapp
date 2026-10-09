@@ -30,6 +30,7 @@ final class TodayModel {
     /// (docs/HANDOFF.md, «Клиент»).
     @ObservationIgnored private var generation = 0
     @ObservationIgnored private var isRetired = false
+    @ObservationIgnored private var isOnline: Bool
     /// Когда план в последний раз пришёл с сервера.
     @ObservationIgnored private var fetchedAt: Date?
     static let freshFor: TimeInterval = 5 * 60
@@ -37,17 +38,20 @@ final class TodayModel {
     init(
         api: API,
         cache: TodayCache,
+        isOnline: Bool = true,
         onUnauthorized: @escaping @MainActor () -> Void,
         report: @escaping @MainActor (_ message: String, _ requestID: String?) -> Void
     ) {
         self.api = api
         self.cache = cache
+        self.isOnline = isOnline
         self.onUnauthorized = onUnauthorized
         self.report = report
         // Прошлый план — сразу, до ответа сервера: экран не мигает пустотой при каждом открытии.
         if let cached = cache.load() {
             content = .plan(TodayPlan(cached))
         }
+        if !isOnline { show(.offline) }
     }
 
     /// Нужен ли повтор, когда вернулась сеть.
@@ -66,7 +70,13 @@ final class TodayModel {
 
     /// Сеть вернулась — план, который не удалось обновить, обновляется сам (решение Даши 06.10.2026).
     func networkChanged(online: Bool) async {
-        guard online, needsRefresh else { return }
+        guard !isRetired else { return }
+        isOnline = online
+        if !online {
+            show(.offline)
+            return
+        }
+        guard needsRefresh else { return }
         await refresh()
     }
 
@@ -84,6 +94,10 @@ final class TodayModel {
 
     private func refresh(now: Date) async {
         guard !isRetired else { return }
+        guard isOnline else {
+            show(.offline)
+            return
+        }
         generation += 1
         let mine = generation
         isRefreshing = true
@@ -100,7 +114,8 @@ final class TodayModel {
         switch result {
         case let .success(dto):
             content = .plan(TodayPlan(dto))
-            staleReason = nil
+            // Ответ мог быть уже в пути, когда пропала сеть: строка остаётся до возвращения сети.
+            staleReason = isOnline ? nil : .offline
             fetchedAt = now
             do {
                 try cache.save(dto)
@@ -126,7 +141,7 @@ final class TodayModel {
         case .server, .unexpected:
             // Любой отказ сервера на план дня — наш баг (клиент и сервер разошлись), не только 5xx.
             report("today: \(failure)", failure.requestID)
-            show(.failed)
+            show(isOnline ? .failed : .offline)
         }
     }
 

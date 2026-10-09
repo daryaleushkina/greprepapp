@@ -112,6 +112,57 @@ struct TodayModelTests {
         #expect(events.reports.count == 1)
     }
 
+    @Test("сеть пропала без запроса — тихая строка сразу; вернулась — новый план")
+    func losingNetworkShowsNoticeAndReturningRefreshes() async throws {
+        let updated = #"{"date":"2026-10-09","steps":[]}"#
+        server.on("GET /api/today", .json(200, Fixture.todayJSON), .json(200, updated))
+        let model = model()
+        await model.refresh()
+        await model.networkChanged(online: false)
+        #expect(model.content == .plan(Fixture.plan))
+        #expect(model.staleReason == .offline)
+        #expect(server.requests("GET /api/today").count == 1)
+        await model.networkChanged(online: true)
+        #expect(model.content == .plan(TodayPlan(date: "2026-10-09", steps: [])))
+        #expect(model.staleReason == nil)
+        #expect(server.requests("GET /api/today").count == 2)
+    }
+
+    @Test("с самого запуска без сети — кэш или «Нет сети», запросов нет", arguments: [false, true])
+    func startsOffline(cached: Bool) async throws {
+        if cached { try cache.save(Fixture.todayDTO) }
+        let api = API(config: server.config(), session: server.session, tokens: MemoryTokenStore("t"))
+        let model = TodayModel(api: api, cache: cache, isOnline: false, onUnauthorized: {}, report: { _, _ in })
+        #expect(model.content == (cached ? .plan(Fixture.plan) : .unavailable(.offline)))
+        #expect(model.staleReason == (cached ? .offline : nil))
+        await model.refresh()
+        #expect(server.requests.isEmpty)
+        server.on("GET /api/today", .json(200, Fixture.todayJSON))
+        await model.networkChanged(online: true)
+        #expect(model.content == .plan(Fixture.plan))
+    }
+
+    @Test("ответ в пути не убирает строку о потере сети")
+    func inFlightResponseWhileOffline() async throws {
+        let gate = StubServer.Gate()
+        server.on("GET /api/today", .gated(gate, 200, Fixture.todayJSON), .json(200, Fixture.todayJSON))
+        let model = model()
+        let request = Task { await model.refresh() }
+        await eventually { !server.requests("GET /api/today").isEmpty }
+        await model.networkChanged(online: false)
+        gate.open()
+        await request.value
+        #expect(model.content == .plan(Fixture.plan))
+        #expect(model.staleReason == .offline)
+        await model.networkChanged(online: true)
+        #expect(model.staleReason == nil)
+        model.retire()
+        await model.networkChanged(online: false)
+        await model.networkChanged(online: true)
+        #expect(model.staleReason == nil)
+        #expect(server.requests("GET /api/today").count == 2)
+    }
+
     @Test("сбой сервера при прошлом плане — план остаётся, строка «не получилось обновить»")
     func serverFailureWithCache() async throws {
         try cache.save(Fixture.todayDTO)

@@ -8,16 +8,12 @@
 //   /signin           вход               (только сайт)
 //   /auth/callback    возврат от провайдера входа (только сайт)
 import type { QueryClient } from '@tanstack/react-query';
-import { createRootRouteWithContext, createRoute, createRouter, Outlet, type RouterHistory } from '@tanstack/react-router';
+import { createRootRouteWithContext, createRoute, createRouter, lazyRouteComponent, Outlet, type RouterHistory } from '@tanstack/react-router';
 import { schemas } from '@greprep/api-client';
 import { z } from 'zod';
+import { safeReturnTo } from './auth/returnTo';
 import { Crashed, reportRouteError } from './errors/ErrorBoundary';
 import { AppGate, TabsLayout } from './layout/AppLayout';
-import { SectionPlaceholder } from './screens/placeholder/SectionPlaceholder';
-import { StepScreen } from './screens/placeholder/StepScreen';
-import { ProgressScreen } from './screens/progress/ProgressScreen';
-import { SettingsScreen } from './screens/progress/SettingsScreen';
-import { AuthCallback } from './screens/signin/AuthCallback';
 import { SignInScreen } from './screens/signin/SignInScreen';
 import { TodayScreen } from './screens/today/TodayScreen';
 import { TELEGRAM_BASE, type Shell } from './shell';
@@ -32,6 +28,7 @@ const rootRoute = createRootRouteWithContext<RouterContext>()({ component: Outle
 /** Почему человек на экране входа: адрес — внешний ввод, поэтому разбор по схеме, неизвестное — пропускаем. */
 const signInSearch = z.object({
   reason: z.enum(['expired', 'cancelled', 'failed', 'offline', 'tooMany']).optional().catch(undefined),
+  returnTo: z.unknown().transform(safeReturnTo).optional(),
 });
 export type SignInReason = NonNullable<z.infer<typeof signInSearch>['reason']>;
 
@@ -42,7 +39,7 @@ const signInRoute = createRoute({
   component: SignInScreen,
 });
 
-const callbackRoute = createRoute({ getParentRoute: () => rootRoute, path: 'auth/callback', component: AuthCallback });
+const callbackRoute = createRoute({ getParentRoute: () => rootRoute, path: 'auth/callback', component: lazyRouteComponent(() => import('./screens/signin/AuthCallback'), 'AuthCallback') });
 
 const appRoute = createRoute({ getParentRoute: () => rootRoute, id: 'app', component: AppGate });
 const tabsRoute = createRoute({ getParentRoute: () => appRoute, id: 'tabs', component: TabsLayout });
@@ -51,16 +48,16 @@ const todayRoute = createRoute({ getParentRoute: () => tabsRoute, path: '/', com
 const wordsRoute = createRoute({
   getParentRoute: () => tabsRoute,
   path: 'words',
-  component: () => <SectionPlaceholder section="words" />,
+  component: lazyRouteComponent(() => import('./screens/placeholder/SectionPlaceholder'), 'WordsScreen'),
 });
 const examRoute = createRoute({
   getParentRoute: () => tabsRoute,
   path: 'exam',
-  component: () => <SectionPlaceholder section="exam" />,
+  component: lazyRouteComponent(() => import('./screens/placeholder/SectionPlaceholder'), 'ExamScreen'),
 });
-const progressRoute = createRoute({ getParentRoute: () => tabsRoute, path: 'progress', component: ProgressScreen });
-const settingsRoute = createRoute({ getParentRoute: () => tabsRoute, path: 'settings', component: SettingsScreen });
-const stepRoute = createRoute({ getParentRoute: () => appRoute, path: 'step/$stepId', component: StepScreen });
+const progressRoute = createRoute({ getParentRoute: () => tabsRoute, path: 'progress', component: lazyRouteComponent(() => import('./screens/progress/ProgressScreen'), 'ProgressScreen') });
+const settingsRoute = createRoute({ getParentRoute: () => tabsRoute, path: 'settings', component: lazyRouteComponent(() => import('./screens/progress/SettingsScreen'), 'SettingsScreen') });
+const stepRoute = createRoute({ getParentRoute: () => appRoute, path: 'step/$stepId', component: lazyRouteComponent(() => import('./screens/placeholder/StepScreen'), 'StepScreen') });
 
 const builderRoute = createRoute({ getParentRoute: () => appRoute, path: 'training/new',
   validateSearch: z.object({ section: z.enum(['verbal', 'quant']).optional().catch(undefined), type: schemas.QuestionType.optional().catch(undefined) }),

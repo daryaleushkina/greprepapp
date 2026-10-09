@@ -4,6 +4,7 @@ import { createHmac, randomInt } from 'node:crypto';
 import { expect, test as base, type BrowserContext, type Locator, type Page } from '@playwright/test';
 import { E2E_BOT_TOKEN, type TgOptions } from '../playwright.config';
 import { schemas, type User } from '../packages/api-client/src';
+import { telegramLocale } from '../apps/web/src/i18n/locale';
 
 export interface TelegramUser {
   id: number;
@@ -134,6 +135,12 @@ export const test = base.extend<Fixtures>({
     const inset = (name: string) => page.evaluate((n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim(), name);
     await expect.poll(() => inset('--tg-viewport-safe-area-inset-top')).toBe(`${safeTop}px`);
     await expect.poll(() => inset('--tg-viewport-content-safe-area-inset-top')).toBe(`${contentTop}px`);
+    // Заголовок появляется ещё на скелете: перед первым действием ждём план и шрифт.
+    // В первом сценарии холодного WebKit клик по «Слова» раньше ждал stable дольше восьми секунд (#28).
+    const summary = telegramLocale(tgUser.language_code) === 'ru'
+      ? 'Три шага · около 25 минут' : 'Three steps · about 25 minutes';
+    await expect(page.getByText(summary)).toBeVisible({ timeout: 30_000 });
+    await page.evaluate(() => document.fonts.ready.then(() => undefined));
     await use(page);
   },
 
@@ -147,6 +154,8 @@ export const test = base.extend<Fixtures>({
     siteUsers.set(page.context(), schemas.Session.parse(await res.json()).user);
     await page.goto('/');
     await expect(page.getByRole('heading', { level: 1, name: 'Сегодня' })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText('Три шага · около 25 минут')).toBeVisible({ timeout: 30_000 });
+    await page.evaluate(() => document.fonts.ready.then(() => undefined));
     await use(page);
     siteUsers.delete(page.context());
   },

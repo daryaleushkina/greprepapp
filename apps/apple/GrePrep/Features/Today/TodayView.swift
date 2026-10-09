@@ -42,7 +42,9 @@ struct TodayView: View {
             // Полноэкранная тренировка скрывает вкладки; возврат не требует повторять исходный запрос.
             if refreshesOnAppear, !didRefreshOnAppear {
                 didRefreshOnAppear = true
-                await model.refresh()
+                // NWPathMonitor мог ответить до появления экрана: сначала сверяем сеть, затем обновляем план.
+                await model.networkChanged(online: app.network.isOnline)
+                await model.refreshIfStale()
             }
         }
         .onChange(of: app.network.isOnline) { _, online in

@@ -8,6 +8,21 @@ beforeEach(() => leaveTo.mockClear());
 const signedOut = { 'GET /api/me': () => apiError(401, 'unauthorized') };
 
 describe('вход на сайте', () => {
+  it('глубокая ссылка сохраняется на входе и возвращается после входа подменой', async () => {
+    fakeServer({
+      ...signedOut,
+      'POST /api/auth/dev': () => json({ expiresAt: '2026-11-05T10:00:00Z', user: user() }),
+      'GET /api/today': () => json(STARTER),
+    });
+    const { screen, router } = await renderApp({ path: '/step/words?source=plan#details' });
+    await expect.element(screen.getByPlaceholder('Имя тестового пользователя')).toBeVisible();
+    expect(router.state.location.search).toMatchObject({ returnTo: '/step/words?source=plan#details' });
+    await screen.getByPlaceholder('Имя тестового пользователя').fill('Тест');
+    await screen.getByRole('button', { name: 'Войти', exact: true }).click();
+    await expect.element(screen.getByText('Шаг words')).toBeVisible();
+    expect(router.state.location.href).toBe('/step/words?source=plan#details');
+  });
+
   it('без сессии — на вход: три официальные кнопки, условия и дисклеймер ETS', async () => {
     fakeServer(signedOut);
     const { screen, router } = await renderApp({ path: '/' });

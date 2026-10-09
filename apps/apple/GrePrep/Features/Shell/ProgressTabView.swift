@@ -46,8 +46,16 @@ struct SettingsView: View {
                 }
                 .accessibilityIdentifier("settings.signOut")
             } footer: {
-                Text("Версия \(app.config.appVersion)")
-                    .monospacedDigit()
+                VStack(alignment: .leading, spacing: GPSpace.s12) {
+                    Text("Версия \(app.config.appVersion)")
+                        .monospacedDigit()
+                    Text(verbatim: GREBrand.disclaimer)
+                        .gpText(GPType.caption)
+                        .foregroundStyle(Color(.textSecondary))
+                        .fixedSize(horizontal: false, vertical: true)
+                        .environment(\.locale, Locale(identifier: "en"))
+                        .accessibilityIdentifier("settings.etsDisclaimer")
+                }
             }
         }
         .formStyle(.grouped)

@@ -10,7 +10,7 @@ import { makeRouter } from './router';
 import { makeQueryClient } from './queryClient';
 import { detectShell } from './shell';
 import { StartFailure } from './components/StartFailure';
-import { followTelegramTheme, startTelegram, type TelegramLaunch } from './telegram/sdk';
+import type { TelegramLaunch } from './telegram/sdk';
 
 async function bootstrap(): Promise<void> {
   const container = document.getElementById('root');
@@ -21,6 +21,7 @@ async function bootstrap(): Promise<void> {
 
   let launch: TelegramLaunch | null = null;
   if (shell === 'telegram') {
+    const { followTelegramTheme, startTelegram } = await import('./telegram/sdk');
     const started = await startTelegram();
     if (started.kind === 'not-telegram') {
       // /tg/ открыли в обычном браузере: мини-апп без Telegram бесполезен — на сайт, там свой вход.

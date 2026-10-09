@@ -5,6 +5,26 @@ import { fakeServer, json, renderApp, STARTER, user } from '../test/app';
 const signedIn = { 'GET /api/me': () => json(user()), 'GET /api/today': () => json(STARTER) };
 
 describe('разделы', () => {
+  it.each([
+    { metaKey: true }, { ctrlKey: true }, { shiftKey: true }, { altKey: true }, { button: 1 },
+  ])('«Назад» оставляет браузеру клик %j', async (options) => {
+    fakeServer(signedIn);
+    const { screen, router } = await renderApp({ path: '/progress' });
+    await router.navigate({ to: '/settings' });
+    const back = screen.getByRole('link', { name: 'Назад' });
+    await expect.element(back).toBeVisible();
+    const event = new MouseEvent('click', { bubbles: true, cancelable: true, ...options });
+    let intercepted = false;
+    // После обработчиков React гасим родную навигацию только в тестовом iframe Vitest.
+    document.addEventListener('click', (click) => {
+      intercepted = click.defaultPrevented;
+      click.preventDefault();
+    }, { once: true });
+    back.element().dispatchEvent(event);
+    expect(intercepted).toBe(false);
+    expect(router.state.location.pathname).toBe('/settings');
+  });
+
   it('телефон: капсула вкладок ведёт по разделам; настройки — из «Прогресса», с «Назад» и без капсулы', async () => {
     fakeServer(signedIn);
     const { screen, router } = await renderApp({ path: '/' });

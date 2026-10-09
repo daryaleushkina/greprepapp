@@ -25,10 +25,15 @@ final class SignInModel {
     @ObservationIgnored private let app: AppModel
     @ObservationIgnored private var appleNonce: String?
     @ObservationIgnored private let discoverySession: URLSession
+    @ObservationIgnored private let locale: Components.Schemas.Locale
 
-    init(app: AppModel, discoverySession: URLSession = API.session) {
+    init(
+        app: AppModel, discoverySession: URLSession = API.session,
+        locale: Locale = Locale(identifier: Bundle.main.preferredLocalizations.first ?? "en")
+    ) {
         self.app = app
         self.discoverySession = discoverySession
+        self.locale = locale.language.languageCode?.identifier == "ru" ? .ru : .en
     }
 
     // MARK: - Подмена (только отладка)
@@ -39,7 +44,7 @@ final class SignInModel {
             guard !name.isEmpty, begin(.development) else { return }
             defer { busy = nil }
             do {
-                try finish(await app.api.signInForDevelopment(name: name))
+                try finish(await app.api.signInForDevelopment(name: name, locale: locale))
             } catch {
                 fail(error)
             }
@@ -95,7 +100,7 @@ final class SignInModel {
             try finish(
                 await app.api.signInWithIdToken(
                     provider: .apple, idToken: idToken, nonce: nonce,
-                    displayName: name?.isEmpty == false ? name : nil
+                    displayName: name?.isEmpty == false ? name : nil, locale: locale
                 ))
         } catch {
             fail(error)
@@ -147,7 +152,7 @@ final class SignInModel {
                 await app.api.signInWithAuthorizationCode(
                     provider: provider == .telegram ? .telegram : .google,
                     code: code, codeVerifier: attempt.codeVerifier,
-                    redirectURI: attempt.redirectURI.absoluteString, nonce: attempt.nonce
+                    redirectURI: attempt.redirectURI.absoluteString, nonce: attempt.nonce, locale: locale
                 ))
         } catch {
             fail(error)

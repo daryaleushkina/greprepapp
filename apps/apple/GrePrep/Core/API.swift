@@ -45,10 +45,12 @@ struct API: Sendable {
     #if DEBUG
         /// Вход подменой (`/api/auth/dev`) — только отладочная сборка: в релизе этого кода нет, а сервер в бою
         /// отвечает на путь 404.
-        func signInForDevelopment(name: String) async throws(APIFailure) -> SignedIn {
+        func signInForDevelopment(name: String, locale: Components.Schemas.Locale = .ru) async throws(APIFailure)
+            -> SignedIn
+        {
             let output = try await call {
                 try await client.signInForDevelopment(
-                    body: .json(.init(name: name, transport: .bearer, clientKind: clientKind)))
+                    body: .json(.init(name: name, transport: .bearer, clientKind: clientKind, locale: locale)))
             }
             switch output {
             case let .ok(ok):
@@ -64,11 +66,12 @@ struct API: Sendable {
         provider: Components.Schemas.IdentityProvider,
         idToken: String,
         nonce: String,
-        displayName: String?
+        displayName: String?,
+        locale: Components.Schemas.Locale = .ru
     ) async throws(APIFailure) -> SignedIn {
         let body = Components.Schemas.IdTokenSignIn(
             provider: provider, idToken: idToken, nonce: nonce, displayName: displayName,
-            transport: .bearer, clientKind: clientKind
+            transport: .bearer, clientKind: clientKind, locale: locale
         )
         let output = try await call { try await client.signInWithIdToken(body: .json(body)) }
         switch output {
@@ -85,11 +88,12 @@ struct API: Sendable {
         code: String,
         codeVerifier: String,
         redirectURI: String,
-        nonce: String
+        nonce: String,
+        locale: Components.Schemas.Locale = .ru
     ) async throws(APIFailure) -> SignedIn {
         let body = Components.Schemas.AuthorizationCodeSignIn(
             provider: provider, code: code, codeVerifier: codeVerifier, redirectUri: redirectURI, nonce: nonce,
-            transport: .bearer, clientKind: clientKind
+            transport: .bearer, clientKind: clientKind, locale: locale
         )
         let output = try await call { try await client.signInWithAuthorizationCode(body: .json(body)) }
         switch output {

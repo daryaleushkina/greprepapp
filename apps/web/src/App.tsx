@@ -1,6 +1,6 @@
 import { QueryClientProvider, type QueryClient } from '@tanstack/react-query';
 import { RouterProvider } from '@tanstack/react-router';
-import { miniApp } from '@tma.js/sdk-react';
+import { telegramRuntime } from './telegram/runtime';
 import { useEffect, type ReactNode } from 'react';
 import { ErrorBoundary } from './errors/ErrorBoundary';
 import { I18nProvider } from './i18n/i18n';
@@ -24,7 +24,7 @@ export function App({ queryClient, router, shell, launch }: Props): ReactNode {
   useEffect(() => bindTrainingSession(queryClient, shell), [queryClient, shell]);
   useEffect(() => {
     // После первого кадра с содержимым или скелетом: раньше — заглушка Telegram сменится пустым экраном (навык).
-    if (shell === 'telegram') miniApp.ready.ifAvailable();
+    if (shell === 'telegram') telegramRuntime()?.miniApp.ready.ifAvailable();
   }, [shell]);
   return (
     <QueryClientProvider client={queryClient}>

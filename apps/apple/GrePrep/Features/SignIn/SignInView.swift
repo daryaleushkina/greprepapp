@@ -110,11 +110,8 @@ private struct SignInContent: View {
     private var legal: some View {
         VStack(spacing: GPSpace.s10) {
             Text("Продолжая, вы принимаете условия и политику конфиденциальности.")
-            Text(
-                verbatim:
-                    "GRE® is a registered trademark of Educational Testing Service (ETS). This product is not endorsed or approved by ETS."
-            )
-            .environment(\.locale, Locale(identifier: "en"))
+            Text(verbatim: GREBrand.disclaimer)
+                .environment(\.locale, Locale(identifier: "en"))
         }
         .gpText(GPType.caption)
         .foregroundStyle(Color(.textSecondary))

@@ -1,5 +1,5 @@
 // Возврат от провайдера входа (/auth/callback?code&state): код меняется на сессию на сервере, кука ставится
-// ответом, дальше — «Сегодня». Неудача — на экран входа с причиной.
+// ответом, дальше — исходный экран. Неудача — на экран входа с причиной и тем же адресом возврата.
 import { isApiError, signInWithAuthorizationCode } from '@greprep/api-client';
 import { useNavigate, useRouterState } from '@tanstack/react-router';
 import { useEffect, useRef, type ReactNode } from 'react';
@@ -23,7 +23,7 @@ export function AuthCallback(): ReactNode {
   useEffect(() => {
     if (started.current) return;
     started.current = true;
-    const fail = (reason: SignInReason) => void navigate({ to: '/signin', search: { reason }, replace: true });
+    const fail = (reason: SignInReason, returnTo?: string) => void navigate({ to: '/signin', search: { reason, ...(returnTo && { returnTo }) }, replace: true });
     let result: ReturnType<typeof finishSignIn>;
     try {
       result = finishSignIn(new URLSearchParams(search), sessionStorage);
@@ -36,7 +36,7 @@ export function AuthCallback(): ReactNode {
     if (!result.ok) {
       // Отмена — выбор человека; неверный возврат (чужой state, старая вкладка, подделка) — в журнал консоли.
       if (result.reason === 'invalid') console.warn('sign-in callback rejected: no matching attempt or bad parameters');
-      fail(result.reason === 'cancelled' ? 'cancelled' : 'failed');
+      fail(result.reason === 'cancelled' ? 'cancelled' : 'failed', result.returnTo);
       return;
     }
     const { attempt, code } = result;
@@ -52,15 +52,15 @@ export function AuthCallback(): ReactNode {
     })
       .then(async (res) => {
         await signedIn(res.user);
-        await navigate({ to: '/', replace: true });
+        await navigate({ href: attempt.returnTo, replace: true });
       })
       .catch((e: unknown) => {
         console.error(e);
         // Ответ сервера не по договору — ошибка у нас: в отчёт (вход сломан, а человек видит только «не получилось»).
         if (isApiError(e) && e.kind === 'contract') reportError(e);
-        if (isApiError(e) && e.kind === 'network') fail('offline');
-        else if (isApiError(e) && e.code === 'too_many_requests') fail('tooMany');
-        else fail('failed');
+        if (isApiError(e) && e.kind === 'network') fail('offline', attempt.returnTo);
+        else if (isApiError(e) && e.code === 'too_many_requests') fail('tooMany', attempt.returnTo);
+        else fail('failed', attempt.returnTo);
       });
   }, [locale, navigate, search, signedIn]);
 

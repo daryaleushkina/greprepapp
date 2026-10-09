@@ -5,6 +5,7 @@
 import { z } from 'zod';
 import type { Provider, ProviderConfig } from '../config';
 import { codeChallenge, randomToken } from './pkce';
+import { safeReturnTo } from './returnTo';
 
 /** Что помнит вкладка между уходом к провайдеру и возвратом. */
 export interface Attempt {
@@ -14,6 +15,7 @@ export interface Attempt {
   codeVerifier: string;
   redirectUri: string;
   startedAt: number;
+  returnTo: string;
 }
 
 export const CALLBACK_PATH = '/auth/callback';
@@ -33,7 +35,7 @@ export interface AttemptStorage {
  * У Apple на сайте без scope: с name/email Apple требует response_mode=form_post (POST на наш адрес), а сайт —
  * статика. Имя у Apple сайт не получит — сервер назовёт аккаунт сам.
  */
-export async function beginSignIn(provider: Provider, config: ProviderConfig, origin: string, storage: AttemptStorage, now = Date.now()): Promise<string> {
+export async function beginSignIn(provider: Provider, config: ProviderConfig, origin: string, storage: AttemptStorage, now = Date.now(), returnTo: unknown = '/'): Promise<string> {
   const attempt: Attempt = {
     provider,
     state: randomToken(),
@@ -41,6 +43,7 @@ export async function beginSignIn(provider: Provider, config: ProviderConfig, or
     codeVerifier: randomToken(),
     redirectUri: origin + CALLBACK_PATH,
     startedAt: now,
+    returnTo: safeReturnTo(returnTo),
   };
   storage.setItem(STORAGE_KEY, JSON.stringify(attempt));
   const url = new URL(config.authorizationEndpoint);
@@ -56,7 +59,7 @@ export async function beginSignIn(provider: Provider, config: ProviderConfig, or
   return url.toString();
 }
 
-export type Callback = { ok: true; attempt: Attempt; code: string } | { ok: false; reason: 'cancelled' | 'invalid' };
+export type Callback = { ok: true; attempt: Attempt; code: string } | { ok: false; reason: 'cancelled' | 'invalid'; returnTo?: string };
 
 /**
  * Разбирает возврат от провайдера. Попытка одноразовая: читается и сразу стирается, чтобы тот же адрес
@@ -71,7 +74,7 @@ export function finishSignIn(search: URLSearchParams, storage: AttemptStorage, n
     return { ok: false, reason: 'invalid' };
   }
   const error = search.get('error');
-  if (error) return { ok: false, reason: error === 'access_denied' ? 'cancelled' : 'invalid' };
+  if (error) return { ok: false, reason: error === 'access_denied' ? 'cancelled' : 'invalid', returnTo: attempt.returnTo };
   const code = search.get('code');
   if (!code) return { ok: false, reason: 'invalid' };
   return { ok: true, attempt, code };
@@ -85,6 +88,7 @@ const AttemptSchema = z.object({
   codeVerifier: z.string().min(43),
   redirectUri: z.string().min(1),
   startedAt: z.number(),
+  returnTo: z.unknown().optional().transform(safeReturnTo),
 });
 
 function parseAttempt(raw: string | null): Attempt | null {

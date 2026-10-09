@@ -45,8 +45,10 @@ const android = { ...devices['Pixel 7'], tgPlatform: 'android' as const, tgInset
 const desktop = { viewport: { width: 1280, height: 800 } };
 
 type E2EProject = Project<PlaywrightTestOptions & TgOptions, PlaywrightWorkerOptions>;
-const miniapp = (name: string, use: E2EProject['use']): E2EProject => ({ name, testMatch: MINIAPP, use });
-const site = (name: string, use: E2EProject['use']): E2EProject => ({ name, testMatch: SITE, use });
+// Холодные контексты WebKit заметно нагружают общий контейнер; Chromium сохраняет общий параллелизм шесть.
+const webkitWorkers = (use: E2EProject['use']) => !process.env.CI && use?.defaultBrowserType === 'webkit' ? { workers: 1 } : {};
+const miniapp = (name: string, use: E2EProject['use']): E2EProject => ({ name, testMatch: MINIAPP, use, ...webkitWorkers(use) });
+const site = (name: string, use: E2EProject['use']): E2EProject => ({ name, testMatch: SITE, use, ...webkitWorkers(use) });
 
 export default defineConfig<TgOptions>({
   testDir: 'e2e',
@@ -72,6 +74,8 @@ export default defineConfig<TgOptions>({
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     actionTimeout: process.env.CI ? 15_000 : 8_000,
+    // Цепочка OIDC и загрузка первого документа — навигация, а не обычное нажатие (Issue #28).
+    navigationTimeout: 30_000,
     connectOptions: { wsEndpoint: BROWSERS, exposeNetwork: '<loopback>' },
   },
   webServer: [

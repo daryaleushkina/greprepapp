@@ -87,15 +87,17 @@ struct ScreenSnapshotTests {
             devices: [.phone])
     }
 
-    @Test("«Сегодня» — нет сети, прошлый план", .enabled { await ScreenSnapshotTests.isPhone() })
+    @Test("«Сегодня» — сеть пропала без запроса, прошлый план")
     func todayOfflineStale() async throws {
-        let app = try signedInApp(cached: Fixture.todayDTO, today: .failure(.notConnectedToInternet))
+        let app = try signedInApp(cached: nil, today: .json(200, Fixture.todayJSON))
         let model = try #require(app.today)
         await model.refresh()
+        app.network.set(online: false)
+        await model.networkChanged(online: app.network.isOnline)
         #expect(model.staleReason == .offline)
+        #expect(server.requests("GET /api/today").count == 1)
         assertScreens(
-            TodayView(model: model, refreshesOnAppear: false).environment(app), named: "today-offline-stale",
-            devices: [.phone])
+            TodayView(model: model, refreshesOnAppear: false).environment(app), named: "today-offline-stale")
     }
 
     @Test("«Сегодня» — нет сети и плана нет", .enabled { await ScreenSnapshotTests.isPhone() })
@@ -223,12 +225,23 @@ struct ScreenSnapshotTests {
         assertScreens(ProgressTabView().environment(app), named: "progress", devices: [.phone])
     }
 
-    @Test("настройки", .enabled { await ScreenSnapshotTests.isPhone() })
+    @Test("настройки: дисклеймер ETS по-английски в русском интерфейсе")
     func settings() {
         let app = AppModel(
             config: server.config(), tokens: MemoryTokenStore("t"), cache: temporaryCache(), network: NetworkMonitor(),
             session: server.session)
-        assertScreens(NavigationStack { SettingsView() }.environment(app), named: "settings", devices: [.phone])
+        assertScreens(
+            NavigationStack { SettingsView() }.environment(app), named: "settings")
+    }
+
+    @Test("настройки: дисклеймер ETS в английском интерфейсе")
+    func settingsEnglish() {
+        let app = AppModel(
+            config: server.config(), tokens: MemoryTokenStore("t"), cache: temporaryCache(), network: NetworkMonitor(),
+            session: server.session)
+        assertScreens(
+            NavigationStack { SettingsView() }.environment(app).environment(\.locale, Locale(identifier: "en")),
+            named: "settings-en")
     }
 
     @Test("раздел, которого ещё нет", .enabled { await ScreenSnapshotTests.isPhone() })

@@ -74,9 +74,9 @@ describe('finishSignIn', () => {
 
   it('отмена у провайдера и другая ошибка', async () => {
     const a = await started();
-    expect(finishSignIn(new URLSearchParams({ error: 'access_denied', state: a.state }), a.storage, 2000)).toEqual({ ok: false, reason: 'cancelled' });
+    expect(finishSignIn(new URLSearchParams({ error: 'access_denied', state: a.state }), a.storage, 2000)).toEqual({ ok: false, reason: 'cancelled', returnTo: '/' });
     const b = await started();
-    expect(finishSignIn(new URLSearchParams({ error: 'server_error', state: b.state }), b.storage, 2000)).toEqual({ ok: false, reason: 'invalid' });
+    expect(finishSignIn(new URLSearchParams({ error: 'server_error', state: b.state }), b.storage, 2000)).toEqual({ ok: false, reason: 'invalid', returnTo: '/' });
   });
 
   it('без кода, устаревшая попытка, испорченная запись', async () => {
@@ -90,5 +90,15 @@ describe('finishSignIn', () => {
     broken.setItem('greprep.signIn', JSON.stringify({ provider: 'yandex', state: 's' }));
     expect(finishSignIn(new URLSearchParams({ code: 'c', state: 's' }), broken)).toEqual({ ok: false, reason: 'invalid' });
     expect(finishSignIn(new URLSearchParams({ code: 'c', state: 's' }), memoryStorage())).toEqual({ ok: false, reason: 'invalid' });
+  });
+
+  it.each(['/settings?from=plan#details', '//evil.example', '/%255cevil.example'])('попытка сохраняет безопасный адрес %s и перепроверяет его при возврате', async (path) => {
+    const storage = memoryStorage();
+    const url = new URL(await beginSignIn('google', config, 'https://site.example', storage, 1000, path));
+    const raw: unknown = JSON.parse(storage.getItem('greprep.signIn') ?? '{}');
+    expect(raw).toMatchObject({ returnTo: path.startsWith('/settings') ? path : '/' });
+    storage.setItem('greprep.signIn', JSON.stringify({ ...(typeof raw === 'object' && raw), returnTo: path }));
+    const result = finishSignIn(new URLSearchParams({ code: 'c', state: url.searchParams.get('state') ?? '' }), storage, 2000);
+    expect(result.ok && result.attempt.returnTo).toBe(path.startsWith('/settings') ? path : '/');
   });
 });

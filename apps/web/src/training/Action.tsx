@@ -1,4 +1,4 @@
-import { mainButton, secondaryButton } from '@tma.js/sdk-react';
+import { telegramRuntime } from '../telegram/runtime';
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useShell } from '../shellContext';
 import styles from './Training.module.css';
@@ -16,30 +16,31 @@ function hex(value: string): `#${string}` | undefined {
 /** Одна обвязка параметров, темы и подписки для обеих нативных кнопок. */
 function TrainingButton({ kind, text, disabled, busy = false, onClick }: ActionProps & { kind: 'main' | 'secondary' }) {
   const { shell } = useShell();
-  const button = kind === 'main' ? mainButton : secondaryButton;
-  const native = shell === 'telegram' && button.setParams.isAvailable();
+  const sdk = shell === 'telegram' ? telegramRuntime() : null;
+  const button = kind === 'main' ? sdk?.mainButton : sdk?.secondaryButton;
+  const native = Boolean(button?.setParams.isAvailable());
   const position = useContext(SecondaryPosition);
   const handler = useRef(onClick);
   useLayoutEffect(() => { handler.current = () => { if (!disabled && !busy) onClick(); }; });
   useEffect(() => {
-    if (!native) return;
+    if (!native || !sdk) return;
     const apply = () => {
       const css = getComputedStyle(document.documentElement);
       const bgColor = hex(css.getPropertyValue(kind === 'main' ? '--color-accent' : '--color-surface').trim());
       const textColor = hex(css.getPropertyValue(kind === 'main' ? '--color-on-accent' : '--color-text').trim());
       const params = { text, isVisible: true, isEnabled: !disabled && !busy, isLoaderVisible: busy,
         ...(bgColor && { bgColor }), ...(textColor && { textColor }) };
-      if (kind === 'main') mainButton.setParams.ifAvailable(params);
-      else secondaryButton.setParams.ifAvailable({ ...params, position });
+      if (kind === 'main') sdk.mainButton.setParams.ifAvailable(params);
+      else sdk.secondaryButton.setParams.ifAvailable({ ...params, position });
     };
     apply();
     // Тема приходит мостом Telegram и меняет токены без рендера React.
     const observer = new MutationObserver(apply);
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
     return () => observer.disconnect();
-  }, [native, kind, text, disabled, busy, position]);
+  }, [native, sdk, kind, text, disabled, busy, position]);
   useEffect(() => {
-    if (!native) return;
+    if (!native || !button) return;
     const sub = button.onClick.ifAvailable(() => handler.current());
     return () => { if (sub.ok) sub.data(); button.setParams.ifAvailable({ isVisible: false }); };
   }, [native, button]);
@@ -54,7 +55,8 @@ export function TrainingActions({ primary, secondary }: { primary: ActionProps; 
   const { shell } = useShell();
   const [position, setPosition] = useState<'left' | 'top'>('left');
   const labels = useRef<HTMLDivElement>(null);
-  const nativePair = shell === 'telegram' && Boolean(secondary) && mainButton.setParams.isAvailable() && secondaryButton.setParams.isAvailable();
+  const sdk = shell === 'telegram' ? telegramRuntime() : null;
+  const nativePair = Boolean(secondary && sdk?.mainButton.setParams.isAvailable() && sdk.secondaryButton.setParams.isAvailable());
   useLayoutEffect(() => {
     if (!nativePair) return;
     const measure = () => {

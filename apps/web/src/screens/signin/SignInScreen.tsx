@@ -21,7 +21,7 @@ export function SignInScreen(): ReactNode {
   const { t, locale } = useI18n();
   const { shell } = useShell();
   const { session, signedIn } = useSession();
-  const { reason } = useSearch({ from: '/signin' });
+  const { reason, returnTo = '/' } = useSearch({ from: '/signin' });
   const navigate = useNavigate();
   const [busy, setBusy] = useState<Provider | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -36,7 +36,8 @@ export function SignInScreen(): ReactNode {
     return () => window.removeEventListener('pageshow', restored);
   }, []);
 
-  if (shell === 'telegram' || session.status === 'signedIn') return <Navigate to="/" replace />;
+  if (shell === 'telegram') return <Navigate to="/" replace />;
+  if (session.status === 'signedIn') return <Navigate to="/" href={returnTo} replace />;
 
   const reasonText: Record<SignInReason, string> = {
     expired: t.signIn.expired,
@@ -56,7 +57,7 @@ export function SignInScreen(): ReactNode {
     setBusy(provider);
     setMessage(null);
     try {
-      leaveTo(await beginSignIn(provider, config, location.origin, sessionStorage));
+      leaveTo(await beginSignIn(provider, config, location.origin, sessionStorage, Date.now(), returnTo));
     } catch (e) {
       // Хранилище вкладки недоступно (запрет в настройках браузера) — без него вход не завершить.
       console.error(e);
@@ -70,7 +71,7 @@ export function SignInScreen(): ReactNode {
     try {
       const res = await signInForDevelopment({ name, transport: 'cookie', clientKind: 'web', locale });
       await signedIn(res.user);
-      await navigate({ to: '/', replace: true });
+      await navigate({ href: returnTo, replace: true });
     } catch (e) {
       setMessage(isApiError(e) && e.kind === 'network' ? t.signIn.offline : t.signIn.failed);
     }

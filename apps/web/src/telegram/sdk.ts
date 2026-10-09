@@ -2,6 +2,9 @@
 // (assets/bootstrap.tsx). Цвета — свои, «Шагов» (решение Даши 05.10.2026): из темы Telegram берётся только,
 // светлая она или тёмная, а шапке, фону и нижней панели клиента отдаётся наш фон, чтобы швов не было.
 import { backButton, init, initData, mainButton, secondaryButton, swipeBehavior, miniApp, retrieveLaunchParams, themeParams, viewport } from '@tma.js/sdk-react';
+import { setTelegramRuntime } from './runtime';
+
+setTelegramRuntime({ backButton, swipeBehavior, mainButton, secondaryButton, miniApp });
 
 export interface TelegramLaunch {
   /** Сырая initData — уходит на сервер, тот проверяет подпись ключом бота. */

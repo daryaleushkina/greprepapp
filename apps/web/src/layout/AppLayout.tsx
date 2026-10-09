@@ -4,8 +4,8 @@
 //   • TabsLayout — экраны-разделы: в мини-аппе и на узком сайте — стеклянная капсула вкладок снизу; на сайте
 //     600–899 px — строка разделов сверху, шире — боковая панель (решение Даши 06.10.2026, DESIGN.md «Navigation»).
 import { isApiError } from '@greprep/api-client';
-import { Link, Navigate, Outlet, useMatch, useMatchRoute, useRouter } from '@tanstack/react-router';
-import { createContext, use, useState, type ReactNode } from 'react';
+import { Link, Navigate, Outlet, useMatch, useMatchRoute, useRouter, useRouterState } from '@tanstack/react-router';
+import { createContext, use, useRef, useState, type ReactNode } from 'react';
 import { BrandMark } from '../components/BrandMark';
 import { BackIcon, ExamIcon, ProgressIcon, SettingsIcon, TodayIcon, WordsIcon } from '../components/icons';
 import { FullScreenStatus } from '../components/FullScreenStatus';
@@ -31,6 +31,10 @@ export function AppGate(): ReactNode {
   const { session } = useSession();
   const { t } = useI18n();
   const { shell } = useShell();
+  const href = useRouterState({ select: (state) => state.location.href });
+  const returnTo = useRef(href);
+  // Navigate меняет адрес раньше, чем уходит AppGate: не заменяем исходный экран адресом самого входа.
+  if (session.status !== 'signedOut') returnTo.current = href;
   // Сверяем id маршрута: сопоставление одного пути приняло бы /training/new за id тренировки.
   const questionId = useMatch({ from: '/app/training/$trainingId', shouldThrow: false, select: (match) => match.params.trainingId });
   const report = useMatch({ from: '/app/training/$trainingId/report/$position', shouldThrow: false, select: () => true });
@@ -39,7 +43,7 @@ export function AppGate(): ReactNode {
   useTrainingSwipes(shell === 'telegram' && session.status === 'signedIn' &&
     (Boolean(report) || Boolean(questionId && (training.isPending || training.data && !training.data.finish))));
   if (session.status === 'signedOut') {
-    return <Navigate to="/signin" search={session.expired ? { reason: 'expired' } : {}} replace />;
+    return <Navigate to="/signin" search={{ returnTo: returnTo.current, ...(session.expired && { reason: 'expired' }) }} replace />;
   }
   if (session.status === 'error') {
     const offline = isApiError(session.error) && session.error.kind === 'network';
@@ -164,6 +168,7 @@ export function BackLink({ fallback, narrowOnly = false }: { fallback: '/' | '/p
       to={fallback}
       className={narrowOnly ? `${styles.back} ${styles.narrowOnly}` : styles.back}
       onClick={(e) => {
+        if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
         // Пришли изнутри приложения — назад по истории (сохраняется прокрутка); открыли по ссылке — в раздел.
         if (router.history.canGoBack()) {
           e.preventDefault();

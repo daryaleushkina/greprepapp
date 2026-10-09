@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { apiError, fakeServer, json, renderApp, STARTER, user } from '../../test/app';
 
 /** Попытка, которую оставил бы beginSignIn перед уходом к провайдеру. */
-function storeAttempt(state = 'state-1') {
+function storeAttempt(state = 'state-1', returnTo = '/') {
   sessionStorage.setItem(
     'greprep.signIn',
     JSON.stringify({
@@ -12,6 +12,7 @@ function storeAttempt(state = 'state-1') {
       codeVerifier: 'v'.repeat(43),
       redirectUri: `${location.origin}/auth/callback`,
       startedAt: Date.now(),
+      returnTo,
     }),
   );
 }
@@ -57,6 +58,22 @@ describe('возврат от провайдера', () => {
     fakeServer(signedOut);
     const { screen } = await renderApp({ path: '/auth/callback?error=access_denied&state=state-1' });
     await expect.element(screen.getByRole('alert')).toHaveTextContent('Вход отменён — можно попробовать снова.');
+  });
+
+  it('успешный вход возвращает адрес попытки вместе с параметрами и якорем', async () => {
+    storeAttempt('state-1', '/step/words?from=plan#details');
+    fakeServer({ ...signedOut, 'POST /api/auth/oidc/code': () => json({ expiresAt: '2026-11-05T10:00:00Z', user: user() }), 'GET /api/today': () => json(STARTER) });
+    const { screen, router } = await renderApp({ path: '/auth/callback?code=c&state=state-1' });
+    await expect.element(screen.getByText('Шаг words')).toBeVisible();
+    expect(router.state.location.href).toBe('/step/words?from=plan#details');
+  });
+
+  it('после отмены адрес остаётся на входе для следующей попытки', async () => {
+    storeAttempt('state-1', '/settings');
+    fakeServer(signedOut);
+    const { screen, router } = await renderApp({ path: '/auth/callback?error=access_denied&state=state-1' });
+    await expect.element(screen.getByRole('alert')).toBeVisible();
+    expect(router.state.location.search).toEqual({ reason: 'cancelled', returnTo: '/settings' });
   });
 
   it.each([

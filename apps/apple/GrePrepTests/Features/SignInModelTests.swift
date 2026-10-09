@@ -10,7 +10,8 @@ struct SignInModelTests {
     let server = StubServer()
 
     func setUp(
-        webProviders: [WebProvider: WebProviderConfig] = [:], appleSignInEnabled: Bool = false
+        webProviders: [WebProvider: WebProviderConfig] = [:], appleSignInEnabled: Bool = false,
+        locale: Locale = Locale(identifier: "ru")
     ) -> (SignInModel, AppModel, MemoryTokenStore) {
         let tokens = MemoryTokenStore()
         let app = AppModel(
@@ -18,7 +19,7 @@ struct SignInModelTests {
             cache: temporaryCache(),
             network: NetworkMonitor(), session: server.session
         )
-        return (SignInModel(app: app, discoverySession: server.session), app, tokens)
+        return (SignInModel(app: app, discoverySession: server.session, locale: locale), app, tokens)
     }
 
     @Test("вход подменой: токен в Keychain, человек на «Сегодня»")
@@ -30,6 +31,7 @@ struct SignInModelTests {
         #expect(try tokens.token() == "t-1")
         #expect(model.busy == nil)
         #expect(try server.requests("POST /api/auth/dev").first?.json()["name"] as? String == "ui-test")
+        #expect(try server.requests("POST /api/auth/dev").first?.json()["locale"] as? String == "ru")
     }
 
     @Test("пустое имя — запроса нет")
@@ -37,6 +39,15 @@ struct SignInModelTests {
         let (model, _, _) = setUp()
         await model.signInForDevelopment(name: "   ")
         #expect(server.requests.isEmpty)
+    }
+
+    @Test("вход подменой передаёт язык интерфейса", arguments: ["ru_RU", "en_US", "de_DE"])
+    func developmentLocale(language: String) async throws {
+        server.on("POST /api/auth/dev", .json(200, Fixture.session()))
+        let (model, _, _) = setUp(locale: Locale(identifier: language))
+        await model.signInForDevelopment(name: "locale-test")
+        let body = try #require(server.requests("POST /api/auth/dev").first).json()
+        #expect(body["locale"] as? String == (language == "ru_RU" ? "ru" : "en"))
     }
 
     @Test(
@@ -95,7 +106,7 @@ struct SignInModelTests {
             "GET /oidc/.well-known/openid-configuration",
             .json(200, #"{"authorization_endpoint":"https://oauth.example/auth"}"#))
         server.on("POST /api/auth/oidc/code", .json(200, Fixture.session(token: "t-tg")))
-        let (model, app, tokens) = setUp(webProviders: [.telegram: telegramConfig()])
+        let (model, app, tokens) = setUp(webProviders: [.telegram: telegramConfig()], locale: Locale(identifier: "en"))
         var opened: URL?
         await model.signInWithWeb(.telegram) { url, redirect in
             opened = url
@@ -112,6 +123,7 @@ struct SignInModelTests {
         let body = try #require(server.requests("POST /api/auth/oidc/code").first).json()
         #expect(body["code"] as? String == "the-code")
         #expect(body["provider"] as? String == "telegram")
+        #expect(body["locale"] as? String == "en")
         // Пары, которые сверят провайдер и сервер: verifier ↔ challenge, nonce окна ↔ nonce на сервер, один адрес
         // возврата у окна, на сервере и в настройках.
         let verifier = try #require(body["codeVerifier"] as? String)
@@ -197,13 +209,14 @@ struct SignInModelTests {
     @Test("Apple: id_token и тот же nonce — на сервер, пустое имя не уходит")
     func appleSuccess() async throws {
         server.on("POST /api/auth/oidc", .json(200, Fixture.session(token: "t-apple")))
-        let (model, app, tokens) = setUp(appleSignInEnabled: true)
+        let (model, app, tokens) = setUp(appleSignInEnabled: true, locale: Locale(identifier: "en"))
         await model.signInWithApple(
             identityToken: Data("jwt".utf8), fullName: PersonNameComponents(), nonce: "nonce-1234567890abcdef")
         let body = try #require(server.requests("POST /api/auth/oidc").first).json()
         #expect(body["idToken"] as? String == "jwt")
         #expect(body["nonce"] as? String == "nonce-1234567890abcdef")
         #expect(body["displayName"] == nil)
+        #expect(body["locale"] as? String == "en")
         #expect(app.phase == .signedIn)
         #expect(try tokens.token() == "t-apple")
     }
