@@ -109,7 +109,11 @@ jobs:
           java-version: '21'
       - uses: gradle/actions/setup-gradle@v6
       - name: Android SDK из образа раннера
-        run: sdkmanager 'platforms;android-37' 'build-tools;37.0.0'
+        run: |
+          sdkmanager="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          # Ответы подаются отдельно от pipeline: ожидаемый SIGPIPE у yes не скрывает ошибку sdkmanager.
+          "$sdkmanager" --sdk_root="$ANDROID_HOME" --licenses < <(yes)
+          "$sdkmanager" --sdk_root="$ANDROID_HOME" 'platforms;android-37.0' 'build-tools;37.0.0' < <(yes)
       - name: Гейт Android (Robolectric, без эмулятора)
         run: sh scripts/hooks/gate-android
       - name: Отчёты Android при ошибке
@@ -135,6 +139,7 @@ jobs:
       GATE_APPLE_POSTGRES_URL: postgres://greprep@127.0.0.1:55438/postgres?sslmode=disable
       GATE_APPLE_UI_DB: greprep_ci_apple_ui
       GATE_APPLE_UI_PORT: '8097'
+      GATE_APPLE_ARTIFACTS_DIR: ${{ github.workspace }}/test-results/apple
     steps:
       - uses: actions/checkout@v7
         with:
@@ -201,8 +206,20 @@ jobs:
           "$pg_bin/initdb" -D "$RUNNER_TEMP/greprep-postgres" -U greprep --auth=trust --no-locale --encoding=UTF8
           "$pg_bin/pg_ctl" -D "$RUNNER_TEMP/greprep-postgres" -l "$RUNNER_TEMP/greprep-postgres.log" \
             -o '-h 127.0.0.1 -p 55438' -w start
+      - name: Диагностика окружения и симуляторов GrePrep
+        run: |
+          (cd apps/apple && sh scripts/simulator.sh iphone && sh scripts/simulator.sh ipad)
+          python3 scripts/ci/apple-diagnostics.py "$GATE_APPLE_ARTIFACTS_DIR/environment"
       - name: Гейт Apple (iPhone, iPad и Mac)
         run: sh scripts/hooks/gate-apple
+      - name: Результаты и непрошедшие снимки Apple
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: apple-test-results
+          path: test-results/apple/
+          retention-days: 7
+          if-no-files-found: warn
       - name: Остановить свой Postgres
         if: always()
         run: |

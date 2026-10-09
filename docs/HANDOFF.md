@@ -60,6 +60,9 @@ Apple (iPhone, iPad, Mac), приложение Android и веб (мини-ап
   пропустить только мобильные части. Свежесть токенов и контраст уже проверяет этот гейт. Postgres 18 и
   браузеры e2e поднимаются из `compose.yaml`; образ Playwright тот же, что у эталонов снимков на Маке.
 - **Android:** `ubuntu-latest`, JDK 21 и Android SDK, `scripts/hooks/gate-android`; Robolectric без эмулятора.
+  `sdkmanager` вызывается по `$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager`: в PATH раннера его нет.
+  Сначала `--licenses`, затем `platforms;android-37.0` (API 37) и `build-tools;37.0.0`; ответы `yes` подаются
+  через process substitution, чтобы SIGPIPE у `yes` не скрывал ошибку установки при `pipefail`.
 - **Apple:** `xcode-27` (arm64), Xcode 27, `scripts/hooks/gate-apple`; iPhone, iPad и Mac. Среда iOS 27.0 и типы
   устройств проверяются до запуска. Postgres 18 — отдельный кластер Homebrew на `55438`, без Docker.
   `GATE_APPLE_POSTGRES_URL` — админский URL; `GATE_APPLE_UI_DB` и `GATE_APPLE_UI_PORT` задают отдельный
@@ -73,16 +76,26 @@ Apple и Android включаются существующими `apple-touched`
 Gradle и SwiftPM. Своими процессами и симуляторами управляют гейты; CI дополнительно останавливает свой
 Postgres и Docker-стенд.
 
-Результаты — GitHub → Actions → CI и Checks в PR. При ошибке веба или Android отчёты и снимки лежат в
-Artifacts (7 дней). Если CI красный, а Мак зелёный, сверить версии инструментов и сред, открыть лог упавшего
+Результаты — GitHub → Actions → CI и Checks в PR. При ошибке отчёты и снимки лежат в Artifacts (7 дней).
+У Apple — `apple-test-results`, у недельного прогона — `apple-ios18-test-results`: полные логи гейта,
+`iphone.xcresult` (также `ipad.xcresult` и `mac.xcresult`, если до них дошло), `snapshots/` с непрошедшими
+снимками и `environment/` с диагностикой. `GATE_APPLE_ARTIFACTS_DIR` сохраняет каталог после cleanup;
+без переменной временные файлы, как прежде, удаляются. `SNAPSHOT_ARTIFACTS` передаётся приложению тестов
+через `TEST_RUNNER_SNAPSHOT_ARTIFACTS`, чтобы PNG не остались в контейнере симулятора.
+
+Перед тестами оба Apple-workflow создают выключенные GrePrep-устройства и вызывают
+`scripts/ci/apple-diagnostics.py`: Xcode с номером сборки, `simctl runtime list`, типы iPhone, а для каждого
+GrePrep — UUID, тип, среда, версия и **сборка** iOS (`environment/greprep-devices.json`); исходный JSON тоже
+сохранён. Для сверки с локальными эталонами: iOS 27.0 **24A434**, Xcode 27.0 **27A266a**.
+Если CI красный, а Мак зелёный, сверить версии инструментов и сред, открыть лог упавшего
 шага и отчёт тестов. Сверку снимков, пороги и проверки не ослаблять; расхождение передать Даше с причинами
 и вариантами. Эталоны сами не переснимаются. Выкладки на сервер в этом workflow нет.
 
 Образ Apple — отдельный [`xcode-27`](https://github.com/actions/runner-images/blob/main/images/macos/xcode-27-arm64-Readme.md):
 macOS 27, Xcode 27.0 и iOS 27.0. Если нужная версия или тип устройства исчезнет из образа, задача завершится
 явной ошибкой окружения; другую основную версию не подставляет. Метка добавлена в `.github/actionlint.yaml`,
-поскольку actionlint 1.7.12 пока её не знает. Первый настоящий запуск CI — после пуша; локальная проверка
-YAML не доказывает работу облачного раннера.
+поскольку actionlint 1.7.12 пока её не знает. Локальная проверка YAML не доказывает работу облачного раннера;
+расхождения снимков разбираются по диагностике и артефактам, без изменения допусков.
 
 **iOS 18 (#15):** отдельный workflow `Apple iOS 18` (`apple-ios18.yml`), по понедельникам в 03:23 UTC и через
 Actions → Apple iOS 18 → Run workflow. Расписание проверяет `main`, ручной запуск — выбранную ветку.

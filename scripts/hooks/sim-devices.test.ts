@@ -435,6 +435,19 @@ echo Booted >"$GP_TEST_STATE/sim-${TARGET}"`);
     expect(f.state()).toBe('Shutdown');
   });
 
+  it.each([0, 7])('артефакты CI переживают cleanup при коде %s; своё устройство гасится', (status) => {
+    const f = fixture();
+    f.write('state/work/iphone.xcresult/Info.plist', 'результат');
+    f.write('state/work/snapshots/failed.png', 'снимок');
+    const r = f.run(`${boot}\nexit ${status}`, true, {
+      GATE_APPLE_ARTIFACTS_DIR: path.join(f.dir, 'state/work'),
+    });
+    expect(r.status, r.stderr).toBe(status);
+    expect(f.state()).toBe('Shutdown');
+    expect(fs.existsSync(path.join(f.dir, 'state/work/iphone.xcresult/Info.plist'))).toBe(true);
+    expect(fs.existsSync(path.join(f.dir, 'state/work/snapshots/failed.png'))).toBe(true);
+  });
+
   it('cleanup после неудачного release повторяет shutdown и остаётся красным, если своё не погасло', () => {
     const f = fixture();
     f.fault('shutdown');

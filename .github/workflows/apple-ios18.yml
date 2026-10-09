@@ -32,6 +32,7 @@ jobs:
       GATE_APPLE_POSTGRES_URL: postgres://greprep@127.0.0.1:55438/postgres?sslmode=disable
       GATE_APPLE_UI_DB: greprep_ci_ios18_ui
       GATE_APPLE_UI_PORT: '8097'
+      GATE_APPLE_ARTIFACTS_DIR: ${{ github.workspace }}/test-results/apple-ios18
     steps:
       - uses: actions/checkout@v7
         with:
@@ -131,8 +132,20 @@ jobs:
           iphone="$(xcrun simctl create 'GrePrep iPhone iOS 18 CI' \
             com.apple.CoreSimulator.SimDeviceType.iPhone-16-Pro "$IOS18_RUNTIME")"
           echo "GATE_APPLE_IPHONE_UDID=$iphone" >> "$GITHUB_ENV"
+      - name: Диагностика окружения и симуляторов GrePrep
+        run: |
+          (cd apps/apple && sh scripts/simulator.sh ipad)
+          python3 scripts/ci/apple-diagnostics.py "$GATE_APPLE_ARTIFACTS_DIR/environment"
       - name: Общий гейт Apple на выбранном iPhone
         run: sh scripts/hooks/gate-apple
+      - name: Результаты и непрошедшие снимки iOS 18
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: apple-ios18-test-results
+          path: test-results/apple-ios18/
+          retention-days: 7
+          if-no-files-found: warn
       - name: Остановить свой Postgres
         if: always()
         run: |

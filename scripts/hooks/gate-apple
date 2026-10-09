@@ -14,6 +14,7 @@
 # GATE_APPLE_UI_PORT и GATE_APPLE_UI_DB отделяют стенд от соседних прогонов. Без переменных — прежний Docker.
 # --ui-server-only проверяет только пересоздание базы, миграции, сид и запуск сервера, без Xcode и симуляторов.
 # GATE_APPLE_IPHONE_UDID выбирает созданный CI iPhone с iOS 18; без неё — прежний GrePrep iPhone на iOS 27.
+# GATE_APPLE_ARTIFACTS_DIR сохраняет логи, xcresult и непрошедшие снимки после cleanup для артефакта CI.
 #
 # Порог покрытия — здесь, а правка этой папки — только с согласия Даши (.claude/hooks/protect-gates.mjs):
 # AGENTS.md, «Порог не опускать; подняли покрытие — поднять и порог».
@@ -50,7 +51,18 @@ root="$(git rev-parse --show-toplevel)"
 app="$root/apps/apple"
 cd "$app"
 
-work="$(mktemp -d)"
+if [ -n "${GATE_APPLE_ARTIFACTS_DIR:-}" ]; then
+  case "$GATE_APPLE_ARTIFACTS_DIR" in
+    /*) work="$GATE_APPLE_ARTIFACTS_DIR" ;;
+    *) work="$root/$GATE_APPLE_ARTIFACTS_DIR" ;;
+  esac
+  mkdir -p "$work/snapshots"
+  # Xcode передаёт TEST_RUNNER_* приложению тестов без префикса; прямой вариант нужен и тестам Mac.
+  export SNAPSHOT_ARTIFACTS="$work/snapshots"
+  export TEST_RUNNER_SNAPSHOT_ARTIFACTS="$SNAPSHOT_ARTIFACTS"
+else
+  work="$(mktemp -d)"
+fi
 server_pid=""
 cleanup() {
   cleanup_status=$?
@@ -61,7 +73,11 @@ cleanup() {
   fi
   # Ошибка основного шага сохраняется, а неудачное выключение своего делает красным и успешный прогон.
   if ! sim_cleanup; then cleanup_status=1; fi
-  rm -rf "$work"
+  if [ -z "${GATE_APPLE_ARTIFACTS_DIR:-}" ]; then
+    rm -rf "$work"
+  else
+    echo "gate: Apple — логи, xcresult и снимки сохранены в $work" >&2
+  fi
   exit "$cleanup_status"
 }
 trap cleanup EXIT
@@ -229,8 +245,9 @@ echo "gate: покрытие приложения Apple ${total}%" >&2
 
 echo "gate: Apple — iPad: снимки" >&2
 sim_boot "$ipad"
-run_tests ipad -scheme GrePrep -destination "id=$ipad" -only-testing:GrePrepTests/ScreenSnapshotTests test-without-building
+run_tests ipad -scheme GrePrep -destination "id=$ipad" -only-testing:GrePrepTests/ScreenSnapshotTests \
+  -resultBundlePath "$work/ipad.xcresult" test-without-building
 sim_release "$ipad"
 
 echo "gate: Apple — Mac: юнит-тесты и снимки" >&2
-run_tests mac -scheme GrePrepMac -destination 'platform=macOS' test
+run_tests mac -scheme GrePrepMac -destination 'platform=macOS' -resultBundlePath "$work/mac.xcresult" test
