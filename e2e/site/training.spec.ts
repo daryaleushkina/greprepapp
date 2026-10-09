@@ -40,5 +40,5 @@ test('черновик жалобы после перезагрузки, лим�
 import { reportBackStorageFailure } from '../training';
 test('«Назад» уходит при сбое стирания черновика без текста в отчёте', async ({ site: page }) => { await reportBackStorageFailure(page); });
 
-import { reportDraftBatchesAndQuota } from '../training';
-test('200 знаков: несколько записей; переполнение черновика, ввод и повтор', async ({ site: page }) => { await reportDraftBatchesAndQuota(page); });
+import { reportDraftWritesAndQuota } from '../training';
+test('200 синхронных записей; переполнение localStorage, форма работает и один отчёт', async ({ site: page }) => { await reportDraftWritesAndQuota(page); });

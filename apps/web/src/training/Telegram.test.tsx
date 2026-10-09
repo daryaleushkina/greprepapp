@@ -17,6 +17,19 @@ const signedIn = { 'POST /api/auth/telegram-mini-app': () => json({ token: 'fixt
 const launch = { initDataRaw: 'fixture', languageCode: 'ru' };
 const back = () => sdk.backButton.onClick.ifAvailable.mock.calls.at(-1)?.[0]();
 
+test('переход вопрос → жалоба → вопрос не включает свайп ни на мгновение', async () => {
+  sdk.swipeBehavior.isVerticalEnabled.mockReturnValue(true); vi.clearAllMocks();
+  fakeServer({ ...signedIn, 'GET /api/trainings/options': () => json(trainingOptions()), 'POST /api/trainings': () => json(trainingSession()) });
+  const { screen } = await renderApp({ path: '/training/new', shell: 'telegram', launch });
+  await screen.getByRole('button', { name: /Начать ·/ }).click();
+  await expect.element(screen.getByRole('heading', { name: 'Text Completion' })).toBeVisible();
+  await screen.getByRole('link', { name: 'Сообщить об ошибке' }).click();
+  await expect.element(screen.getByRole('textbox', { name: 'Что не так' })).toBeVisible();
+  expect(sdk.swipeBehavior.enableVertical.ifAvailable).not.toHaveBeenCalled();
+  back(); await expect.element(screen.getByRole('heading', { name: 'Text Completion' })).toBeVisible();
+  expect(sdk.swipeBehavior.enableVertical.ifAvailable).not.toHaveBeenCalled();
+});
+
 test('Telegram «назад» закрывает темы, затем конструктор, затем сессию', async () => {
   fakeServer({ ...signedIn, 'GET /api/trainings/options': () => json(trainingOptions()), 'POST /api/trainings': () => json(trainingSession()) });
   const { screen } = await renderApp({ path: '/training/new', shell: 'telegram', launch });
@@ -130,20 +143,16 @@ for (const originallyEnabled of [true, false]) test(`черновик Telegram �
   const { screen } = await renderApp({ path: '/training/new', shell: 'telegram', launch });
   await screen.getByRole('button', { name: /Начать ·/ }).click();
   await screen.getByRole('link', { name: 'Сообщить об ошибке' }).click();
-  let release = () => {}; const held = new Promise<void>((resolve) => { release = resolve; });
-  const original = trainingRepository.store.putReportDraft.bind(trainingRepository.store);
-  vi.spyOn(trainingRepository.store, 'putReportDraft').mockImplementationOnce(async (...args) => { await held; return original(...args); });
   sdk.closingBehavior.disableConfirmation.ifAvailable.mockClear(); sdk.closingBehavior.enableConfirmation.ifAvailable.mockClear();
-  try {
-    await screen.getByRole('button', { name: 'Другое', exact: true }).click();
-    expect(sdk.closingBehavior.enableConfirmation.ifAvailable).not.toHaveBeenCalled();
-    release(); await expect.element(screen.getByText('Черновик сохранён', { exact: true })).toBeInTheDocument();
-    expect(sdk.closingBehavior.disableConfirmation.ifAvailable).not.toHaveBeenCalled();
-  } finally { release(); sdk.closingBehavior.enableConfirmation.isAvailable.mockReturnValue(false); }
+  await screen.getByRole('button', { name: 'Другое', exact: true }).click();
+  expect(sdk.closingBehavior.enableConfirmation.ifAvailable).not.toHaveBeenCalled();
+  await expect.element(screen.getByText('Черновик сохранён', { exact: true })).toBeInTheDocument();
+  expect(sdk.closingBehavior.disableConfirmation.ifAvailable).not.toHaveBeenCalled();
+  sdk.closingBehavior.enableConfirmation.isAvailable.mockReturnValue(false);
 });
 
 
-test('после сохранения жалобы на подтверждении уже нет формы и свайпы восстановлены', async () => {
+test('на маршруте жалобы свайпы выключены и после сохранения, возврат на незаконченный вопрос их не включает', async () => {
   sdk.swipeBehavior.isVerticalEnabled.mockReturnValue(true); vi.clearAllMocks();
   fakeServer({ ...signedIn, 'GET /api/trainings/options': () => json(trainingOptions()), 'POST /api/trainings': () => json(trainingSession()) });
   const { trainingRepository } = await import('./repository'); vi.spyOn(trainingRepository, 'requestSync').mockImplementation(() => {});
@@ -153,5 +162,7 @@ test('после сохранения жалобы на подтверждени
   await screen.getByRole('button', { name: 'Другое', exact: true }).click();
   await screen.getByRole('button', { name: 'Отправить', exact: true }).click();
   await expect.element(screen.getByRole('heading', { name: 'Спасибо!' })).toBeVisible();
-  expect(sdk.swipeBehavior.enableVertical.ifAvailable).toHaveBeenCalledTimes(2);
+  expect(sdk.swipeBehavior.enableVertical.ifAvailable).not.toHaveBeenCalled();
+  back(); await expect.element(screen.getByRole('heading', { name: 'Text Completion' })).toBeVisible();
+  expect(sdk.swipeBehavior.enableVertical.ifAvailable).not.toHaveBeenCalled();
 });

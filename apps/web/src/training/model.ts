@@ -6,7 +6,7 @@ export const REPORT_TEXT_MAX = 2000;
 export const questionReportSchema = schemas.QuestionReport.omit({ text: true }).extend({
   text: z.string().refine((text) => Array.from(text).length <= REPORT_TEXT_MAX).optional(),
 });
-export const reportDraftSchema = questionReportSchema.pick({ kind: true, text: true }).partial();
+export const reportDraftSchema = questionReportSchema.pick({ kind: true, text: true }).partial().strict();
 export type ReportDraft = z.infer<typeof reportDraftSchema>;
 export const pendingReportSchema = z.object({ id: z.uuid(), questionId: z.uuid(), report: questionReportSchema, order: z.number().int().nonnegative().default(0) });
 export type PendingReport = z.infer<typeof pendingReportSchema>;

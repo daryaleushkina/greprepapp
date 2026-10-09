@@ -96,6 +96,14 @@ test('чтение тренировок и владельца не захват�
   expect(transaction.mock.calls.every((call) => call[1] === 'readonly')).toBe(true);
 });
 
+test('уборка без удалений не открывает транзакцию записи', async () => {
+  const { store } = makeStore(); const owner = await store.signIn('a');
+  await store.put(owner, savedTraining());
+  const transaction = vi.spyOn(IDBDatabase.prototype, 'transaction');
+  await store.prune(owner);
+  expect(transaction.mock.calls.every((call) => call[1] === 'readonly')).toBe(true);
+});
+
 test('ошибка открытия базы не запоминается навсегда; после восстановления устройство доступно', async () => {
   const { store, name } = makeStore();
   const newer = await openDB(name, 4); newer.close();
@@ -121,6 +129,9 @@ test('обновление IndexedDB 1 → 2 сохраняет владельц
   await db.put('meta', { userId: 'a', revision: 1 }, 'owner'); await db.put('trainings', t, `a/${t.session.id}`); db.close();
   const { store } = makeStore(name); const owner = await store.signIn('a');
   expect(await store.get(owner, t.session.id)).toEqual(t); expect(await store.reports(owner)).toEqual([]);
+  const inspected = await openDB(name);
+  try { expect(inspected.version).toBe(2); expect([...inspected.objectStoreNames]).toEqual(['meta', 'quarantine', 'reports', 'trainings']); }
+  finally { inspected.close(); }
 });
 
 test('жалобы: нечитаемое из очереди в карантин без содержания, чужой владелец не читает и не пишет', async () => {
@@ -156,86 +167,42 @@ test('versionchange закрывает соединение старой сбо�
   finally { await store.close(); (await updating).close(); }
 });
 
-test('брошенный черновик не удерживает отправленную тренировку от уборки', async () => {
-  const { store } = makeStore(); const owner = await store.signIn('a'); const t = savedTraining();
+test('черновики не удерживают тренировку от уборки, сироты удаляются и без удалений из базы', async () => {
+  const { store, name } = makeStore(); const owner = await store.signIn('a'); const t = savedTraining();
   const draft = { kind: 'other' as const, text: 'Synthetic draft' };
   await store.put(owner, { ...t, finish: { finishedAt: '2026-10-06T10:00:00Z', timedOut: false }, finishSent: true });
-  await store.putReportDraft(owner, t.session.id, 0, draft);
+  store.reportDrafts.put(owner.userId, t.session.id, 0, draft);
   for (let i = 1; i <= 4; i++) await store.put(owner, { ...savedTraining(`00000000-0000-4000-8000-00000000020${i}`, t.startedAtMillis + i), finish: { finishedAt: '2026-10-06T10:00:00Z', timedOut: false }, finishSent: true });
   await store.prune(owner); expect(await store.get(owner, t.session.id)).toBeUndefined();
-  expect(await store.getReportDraft(owner, t.session.id, 0)).toBeUndefined();
+  expect(store.reportDrafts.get(owner.userId, t.session.id, 0)).toBeUndefined();
+  const current = savedTraining(); await store.put(owner, current);
+  store.reportDrafts.put(owner.userId, current.session.id, 1, draft);
+  const db = await openDB(name); await db.delete('trainings', `a/${current.session.id}`); db.close();
+  await store.prune(owner);
+  expect(store.reportDrafts.get(owner.userId, current.session.id, 1)).toBeUndefined();
 });
 
-test('очередь жалобы и удаление её черновика атомарны', async () => {
-  const { store } = makeStore(); const owner = await store.signIn('a'); const t = savedTraining(); await store.put(owner, t);
-  const draft = { kind: 'other' as const, text: 'Synthetic draft' };
-  await store.putReportDraft(owner, t.session.id, 0, draft); await store.putReportDraft(owner, t.session.id, 1, draft);
-  await store.putReport(owner, { id: crypto.randomUUID(), questionId: t.session.items[0]!.question.id, report: { kind: 'other', trainingId: t.session.id }, order: 0 }, 0);
-  expect(await store.getReportDraft(owner, t.session.id, 0)).toBeUndefined();
-  expect(await store.getReportDraft(owner, t.session.id, 1)).toEqual(draft);
-  expect(await store.reports(owner)).toHaveLength(1);
-  await store.signOut(owner); expect(await store.getReportDraft(owner, t.session.id, 1)).toBeUndefined();
-});
-
-
-test('миграция с данными версии 2 отделяет черновики, сохраняет тренировку и очередь', async () => {
-  const name = `training-migration-${crypto.randomUUID()}`;
-  const db = await openDB(name, 2, { upgrade(db) { for (const key of ['trainings', 'reports', 'quarantine', 'meta']) db.createObjectStore(key); } });
-  const t = savedTraining(); const draft = { kind: 'other', text: 'Synthetic migration' };
-  const pending = { id: crypto.randomUUID(), questionId: t.session.items[0]!.question.id, report: { kind: 'other' }, order: 7 };
-  await db.put('meta', { userId: 'a', revision: 1 }, 'owner');
-  await db.put('meta', 7, 'reportOrder');
-  await db.put('trainings', { ...t, reportDrafts: { 0: draft, 1: { text: '' } } }, `a/${t.session.id}`);
-  await db.put('reports', pending, `a/${pending.id}`); db.close();
-  const { store } = makeStore(name); const owner = await store.signIn('a');
-  const inspected = await openDB(name);
-  try {
-    expect(inspected.version).toBe(3);
-    expect(inspected.objectStoreNames.contains('reportDrafts')).toBe(true);
-    expect(await inspected.getAll('reportDrafts')).toEqual([draft]);
-    expect(await store.get(owner, t.session.id)).toEqual(t);
-    expect(await store.reports(owner)).toEqual([pending]);
-  } finally { inspected.close(); }
-});
-
-
-test('черновики чужого владельца недоступны, нечитаемый черновик удаляется без текста в отчёте', async () => {
-  const { store, name, report } = makeStore(); const owner = await store.signIn('a'); const t = savedTraining(); await store.put(owner, t);
-  await store.putReportDraft(owner, t.session.id, 0, { text: 'Synthetic' });
-  const db = await openDB(name); await db.put('reportDrafts', { kind: 'invalid', text: 'Synthetic private text' }, [`a/${t.session.id}`, 1]); db.close();
-  expect(await store.getReportDraft(owner, t.session.id, 1)).toBeUndefined();
-  expect(report).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ message: 'training report draft unreadable' }));
-  const other = await store.signIn('b');
-  expect(await store.getReportDraft(owner, t.session.id, 0)).toBeUndefined();
-  expect(await store.putReportDraft(owner, t.session.id, 0, { text: 'Synthetic' })).toBe(false);
-  expect(await store.getReportDraft(other, t.session.id, 0)).toBeUndefined();
-});
-
-test('уборка убирает черновики брошенной незавершённой и сироты, но оставляет текущий', async () => {
-  const { store, name } = makeStore(); const owner = await store.signIn('a');
+test('уборка брошенной незавершённой оставляет черновик текущей и не трогает другого человека', async () => {
+  const { store } = makeStore(); const owner = await store.signIn('a');
   const old = savedTraining('00000000-0000-4000-8000-000000000301', 1), current = savedTraining('00000000-0000-4000-8000-000000000302', 2);
   await store.put(owner, old); await store.put(owner, current);
-  await store.putReportDraft(owner, old.session.id, 0, { text: 'Synthetic old' });
-  await store.putReportDraft(owner, current.session.id, 0, { text: 'Synthetic current' });
-  const db = await openDB(name); await db.put('reportDrafts', { text: 'Synthetic orphan' }, ['a/missing', 0]); db.close();
+  store.reportDrafts.put('a', old.session.id, 0, { text: 'Synthetic old' });
+  store.reportDrafts.put('a', current.session.id, 0, { text: 'Synthetic current' });
+  store.reportDrafts.put('b', old.session.id, 0, { text: 'Synthetic other' });
   await store.prune(owner);
   expect(await store.get(owner, old.session.id)).toBeUndefined();
-  expect(await store.getReportDraft(owner, old.session.id, 0)).toBeUndefined();
-  expect(await store.getReportDraft(owner, 'missing', 0)).toBeUndefined();
-  expect(await store.getReportDraft(owner, current.session.id, 0)).toEqual({ text: 'Synthetic current' });
+  expect(store.reportDrafts.get('a', old.session.id, 0)).toBeUndefined();
+  expect(store.reportDrafts.get('a', current.session.id, 0)).toEqual({ text: 'Synthetic current' });
+  expect(store.reportDrafts.get('b', old.session.id, 0)).toEqual({ text: 'Synthetic other' });
 });
 
-
-test('ошибка удаления черновика при отправке откатывает очередь жалобы и её порядок', async () => {
-  const { store, name } = makeStore(); const owner = await store.signIn('a'); const t = savedTraining(); await store.put(owner, t);
-  const draft = { text: 'Synthetic' }; await store.putReportDraft(owner, t.session.id, 0, draft);
-  const remove = IDBObjectStore.prototype.delete;
-  vi.spyOn(IDBObjectStore.prototype, 'delete').mockImplementation(function (this: IDBObjectStore, key) {
-    if (this.name === 'reportDrafts') throw new DOMException('Synthetic', 'SecurityError');
-    return remove.call(this, key);
-  });
-  await expect(store.putReport(owner, { id: crypto.randomUUID(), questionId: t.session.items[0]!.question.id, report: { kind: 'other', trainingId: t.session.id }, order: 0 }, 0)).rejects.toHaveProperty('name', 'SecurityError');
-  expect(await store.reports(owner)).toEqual([]);
-  expect(await store.getReportDraft(owner, t.session.id, 0)).toEqual(draft);
-  const db = await openDB(name); try { expect(await db.get('meta', 'reportOrder')).toBeUndefined(); } finally { db.close(); }
+test('выход и смена человека стирают его черновики по префиксу, повторный вход сохраняет их', async () => {
+  const { store } = makeStore(); const owner = await store.signIn('a');
+  store.reportDrafts.put('a', 'missing', 0, { text: 'Synthetic a' });
+  store.reportDrafts.put('aa', 'missing', 0, { text: 'Synthetic aa' });
+  await store.signIn('a'); expect(store.reportDrafts.get('a', 'missing', 0)).toEqual({ text: 'Synthetic a' });
+  await store.signOut(owner); expect(store.reportDrafts.get('a', 'missing', 0)).toBeUndefined();
+  expect(store.reportDrafts.get('aa', 'missing', 0)).toEqual({ text: 'Synthetic aa' });
+  await store.signIn('aa'); await store.signIn('b');
+  expect(store.reportDrafts.get('aa', 'missing', 0)).toBeUndefined();
 });

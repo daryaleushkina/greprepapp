@@ -9,7 +9,7 @@ import { FocusLayout } from '../layout/AppLayout';
 import { useShell } from '../shellContext';
 import glass from '../styles/glass.module.css';
 import { TrainingStorageBlocked } from './ReadTraining';
-import { useBackButton, useTrainingSwipes } from '../telegram/hooks';
+import { useBackButton } from '../telegram/hooks';
 import { useOnline } from '../useOnline';
 import { TrainingActions } from './Action';
 import { TYPE_LABELS } from './builder';
@@ -43,7 +43,6 @@ function ActiveSession({ incoming }: { incoming: StoredTraining }) {
   const { t, locale } = useI18n();
   const [language, setLanguage] = useState(locale);
   const { shell } = useShell();
-  useTrainingSwipes(shell === 'telegram' && !s.training.finish);
   const text = t.training;
   const total = s.training.session.items.length;
   const last = s.position === total - 1;
@@ -77,7 +76,7 @@ function ActiveSession({ incoming }: { incoming: StoredTraining }) {
   const missing = TrainingRules.missingGroups(s.question, s.selection);
   const note = s.overview ? undefined : s.checkMode ? text.question_check_note : s.selection.length && missing.length ? s.question.groups.length > 1 ? (missing.length === 1 ? text.question_missing_blank : text.question_missing_blanks)(missing.map((i) => BLANKS[i]).join(', ')) : s.question.selectCount > 1 ? text.question_pick_one_more : undefined : undefined;
   const typeNote = s.question.groups.length === 3 ? text.type_three_blanks : s.question.groups.length === 2 ? text.type_two_blanks : s.question.selectCount === 2 ? text.type_two_answers : undefined;
-  // Неполный ответ ещё требует возврата к вопросу (решение Даши 09.10.2026).
+  // Неполный ответ ещё требует возврата к вопросу: отметка «отвечен» — только когда заполнены все пропуски, итог считает частичный ответ неверным.
   const overviewItems = s.training.session.items.map(({ position, question }) => ({ position,
     answered: TrainingRules.isComplete(question, s.training.answers[String(position)]?.optionIds ?? []),
   }));

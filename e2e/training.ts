@@ -501,6 +501,10 @@ export async function reportDraftAndLimit(page: Page) {
   await expect(page.locator('#report-truncated')).toHaveCount(0);
   await page.keyboard.press('ControlOrMeta+Shift+z');
   await expect(input).toHaveValue('a'.repeat(10) + 'b'.repeat(200) + 'a'.repeat(1790));
+  // Полностью отклонённая родная вставка не даёт input, но paste всё равно показывает предупреждение.
+  await page.keyboard.press('ControlOrMeta+v');
+  await expect(input).toHaveValue('a'.repeat(10) + 'b'.repeat(200) + 'a'.repeat(1790));
+  await expect(page.locator('#report-truncated')).toContainText('Вставка сокращена');
   await page.keyboard.press('x');
   await expect(page.locator('#report-truncated')).toHaveCount(0);
   await page.keyboard.press('ArrowLeft'); await page.keyboard.press('Backspace');
@@ -518,6 +522,38 @@ export async function reportDraftAndLimit(page: Page) {
   await expect(page.getByRole('button', { name: 'Отправить', exact: true })).toBeDisabled();
 }
 
+export async function continuousReportSwipes(page: Page) {
+  // Запоминаем каждое восстановление, даже если следующий экран сразу снова выключит свайп.
+  await page.evaluate(() => {
+    const remove = Storage.prototype.removeItem;
+    document.documentElement.dataset.swipeRestores = '0';
+    Storage.prototype.removeItem = function (key) {
+      if (this === sessionStorage && key === 'greprep.training.swipes') {
+        document.documentElement.dataset.swipeRestores = String(Number(document.documentElement.dataset.swipeRestores) + 1);
+      }
+      return remove.call(this, key);
+    };
+  });
+  const restores = () => page.evaluate(() => Number(document.documentElement.dataset.swipeRestores));
+  await startSession(page);
+  expect(await restores()).toBe(0);
+  await page.getByRole('link', { name: 'Сообщить об ошибке' }).click();
+  await page.getByRole('textbox', { name: 'Что не так' }).fill('Synthetic draft');
+  expect(await restores()).toBe(0);
+  await trainingBack(page);
+  await expect(page.getByRole('heading', { name: 'Text Completion' })).toBeVisible();
+  expect(await restores()).toBe(0);
+  await page.getByRole('link', { name: 'Сообщить об ошибке' }).click();
+  await expect(page.getByRole('textbox', { name: 'Что не так' })).toHaveValue('');
+  await page.getByRole('button', { name: 'Другое', exact: true }).click();
+  await page.getByRole('button', { name: 'Отправить', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Спасибо!' })).toBeVisible();
+  expect(await restores()).toBe(0);
+  await trainingBack(page); await closeSession(page);
+  await expect(page.getByRole('heading', { name: 'Сегодня' })).toBeVisible();
+  await expect.poll(restores).toBe(1);
+}
+
 
 export async function reportBackStorageFailure(page: Page) {
   await startSession(page);
@@ -527,53 +563,57 @@ export async function reportBackStorageFailure(page: Page) {
   let reported: unknown;
   await page.route('**/api/client-errors', async (route) => { reported = route.request().postDataJSON(); await route.fulfill({ status: 204 }); });
   await page.evaluate(() => {
-    const original = IDBObjectStore.prototype.delete;
-    IDBObjectStore.prototype.delete = function (...args) {
-      if (this.name === 'reportDrafts') throw new DOMException('Synthetic private draft', 'SecurityError');
-      return original.apply(this, args);
+    const original = Storage.prototype.removeItem;
+    Storage.prototype.removeItem = function (key) {
+      if (this === localStorage && key.includes('/report-draft/')) throw new DOMException('Synthetic private draft', 'SecurityError');
+      return original.call(this, key);
     };
   });
   await trainingBack(page);
   await expect(page.getByRole('heading', { name: 'Text Completion' })).toBeVisible();
-  await expect.poll(() => reported).toMatchObject({ message: 'Error: training storage failed: SecurityError' });
+  await expect.poll(() => reported).toMatchObject({ message: 'Error: training report draft storage unavailable' });
   expect(JSON.stringify(reported)).not.toContain('Synthetic private draft');
 }
 
 
-export async function reportDraftBatchesAndQuota(page: Page) {
+export async function reportDraftWritesAndQuota(page: Page) {
   await startSession(page);
   await page.getByRole('link', { name: 'Сообщить об ошибке' }).click();
   await page.getByRole('button', { name: 'Другое', exact: true }).click();
-  await expect(page.getByRole('status').filter({ hasText: 'Черновик сохранён' })).toHaveCount(1);
   const input = page.getByRole('textbox', { name: 'Что не так' });
   await page.evaluate(() => {
     const element = document.getElementById('report-text');
     if (!(element instanceof HTMLTextAreaElement)) throw new Error('fixture textarea missing');
-    const put = IDBObjectStore.prototype.put;
-    let writes = 0;
-    IDBObjectStore.prototype.put = function (...args) {
-      if (this.name === 'reportDrafts') element.dataset.draftWrites = String(++writes);
-      return put.apply(this, args);
+    const put = Storage.prototype.setItem; let writes = 0;
+    Storage.prototype.setItem = function (key, value) {
+      if (this === localStorage && key.includes('/report-draft/')) element.dataset.draftWrites = String(++writes);
+      return put.call(this, key, value);
     };
   });
   await input.pressSequentially('a'.repeat(200), { timeout: 30_000 });
   await expect(page.getByText('200 / 2000', { exact: true })).toBeVisible();
   await expect(page.getByRole('status').filter({ hasText: 'Черновик сохранён' })).toHaveCount(1);
   const writes = await input.evaluate((element) => element instanceof HTMLTextAreaElement ? Number(element.dataset.draftWrites) : NaN);
-  expect(writes).toBeGreaterThanOrEqual(1); expect(writes).toBeLessThanOrEqual(3);
+  expect(writes).toBe(200);
+  const reported: unknown[] = [];
+  await page.route('**/api/client-errors', async (route) => { reported.push(route.request().postDataJSON()); await route.fulfill({ status: 204 }); });
   await page.evaluate(() => {
-    const put = IDBObjectStore.prototype.put; let failed = false;
-    IDBObjectStore.prototype.put = function (...args) {
-      if (this.name === 'reportDrafts' && !failed) { failed = true; throw new DOMException('Synthetic private draft', 'QuotaExceededError'); }
-      return put.apply(this, args);
+    const put = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (key, value) {
+      if (this === localStorage && key.includes('/report-draft/')) throw new DOMException('Synthetic private draft', 'QuotaExceededError');
+      return put.call(this, key, value);
     };
   });
-  await input.fill('Synthetic first');
-  await expect(page.getByRole('alert')).toContainText('Освободите место на устройстве');
-  await expect(input).toHaveAttribute('aria-busy', 'false');
-  await input.fill('Synthetic last');
-  await expect(page.getByRole('alert')).toContainText('Освободите место на устройстве');
-  await expect(input).toHaveAttribute('aria-busy', 'false');
+  for (const text of ['Synthetic first', 'Synthetic last']) {
+    await input.fill(text);
+    await expect(input).toHaveValue(text);
+    await expect(page.getByRole('alert')).toHaveCount(0);
+    await expect(page.getByRole('status').filter({ hasText: 'Черновик не сохранён на устройстве' })).toHaveCount(1);
+  }
+  await page.getByRole('button', { name: 'В переводе', exact: true }).click();
   await page.getByRole('button', { name: 'Отправить', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Спасибо!' })).toBeVisible();
+  await expect.poll(() => reported.length).toBe(1);
+  expect(reported[0]).toMatchObject({ message: 'Error: training report draft storage unavailable' });
+  expect(JSON.stringify(reported)).not.toContain('Synthetic private draft');
 }

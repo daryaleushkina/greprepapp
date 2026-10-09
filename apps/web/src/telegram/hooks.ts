@@ -27,9 +27,9 @@ function forgetSetting(key: string): void {
   }
 }
 
-/** Во время тренировки случайный свайп не закрывает мини-апп (решение Даши 09.10.2026, задание части 2). */
+/** Во время тренировки случайный свайп не закрывает мини-апп (решение Даши 08.10.2026). */
 export function useTrainingSwipes(active: boolean): void {
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!active || !swipeBehavior.disableVertical.isAvailable()) return;
     // SDK сохраняет выключенные свайпы между загрузками; помним состояние до входа в сессию отдельно.
     const enabled = rememberSetting(SWIPE_RESTORE_KEY, swipeBehavior.isVerticalEnabled());

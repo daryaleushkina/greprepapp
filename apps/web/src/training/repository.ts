@@ -1,8 +1,8 @@
 import { ApiError, getTrainingOptions, startTraining, submitTrainingAnswers, finishTraining, reportQuestion, schemas, type GivenAnswer, type QuestionReport, type TrainingRequest } from '@greprep/api-client';
 import { reportError } from '../errors/report';
-import { reportDraftSchema, type ReportDraft, pendingReportSchema, storedTraining, type StoredTraining } from './model';
+import { type ReportDraft, pendingReportSchema, storedTraining, type StoredTraining } from './model';
 import { TrainingRules } from './rules';
-import { TrainingStore, TrainingMissingError, TrainingOwnerChangedError, TrainingStorageBlockedError, type TrainingOwner } from './store';
+import { TrainingStore, TrainingOwnerChangedError, TrainingStorageBlockedError, type TrainingOwner } from './store';
 
 export const SUPPORTED_TYPES = schemas.QuestionType.options;
 const PERMANENT = new Set([400, 404, 409, 410, 422]);
@@ -200,38 +200,30 @@ export class TrainingRepository {
     } catch (error) { this.storageFailed(error); throw error; }
   }
 
-  // Отложенная запись привязана к ревизии открывшейся формы, даже если за время ожидания человек вышел.
+  // Форма помнит ревизию: старое действие после повторного входа не трогает новый черновик.
   reportOwner = (): TrainingOwner | null => this.owner ?? null;
 
-  async reportDraft(id: string, position: number, draft?: ReportDraft, owner: TrainingOwner | null = this.owner ?? null): Promise<void> {
-    const checked = draft === undefined ? undefined : reportDraftSchema.parse(draft);
-    if (!owner) throw new TrainingOwnerChangedError();
-    let saved: boolean;
-    try {
-      saved = await this.store.putReportDraft(owner, id, position, checked);
-      if (!saved) throw await this.store.owns(owner) ? new TrainingMissingError() : new TrainingOwnerChangedError();
-    } catch (error) {
-      if (!(error instanceof TrainingOwnerChangedError || error instanceof TrainingMissingError)) this.storageFailed(error, true);
-      throw error;
-    }
+  private draftOwner(owner: TrainingOwner | null) {
+    return owner && this.owner?.userId === owner.userId && this.owner.revision === owner.revision;
   }
 
-  async getReportDraft(id: string, position: number): Promise<ReportDraft | undefined> {
-    try { return this.owner ? await this.store.getReportDraft(this.owner, id, position) : undefined; }
-    catch (error) { this.storageFailed(error); throw error; }
+  reportDraft(id: string, position: number, draft?: ReportDraft, owner: TrainingOwner | null = this.owner ?? null): boolean {
+    return Boolean(this.draftOwner(owner) && owner && this.store.reportDrafts.put(owner.userId, id, position, draft));
   }
 
-  async discardReportDraft(id: string, position: number, owner: TrainingOwner | null = this.owner ?? null): Promise<void> {
-    if (!owner) return;
-    try { await this.store.putReportDraft(owner, id, position); }
-    catch (error) { this.reportStorage(error); }
+  getReportDraft(id: string, position: number): ReportDraft | undefined {
+    return this.owner ? this.store.reportDrafts.get(this.owner.userId, id, position) : undefined;
   }
 
-  async recordReport(questionId: string, report: QuestionReport, position?: number, owner: TrainingOwner | null = this.owner ?? null): Promise<void> {
+  discardReportDraft(id: string, position: number, owner: TrainingOwner | null = this.owner ?? null): void {
+    if (this.draftOwner(owner) && owner) this.store.reportDrafts.put(owner.userId, id, position);
+  }
+
+  async recordReport(questionId: string, report: QuestionReport, owner: TrainingOwner | null = this.owner ?? null): Promise<void> {
     const pending = pendingReportSchema.parse({ id: crypto.randomUUID(), questionId, report });
     if (!owner) throw new TrainingOwnerChangedError();
     let saved: boolean;
-    try { saved = await this.store.putReport(owner, pending, position); }
+    try { saved = await this.store.putReport(owner, pending); }
     catch (error) { this.storageFailed(error, true); throw error; }
     if (!saved) throw new TrainingOwnerChangedError();
     this.requestSync();

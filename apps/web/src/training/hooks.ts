@@ -47,11 +47,11 @@ export function useActiveTraining() {
   return { ...query, data: storage === 'ready' ? query.data : null };
 }
 
-export function useStoredTraining(id: string) {
+export function useStoredTraining(id: string, enabled = true) {
   const { session } = useSession();
   const storage = useTrainingStorage();
   const query = useQuery({ queryKey: ['training', session.status === 'signedIn' ? session.user.id : null, id],
-    queryFn: async () => await trainingRepository.get(id) ?? null, enabled: session.status === 'signedIn' && storage === 'ready', networkMode: 'always' });
+    queryFn: async () => await trainingRepository.get(id) ?? null, enabled: enabled && session.status === 'signedIn' && storage === 'ready', networkMode: 'always' });
   return { ...query, data: storage === 'ready' ? query.data : null };
 }
 

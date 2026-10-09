@@ -3,7 +3,6 @@ import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react';
 import { BackIcon } from '../components/icons';
 import { StatusScreen } from '../components/StatusScreen';
-import { useTrainingSwipes } from '../telegram/hooks';
 import { useI18n } from '../i18n/i18n';
 import { TrainingAction } from './Action';
 import { TYPE_LABELS } from './builder';
@@ -12,8 +11,6 @@ import { ReadTraining, TrainingHeading } from './ReadTraining';
 import { trainingRepository } from './repository';
 import { TrainingMissingError, TrainingOwnerChangedError } from './store';
 import styles from './Training.module.css';
-import { ReportDraftWriter } from './reportDraftWriter';
-import { useShell } from '../shellContext';
 
 const KINDS = ['question', 'answer', 'explanation', 'translation', 'other'] as const;
 const COUNTER_WARNING = REPORT_TEXT_MAX * 0.9;
@@ -52,65 +49,38 @@ export function ReportScreen() {
 function ReportForm({ training, position: index, onBack, cancelRef }: {
   training: StoredTraining; position: number | null; onBack: () => void; cancelRef: RefObject<() => void>;
 }) {
-  const { t } = useI18n();
-  const [loaded, setLoaded] = useState<{ draft?: ReportDraft }>();
-  useEffect(() => {
-    let current = true;
-    if (index === null) { setLoaded({}); return; }
-    void trainingRepository.getReportDraft(training.session.id, index).then((draft) => {
-      if (current) setLoaded({ draft });
-    }, () => {
-      // Репозиторий уже показал общий экран хранилища и сообщил ошибку без текста.
-      if (current) setLoaded({});
-    });
-    return () => { current = false; };
-  }, [index, training.session.id]);
-  return loaded ? <ReportFields training={training} index={index} onBack={onBack} cancelRef={cancelRef} draft={loaded.draft} /> : <p role="status">{t.today.loading}</p>;
+  const [draft] = useState(() => index === null ? undefined : trainingRepository.getReportDraft(training.session.id, index));
+  return <ReportFields training={training} index={index} onBack={onBack} cancelRef={cancelRef} draft={draft} />;
 }
 
 function ReportFields({ training, index, onBack, cancelRef, draft }: {
   training: StoredTraining; index: number | null; onBack: () => void; cancelRef: RefObject<() => void>; draft?: ReportDraft;
 }) {
   const { t } = useI18n();
-  const { shell } = useShell();
   const [kind, setKind] = useState<QuestionReport['kind'] | undefined>(draft?.kind);
   const [text, setText] = useState(draft?.text ?? '');
-  const [unsaved, setUnsaved] = useState(false);
+  const [saved, setSaved] = useState(Boolean(draft));
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
   const [failed, setFailed] = useState<Failure>();
   const [truncated, setTruncated] = useState(false);
   const input = useRef<HTMLTextAreaElement>(null);
-  const pasteLength = useRef<number | undefined>(undefined);
+  const pasting = useRef(false);
   const sending = useRef(false);
   const cancelling = useRef(false);
   const item = index === null ? undefined : training.session.items[index];
-  useTrainingSwipes(shell === 'telegram' && Boolean(item) && !sent);
   const copy = t.training;
   const count = Array.from(text).length;
   const [owner] = useState(trainingRepository.reportOwner);
-  const [writer] = useState(() => new ReportDraftWriter(
-    (value) => index === null ? Promise.resolve() : trainingRepository.reportDraft(training.session.id, index, value, owner),
-    setUnsaved, (error) => setFailed(failureKind(error)),
-  ));
-  const persist = (value: ReportDraft) => { writer.change(value); };
-  useEffect(() => {
-    const flush = () => { void writer.flush(); };
-    const hidden = () => { if (document.visibilityState === 'hidden') flush(); };
-    window.addEventListener('pagehide', flush);
-    document.addEventListener('visibilitychange', hidden);
-    return () => {
-      window.removeEventListener('pagehide', flush);
-      document.removeEventListener('visibilitychange', hidden);
-      void writer.flush();
-    };
-  }, [writer]);
+  const persist = (value: ReportDraft) => {
+    if (index !== null) setSaved(trainingRepository.reportDraft(training.session.id, index, value, owner));
+  };
   useEffect(() => {
     const element = input.current;
     if (!element) return;
     const before = (event: InputEvent) => {
       // Только подстраиваем UTF-16 лимит под Unicode, не отменяя нативное редактирование и undo.
-      if (event.inputType !== 'insertFromPaste') pasteLength.current = undefined;
+      if (event.inputType !== 'insertFromPaste') { pasting.current = false; setTruncated(false); }
       if (!event.data || event.isComposing) return;
       const prefix = element.value.slice(0, element.selectionStart), suffix = element.value.slice(element.selectionEnd);
       element.maxLength = inputMaxLength(prefix, suffix, nativeText(event.data));
@@ -122,22 +92,20 @@ function ReportFields({ training, index, onBack, cancelRef, draft }: {
     cancelRef.current = () => {
       if (cancelling.current) return;
       cancelling.current = true;
-      if (!sending.current && !sent) {
-        // Навигация не ждёт диск; незавершённая запись закончится раньше удаления черновика.
-        void writer.discard().then(() => index === null ? undefined : trainingRepository.discardReportDraft(training.session.id, index, owner));
-      }
+      if (index !== null) trainingRepository.discardReportDraft(training.session.id, index, owner);
       onBack();
     };
     return () => { cancelRef.current = onBack; };
-  }, [cancelRef, index, onBack, owner, sent, training.session.id, writer]);
+  }, [cancelRef, index, onBack, owner, training.session.id]);
   const send = async () => {
     if (sending.current || !kind || !item || index === null) return;
     sending.current = true; setBusy(true); setFailed(undefined);
     try {
-      await writer.flush(true);
       const trimmed = text.trim();
-      await trainingRepository.recordReport(item.question.id, { kind, ...(trimmed && { text: trimmed }), trainingId: training.session.id }, index, owner);
-      await writer.discard(); setSent(true); setText(''); setUnsaved(false);
+      await trainingRepository.recordReport(item.question.id, { kind, ...(trimmed && { text: trimmed }), trainingId: training.session.id }, owner);
+      // «Назад» уже очистил черновик. Поздний ответ очереди не стирает ввод повторно открытой формы.
+      if (!cancelling.current) trainingRepository.discardReportDraft(training.session.id, index, owner);
+      setSent(true); setText(''); setSaved(false);
     } catch (error) { setFailed(failureKind(error)); }
     finally { sending.current = false; setBusy(false); }
   };
@@ -159,22 +127,24 @@ function ReportFields({ training, index, onBack, cancelRef, draft }: {
       </span>
         <textarea ref={input} id="report-text" value={text} disabled={busy} rows={4}
           // Нативный лимит считает UTF-16; перед вставкой учитываем длину допустимых Unicode-символов.
-          maxLength={REPORT_TEXT_MAX + text.length - count} aria-labelledby="report-label" aria-busy={unsaved && !failed} aria-describedby={`report-count report-draft-state${truncated ? ' report-truncated' : ''}`}
+          maxLength={REPORT_TEXT_MAX + text.length - count} aria-labelledby="report-label" aria-describedby={`report-count${kind || text ? ' report-draft-state' : ''}${truncated ? ' report-truncated' : ''}`}
           onChange={(event) => {
             const next = event.target.value;
-            setTruncated(pasteLength.current !== undefined && pasteLength.current > next.length);
-            pasteLength.current = undefined;
+            if (!pasting.current) setTruncated(false);
+            pasting.current = false;
             setText(next); persist({ kind, text: next });
           }}
           onPaste={(event) => {
             const element = event.currentTarget;
             const value = nativeText(event.clipboardData.getData('text/plain'));
             const prefix = element.value.slice(0, element.selectionStart), suffix = element.value.slice(element.selectionEnd);
-            pasteLength.current = prefix.length + value.length + suffix.length;
+            pasting.current = true;
+            const remaining = REPORT_TEXT_MAX - Array.from(prefix + suffix).length;
+            setTruncated(Array.from(value).length > remaining);
             element.maxLength = inputMaxLength(prefix, suffix, value);
           }} />
       </label>
-      {(kind || text) && !failed && <p id="report-draft-state" role="status" className="visually-hidden">{unsaved ? copy.report_draft_saving : copy.report_draft_saved}</p>}
+      {(kind || text) && !failed && <p id="report-draft-state" role="status" className="visually-hidden">{saved ? copy.report_draft_saved : copy.report_draft_unsaved}</p>}
       {truncated && <p id="report-truncated" role="status" className={styles.note}>{copy.report_truncated(REPORT_TEXT_MAX)}</p>}
       <p className={styles.note}>{copy.report_note}</p>
       {failed && <p role="alert">{failed === 'quota' ? copy.report_failed : failed === 'owner' ? copy.report_session_changed : failed === 'missing' ? copy.report_training_missing : copy.report_storage_failed}</p>}
