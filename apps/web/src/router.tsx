@@ -3,10 +3,13 @@
 //   /words /exam /progress               (вкладки; пока заглушки до своих фич)
 //   /settings         настройки          (на компьютере — пункт панели, на телефоне — экран из «Прогресса»)
 //   /step/$stepId     шаг из ленты       (пока заглушка; тренировки — ROADMAP §5)
+//   /training/new     конструктор        (ленивый маршрут)
+//   /training/$trainingId локальная сессия и итог
 //   /signin           вход               (только сайт)
 //   /auth/callback    возврат от провайдера входа (только сайт)
 import type { QueryClient } from '@tanstack/react-query';
 import { createRootRouteWithContext, createRoute, createRouter, Outlet, type RouterHistory } from '@tanstack/react-router';
+import { schemas } from '@greprep/api-client';
 import { z } from 'zod';
 import { Crashed, reportRouteError } from './errors/ErrorBoundary';
 import { AppGate, TabsLayout } from './layout/AppLayout';
@@ -59,10 +62,27 @@ const progressRoute = createRoute({ getParentRoute: () => tabsRoute, path: 'prog
 const settingsRoute = createRoute({ getParentRoute: () => tabsRoute, path: 'settings', component: SettingsScreen });
 const stepRoute = createRoute({ getParentRoute: () => appRoute, path: 'step/$stepId', component: StepScreen });
 
+const builderRoute = createRoute({ getParentRoute: () => appRoute, path: 'training/new',
+  validateSearch: z.object({ section: z.enum(['verbal', 'quant']).optional().catch(undefined), type: schemas.QuestionType.optional().catch(undefined) }),
+}).lazy(() => import('./training/routes.lazy').then((m) => m.builderRoute));
+const trainingRoute = createRoute({ getParentRoute: () => appRoute, path: 'training/$trainingId' })
+  .lazy(() => import('./training/routes.lazy').then((m) => m.sessionRoute));
+
+const reviewRoute = createRoute({ getParentRoute: () => appRoute, path: 'training/$trainingId/review' })
+  .lazy(() => import('./training/routes.lazy').then((m) => m.reviewRoute));
+const trainingPosition = z.object({ trainingId: z.string(), position: z.string().regex(/^(0|[1-9]\d*)$/)
+  .transform(Number).refine(Number.isSafeInteger).nullable().catch(null) });
+const positionParams = { parse: (params: Record<string, string>) => trainingPosition.parse(params), stringify: (params: z.infer<typeof trainingPosition>) => ({ ...params, position: String(params.position) }) };
+const reviewItemRoute = createRoute({ getParentRoute: () => appRoute, path: 'training/$trainingId/review/$position', params: positionParams })
+  .lazy(() => import('./training/routes.lazy').then((m) => m.reviewItemRoute));
+const reportRoute = createRoute({ getParentRoute: () => appRoute, path: 'training/$trainingId/report/$position', params: positionParams,
+  validateSearch: z.object({ returnTo: z.enum(['session', 'review']).catch('session').default('session') }),
+}).lazy(() => import('./training/routes.lazy').then((m) => m.reportRoute));
+
 const routeTree = rootRoute.addChildren([
   signInRoute,
   callbackRoute,
-  appRoute.addChildren([tabsRoute.addChildren([todayRoute, wordsRoute, examRoute, progressRoute, settingsRoute]), stepRoute]),
+  appRoute.addChildren([tabsRoute.addChildren([todayRoute, wordsRoute, examRoute, progressRoute, settingsRoute]), stepRoute, builderRoute, trainingRoute, reviewRoute, reviewItemRoute, reportRoute]),
 ]);
 
 /** history — для тестов (память вместо адресной строки); в приложении — адресная строка браузера. */

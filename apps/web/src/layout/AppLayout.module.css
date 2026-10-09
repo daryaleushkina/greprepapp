@@ -346,3 +346,18 @@
     display: none;
   }
 }
+
+/* Конструктор: на сайте набор и поля рядом; в Telegram снизу место под MainButton. */
+@media (min-width: 900px) {
+  .frame[data-shell='site'][data-wide] .column { max-width: calc(var(--layout-content-max) + var(--layout-tagline-max)); }
+}
+.frame[data-shell='telegram'][data-training] .main::after { height: calc(var(--size-main-button) + var(--app-inset-bottom) + var(--space-32)); }
+
+/* Сессия держит главное действие внизу, короткая шапка остаётся видна при чтении длинного задания. */
+.frame[data-session] .column { min-height: calc(var(--app-height) - var(--app-inset-top) - var(--app-inset-bottom) - var(--space-56)); display: flex; flex-direction: column; }
+.frame[data-session] .column > div { flex: 1; }
+.frame[data-session][data-shell='telegram'] .column { min-height: calc(var(--app-height) - var(--app-inset-top) - var(--app-inset-bottom) - var(--size-main-button) - var(--space-56)); }
+@media (min-width: 900px) {
+  .frame[data-session][data-shell='site'] .main { padding-top: var(--space-20); }
+  .frame[data-session][data-shell='site'] .main::after { height: var(--space-32); }
+}

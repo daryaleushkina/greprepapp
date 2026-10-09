@@ -40,6 +40,7 @@ import (
 	"github.com/daryaleushkina/greprepapp/server/internal/app"
 	"github.com/daryaleushkina/greprepapp/server/internal/auth"
 	"github.com/daryaleushkina/greprepapp/server/internal/config"
+	"github.com/daryaleushkina/greprepapp/server/internal/devseed"
 	"github.com/daryaleushkina/greprepapp/server/internal/migrations"
 )
 
@@ -109,6 +110,16 @@ func run(ctx context.Context, log *slog.Logger) error {
 		return fmt.Errorf("connect to %s: %w", dbName, err)
 	}
 	defer pool.Close()
+	seed, err := devseed.Load()
+	if err != nil {
+		return fmt.Errorf("load e2e questions: %w", err)
+	}
+	seedCtx, seedCancel := context.WithTimeout(ctx, time.Minute)
+	err = devseed.Apply(seedCtx, pool, seed)
+	seedCancel()
+	if err != nil {
+		return fmt.Errorf("seed e2e questions: %w", err)
+	}
 	handler, err := app.Handler(cfg, pool, auth.NewOIDC(nil, cfg.Telegram, cfg.Apple, cfg.Google), log, time.Now)
 	if err != nil {
 		return err

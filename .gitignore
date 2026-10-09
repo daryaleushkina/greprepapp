@@ -31,3 +31,6 @@ e2e/_explore/
 .playwright-mcp/
 
 .DS_Store
+
+# Кэш Python от скриптов скиллов
+__pycache__/

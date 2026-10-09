@@ -103,3 +103,9 @@ export const OfflineIcon = (p: IconProps) => (
     <circle cx="12" cy="20" r="0.8" fill="currentColor" />
   </Icon>
 );
+
+export const ChevronRightIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M9.5 6l6 6-6 6" />
+  </Icon>
+);

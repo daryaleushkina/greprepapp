@@ -49,7 +49,7 @@ interface SessionApi {
 const SessionContext = createContext<SessionApi | null>(null);
 
 /** Данные запроса сессии: человек или null (не вошёл); expired — помечает, что сессия кончилась сама. */
-type SessionData = { user: User | null; expired: boolean };
+export type SessionData = { user: User | null; expired: boolean; signedOutByUser?: true };
 
 async function loadSession(launch: TelegramLaunch | null): Promise<SessionData> {
   if (launch) {
@@ -60,7 +60,8 @@ async function loadSession(launch: TelegramLaunch | null): Promise<SessionData> 
     return { user: res.user, expired: false };
   }
   try {
-    return { user: await getMe(), expired: false };
+    const user = await getMe();
+    return { user, expired: false };
   } catch (e) {
     if (isApiError(e) && e.status === 401) return { user: null, expired: false };
     throw e;
@@ -157,5 +158,5 @@ export function resetReauthForTests(): void {
 /** Чужие данные в кэше после выхода не остаются: следующий, кто войдёт на этом компьютере, их не увидит. */
 function forgetUserData(queryClient: QueryClient, expired: boolean): void {
   queryClient.removeQueries({ predicate: (q) => q.queryKey[0] !== SESSION_KEY[0] });
-  queryClient.setQueryData<SessionData>(SESSION_KEY, { user: null, expired });
+  queryClient.setQueryData<SessionData>(SESSION_KEY, { user: null, expired, ...(!expired && { signedOutByUser: true }) });
 }

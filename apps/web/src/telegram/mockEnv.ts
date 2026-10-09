@@ -36,7 +36,11 @@
  *                                настоящим путём, с проверкой подписи на сервере; без неё initData неподписанная
  *                                и сервер её отклонит
  */
-import { emitEvent, isTMA, mockTelegramEnv } from '@tma.js/sdk-react';
+import { emitEvent, isTMA, mockTelegramEnv, mainButton, secondaryButton, backButton } from '@tma.js/sdk-react';
+
+let restoreChrome = () => {};
+/** Telegram сохраняет нативные кнопки между загрузками. Браузерная подмена восстанавливает их после mount SDK. */
+export function restoreMockChrome(): void { restoreChrome(); }
 
 declare global {
   interface Window {
@@ -117,7 +121,13 @@ export async function mockTelegramEnvForDev(): Promise<void> {
   // перезагрузки он скажет «это Telegram», хотя моста уже нет.
   if (await isTMA('complete')) return;
 
-  const q = new URLSearchParams(window.location.search);
+  const launchOptions = new URLSearchParams(window.location.search);
+  // Роутер убирает параметры запуска из адреса. Подмена должна восстанавливать того же человека и тему
+  // после перезагрузки, как настоящий мост Telegram, а не подставлять неподписанного пользователя по умолчанию.
+  const mockOptionsKey = 'greprep.telegram-mock-options';
+  const hasLaunchOptions = [...launchOptions.keys()].some((key) => key.startsWith('tg'));
+  const q = hasLaunchOptions ? launchOptions : new URLSearchParams(sessionStorage.getItem(mockOptionsKey) ?? '');
+  if (hasLaunchOptions) sessionStorage.setItem(mockOptionsKey, launchOptions.toString());
   let theme = q.get('tgTheme') === 'light' ? LIGHT_THEME : DARK_THEME;
   const platform = q.get('tgPlatform') ?? 'ios';
   const version = q.get('tgVersion') ?? '10.1';
@@ -157,11 +167,22 @@ export async function mockTelegramEnvForDev(): Promise<void> {
     renderButton(chrome.main, buttons.main);
     renderButton(chrome.secondary, buttons.secondary);
     const { position } = buttons.secondary;
+    chrome.bar.toggleAttribute('data-stacked', position === 'top' || position === 'bottom');
     chrome.bar.style.flexDirection = position === 'top' ? 'column-reverse'
       : position === 'bottom' ? 'column'
       : position === 'right' ? 'row' : 'row-reverse';
     chrome.bar.hidden = barHeight() === 0;
     emitViewport();
+  };
+  restoreChrome = () => {
+    for (const [kind, component] of [['main', mainButton], ['secondary', secondaryButton]] as const) {
+      const state = component.state();
+      buttons[kind] = { isVisible: state.isVisible, isActive: state.isEnabled, isProgressVisible: state.isLoaderVisible,
+        text: state.text, color: state.bgColor, textColor: state.textColor,
+        ...(kind === 'secondary' && { position: secondaryButton.position() }) };
+    }
+    backVisible = backButton.isVisible();
+    render();
   };
   chrome?.main.addEventListener('click', () => emitEvent('main_button_pressed'));
   chrome?.secondary.addEventListener('click', () => emitEvent('secondary_button_pressed'));
@@ -320,10 +341,11 @@ function createChrome(): Chrome {
       background: var(--tg-bottom-bar-color, var(--tg-theme-bottom-bar-bg-color, var(--tg-theme-secondary-bg-color))); }
     #tg-mock-bar[hidden], #tg-mock-back[hidden], #tg-mock-bar button[hidden] { display: none; }
     #tg-mock-bar button { flex: 1; height: 44px; border: 0; border-radius: 10px; font: 600 15px system-ui, sans-serif; }
+    #tg-mock-bar[data-stacked] button { flex: none; }
     #tg-mock-bar button:disabled { opacity: .6; }
     #tg-mock-back { position: fixed; top: 8px; left: 8px; z-index: 2147483647; border: 0; border-radius: 16px;
       padding: 6px 12px; font: 500 14px system-ui, sans-serif;
-      background: var(--tg-theme-secondary-bg-color); color: var(--tg-theme-link-color); }`;
+      background: var(--color-surface, var(--tg-theme-secondary-bg-color)); color: var(--color-text, var(--tg-theme-text-color)); }`;
   document.head.append(style);
   const bar = document.createElement('div');
   bar.id = 'tg-mock-bar';

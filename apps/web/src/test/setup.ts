@@ -4,9 +4,11 @@ import '../styles/fonts.css';
 import '../styles/base.css';
 import { onlineManager } from '@tanstack/react-query';
 import { afterEach, vi } from 'vitest';
+import { trainingRepository } from '../training/repository';
 import { resetReauthForTests } from '../session/session';
 
-afterEach(() => {
+afterEach(async () => {
+  await trainingRepository.signOut();
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();
