@@ -1,6 +1,7 @@
 package dev.greprepapp.app.flow
 
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsSelected
@@ -101,6 +102,27 @@ class TrainingFlowTest {
         options.forEach { click("option.$it") }
         click("question.check")
         waitFor("explanation")
+    }
+
+    @Test
+    fun partialAnswersAreUnansweredInTheCheckListAndWrongInTheResult() {
+        server.nextSession = Fixtures.session(Fixtures.tc3, Fixtures.se, mode = TrainingMode.CHECK)
+        openBuilder()
+        click("builder.mode.check")
+        click("builder.start")
+        click("option.A")
+        click("question.next")
+        click("option.A")
+        click("question.overview")
+        waitFor("overview")
+        compose.onNodeWithText("Отвечено 0 из 2 · отмечено 0").assertIsDisplayed()
+        compose.onNodeWithTag("overview.0").assert(
+            androidx.compose.ui.test
+                .hasContentDescription("Вопрос 1, без ответа"),
+        )
+        click("overview.finish")
+        waitFor("summary")
+        compose.onNodeWithTag("summary.correct").assertTextEquals("0")
     }
 
     @Test

@@ -78,7 +78,7 @@ class TodayViewModelTest {
         runTest(main.dispatcher) {
             val graph = signedIn()
             // Папки нет — запись падает с FileNotFoundException (как при полном диске).
-            val broken = TodayCache(File(folder.root, "absent"))
+            val broken = TodayCache(File(folder.root, "absent"), graph.reporter)
             val vm =
                 TodayViewModel(
                     api = api,
@@ -202,7 +202,12 @@ class TodayViewModelTest {
             viewModel(graph)
             graph.session.signOut()
             advanceUntilIdle()
-            graph.session.didSignIn("token-2")
+            graph.session.didSignIn(
+                "token-2",
+                dev.greprepapp.app.testing
+                    .session()
+                    .user.id,
+            )
             gate.complete(Unit)
             advanceUntilIdle()
             assertTrue(graph.session.state.value is SessionState.SignedIn)

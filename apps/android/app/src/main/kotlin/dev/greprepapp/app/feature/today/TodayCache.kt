@@ -2,6 +2,7 @@ package dev.greprepapp.app.feature.today
 
 import dev.greprepapp.api.ApiJson
 import dev.greprepapp.api.models.Today
+import dev.greprepapp.app.core.report.ClientErrorReporter
 import dev.greprepapp.app.core.session.PersonalData
 import kotlinx.serialization.SerializationException
 import java.io.File
@@ -13,21 +14,31 @@ import java.io.IOException
  */
 class TodayCache(
     directory: File,
+    private val reporter: ClientErrorReporter,
+    private val file: File = File(directory, "today.json"),
 ) : PersonalData {
-    private val file = File(directory, "today.json")
-
     /** null — плана нет или он не читается (старый формат, испорчен): тогда экран просто ждёт сервер. */
     fun load(): TodayPlan? {
         if (!file.exists()) return null
         return try {
             TodayPlan.from(ApiJson.decodeFromString(Today.serializer(), file.readText()))
-        } catch (_: IOException) {
-            null
-        } catch (_: SerializationException) {
-            null
-        } catch (_: IllegalArgumentException) {
-            null
+        } catch (failure: IOException) {
+            unreadable(failure)
+        } catch (failure: SerializationException) {
+            unreadable(failure)
+        } catch (failure: IllegalArgumentException) {
+            unreadable(failure)
         }
+    }
+
+    private fun unreadable(failure: Exception): TodayPlan? {
+        reporter.report("today cache unreadable: ${failure.javaClass.simpleName}", route = "today")
+        try {
+            clear()
+        } catch (again: IOException) {
+            reporter.report("today cache clear failed: ${again.javaClass.simpleName}", route = "today")
+        }
+        return null
     }
 
     fun save(today: Today) {
@@ -37,6 +48,9 @@ class TodayCache(
     }
 
     override fun clear() {
-        if (file.exists() && !file.delete()) throw IOException("today cache delete failed")
+        if (file.exists() && !file.delete()) {
+            // Удаление может быть запрещено, хотя запись разрешена: чужой план не должен вернуться (#16).
+            file.writeText("")
+        }
     }
 }

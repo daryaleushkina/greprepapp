@@ -82,11 +82,11 @@ class TrainingRepository
 
         @Volatile private var syncAgain = false
 
-        val trainings: StateFlow<Map<String, StoredTraining>> = store.trainings
+        val trainings: StateFlow<Map<String, StoredTraining>> = store.visible
 
         /** Незаконченная тренировка для «Продолжить» на «Сегодня» — самая свежая. */
         val active: Flow<StoredTraining?> =
-            store.trainings
+            trainings
                 .map { all ->
                     all.values.filterNot { it.isFinished || isExpired(it) }.maxByOrNull { it.startedAtMillis }
                 }.distinctUntilChanged()
@@ -110,7 +110,8 @@ class TrainingRepository
         fun training(id: String): Flow<StoredTraining?> =
             flow {
                 withContext(io) { load() }
-                emitAll(store.trainings.map { it[id] }.distinctUntilChanged())
+                currentSession()?.let { session.ensureOwner(it) }
+                emitAll(trainings.map { it[id] }.distinctUntilChanged())
             }
 
         private fun currentSession(): Long? = (session.state.value as? SessionState.SignedIn)?.id
@@ -125,6 +126,7 @@ class TrainingRepository
         /** Начать: сессия со всеми заданиями и разборами ложится на устройство целиком. */
         suspend fun start(request: TrainingRequest): StartResult {
             val id = currentSession() ?: return StartResult.Failed(TrainingProblem.Failed)
+            if (!session.ensureOwner(id)) return StartResult.Failed(TrainingProblem.Failed)
             return when (val result = apiCall { api.startTraining(request) }) {
                 is ApiResult.Ok -> {
                     val stored = StoredTraining(session = result.value, startedAtMillis = clock.millis())
@@ -234,6 +236,7 @@ class TrainingRepository
             report: QuestionReport,
         ) {
             val id = currentSession() ?: return
+            if (!session.ensureOwner(id)) return
             edits.withLock {
                 write(id) { store.putReports(store.reports.value + PendingReport(questionId, report)) }
             }
@@ -242,9 +245,10 @@ class TrainingRepository
 
         private suspend fun edit(
             trainingId: String,
+            sessionId: Long? = currentSession(),
             change: (StoredTraining) -> StoredTraining,
         ) {
-            val id = currentSession() ?: return
+            val id = sessionId ?: return
             edits.withLock {
                 val current = withContext(io) { store.get(trainingId) } ?: return
                 val next = change(current)
@@ -311,6 +315,7 @@ class TrainingRepository
         private suspend fun syncOnce() {
             val id = currentSession() ?: return
             withContext(io) { load() }
+            if (!session.ensureOwner(id)) return
             finishExpired()
             for (t in store.trainings.value.values
                 .sortedBy { it.startedAtMillis }) {
@@ -344,11 +349,32 @@ class TrainingRepository
         ): Sent {
             if (t.unsent.isEmpty()) return Sent.Done
             val sent = t.unsent.sorted().mapNotNull { t.answers[it] }
-            val result = apiCallNoContent { api.submitTrainingAnswers(t.id, AnswerBatch(sent)) }
+            return sendAnswerBatch(t.id, sent, id)
+        }
+
+        private suspend fun sendAnswerBatch(
+            trainingId: String,
+            sent: List<GivenAnswer>,
+            id: Long,
+        ): Sent {
+            val result = apiCallNoContent { api.submitTrainingAnswers(trainingId, AnswerBatch(sent)) }
             if (!session.isCurrent(id)) return Sent.Stop
+            if (sent.size > 1 && result is ApiResult.Failed &&
+                (result.failure as? ApiFailure.Server)?.status in PERMANENT
+            ) {
+                var outcome = Sent.Done
+                for (answer in sent) {
+                    when (sendAnswerBatch(trainingId, listOf(answer), id)) {
+                        Sent.Stop -> return Sent.Stop
+                        Sent.Later -> outcome = Sent.Later
+                        Sent.Done -> Unit
+                    }
+                }
+                return outcome
+            }
             return settle(result, id, "answers") {
                 // Убрать из очереди только то, что не поменялось, пока ответ летел: новый ответ «Проверки» уйдёт следом.
-                edit(t.id) { cur -> cur.copy(unsent = cur.unsent.filterNot { cur.answers[it] in sent }.toSet()) }
+                edit(trainingId, id) { cur -> cur.copy(unsent = cur.unsent.filterNot { cur.answers[it] in sent }.toSet()) }
             }
         }
 
@@ -359,7 +385,7 @@ class TrainingRepository
             val finish = t.finish ?: return Sent.Done
             val result = apiCall { api.finishTraining(t.id, finish) }
             if (!session.isCurrent(id)) return Sent.Stop
-            return settle(result, id, "finish") { edit(t.id) { it.copy(finishSent = true) } }
+            return settle(result, id, "finish") { edit(t.id, id) { it.copy(finishSent = true) } }
         }
 
         private suspend fun sendReports(id: Long) {

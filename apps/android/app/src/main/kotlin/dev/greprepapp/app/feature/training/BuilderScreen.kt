@@ -46,6 +46,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -144,34 +145,47 @@ fun BuilderContent(
     actions: BuilderActions,
     modifier: Modifier = Modifier,
 ) {
-    val content = state.content
-    if (state.editingTopics && content is Content.Ready) {
-        TopicsContent(content, actions, modifier)
-        return
-    }
-    NestedScreen(title = stringResource(R.string.training_new), onBack = actions.onBack, modifier = modifier) { padding ->
-        when (content) {
-            Content.Loading -> {
-                LoadingState(
-                    text = stringResource(R.string.training_loading),
-                    modifier = Modifier.padding(padding).testTag("builder.loading"),
-                )
+    TrainingKeyboard(onKey = { key ->
+        if (key == Key.Enter && !state.starting && state.content is Content.Ready) {
+            if (state.editingTopics) {
+                actions.onCloseTopics()
+            } else if (BuilderViewModel.requestOf(state.content) != null) {
+                actions.onStart()
             }
+            true
+        } else {
+            false
+        }
+    }, modifier = modifier) {
+        val content = state.content
+        if (state.editingTopics && content is Content.Ready) {
+            TopicsContent(content, actions)
+            return@TrainingKeyboard
+        }
+        NestedScreen(title = stringResource(R.string.training_new), onBack = actions.onBack) { padding ->
+            when (content) {
+                Content.Loading -> {
+                    LoadingState(
+                        text = stringResource(R.string.training_loading),
+                        modifier = Modifier.padding(padding).testTag("builder.loading"),
+                    )
+                }
 
-            is Content.Unavailable -> {
-                val offline = content.problem == TrainingProblem.Offline
-                EmptyState(
-                    title = stringResource(if (offline) R.string.training_offline_title else R.string.training_failed_title),
-                    message = stringResource(if (offline) R.string.training_offline_message else R.string.training_failed_message),
-                    icon = if (offline) R.drawable.ic_wifi_off else R.drawable.ic_error,
-                    action = stringResource(R.string.training_retry),
-                    onAction = actions.onRetry,
-                    modifier = Modifier.padding(padding).testTag("builder.unavailable"),
-                )
-            }
+                is Content.Unavailable -> {
+                    val offline = content.problem == TrainingProblem.Offline
+                    EmptyState(
+                        title = stringResource(if (offline) R.string.training_offline_title else R.string.training_failed_title),
+                        message = stringResource(if (offline) R.string.training_offline_message else R.string.training_failed_message),
+                        icon = if (offline) R.drawable.ic_wifi_off else R.drawable.ic_error,
+                        action = stringResource(R.string.training_retry),
+                        onAction = actions.onRetry,
+                        modifier = Modifier.padding(padding).testTag("builder.unavailable"),
+                    )
+                }
 
-            is Content.Ready -> {
-                BuilderForm(content, state, actions, padding)
+                is Content.Ready -> {
+                    BuilderForm(content, state, actions, padding)
+                }
             }
         }
     }
@@ -187,28 +201,42 @@ private fun BuilderForm(
     val request = BuilderViewModel.requestOf(c)
     Column(modifier = Modifier.fillMaxSize().padding(padding).imePadding()) {
         Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
-            Column(
-                modifier =
-                    Modifier
-                        .widthIn(max = GpLayout.contentMax + GpLayout.gutter * 2)
-                        .fillMaxWidth()
-                        .verticalScroll(rememberScrollState())
-                        .padding(horizontal = GpLayout.gutter, vertical = GpSpace.s8)
-                        .testTag("builder.form"),
-                verticalArrangement = Arrangement.spacedBy(GpSpace.s24),
-            ) {
-                if (c.presets.isNotEmpty()) Presets(c, actions.onPreset)
-                CustomCard(c, actions)
-                state.problem?.let {
-                    StatusLine(
-                        icon = if (it == StartProblem.Offline) R.drawable.ic_wifi_off else R.drawable.ic_error,
-                        text = startProblemText(it),
-                        modifier = Modifier.testTag("builder.problem"),
-                    )
+            if (Gp.isWide) {
+                TrainingSplit(PaddingValues(), "builder", left = {
+                    if (c.presets.isNotEmpty()) Presets(c, actions.onPreset)
+                    state.problem?.let {
+                        StatusLine(
+                            icon = R.drawable.ic_error,
+                            text = startProblemText(it),
+                            modifier = Modifier.testTag("builder.problem"),
+                        )
+                    }
+                }, right = { CustomCard(c, actions) })
+            } else {
+                Column(
+                    modifier =
+                        Modifier
+                            .widthIn(max = GpLayout.contentMax + GpLayout.gutter * 2)
+                            .fillMaxWidth()
+                            .verticalScroll(
+                                rememberScrollState(),
+                            ).padding(horizontal = GpLayout.gutter, vertical = GpSpace.s8)
+                            .testTag("builder.form"),
+                    verticalArrangement = Arrangement.spacedBy(GpSpace.s24),
+                ) {
+                    if (c.presets.isNotEmpty()) Presets(c, actions.onPreset)
+                    CustomCard(c, actions)
+                    state.problem?.let {
+                        StatusLine(
+                            icon = if (it == StartProblem.Offline) R.drawable.ic_wifi_off else R.drawable.ic_error,
+                            text = startProblemText(it),
+                            modifier = Modifier.testTag("builder.problem"),
+                        )
+                    }
                 }
             }
         }
-        BottomActions {
+        BottomActions(note = { KeyHint("Enter", stringResource(R.string.keyboard_start)) }) {
             val label =
                 if (request == null) {
                     stringResource(R.string.builder_nothing)
@@ -510,85 +538,94 @@ private fun TopicsContent(
     val topics = BuilderViewModel.topicsOf(c.options, f)
     val available = BuilderViewModel.available(c.options, f)
     val english = LocalConfiguration.current.locales[0].language == "en"
-    NestedScreen(title = stringResource(R.string.builder_topics), onBack = actions.onCloseTopics, modifier = modifier) { padding ->
-        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-            Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
-                Column(
+    val topicList: @Composable () -> Unit = {
+        Text(
+            text = (listOf(f.section.study().label(), f.type.label())).joinToString(" · "),
+            style = Gp.type.subhead,
+            color = Gp.colors.textSecondary,
+        )
+        Group {
+            topics.forEachIndexed { i, topic ->
+                if (i > 0) Divider()
+                val checked = f.topicIds == null || topic.id in f.topicIds
+                val count =
+                    when (f.difficulty) {
+                        null -> topic.available.easy + topic.available.medium + topic.available.hard
+                        Difficulty.EASY -> topic.available.easy
+                        Difficulty.MEDIUM -> topic.available.medium
+                        Difficulty.HARD -> topic.available.hard
+                    }
+                Row(
                     modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .toggleable(
+                                value = checked,
+                                role = Role.Checkbox,
+                                onValueChange = { actions.onToggleTopic(topic.id) },
+                            ).heightIn(min = GpSize.rowTall)
+                            .padding(start = GpSpace.s16, end = GpSpace.s8)
+                            .testTag("topic.${topic.id}"),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(GpSpace.s8),
+                ) {
+                    Text(
+                        text = topic.title.pick(english),
+                        style = Gp.type.body,
+                        color = Gp.colors.text,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Text(
+                        text = count.toString(),
+                        style = Gp.type.subhead.copy(fontFeatureSettings = "tnum"),
+                        color = Gp.colors.textSecondary,
+                    )
+                    Checkbox(
+                        checked = checked,
+                        onCheckedChange = null,
+                        colors = CheckboxDefaults.colors(checkedColor = Gp.colors.accent, checkmarkColor = Gp.colors.onAccent),
+                    )
+                }
+            }
+        }
+    }
+    val difficulty: @Composable () -> Unit = {
+        Text(text = stringResource(R.string.topics_difficulty), style = Gp.type.subhead, color = Gp.colors.textSecondary)
+        SegmentedChoice(
+            options =
+                listOf(
+                    stringResource(R.string.difficulty_any),
+                    stringResource(R.string.difficulty_easy),
+                    stringResource(R.string.difficulty_medium),
+                    stringResource(R.string.difficulty_hard),
+                ),
+            selected = DIFFICULTIES.indexOf(f.difficulty),
+            onSelect = { actions.onDifficulty(DIFFICULTIES[it]) },
+            modifier = Modifier.fillMaxWidth(),
+            tags = DIFFICULTIES.map { "topics.difficulty.${it?.value ?: "any"}" },
+        )
+    }
+    NestedScreen(title = stringResource(R.string.builder_topics), onBack = actions.onCloseTopics, modifier = modifier) { padding ->
+        Column(Modifier.fillMaxSize().padding(padding)) {
+            Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
+                if (Gp.isWide) {
+                    TrainingSplit(PaddingValues(), "topics", topicList, difficulty)
+                } else {
+                    Column(
                         Modifier
                             .widthIn(max = GpLayout.contentMax + GpLayout.gutter * 2)
                             .fillMaxWidth()
                             .verticalScroll(rememberScrollState())
                             .padding(horizontal = GpLayout.gutter, vertical = GpSpace.s8)
                             .testTag("topics"),
-                    verticalArrangement = Arrangement.spacedBy(GpSpace.s16),
-                ) {
-                    Text(
-                        text = (listOf(f.section.study().label(), f.type.label())).joinToString(" · "),
-                        style = Gp.type.subhead,
-                        color = Gp.colors.textSecondary,
-                    )
-                    Group {
-                        topics.forEachIndexed { i, topic ->
-                            if (i > 0) Divider()
-                            val checked = f.topicIds == null || topic.id in f.topicIds
-                            val count =
-                                when (f.difficulty) {
-                                    null -> topic.available.easy + topic.available.medium + topic.available.hard
-                                    Difficulty.EASY -> topic.available.easy
-                                    Difficulty.MEDIUM -> topic.available.medium
-                                    Difficulty.HARD -> topic.available.hard
-                                }
-                            Row(
-                                modifier =
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .toggleable(
-                                            value = checked,
-                                            role = Role.Checkbox,
-                                            onValueChange = { actions.onToggleTopic(topic.id) },
-                                        ).heightIn(min = GpSize.rowTall)
-                                        .padding(start = GpSpace.s16, end = GpSpace.s8)
-                                        .testTag("topic.${topic.id}"),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(GpSpace.s8),
-                            ) {
-                                Text(
-                                    text = topic.title.pick(english),
-                                    style = Gp.type.body,
-                                    color = Gp.colors.text,
-                                    modifier = Modifier.weight(1f),
-                                )
-                                Text(
-                                    text = count.toString(),
-                                    style = Gp.type.subhead.copy(fontFeatureSettings = "tnum"),
-                                    color = Gp.colors.textSecondary,
-                                )
-                                Checkbox(
-                                    checked = checked,
-                                    onCheckedChange = null,
-                                    colors = CheckboxDefaults.colors(checkedColor = Gp.colors.accent, checkmarkColor = Gp.colors.onAccent),
-                                )
-                            }
-                        }
+                        verticalArrangement = Arrangement.spacedBy(GpSpace.s16),
+                    ) {
+                        topicList()
+                        difficulty()
                     }
-                    Text(text = stringResource(R.string.topics_difficulty), style = Gp.type.subhead, color = Gp.colors.textSecondary)
-                    SegmentedChoice(
-                        options =
-                            listOf(
-                                stringResource(R.string.difficulty_any),
-                                stringResource(R.string.difficulty_easy),
-                                stringResource(R.string.difficulty_medium),
-                                stringResource(R.string.difficulty_hard),
-                            ),
-                        selected = DIFFICULTIES.indexOf(f.difficulty),
-                        onSelect = { actions.onDifficulty(DIFFICULTIES[it]) },
-                        modifier = Modifier.fillMaxWidth(),
-                        tags = DIFFICULTIES.map { "topics.difficulty.${it?.value ?: "any"}" },
-                    )
                 }
             }
-            BottomActions {
+            BottomActions(note = { KeyHint("Enter", stringResource(R.string.summary_done)) }) {
                 GpPrimaryButton(
                     text = stringResource(R.string.topics_done, pluralStringResource(R.plurals.tasks_count, available, available)),
                     onClick = actions.onCloseTopics,

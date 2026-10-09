@@ -87,6 +87,23 @@ class AppFlowTest {
     }
 
     @Test
+    @Config(qualifiers = "en-" + RobolectricDeviceQualifiers.MediumPhone)
+    fun settingsShowTheSameDisclaimerInEnglish() = settingsShowTheEnglishEtsDisclaimer()
+
+    @Test
+    fun settingsShowTheEnglishEtsDisclaimer() {
+        launch()
+        signIn()
+        waitFor("today.plan")
+        compose.onNodeWithTag("tab.progress").performClick()
+        compose.onNodeWithTag("progress.settings").performClick()
+        compose
+            .onNodeWithText(
+                "GRE® is a registered trademark of Educational Testing Service (ETS). This product is not endorsed or approved by ETS.",
+            ).assertIsDisplayed()
+    }
+
+    @Test
     fun signInShowsTodayFromTheServerAndSignOutReturns() {
         launch()
         signIn()

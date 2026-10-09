@@ -16,6 +16,7 @@ import dev.greprepapp.app.core.NetworkStatus
 import dev.greprepapp.app.core.ProcessForeground
 import dev.greprepapp.app.core.SecondTicker
 import dev.greprepapp.app.core.Ticker
+import dev.greprepapp.app.core.report.ClientErrorReporter
 import dev.greprepapp.app.core.session.KeystoreTokenStore
 import dev.greprepapp.app.core.session.TokenStore
 import dev.greprepapp.app.feature.today.TodayCache
@@ -66,7 +67,8 @@ object AppModule {
     @Singleton
     fun todayCache(
         @ApplicationContext context: Context,
-    ): TodayCache = TodayCache(context.noBackupFilesDir)
+        reporter: ClientErrorReporter,
+    ): TodayCache = TodayCache(context.noBackupFilesDir, reporter)
 
     @Provides
     @Singleton

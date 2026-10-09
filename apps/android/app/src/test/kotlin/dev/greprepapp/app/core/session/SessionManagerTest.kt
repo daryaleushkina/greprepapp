@@ -97,7 +97,12 @@ class SessionManagerTest {
         runTest(main.dispatcher) {
             val graph = graph(token = null)
             graph.cache.save(starterPlan)
-            graph.session.didSignIn("fresh")
+            graph.session.didSignIn(
+                "fresh",
+                dev.greprepapp.app.testing
+                    .session()
+                    .user.id,
+            )
             assertEquals("fresh", graph.tokens.token)
             assertEquals("fresh", graph.holder.token)
             assertNull("план прошлого человека стёрт", graph.cache.load())
@@ -110,7 +115,12 @@ class SessionManagerTest {
             val graph = graph(token = "a")
             graph.session.signOut()
             advanceUntilIdle()
-            graph.session.didSignIn("b")
+            graph.session.didSignIn(
+                "b",
+                dev.greprepapp.app.testing
+                    .session()
+                    .user.id,
+            )
             assertEquals(SessionState.SignedIn(2), graph.session.state.value)
             assertTrue(graph.session.isCurrent(2))
             assertTrue(!graph.session.isCurrent(1))

@@ -122,6 +122,7 @@ fun MainScreen(
                         trainingId = route.trainingId,
                         onBack = ::back,
                         onOpen = { stack.add(MainRoute.ReviewItem(route.trainingId, it)) },
+                        onReport = { stack.add(it.route()) },
                     )
                 }
                 entry<MainRoute.ReviewItem> { route ->

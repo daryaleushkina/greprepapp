@@ -72,24 +72,31 @@ class SignInViewModel
                 val result =
                     apiCall {
                         api.signInForDevelopment(
-                            DevSignIn(name = trimmed, transport = SessionTransport.BEARER, clientKind = config.clientKind),
+                            DevSignIn(
+                                name = trimmed,
+                                transport = SessionTransport.BEARER,
+                                clientKind = config.clientKind,
+                            ),
                         )
                     }
                 when (result) {
-                    is ApiResult.Ok -> finish(result.value.token)
+                    is ApiResult.Ok -> finish(result.value.token, result.value.user.id)
                     is ApiResult.Failed -> fail(result.failure)
                 }
             }
         }
 
-        private suspend fun finish(token: String?) {
+        private suspend fun finish(
+            token: String?,
+            ownerId: String,
+        ) {
             if (token.isNullOrEmpty()) {
                 // Сервер обязан вернуть токен при transport=bearer: без него — разошлись с договором.
                 fail(ApiFailure.Unexpected("sign-in: session without token"))
                 return
             }
             try {
-                session.didSignIn(token)
+                session.didSignIn(token, ownerId)
                 mutableState.value = UiState()
             } catch (failure: Exception) {
                 if (!failure.isStorageFailure()) throw failure

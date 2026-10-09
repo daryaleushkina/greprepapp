@@ -37,8 +37,30 @@ class SignInViewModelTest {
     private fun TestScope.setUp(devSignIn: Boolean = true): Pair<TestGraph, SignInViewModel> {
         val graph = TestGraph(this, main.dispatcher, folder.root, devSignIn = devSignIn)
         graph.settle()
-        return graph to SignInViewModel(auth, graph.session, graph.config, graph.reporter)
+        return graph to
+            SignInViewModel(
+                LocalizedAuthApi(
+                    auth,
+                    SignInLocale(
+                        androidx.test.core.app.ApplicationProvider
+                            .getApplicationContext(),
+                    ),
+                ),
+                graph.session,
+                graph.config,
+                graph.reporter,
+            )
     }
+
+    @Test
+    @org.robolectric.annotation.Config(qualifiers = "en")
+    fun signInSendsTheInterfaceLanguage() =
+        runTest(main.dispatcher) {
+            val (_, vm) = setUp()
+            vm.signInForDevelopment("english")
+            advanceUntilIdle()
+            assertEquals(dev.greprepapp.api.models.Locale.EN, auth.devSignIns.single().locale)
+        }
 
     @Test
     fun developmentSignInStartsASession() =

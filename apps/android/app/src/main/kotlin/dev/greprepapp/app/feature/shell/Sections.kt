@@ -138,6 +138,12 @@ fun SettingsScreen(
                     color = Gp.colors.textSecondary,
                     modifier = Modifier.padding(horizontal = GpSpace.s16),
                 )
+                Text(
+                    text = stringResource(R.string.ets_disclaimer),
+                    style = Gp.type.caption,
+                    color = Gp.colors.textSecondary,
+                    modifier = Modifier.padding(horizontal = GpSpace.s16, vertical = GpSpace.s8).testTag("settings.disclaimer"),
+                )
             }
         }
     }

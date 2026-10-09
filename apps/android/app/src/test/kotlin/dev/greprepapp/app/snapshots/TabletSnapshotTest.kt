@@ -66,6 +66,36 @@ class TabletSnapshotTest(
     @Test
     fun trainingReview() = snap("tablet-training-review") { TrainingScreens.Review() }
 
+    @Test
+    fun trainingTopics() = snap("tablet-training-topics") { TrainingScreens.Builder(TrainingScreens.topics) }
+
+    @Test
+    fun trainingCheck() = snap("tablet-training-check") { TrainingScreens.Session(TrainingScreens.qcTimed) }
+
+    @Test
+    fun trainingOverview() = snap("tablet-training-overview") { TrainingScreens.Session(TrainingScreens.overview) }
+
+    @Test
+    fun trainingBuilderLarge() = snap("tablet-training-builder-large", large = true) { TrainingScreens.Builder() }
+
+    @Test
+    fun trainingQuestionLarge() = snap("tablet-training-question-large", large = true) { TrainingScreens.Session(TrainingScreens.tcWrong) }
+
+    @Test
+    fun trainingSummaryLarge() = snap("tablet-training-summary-large", large = true) { TrainingScreens.Session(TrainingScreens.summary) }
+
+    @Test
+    fun trainingReviewLarge() = snap("tablet-training-review-large", large = true) { TrainingScreens.Review() }
+
+    @Test
+    fun trainingCheckLarge() = snap("tablet-training-check-large", large = true) { TrainingScreens.Session(TrainingScreens.qcTimed) }
+
+    @Test
+    fun trainingTopicsLarge() = snap("tablet-training-topics-large", large = true) { TrainingScreens.Builder(TrainingScreens.topics) }
+
+    @Test
+    fun trainingOverviewLarge() = snap("tablet-training-overview-large", large = true) { TrainingScreens.Session(TrainingScreens.overview) }
+
     companion object {
         @JvmStatic
         @ParameterizedRobolectricTestRunner.Parameters(name = "{0}")

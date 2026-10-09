@@ -38,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -154,6 +155,68 @@ fun SessionContent(
     actions: SessionActions,
     modifier: Modifier = Modifier,
 ) {
+    TrainingKeyboard(onKey = { key ->
+        val screen = (state as? UiState.Active)?.screen
+        screen != null && sessionKey(key, screen, repeat, actions)
+    }, modifier = modifier) { SessionBody(state, repeat, actions) }
+}
+
+private fun sessionKey(
+    key: Key,
+    s: Screen,
+    repeat: SessionViewModel.RepeatState,
+    actions: SessionActions,
+): Boolean {
+    if (key == Key.Enter) {
+        when {
+            s.result != null -> {
+                if (!repeat.starting) {
+                    if (s.result!!.review.isEmpty()) actions.onClose() else actions.onRepeat()
+                }
+            }
+
+            s.overview -> {
+                actions.onFinish()
+            }
+
+            s.training.isCheck || s.revealed -> {
+                actions.onNext()
+            }
+
+            s.canCheck -> {
+                actions.onCheck()
+            }
+
+            else -> {
+                return false
+            }
+        }
+        return true
+    }
+    if (key == Key.DirectionRight && s.result == null && !s.overview && (s.training.isCheck || s.revealed)) {
+        actions.onNext()
+        return true
+    }
+    if (s.result != null || s.overview || s.revealed) return false
+    val group =
+        if (s.question.groups.size == 1) {
+            s.question.groups.first()
+        } else {
+            s.question.groups.getOrNull(s.missing.firstOrNull() ?: 0)
+        }
+    val index = AnswerKeys.indexOf(key)
+    val option = group?.options?.getOrNull(index) ?: return false
+    actions.onSelect(option.id)
+    return true
+}
+
+@Composable
+private fun SessionBody(
+    state: UiState,
+    repeat: SessionViewModel.RepeatState,
+    actions: SessionActions,
+    modifier: Modifier = Modifier,
+) {
     when (state) {
         UiState.Loading -> {
             // Чтение файла с устройства — миллисекунды: крутилка только мигнула бы.
@@ -181,7 +244,7 @@ fun SessionContent(
             SectionBackground(section = section, modifier = modifier) {
                 when {
                     result != null -> SummaryPane(s, result, section, repeat, actions)
-                    s.overview -> OverviewPane(s, section, actions)
+                    s.overview && !Gp.isWide -> OverviewPane(s, section, actions)
                     else -> QuestionPane(s, section, actions)
                 }
             }
@@ -202,11 +265,37 @@ private fun QuestionPane(
     Scaffold(
         containerColor = Color.Transparent,
         topBar = { SessionHeader(s, section, actions) },
-        bottomBar = { QuestionActions(s, actions) },
+        bottomBar = {
+            if (s.overview && Gp.isWide) {
+                BottomActions {
+                    ActionRow(
+                        secondary = stringResource(R.string.overview_back, s.position + 1) to actions.onCloseOverview,
+                        primary = stringResource(R.string.overview_finish),
+                        onPrimary = actions.onFinish,
+                        primaryTag = "overview.finish",
+                        secondaryTag = "overview.back",
+                    )
+                }
+            } else {
+                QuestionActions(s, actions)
+            }
+        },
     ) { padding ->
-        SessionColumn(padding = padding, tag = "question") {
+        val question: @Composable () -> Unit = {
             QuestionHeading(s.question, section, onReport = { actions.onReport(s.position) })
             QuestionBody(s, section, actions)
+            if (!s.revealed && !s.overview) {
+                val group =
+                    if (s.question.groups.size == 1) {
+                        s.question.groups.first()
+                    } else {
+                        s.question.groups.getOrNull(s.missing.firstOrNull() ?: 0)
+                    }
+                val last = group?.options?.lastIndex ?: 0
+                KeyHint("A–${('A'.code + last).toChar()}", stringResource(R.string.keyboard_choose))
+            }
+        }
+        val companion: @Composable () -> Unit = {
             if (s.revealed) {
                 ExplanationPanel(
                     question = s.question,
@@ -218,6 +307,16 @@ private fun QuestionPane(
                     onToggleWhyNot = actions.onToggleWhyNot,
                     modifier = Modifier.padding(top = GpSpace.s8),
                 )
+            } else if (s.training.isCheck) {
+                OverviewDetails(s, section, actions)
+            }
+        }
+        if (Gp.isWide) {
+            TrainingSplit(padding, "question", question, companion)
+        } else {
+            SessionColumn(padding = padding, tag = "question") {
+                question()
+                if (s.revealed) companion()
             }
         }
     }
@@ -614,7 +713,7 @@ private fun QuestionActions(
         }
 
         s.revealed -> {
-            BottomActions {
+            BottomActions(note = { KeyHint("→", stringResource(R.string.keyboard_next)) }) {
                 GpPrimaryButton(
                     text = nextLabel,
                     onClick = actions.onNext,
@@ -698,11 +797,6 @@ private fun OverviewPane(
     section: StudySection,
     actions: SessionActions,
 ) {
-    val colors = Gp.colors
-    val answered =
-        s.training.answers.values
-            .count { it.optionIds.isNotEmpty() }
-    val flagged = (0 until s.training.total).count { s.flaggedAt(it) }
     Scaffold(
         containerColor = Color.Transparent,
         topBar = { SessionHeader(s, section, actions) },
@@ -719,23 +813,47 @@ private fun OverviewPane(
         },
     ) { padding ->
         SessionColumn(padding = padding, tag = "overview") {
-            Text(
-                text = stringResource(R.string.question_overview),
-                style = Gp.type.title2,
-                color = colors.text,
-                modifier = Modifier.semantics { heading() },
-            )
-            Text(
-                text = stringResource(R.string.overview_summary, answered, s.training.total, flagged),
-                style = Gp.type.subhead,
-                color = colors.textSecondary,
-            )
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(GpSpace.s12),
-                verticalArrangement = Arrangement.spacedBy(GpSpace.s12),
-            ) {
-                repeat(s.training.total) { i -> OverviewCell(s, i, section, onClick = { actions.onGoTo(i) }) }
+            OverviewDetails(s, section, actions)
+        }
+    }
+}
+
+@Composable
+private fun OverviewDetails(
+    s: Screen,
+    section: StudySection,
+    actions: SessionActions,
+) {
+    val colors = Gp.colors
+    val answered =
+        s.training.session.items
+            .count {
+                TrainingRules.isComplete(
+                    it.question,
+                    s.training
+                        .answer(it.position)
+                        ?.optionIds
+                        .orEmpty(),
+                )
             }
+    val flagged = (0 until s.training.total).count { s.flaggedAt(it) }
+    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(GpSpace.s20)) {
+        Text(
+            text = stringResource(R.string.question_overview),
+            style = Gp.type.title2,
+            color = colors.text,
+            modifier = Modifier.semantics { heading() },
+        )
+        Text(
+            text = stringResource(R.string.overview_summary, answered, s.training.total, flagged),
+            style = Gp.type.subhead,
+            color = colors.textSecondary,
+        )
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(GpSpace.s12),
+            verticalArrangement = Arrangement.spacedBy(GpSpace.s12),
+        ) {
+            repeat(s.training.total) { i -> OverviewCell(s, i, section, onClick = { actions.onGoTo(i) }) }
         }
     }
 }
@@ -749,7 +867,7 @@ private fun OverviewCell(
 ) {
     val colors = Gp.colors
     val answer = s.training.answer(position)
-    val isAnswered = answer?.optionIds?.isNotEmpty() == true
+    val isAnswered = TrainingRules.isComplete(s.training.question(position), answer?.optionIds.orEmpty())
     val isFlagged = s.flaggedAt(position)
     val state =
         listOfNotNull(
@@ -829,7 +947,7 @@ private fun SummaryPane(
             }
         },
     ) { padding ->
-        SessionColumn(padding = padding, tag = "summary") {
+        val score: @Composable () -> Unit = {
             Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(GpSpace.s12)) {
                 Text(
                     text = result.correct.toString(),
@@ -848,6 +966,8 @@ private fun SummaryPane(
             if (s.training.finish?.timedOut == true) {
                 StatusLine(icon = R.drawable.ic_timer, text = stringResource(R.string.summary_timed_out))
             }
+        }
+        val review: @Composable () -> Unit = {
             if (result.review.isEmpty()) {
                 // Ошибок темы нет, но вопросы могли остаться «не успел» — «без ошибок» при 1 из 3 звучало бы фальшиво.
                 val text =
@@ -874,6 +994,14 @@ private fun SummaryPane(
                 onClick = actions.onReview,
                 modifier = Modifier.testTag("summary.review"),
             )
+        }
+        if (Gp.isWide) {
+            TrainingSplit(padding, "summary", score, review)
+        } else {
+            SessionColumn(padding = padding, tag = "summary") {
+                score()
+                review()
+            }
         }
     }
 }

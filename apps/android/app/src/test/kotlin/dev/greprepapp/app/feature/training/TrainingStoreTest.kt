@@ -19,6 +19,31 @@ class TrainingStoreTest {
     private val training = StoredTraining(Fixtures.session(Fixtures.tc1, Fixtures.se), startedAtMillis = 1L, position = 1)
 
     @Test
+    fun corruptOwnerIsReportedEvenIfConnectReadsItBeforeTheRepository() {
+        val dir = File(folder.root, "trainings").apply { mkdirs() }
+        File(dir, "owner.json").writeText("{broken")
+        val store = TrainingStore(folder.root)
+        store.connect("owner", "test-token")
+        assertEquals(listOf("JsonDecodingException"), store.load())
+        assertTrue(store.load().isEmpty())
+    }
+
+    @Test
+    fun expiredOwnerKeepsFilesButHidesTheTrainingsUntilReconnected() {
+        val store = TrainingStore(folder.root)
+        store.connect("owner", "test-token")
+        store.put(training)
+        store.expire()
+        assertTrue(store.visible.value.isEmpty())
+        val again = TrainingStore(folder.root)
+        assertEquals(training, again.get(training.id))
+        assertFalse(again.isConnected("different-token"))
+        assertTrue(again.visible.value.isEmpty())
+        assertTrue(again.isConnected("test-token"))
+        assertEquals(training, again.visible.value[training.id])
+    }
+
+    @Test
     fun keepsTrainingsAndReportsAcrossLaunches() {
         val store = TrainingStore(folder.root)
         store.put(training)
