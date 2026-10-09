@@ -1,0 +1,5 @@
+# Метка официального образа https://github.com/actions/runner-images/blob/main/images/macos/xcode-27-arm64-Readme.md.
+# В actionlint 1.7.12 её ещё нет; этот параметр дополняет список допустимых меток раннеров.
+self-hosted-runner:
+  labels:
+    - xcode-27

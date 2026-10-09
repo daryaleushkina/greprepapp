@@ -1,0 +1,229 @@
+name: CI
+
+# Вторая страховка рядом с локальным pre-push; обязательных проверок и деплоя здесь нет
+# (решение Даши 09.10.2026). Проверки живут только в scripts/hooks/gate*.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  changes:
+    name: Части гейта
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      apple: ${{ steps.touched.outputs.apple }}
+      android: ${{ steps.touched.outputs.android }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: База PR или коммит до пуша
+        id: touched
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          # Checkout PR — результат слияния с базой; полная история нужна тем же фильтрам, что в pre-push.
+          # Нет базы или коммит недоступен после force-push — сами фильтры требуют обе платформы.
+          for platform in apple android; do
+            if sh "scripts/hooks/$platform-touched" "$BASE"; then
+              echo "$platform=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "$platform=false" >> "$GITHUB_OUTPUT"
+            fi
+          done
+
+  backend-web:
+    name: Бэкенд, веб и токены
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: server/go.mod
+          cache-dependency-path: |
+            server/go.sum
+            server/tools/go.sum
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - name: golangci-lint той же версии, что на Маке
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/golangci/golangci-lint/v2.14.0/install.sh -o "$RUNNER_TEMP/install-golangci.sh"
+          sh "$RUNNER_TEMP/install-golangci.sh" -b "$(go env GOPATH)/bin" v2.14.0
+      - name: Зависимости Chromium для тестов компонентов
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install-deps chromium
+      - name: Общий гейт (включая свежесть и контраст токенов)
+        run: |
+          # Apple и Android идут отдельными задачами. База HEAD пропускает только эти части;
+          # Postgres и браузеры e2e поднимает сам gate через compose.yaml, как на Маке.
+          GATE_BASE="$(git rev-parse HEAD)" sh scripts/hooks/gate
+      - name: Отчёт e2e при ошибке
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: web-test-results
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore
+      - name: Остановить свой Docker-стенд
+        if: always()
+        run: docker compose --profile e2e down --volumes
+
+  android:
+    name: Android
+    needs: changes
+    if: needs.changes.outputs.android == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Android SDK из образа раннера
+        run: |
+          sdkmanager="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          # Ответы подаются отдельно от pipeline: ожидаемый SIGPIPE у yes не скрывает ошибку sdkmanager.
+          "$sdkmanager" --sdk_root="$ANDROID_HOME" --licenses < <(yes)
+          "$sdkmanager" --sdk_root="$ANDROID_HOME" 'platforms;android-37.0' 'build-tools;37.0.0' < <(yes)
+      - name: Гейт Android (Robolectric, без эмулятора)
+        run: sh scripts/hooks/gate-android
+      - name: Отчёты Android при ошибке
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: android-test-results
+          path: |
+            apps/android/**/build/reports/
+            apps/android/**/build/test-results/
+            apps/android/app/build/outputs/roborazzi/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  apple:
+    name: Apple
+    needs: changes
+    if: needs.changes.outputs.apple == 'true'
+    runs-on: xcode-27
+    timeout-minutes: 90
+    env:
+      XCODE_MAJOR: '27'
+      GATE_APPLE_POSTGRES_URL: postgres://greprep@127.0.0.1:55438/postgres?sslmode=disable
+      GATE_APPLE_UI_DB: greprep_ci_apple_ui
+      GATE_APPLE_UI_PORT: '8097'
+      GATE_APPLE_ARTIFACTS_DIR: ${{ github.workspace }}/test-results/apple
+      GATE_APPLE_SKIP_SNAPSHOTS: '1' # Сглаживание зависит от железа (решение Даши 09.10.2026).
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Xcode и симуляторы той же версии, что в проекте
+        run: |
+          # Не подменяем Xcode 27 старым Xcode или другую iOS ради зелёного CI.
+          developer_dir=''
+          for candidate in /Applications/Xcode_"$XCODE_MAJOR"*.app /Applications/Xcode.app; do
+            [ -d "$candidate" ] || continue
+            version="$(DEVELOPER_DIR="$candidate/Contents/Developer" xcodebuild -version | awk 'NR == 1 { print $2 }')"
+            case "$version" in
+              "$XCODE_MAJOR".*) developer_dir="$candidate/Contents/Developer"; break ;;
+            esac
+          done
+          if [ -z "$developer_dir" ]; then
+            echo "::error::В образе раннера нет Xcode $XCODE_MAJOR; нужна среда проекта, без ослабления проверок."
+            ls -d /Applications/Xcode*.app
+            exit 1
+          fi
+          echo "DEVELOPER_DIR=$developer_dir" >> "$GITHUB_ENV"
+          export DEVELOPER_DIR="$developer_dir"
+          xcodebuild -version
+          xcrun simctl list runtimes --json > "$RUNNER_TEMP/runtimes.json"
+          xcrun simctl list devicetypes --json > "$RUNNER_TEMP/devicetypes.json"
+          python3 - "$RUNNER_TEMP" <<'PY'
+          import json
+          import os
+          import sys
+          from pathlib import Path
+
+          directory = Path(sys.argv[1])
+          runtimes = json.loads((directory / "runtimes.json").read_text())["runtimes"]
+          types = json.loads((directory / "devicetypes.json").read_text())["devicetypes"]
+          required = "com.apple.CoreSimulator.SimRuntime.iOS-27-0"
+          if not any(r["identifier"] == required and r.get("isAvailable", False) for r in runtimes):
+              sys.exit("::error::Нет iOS 27.0 для scripts/simulator.sh; другую iOS не подставляем.")
+          for device in ("iPhone-18-Pro", "iPad-Pro-11-inch-M5-12GB"):
+              if not any(t["identifier"] == "com.apple.CoreSimulator.SimDeviceType." + device for t in types):
+                  sys.exit("::error::Нет типа устройства " + device + " для scripts/simulator.sh.")
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as summary:
+              summary.write("iOS 18 проверяет отдельный workflow Apple iOS 18: еженедельно и вручную.\n")
+          PY
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: server/go.mod
+          cache-dependency-path: server/go.sum
+      - name: Кэш SwiftPM
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/Library/Caches/org.swift.swiftpm
+            ~/.swiftpm
+            apps/apple/Tools/.build
+            apps/apple/build/gate/SourcePackages
+          key: swiftpm-${{ runner.os }}-${{ runner.arch }}-xcode27-${{ hashFiles('apps/apple/**/Package.resolved', 'apps/apple/**/Package.swift') }}
+          restore-keys: |
+            swiftpm-${{ runner.os }}-${{ runner.arch }}-xcode27-
+      - name: XcodeGen и Postgres 18 без Docker
+        run: |
+          brew install xcodegen postgresql@18
+          pg_bin="$(brew --prefix postgresql@18)/bin"
+          echo "$pg_bin" >> "$GITHUB_PATH"
+          "$pg_bin/initdb" -D "$RUNNER_TEMP/greprep-postgres" -U greprep --auth=trust --no-locale --encoding=UTF8
+          "$pg_bin/pg_ctl" -D "$RUNNER_TEMP/greprep-postgres" -l "$RUNNER_TEMP/greprep-postgres.log" \
+            -o '-h 127.0.0.1 -p 55438' -w start
+      - name: Диагностика окружения и симуляторов GrePrep
+        run: |
+          (cd apps/apple && sh scripts/simulator.sh iphone && sh scripts/simulator.sh ipad)
+          python3 scripts/ci/apple-diagnostics.py "$GATE_APPLE_ARTIFACTS_DIR/environment"
+      - name: Гейт Apple (iPhone и Mac)
+        run: sh scripts/hooks/gate-apple
+      - name: Результаты и непрошедшие снимки Apple
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: apple-test-results
+          path: test-results/apple/
+          retention-days: 7
+          if-no-files-found: warn
+      - name: Остановить свой Postgres
+        if: always()
+        run: |
+          if [ -f "$RUNNER_TEMP/greprep-postgres/postmaster.pid" ]; then
+            "$(brew --prefix postgresql@18)/bin/pg_ctl" -D "$RUNNER_TEMP/greprep-postgres" -m fast -w stop
+          fi

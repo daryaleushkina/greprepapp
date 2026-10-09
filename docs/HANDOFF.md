@@ -2,7 +2,7 @@
 
 Идёт каркас (`docs/ROADMAP.md` §2): договор API, сервер на Go, приложение
 Apple (iPhone, iPad, Mac), приложение Android и веб (мини-апп и сайт) готовы;
-дальше — тренировки в вебе и Apple, CI, админка и сервер (порядок — там же).
+дальше — тренировки в вебе и Apple, админка и сервер (порядок — там же).
 Стек и решения — `PRODUCT.md`, «Stack», и ROADMAP §2. Правила работы —
 `AGENTS.md`.
 
@@ -27,7 +27,9 @@ Apple (iPhone, iPad, Mac), приложение Android и веб (мини-ап
 | `compose.yaml`                         | локальный Postgres 18 на порту 55432; браузеры e2e (профиль `e2e`, порт 3556) |
 | `apps/apple/`                          | приложение на SwiftUI для iPhone, iPad и Mac (ниже, «Приложение Apple») |
 | `apps/android/`                        | приложение на Kotlin и Compose для телефонов и планшетов Android (ниже, «Приложение Android») |
-| `.github/workflows/deploy.yml`         | гейт и деплой для пушей из облака; выключен до переменной `DEPLOY_ENABLED=true`; пока в виде LifeCommit (pnpm, wrangler) — под Go переписывает каркас |
+| `.github/workflows/ci.yml`             | тот же гейт на каждый PR и пуш в `main`: бэкенд и веб с токенами на Linux, Android на Linux, Apple на macOS; вторая страховка без деплоя |
+| `.github/workflows/apple-ios18.yml`    | тот же гейт Apple на iOS 18: по понедельникам и вручную; среда скачивается без Apple ID, DMG кэшируется |
+| `.github/actionlint.yaml`             | метка официального раннера `xcode-27`, которой ещё нет в списке actionlint 1.7.12 |
 | `scripts/setup-bot.mjs`, `set-bot-avatar.mjs` | настройка бота Telegram; имя и тексты не заданы (`TEXTS`)    |
 | `.oxlintrc.json`                       | линтер гейта: правила хуков React, висящие промисы                  |
 | `.mcp.json`                            | MCP `chrome-devtools` и `lazyweb` (описаны в README скиллов)        |
@@ -43,10 +45,73 @@ Apple (iPhone, iPad, Mac), приложение Android и веб (мини-ап
 | `e2e/`, `playwright.config.ts`         | сквозные тесты веба: `e2e/miniapp/*`, `e2e/site/*`, эталоны снимков `e2e/__screens__/<проект>/` |
 | `vitest.config.ts`                     | модульные тесты (веб, клиент API, хуки Claude и git) и компоненты в Chromium; там же порог покрытия фронта |
 | `server/cmd/e2estack/`                 | стенд e2e: своя база, тот же `app.Handler`, подменный провайдер OIDC вместо Telegram, Apple и Google |
-| `.github/workflows/tokens.yml`         | CI токенов: сгенерированное совпадает с источником, контраст AA в обеих темах |
 
 Тесты хуков (`.claude/hooks/*.test.ts`, `scripts/hooks/git-hooks.test.ts`) идут
 в `pnpm test` вместе с остальными модульными (проект `unit` в `vitest.config.ts`).
+
+## CI
+
+`.github/workflows/ci.yml` запускается на каждый PR и пуш в `main`. Новый пуш отменяет предыдущий
+прогон того же PR или ветки. Это вторая страховка: защиту ветки и обязательные проверки не включает,
+локальный `pre-push` остаётся обязательным (решение Даши 09.10.2026).
+
+- **Бэкенд, веб и токены:** `ubuntu-latest`, Go из `server/go.mod`, Node из `.node-version` (24), pnpm из
+  корневого `package.json`; корневой lockfile. Вызывается `scripts/hooks/gate` с `GATE_BASE=HEAD`, чтобы
+  пропустить только мобильные части. Свежесть токенов и контраст уже проверяет этот гейт. Postgres 18 и
+  браузеры e2e поднимаются из `compose.yaml`; образ Playwright тот же, что у эталонов снимков на Маке.
+- **Android:** `ubuntu-latest`, JDK 21 и Android SDK, `scripts/hooks/gate-android`; Robolectric без эмулятора.
+  `sdkmanager` вызывается по `$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager`: в PATH раннера его нет.
+  Сначала `--licenses`, затем `platforms;android-37.0` (API 37) и `build-tools;37.0.0`; ответы `yes` подаются
+  через process substitution, чтобы SIGPIPE у `yes` не скрывал ошибку установки при `pipefail`.
+- **Apple:** `xcode-27` (arm64), Xcode 27, `scripts/hooks/gate-apple`; iPhone, iPad и Mac. Среда iOS 27.0 и типы
+  устройств проверяются до запуска. Postgres 18 — отдельный кластер Homebrew на `55438`, без Docker.
+  `GATE_APPLE_POSTGRES_URL` — админский URL; `GATE_APPLE_UI_DB` и `GATE_APPLE_UI_PORT` задают отдельный
+  стенд (`greprep_ci_apple_ui`, `8097`). Без этих переменных гейт использует прежний Docker-стенд.
+  `sh scripts/hooks/gate-apple --ui-server-only` проверяет пересоздание базы, миграции, сид и health сервера,
+  затем гасит его; Xcode и симуляторы в этом режиме не запускаются.
+
+Apple и Android включаются существующими `apple-touched` и `android-touched`: база — `pull_request.base.sha`
+для результата слияния PR, `push.before` для пуша. История полная; неизвестная или нулевая база включает обе
+части. Таймауты: выбор частей — 5 минут, бэкенд/веб и Android — 45, Apple — 90. Кэшируются Go, pnpm,
+Gradle и SwiftPM. Своими процессами и симуляторами управляют гейты; CI дополнительно останавливает свой
+Postgres и Docker-стенд.
+
+Результаты — GitHub → Actions → CI и Checks в PR. При ошибке отчёты и снимки лежат в Artifacts (7 дней).
+У Apple — `apple-test-results`, у недельного прогона — `apple-ios18-test-results`: полные логи гейта,
+`iphone.xcresult` (также `ipad.xcresult` и `mac.xcresult`, если до них дошло), `snapshots/` с непрошедшими
+снимками и `environment/` с диагностикой. `GATE_APPLE_ARTIFACTS_DIR` сохраняет каталог после cleanup;
+без переменной временные файлы, как прежде, удаляются. `SNAPSHOT_ARTIFACTS` передаётся приложению тестов
+через `TEST_RUNNER_SNAPSHOT_ARTIFACTS`, чтобы PNG не остались в контейнере симулятора.
+
+Перед тестами оба Apple-workflow создают выключенные GrePrep-устройства и вызывают
+`scripts/ci/apple-diagnostics.py`: Xcode с номером сборки, `simctl runtime list`, типы iPhone, а для каждого
+GrePrep — UUID, тип, среда, версия и **сборка** iOS (`environment/greprep-devices.json`); исходный JSON тоже
+сохранён. Для сверки с локальными эталонами: iOS 27.0 **24A434**, Xcode 27.0 **27A266a**.
+Если CI красный, а Мак зелёный, сверить версии инструментов и сред, открыть лог упавшего
+шага и отчёт тестов. Локальную сверку снимков, пороги и остальные проверки не ослаблять; расхождение передать Даше с причинами
+и вариантами. Эталоны сами не переснимаются. Выкладки на сервер в этом workflow нет.
+
+Образ Apple — отдельный [`xcode-27`](https://github.com/actions/runner-images/blob/main/images/macos/xcode-27-arm64-Readme.md):
+macOS 27, Xcode 27.0 и iOS 27.0. Если нужная версия или тип устройства исчезнет из образа, задача завершится
+явной ошибкой окружения; другую основную версию не подставляет. Метка добавлена в `.github/actionlint.yaml`,
+поскольку actionlint 1.7.12 пока её не знает. Локальная проверка YAML не доказывает работу облачного раннера;
+расхождения снимков разбираются по диагностике и артефактам, без изменения допусков.
+
+**iOS 18 (#15):** отдельный workflow `Apple iOS 18` (`apple-ios18.yml`), по понедельникам в 03:23 UTC и через
+Actions → Apple iOS 18 → Run workflow. Расписание проверяет `main`, ручной запуск — выбранную ветку.
+На каждый PR среда не качается (решение Даши 09.10.2026).
+Используется тот же `xcode-27` и `gate-apple`, со своим iPhone 16 Pro на последней доступной стабильной
+среде ветки 18 — [18.6, сборка 22G86 в каталоге Apple](https://devimages-cdn.apple.com/downloads/xcode/simulators/index2.dvtdownloadableindex).
+`xcodebuild -downloadPlatform iOS -buildVersion 18.6 -architectureVariant arm64 -exportPath …` сохраняет
+DMG без Apple ID; `-importPlatform` устанавливает его и после загрузки, и после восстановления кэша.
+Версия и сборка проверяются через `simctl`; кэш DMG по версии, сборке и архитектуре сохраняется до тестов,
+чтобы красный гейт не заставлял скачивать среду снова. GitHub может вытеснить кэш — тогда загрузка повторится.
+
+UUID своего iPhone передаётся через `GATE_APPLE_IPHONE_UDID`; без переменной устройство гейта прежнее.
+`simulator.sh iphone-ios18` остаётся закреплён за локальной iOS 18.0.
+В облаке Apple снимки не сверяются из-за аппаратных различий сглаживания (`GATE_APPLE_SKIP_SNAPSHOTS=1`, решение Даши 09.10.2026); локальный гейт сверяет их обязательно, порог 96% сохранён.
+Таймаут задачи — 120 минут, загрузки — 30, установки — 20. Гейт гасит свои устройства; workflow дополнительно
+убирает созданный iPhone и свой Postgres даже при ошибке.
 
 ## Договор API
 
@@ -516,7 +581,7 @@ adb emu kill                                                # всегда, и �
 ## Токены дизайна
 
 ```bash
-pnpm --dir design/tokens install
+pnpm install --frozen-lockfile   # из корня: один lockfile для рабочего пространства и CI
 pnpm --dir design/tokens build   # после правки src: пересобрать generated/ и шапку DESIGN.md
 pnpm --dir design/tokens check   # то же, что CI: сгенерированное не разошлось с источником
 pnpm --dir design/tokens test    # контраст WCAG AA пар «текст / фон» в светлой и тёмной теме
@@ -531,8 +596,7 @@ pnpm --dir design/tokens test    # контраст WCAG AA пар «текст 
   множитель `textScaleLarge` / `TEXT_SCALE_LARGE` поверх системного масштаба.
 - Стекло и тени генерируются только для веба: на Apple стекло системное, на Android — Material.
 - `design/tokens` — пакет рабочего пространства (`@greprep/tokens`); веб берёт `generated/web/tokens.css`
-  прямо из него. Свой `pnpm-lock.yaml` в папке остался только ради ключа кэша в `tokens.yml` — замена — с CI,
-  часть 6 каркаса.
+  прямо из него. Установка и кэш CI используют корневой `pnpm-lock.yaml`; отдельного lockfile у токенов нет.
 - Android берёт `generated/android` как есть: Kotlin — исходниками модуля `core/design`, цвета ресурсами
   (`generated/android/res`, `gp_*`) — для фона окна и заставки, которые рисуются до Compose.
 
@@ -730,6 +794,11 @@ LifeCommit и audioguide здесь не используются, их подв
   с запасом на ветки, зависящие от даты; `--passWithNoTests` даёт зелёный
   прогон без тестов; наборы в CI — каталогом, не списком.
 - **GitHub Actions:** пока репозиторий публичный — бесплатны. Станет
-  приватным — минуты платные, и облачный деплой надо проверить заранее.
+  приватным — минуты платные, и стоимость CI надо проверить заранее.
   Свой раннер к публичному репозиторию не подключать никогда: чужой PR
   выполнится на машине.
+- **Тесты git-хуков в сессии исполнителя:** навязанный через `GIT_CONFIG_COUNT` путь `core.hooksPath`
+  запрещает коммиты даже во временных репозиториях `git-hooks.test.ts`. Это ошибка окружения проверки,
+  а не повод отключать защиту: полный гейт в такой сессии остановится на этих тестах. На обычном Маке и
+  раннере GitHub этой подмены нет. Тест автора `session-git.test.ts` коммитов не создаёт и изолирует
+  локальный и глобальный конфиги во временной папке.

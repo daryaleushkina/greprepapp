@@ -10,6 +10,14 @@
 # после ожидания проверяет снова: уже включённый человеком или соседним прогоном не трогает. Своё не погасло
 # даже в cleanup — гейт красный с командой выключения; помощники и общий предел Мака — в sim-devices.
 #
+# В Actions Postgres без Docker задаётся GATE_APPLE_POSTGRES_URL (админский URL с правом создания баз).
+# GATE_APPLE_UI_PORT и GATE_APPLE_UI_DB отделяют стенд от соседних прогонов. Без переменных — прежний Docker.
+# --ui-server-only проверяет только пересоздание базы, миграции, сид и запуск сервера, без Xcode и симуляторов.
+# GATE_APPLE_IPHONE_UDID выбирает созданный CI iPhone с iOS 18; без неё — прежний GrePrep iPhone на iOS 27.
+# GATE_APPLE_ARTIFACTS_DIR сохраняет логи, xcresult и непрошедшие снимки после cleanup для артефакта CI.
+# GATE_APPLE_SKIP_SNAPSHOTS=1 — в облаке без сверки снимков: сглаживание зависит от железа
+# (решение Даши 09.10.2026). Локально снимки обязательны; порог покрытия одинаковый.
+#
 # Порог покрытия — здесь, а правка этой папки — только с согласия Даши (.claude/hooks/protect-gates.mjs):
 # AGENTS.md, «Порог не опускать; подняли покрытие — поднять и порог».
 
@@ -19,23 +27,59 @@ set -eu
 APPLE_COVERAGE_MIN=96.0
 
 # Свой порт и своя база для сценариев UI: сервер разработки на 8090 и его данные гейт не трогает.
-UI_PORT=8091
-UI_DB=greprep_apple_ui
+UI_PORT="${GATE_APPLE_UI_PORT:-8091}"
+UI_DB="${GATE_APPLE_UI_DB:-greprep_apple_ui}"
+
+case "${1:-}" in
+  '') server_only=0 ;;
+  --ui-server-only) server_only=1 ;;
+  *) echo "gate: Apple — неизвестный аргумент $1" >&2; exit 2 ;;
+esac
+# Имя попадает в SQL: разрешены только простые идентификаторы, без кавычек и обрезания Postgres до 63 байт.
+case "$UI_DB" in
+  ''|[0-9]*|*[!a-z0-9_]*|postgres|template0|template1|greprep)
+    echo "gate: Apple — неверное имя базы сценариев" >&2; exit 2 ;;
+esac
+if [ "${#UI_DB}" -gt 63 ]; then echo "gate: Apple — имя базы длиннее 63 байт" >&2; exit 2; fi
+case "$UI_PORT" in
+  ''|*[!0-9]*) echo "gate: Apple — неверный порт сценариев" >&2; exit 2 ;;
+esac
+if [ "${#UI_PORT}" -gt 5 ] || [ "$UI_PORT" -lt 1 ] || [ "$UI_PORT" -gt 65535 ]; then
+  echo "gate: Apple — порт сценариев вне диапазона 1–65535" >&2; exit 2
+fi
 
 root="$(git rev-parse --show-toplevel)"
 . "$root/scripts/hooks/sim-devices"
 app="$root/apps/apple"
 cd "$app"
 
-work="$(mktemp -d)"
+if [ -n "${GATE_APPLE_ARTIFACTS_DIR:-}" ]; then
+  case "$GATE_APPLE_ARTIFACTS_DIR" in
+    /*) work="$GATE_APPLE_ARTIFACTS_DIR" ;;
+    *) work="$root/$GATE_APPLE_ARTIFACTS_DIR" ;;
+  esac
+  mkdir -p "$work/snapshots"
+  # Xcode передаёт TEST_RUNNER_* приложению тестов без префикса; прямой вариант нужен и тестам Mac.
+  export SNAPSHOT_ARTIFACTS="$work/snapshots"
+  export TEST_RUNNER_SNAPSHOT_ARTIFACTS="$SNAPSHOT_ARTIFACTS"
+else
+  work="$(mktemp -d)"
+fi
 server_pid=""
 cleanup() {
   cleanup_status=$?
   trap - EXIT
-  if [ -n "$server_pid" ]; then kill "$server_pid" 2>/dev/null || true; fi
+  if [ -n "$server_pid" ]; then
+    kill "$server_pid" 2>/dev/null || true
+    wait "$server_pid" 2>/dev/null || true
+  fi
   # Ошибка основного шага сохраняется, а неудачное выключение своего делает красным и успешный прогон.
   if ! sim_cleanup; then cleanup_status=1; fi
-  rm -rf "$work"
+  if [ -z "${GATE_APPLE_ARTIFACTS_DIR:-}" ]; then
+    rm -rf "$work"
+  else
+    echo "gate: Apple — логи, xcresult и снимки сохранены в $work" >&2
+  fi
   exit "$cleanup_status"
 }
 trap cleanup EXIT
@@ -45,10 +89,78 @@ trap 'exit 130' HUP INT TERM
 need() {
   command -v "$1" >/dev/null 2>&1 || { echo "gate: Apple — нет $1: $2" >&2; exit 1; }
 }
-need xcodebuild "Xcode 27"
-need xcodegen "brew install xcodegen"
+if [ "$server_only" -eq 0 ]; then
+  need xcodebuild "Xcode 27"
+  need xcodegen "brew install xcodegen"
+fi
 need go "Go — для сервера сценариев UI"
-need docker "Docker — Postgres для сервера сценариев UI"
+if [ -n "${GATE_APPLE_POSTGRES_URL:-}" ]; then
+  need psql "Postgres — клиент для адреса GATE_APPLE_POSTGRES_URL"
+  need python3 "Python — адрес базы сценариев"
+else
+  need docker "Docker — Postgres для сервера сценариев UI"
+fi
+
+start_ui_server() {
+  echo "gate: Apple — сервер для сценариев UI (127.0.0.1:$UI_PORT, база $UI_DB)" >&2
+  if lsof -nP -iTCP:"$UI_PORT" -sTCP:LISTEN >/dev/null 2>&1; then
+    echo "gate: порт $UI_PORT занят — сценарии UI пошли бы не на тот сервер" >&2
+    exit 1
+  fi
+  if [ -n "${GATE_APPLE_POSTGRES_URL:-}" ]; then
+    # Параметр dbname в URL сильнее пути: убираем его, иначе миграции могли бы уйти в админскую базу.
+    db="$(python3 - "$UI_DB" <<'PY'
+import os
+import sys
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+
+url = urlsplit(os.environ["GATE_APPLE_POSTGRES_URL"])
+if url.scheme not in ("postgres", "postgresql") or not url.netloc or url.fragment:
+    sys.exit("gate: Apple — нужен URL Postgres без фрагмента")
+query = [(key, value) for key, value in parse_qsl(url.query, keep_blank_values=True)
+         if key not in ("dbname", "database")]
+print(urlunsplit((url.scheme, url.netloc, "/" + sys.argv[1], urlencode(query), "")))
+PY
+)"
+    psql "$GATE_APPLE_POSTGRES_URL" -X -v ON_ERROR_STOP=1 -q \
+      -c "drop database if exists $UI_DB with (force)" -c "create database $UI_DB" >/dev/null
+  else
+    (cd "$root" && docker compose up -d --wait postgres >&2)
+    (cd "$root" && docker compose exec -T postgres psql -v ON_ERROR_STOP=1 -q -U greprep -d greprep \
+      -c "drop database if exists $UI_DB with (force)" -c "create database $UI_DB") >/dev/null
+    db="postgres://greprep:greprep@127.0.0.1:55432/$UI_DB?sslmode=disable"
+  fi
+  (cd "$root/server" && go build -o "$work/greprep" ./cmd/greprep)
+  if ! DATABASE_URL="$db" APP_ENV=test "$work/greprep" migrate up >"$work/migrate.log" 2>&1; then
+    tail -20 "$work/migrate.log" >&2
+    echo "gate: Apple — миграции базы сценариев не прошли" >&2
+    exit 1
+  fi
+  # Набор разработки; в бою команда отказывается (согласие Даши 08.10.2026).
+  if ! DATABASE_URL="$db" APP_ENV=test "$work/greprep" seed-dev >"$work/seed.log" 2>&1; then
+    tail -20 "$work/seed.log" >&2
+    echo "gate: Apple — сид базы сценариев не прошёл" >&2
+    exit 1
+  fi
+  DATABASE_URL="$db" APP_ENV=test HTTP_ADDR="127.0.0.1:$UI_PORT" DEV_AUTH=1 "$work/greprep" serve >"$work/server.log" 2>&1 &
+  server_pid=$!
+  tries=0
+  until curl -sf "http://127.0.0.1:$UI_PORT/api/health" >/dev/null 2>&1; do
+    tries=$((tries + 1))
+    if [ "$tries" -gt 100 ] || ! kill -0 "$server_pid" 2>/dev/null; then
+      tail -20 "$work/server.log" >&2
+      echo "gate: сервер для сценариев UI не поднялся" >&2
+      exit 1
+    fi
+    sleep 0.2
+  done
+}
+
+if [ "$server_only" -eq 1 ]; then
+  start_ui_server
+  echo "gate: Apple — база и сервер сценариев проверены (без симуляторов)" >&2
+  exit 0
+fi
 
 # xcodebuild с потолком по времени (на Маке нет timeout — perl alarm): зависший прогон — красный гейт, а не
 # вечный пуш. -collect-test-diagnostics never — со сбором диагностики xcodebuild зависает после упавшего
@@ -103,47 +215,34 @@ echo "gate: Apple — релизная сборка iOS и Mac (предупре
 build_step release-ios -scheme GrePrep -configuration Release -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO build
 build_step release-mac -scheme GrePrep -configuration Release -destination 'generic/platform=macOS' build
 
-echo "gate: Apple — сервер для сценариев UI (127.0.0.1:$UI_PORT, база $UI_DB)" >&2
-if lsof -nP -iTCP:"$UI_PORT" -sTCP:LISTEN >/dev/null 2>&1; then
-  echo "gate: порт $UI_PORT занят — сценарии UI пошли бы не на тот сервер" >&2
-  exit 1
-fi
-(cd "$root" && docker compose up -d --wait postgres >&2)
-(cd "$root" && docker compose exec -T postgres psql -v ON_ERROR_STOP=1 -q -U greprep -d greprep \
-  -c "drop database if exists $UI_DB with (force)" -c "create database $UI_DB") >/dev/null
-db="postgres://greprep:greprep@127.0.0.1:55432/$UI_DB?sslmode=disable"
-(cd "$root/server" && go build -o "$work/greprep" ./cmd/greprep)
-DATABASE_URL="$db" APP_ENV=test "$work/greprep" migrate up >"$work/migrate.log" 2>&1
-# Задания для сценариев тренировок — набор для разработки (в бою команда отказывается; согласие Даши 08.10.2026).
-DATABASE_URL="$db" APP_ENV=test "$work/greprep" seed-dev >"$work/seed.log" 2>&1
-DATABASE_URL="$db" APP_ENV=test HTTP_ADDR="127.0.0.1:$UI_PORT" DEV_AUTH=1 "$work/greprep" serve >"$work/server.log" 2>&1 &
-server_pid=$!
-tries=0
-until curl -sf "http://127.0.0.1:$UI_PORT/api/health" >/dev/null 2>&1; do
-  tries=$((tries + 1))
-  if [ "$tries" -gt 100 ] || ! kill -0 "$server_pid" 2>/dev/null; then
-    tail -20 "$work/server.log" >&2
-    echo "gate: сервер для сценариев UI не поднялся" >&2
-    exit 1
-  fi
-  sleep 0.2
-done
+start_ui_server
 
 # Свои симуляторы GrePrep (scripts/simulator.sh создаёт их, если нет). Загружаются по одному и заранее, перед
 # прогоном тестов на них, а не все в начале: сборке для тестов симулятор не нужен, iPad нужен только снимкам —
 # держать его включённым всё время шагов iPhone значит занимать место в общей пятёрке зря.
-iphone="$(sh scripts/simulator.sh iphone)"
-ipad="$(sh scripts/simulator.sh ipad)"
+skip_snapshots="${GATE_APPLE_SKIP_SNAPSHOTS:-0}"
+set --
+if [ "$skip_snapshots" = 1 ]; then
+  set -- -skip-testing:GrePrepTests/ScreenSnapshotTests
+  echo "gate: Apple — снимки не сверялись (CI, решение Даши 09.10.2026)" >&2
+fi
+iphone="${GATE_APPLE_IPHONE_UDID:-}"
+if [ -z "$iphone" ]; then iphone="$(sh scripts/simulator.sh iphone)"; fi
+if [ "$skip_snapshots" != 1 ]; then ipad="$(sh scripts/simulator.sh ipad)"; fi
 
 # Эталоны снимков гейт не записывает: нет эталона — тест красный.
 export TEST_RUNNER_SNAPSHOT_TESTING_RECORD=never
 export TEST_RUNNER_GP_UI_SERVER="http://127.0.0.1:$UI_PORT"
 
-echo "gate: Apple — iPhone: юнит-тесты, снимки, сценарии UI, покрытие ≥ ${APPLE_COVERAGE_MIN}%" >&2
+if [ "$skip_snapshots" = 1 ]; then
+  echo "gate: Apple — iPhone: юнит-тесты, сценарии UI, покрытие ≥ ${APPLE_COVERAGE_MIN}%" >&2
+else
+  echo "gate: Apple — iPhone: юнит-тесты, снимки, сценарии UI, покрытие ≥ ${APPLE_COVERAGE_MIN}%" >&2
+fi
 build_step tests-ios -scheme GrePrep -destination "id=$iphone" build-for-testing
 sim_boot "$iphone"
 run_tests iphone -scheme GrePrep -destination "id=$iphone" -enableCodeCoverage YES \
-  -resultBundlePath "$work/iphone.xcresult" test-without-building
+  -resultBundlePath "$work/iphone.xcresult" "$@" test-without-building
 sim_release "$iphone"
 total="$(xcrun xccov view --report --json "$work/iphone.xcresult" | /usr/bin/python3 -c '
 import json, sys
@@ -156,10 +255,19 @@ if ! awk -v t="$total" -v m="$APPLE_COVERAGE_MIN" 'BEGIN { exit !(t + 0 >= m + 0
 fi
 echo "gate: покрытие приложения Apple ${total}%" >&2
 
-echo "gate: Apple — iPad: снимки" >&2
-sim_boot "$ipad"
-run_tests ipad -scheme GrePrep -destination "id=$ipad" -only-testing:GrePrepTests/ScreenSnapshotTests test-without-building
-sim_release "$ipad"
+if [ "$skip_snapshots" != 1 ]; then
+  echo "gate: Apple — iPad: снимки" >&2
+  sim_boot "$ipad"
+  run_tests ipad -scheme GrePrep -destination "id=$ipad" -only-testing:GrePrepTests/ScreenSnapshotTests \
+    -resultBundlePath "$work/ipad.xcresult" test-without-building
+  sim_release "$ipad"
+else
+  echo "gate: Apple — iPad: пропущен, шаг проверяет только снимки" >&2
+fi
 
-echo "gate: Apple — Mac: юнит-тесты и снимки" >&2
-run_tests mac -scheme GrePrepMac -destination 'platform=macOS' test
+if [ "$skip_snapshots" = 1 ]; then
+  echo "gate: Apple — Mac: юнит-тесты" >&2
+else
+  echo "gate: Apple — Mac: юнит-тесты и снимки" >&2
+fi
+run_tests mac -scheme GrePrepMac -destination 'platform=macOS' -resultBundlePath "$work/mac.xcresult" "$@" test
