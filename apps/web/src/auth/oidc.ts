@@ -70,13 +70,14 @@ export function finishSignIn(search: URLSearchParams, storage: AttemptStorage, n
   const raw = storage.getItem(STORAGE_KEY);
   storage.removeItem(STORAGE_KEY);
   const attempt = parseAttempt(raw);
-  if (!attempt || search.get('state') !== attempt.state || now - attempt.startedAt > ATTEMPT_TTL_MS) {
+  if (!attempt || search.get('state') !== attempt.state) {
     return { ok: false, reason: 'invalid' };
   }
+  if (now - attempt.startedAt > ATTEMPT_TTL_MS) return { ok: false, reason: 'invalid', returnTo: attempt.returnTo };
   const error = search.get('error');
   if (error) return { ok: false, reason: error === 'access_denied' ? 'cancelled' : 'invalid', returnTo: attempt.returnTo };
   const code = search.get('code');
-  if (!code) return { ok: false, reason: 'invalid' };
+  if (!code) return { ok: false, reason: 'invalid', returnTo: attempt.returnTo };
   return { ok: true, attempt, code };
 }
 

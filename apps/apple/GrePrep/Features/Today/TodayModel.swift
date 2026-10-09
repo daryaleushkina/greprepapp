@@ -17,9 +17,17 @@ final class TodayModel {
         case failed
     }
 
-    private(set) var content: Content = .loading
+    private var loadedContent: Content = .loading
+    var content: Content {
+        if !isRetired, !network.isOnline, case .loading = loadedContent { return .unavailable(.offline) }
+        return loadedContent
+    }
     /// На экране прошлый план: обновить не удалось. nil — план свежий.
-    private(set) var staleReason: Problem?
+    private var refreshProblem: Problem?
+    var staleReason: Problem? {
+        if !isRetired, !network.isOnline, case .plan = loadedContent { return .offline }
+        return refreshProblem
+    }
     private(set) var isRefreshing = false
 
     @ObservationIgnored private let api: API
@@ -30,7 +38,7 @@ final class TodayModel {
     /// (docs/HANDOFF.md, «Клиент»).
     @ObservationIgnored private var generation = 0
     @ObservationIgnored private var isRetired = false
-    @ObservationIgnored private var isOnline: Bool
+    @ObservationIgnored private let network: NetworkMonitor
     /// Когда план в последний раз пришёл с сервера.
     @ObservationIgnored private var fetchedAt: Date?
     static let freshFor: TimeInterval = 5 * 60
@@ -38,20 +46,20 @@ final class TodayModel {
     init(
         api: API,
         cache: TodayCache,
-        isOnline: Bool = true,
+        network: NetworkMonitor,
         onUnauthorized: @escaping @MainActor () -> Void,
         report: @escaping @MainActor (_ message: String, _ requestID: String?) -> Void
     ) {
         self.api = api
         self.cache = cache
-        self.isOnline = isOnline
+        self.network = network
         self.onUnauthorized = onUnauthorized
         self.report = report
         // Прошлый план — сразу, до ответа сервера: экран не мигает пустотой при каждом открытии.
         if let cached = cache.load() {
-            content = .plan(TodayPlan(cached))
+            loadedContent = .plan(TodayPlan(cached))
         }
-        if !isOnline { show(.offline) }
+        if !network.isOnline { show(.offline) }
     }
 
     /// Нужен ли повтор, когда вернулась сеть.
@@ -64,19 +72,19 @@ final class TodayModel {
     /// Возврат в приложение (и фокус окна на Mac) — частое событие: план перезапрашивается, только если он
     /// старше пяти минут или его обновить не удалось. План дня меняется после тренировки, а не каждую минуту.
     func refreshIfStale(now: Date = .now) async {
+        guard !isRefreshing else { return }
         if let fetchedAt, staleReason == nil, now.timeIntervalSince(fetchedAt) < Self.freshFor { return }
         await refresh(now: now)
     }
 
     /// Сеть вернулась — план, который не удалось обновить, обновляется сам (решение Даши 06.10.2026).
-    func networkChanged(online: Bool) async {
+    func networkChanged() async {
         guard !isRetired else { return }
-        isOnline = online
-        if !online {
+        if !network.isOnline {
             show(.offline)
             return
         }
-        guard needsRefresh else { return }
+        guard needsRefresh, !isRefreshing else { return }
         await refresh()
     }
 
@@ -94,10 +102,6 @@ final class TodayModel {
 
     private func refresh(now: Date) async {
         guard !isRetired else { return }
-        guard isOnline else {
-            show(.offline)
-            return
-        }
         generation += 1
         let mine = generation
         isRefreshing = true
@@ -113,9 +117,9 @@ final class TodayModel {
         guard mine == generation else { return }
         switch result {
         case let .success(dto):
-            content = .plan(TodayPlan(dto))
+            loadedContent = .plan(TodayPlan(dto))
             // Ответ мог быть уже в пути, когда пропала сеть: строка остаётся до возвращения сети.
-            staleReason = isOnline ? nil : .offline
+            refreshProblem = network.isOnline ? nil : .offline
             fetchedAt = now
             do {
                 try cache.save(dto)
@@ -141,15 +145,15 @@ final class TodayModel {
         case .server, .unexpected:
             // Любой отказ сервера на план дня — наш баг (клиент и сервер разошлись), не только 5xx.
             report("today: \(failure)", failure.requestID)
-            show(isOnline ? .failed : .offline)
+            show(network.isOnline ? .failed : .offline)
         }
     }
 
     private func show(_ problem: Problem) {
         if case .plan = content {
-            staleReason = problem
+            refreshProblem = problem
         } else {
-            content = .unavailable(problem)
+            loadedContent = .unavailable(problem)
         }
     }
 }

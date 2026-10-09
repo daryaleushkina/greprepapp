@@ -4,7 +4,7 @@ export type TelegramRuntime = Pick<typeof SDK, 'backButton' | 'swipeBehavior' | 
 let runtime: TelegramRuntime | null = null;
 
 /** SDK загружается до React только в мини-аппе; сайт использует кнопки страницы и свою навигацию. */
-export function setTelegramRuntime(value: TelegramRuntime): void {
+export function setTelegramRuntime(value: TelegramRuntime | null): void {
   runtime = value;
 }
 

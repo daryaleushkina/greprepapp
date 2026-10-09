@@ -5,7 +5,8 @@
 //     600–899 px — строка разделов сверху, шире — боковая панель (решение Даши 06.10.2026, DESIGN.md «Navigation»).
 import { isApiError } from '@greprep/api-client';
 import { Link, Navigate, Outlet, useMatch, useMatchRoute, useRouter, useRouterState } from '@tanstack/react-router';
-import { createContext, use, useRef, useState, type ReactNode } from 'react';
+import { createContext, use, useEffect, useRef, useState, type ReactNode } from 'react';
+import { returnToSearch } from '../auth/returnTo';
 import { BrandMark } from '../components/BrandMark';
 import { BackIcon, ExamIcon, ProgressIcon, SettingsIcon, TodayIcon, WordsIcon } from '../components/icons';
 import { FullScreenStatus } from '../components/FullScreenStatus';
@@ -13,6 +14,7 @@ import { BRAND_NAME } from '../config';
 import { useI18n } from '../i18n/i18n';
 import { useSession } from '../session/session';
 import { useShell } from '../shellContext';
+import { loadSections } from '../sections';
 import { useTrainingSwipes } from '../telegram/hooks';
 import { useStoredTraining } from '../training/hooks';
 import glass from '../styles/glass.module.css';
@@ -35,6 +37,19 @@ export function AppGate(): ReactNode {
   const returnTo = useRef(href);
   // Navigate меняет адрес раньше, чем уходит AppGate: не заменяем исходный экран адресом самого входа.
   if (session.status !== 'signedOut') returnTo.current = href;
+  useEffect(() => {
+    if (session.status !== 'signedIn') return;
+    const preload = () => {
+      if (navigator.onLine) {
+        // Необязательный фон: при отказе переход покажет «Нет сети» с повтором; online попробует догрузить.
+        void loadSections().catch(() => {});
+      }
+    };
+    // Даём первому экрану кадр, прежде чем догружать вкладки.
+    const frame = requestAnimationFrame(preload);
+    window.addEventListener('online', preload);
+    return () => { cancelAnimationFrame(frame); window.removeEventListener('online', preload); };
+  }, [session.status]);
   // Сверяем id маршрута: сопоставление одного пути приняло бы /training/new за id тренировки.
   const questionId = useMatch({ from: '/app/training/$trainingId', shouldThrow: false, select: (match) => match.params.trainingId });
   const report = useMatch({ from: '/app/training/$trainingId/report/$position', shouldThrow: false, select: () => true });
@@ -43,7 +58,7 @@ export function AppGate(): ReactNode {
   useTrainingSwipes(shell === 'telegram' && session.status === 'signedIn' &&
     (Boolean(report) || Boolean(questionId && (training.isPending || training.data && !training.data.finish))));
   if (session.status === 'signedOut') {
-    return <Navigate to="/signin" search={{ returnTo: returnTo.current, ...(session.expired && { reason: 'expired' }) }} replace />;
+    return <Navigate to="/signin" search={{ ...(!session.signedOutByUser && returnToSearch(returnTo.current)), ...(session.expired && { reason: 'expired' }) }} replace />;
   }
   if (session.status === 'error') {
     const offline = isApiError(session.error) && session.error.kind === 'network';

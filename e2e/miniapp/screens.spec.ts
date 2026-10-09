@@ -27,6 +27,16 @@ test('разделы-заглушки, «Прогресс», настройки,
   await checkScreen(page, 'step');
 });
 
+test('раздел не догрузился — «Нет сети» с повтором и доступными вкладками', async ({ page, watch, tgUser, tgTheme, tgPlatform, tgInsets }) => {
+  watch(page);
+  await page.route(/\/sections\.lazy-[^/]+\.js(?:\?.*)?$/, (route) => route.abort('internetdisconnected'));
+  await page.goto(miniAppUrl(tgUser, { tgTheme, tgPlatform, tgInsets }));
+  await expect(page.getByText('Три шага · около 25 минут')).toBeVisible();
+  await navLink(page, 'Прогресс').click();
+  await expect(page.getByRole('heading', { name: 'Нет сети', exact: true })).toBeVisible();
+  await checkScreen(page, 'section-offline');
+});
+
 test('загрузка — скелет ленты той же геометрии', async ({ page, watch, tgUser, tgTheme, tgPlatform, tgInsets }) => {
   watch(page);
   // План держим, пока снимаем скелет; потом отпускаем — дальше обычный экран.

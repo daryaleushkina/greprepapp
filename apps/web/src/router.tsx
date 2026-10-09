@@ -12,6 +12,8 @@ import { createRootRouteWithContext, createRoute, createRouter, lazyRouteCompone
 import { schemas } from '@greprep/api-client';
 import { z } from 'zod';
 import { safeReturnTo } from './auth/returnTo';
+import { SectionUnavailable } from './errors/SectionUnavailable';
+import { loadSections, SectionLoadError } from './sections';
 import { Crashed, reportRouteError } from './errors/ErrorBoundary';
 import { AppGate, TabsLayout } from './layout/AppLayout';
 import { SignInScreen } from './screens/signin/SignInScreen';
@@ -45,19 +47,16 @@ const appRoute = createRoute({ getParentRoute: () => rootRoute, id: 'app', compo
 const tabsRoute = createRoute({ getParentRoute: () => appRoute, id: 'tabs', component: TabsLayout });
 
 const todayRoute = createRoute({ getParentRoute: () => tabsRoute, path: '/', component: TodayScreen });
-const wordsRoute = createRoute({
-  getParentRoute: () => tabsRoute,
-  path: 'words',
-  component: lazyRouteComponent(() => import('./screens/placeholder/SectionPlaceholder'), 'WordsScreen'),
-});
-const examRoute = createRoute({
-  getParentRoute: () => tabsRoute,
-  path: 'exam',
-  component: lazyRouteComponent(() => import('./screens/placeholder/SectionPlaceholder'), 'ExamScreen'),
-});
-const progressRoute = createRoute({ getParentRoute: () => tabsRoute, path: 'progress', component: lazyRouteComponent(() => import('./screens/progress/ProgressScreen'), 'ProgressScreen') });
-const settingsRoute = createRoute({ getParentRoute: () => tabsRoute, path: 'settings', component: lazyRouteComponent(() => import('./screens/progress/SettingsScreen'), 'SettingsScreen') });
-const stepRoute = createRoute({ getParentRoute: () => appRoute, path: 'step/$stepId', component: lazyRouteComponent(() => import('./screens/placeholder/StepScreen'), 'StepScreen') });
+const wordsRoute = createRoute({ getParentRoute: () => tabsRoute, path: 'words', errorComponent: SectionUnavailable })
+  .lazy(() => loadSections().then((m) => m.wordsRoute));
+const examRoute = createRoute({ getParentRoute: () => tabsRoute, path: 'exam', errorComponent: SectionUnavailable })
+  .lazy(() => loadSections().then((m) => m.examRoute));
+const progressRoute = createRoute({ getParentRoute: () => tabsRoute, path: 'progress', errorComponent: SectionUnavailable })
+  .lazy(() => loadSections().then((m) => m.progressRoute));
+const settingsRoute = createRoute({ getParentRoute: () => tabsRoute, path: 'settings', errorComponent: SectionUnavailable })
+  .lazy(() => loadSections().then((m) => m.settingsRoute));
+const stepRoute = createRoute({ getParentRoute: () => appRoute, path: 'step/$stepId', errorComponent: SectionUnavailable })
+  .lazy(() => loadSections().then((m) => m.stepRoute));
 
 const builderRoute = createRoute({ getParentRoute: () => appRoute, path: 'training/new',
   validateSearch: z.object({ section: z.enum(['verbal', 'quant']).optional().catch(undefined), type: schemas.QuestionType.optional().catch(undefined) }),
@@ -93,7 +92,10 @@ export function makeRouter(context: RouterContext, history?: RouterHistory) {
     // У маршрутизатора свой перехват ошибок экранов — без этих двух ErrorBoundary снаружи их бы не увидел:
     // человек получил бы английскую заглушку, а отчёт не ушёл бы.
     defaultErrorComponent: Crashed,
-    defaultOnCatch: reportRouteError,
+    defaultOnCatch: (error, info) => {
+      // Отсутствие сети — ожидаемый отказ загрузки, падение самого экрана по-прежнему уходит в отчёт.
+      if (!(error instanceof SectionLoadError)) reportRouteError(error, info);
+    },
     scrollRestoration: true,
     // Вкладки делят один контейнер прокрутки: новая вкладка — сверху, а не с прокруткой прошлой.
     scrollToTopSelectors: ['#main'],

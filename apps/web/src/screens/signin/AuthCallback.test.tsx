@@ -68,6 +68,18 @@ describe('возврат от провайдера', () => {
     expect(router.state.location.href).toBe('/step/words?from=plan#details');
   });
 
+  it.each(['missing-code', 'expired'])('неудача %s сохраняет адрес следующей попытки', async (failure) => {
+    storeAttempt('state-1', '/settings');
+    if (failure === 'expired') {
+      const raw: unknown = JSON.parse(sessionStorage.getItem('greprep.signIn') ?? '{}');
+      sessionStorage.setItem('greprep.signIn', JSON.stringify({ ...(typeof raw === 'object' && raw), startedAt: Date.now() - 11 * 60 * 1000 }));
+    }
+    fakeServer(signedOut);
+    const { screen, router } = await renderApp({ path: `/auth/callback?state=state-1${failure === 'expired' ? '&code=c' : ''}` });
+    await expect.element(screen.getByRole('alert')).toBeVisible();
+    expect(router.state.location.search).toEqual({ reason: 'failed', returnTo: '/settings' });
+  });
+
   it('после отмены адрес остаётся на входе для следующей попытки', async () => {
     storeAttempt('state-1', '/settings');
     fakeServer(signedOut);

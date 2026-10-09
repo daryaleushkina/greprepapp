@@ -1,5 +1,7 @@
 import { expect, test, vi } from 'vitest';
 import { render } from 'vitest-browser-react';
+import * as sdkRuntime from '@tma.js/sdk-react';
+import { setTelegramRuntime } from '../telegram/runtime';
 import { ShellProvider } from '../shellContext';
 
 const sdk = vi.hoisted(() => ({ unsubscribe: vi.fn(),
@@ -9,7 +11,10 @@ const sdk = vi.hoisted(() => ({ unsubscribe: vi.fn(),
 vi.mock('@tma.js/sdk-react', () => ({ mainButton: sdk, secondaryButton: sdk }));
 import { TrainingSecondaryAction } from './SecondaryAction';
 
-const action = (disabled = false, onClick = vi.fn(), shell: 'site' | 'telegram' = 'telegram') => <ShellProvider value={{ shell, launch: null }}><TrainingSecondaryAction text="Не знаю" disabled={disabled} onClick={onClick} /></ShellProvider>;
+const action = (disabled = false, onClick = vi.fn(), shell: 'site' | 'telegram' = 'telegram') => {
+  setTelegramRuntime(shell === 'telegram' ? sdkRuntime : null);
+  return <ShellProvider value={{ shell, launch: null }}><TrainingSecondaryAction text="Не знаю" disabled={disabled} onClick={onClick} /></ShellProvider>;
+};
 
 test('SecondaryButton слева: одна подписка, обновление состояния и отписка', async () => {
   vi.clearAllMocks();

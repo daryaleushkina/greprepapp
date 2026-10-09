@@ -29,7 +29,6 @@ export function SettingsScreen(): ReactNode {
     setFailed(null);
     try {
       await signOut();
-      await navigate({ to: '/signin', replace: true });
     } catch (e) {
       // Не вышли — экран как был и причина: кука жива, значит человек всё ещё вошёл (AGENTS.md, «Ошибку не глотать»).
       setFailed(isApiError(e) && e.kind === 'network' ? t.settings.signOutOffline : t.settings.signOutFailed);

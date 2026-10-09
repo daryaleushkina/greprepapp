@@ -25,6 +25,8 @@ struct RootView: View {
         }
         .onChange(of: app.network.isOnline) { _, online in
             if online { app.trainings.sync() }
+            // Монитор общий: «Сегодня» обновляется и пока открыт другой раздел.
+            Task { await app.today?.networkChanged() }
         }
     }
 }

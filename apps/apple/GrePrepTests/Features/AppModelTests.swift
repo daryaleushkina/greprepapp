@@ -23,6 +23,18 @@ struct AppModelTests {
         #expect(app.today != nil)
     }
 
+    @Test("«Сегодня» читает общую сеть, даже когда его экран не открыт")
+    func todayReadsSharedNetwork() async throws {
+        server.on("GET /api/today", .json(200, Fixture.todayJSON))
+        let (app, _) = app(token: "t")
+        let model = try #require(app.today)
+        await model.refresh()
+        app.network.set(online: false)
+        #expect(model.staleReason == .offline)
+        #expect(model.content == .plan(Fixture.plan))
+        #expect(server.requests("GET /api/today").count == 1)
+    }
+
     @Test("нет токена — экран входа")
     func launchSignedOut() {
         let (app, _) = app()

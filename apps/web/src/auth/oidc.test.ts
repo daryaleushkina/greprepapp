@@ -53,9 +53,9 @@ describe('beginSignIn', () => {
 });
 
 describe('finishSignIn', () => {
-  async function started() {
+  async function started(returnTo = '/') {
     const storage = memoryStorage();
-    const url = new URL(await beginSignIn('google', config, 'https://site.example', storage, 1000));
+    const url = new URL(await beginSignIn('google', config, 'https://site.example', storage, 1000, returnTo));
     return { storage, state: url.searchParams.get('state') ?? '' };
   }
 
@@ -80,10 +80,10 @@ describe('finishSignIn', () => {
   });
 
   it('без кода, устаревшая попытка, испорченная запись', async () => {
-    const a = await started();
-    expect(finishSignIn(new URLSearchParams({ state: a.state }), a.storage, 2000)).toEqual({ ok: false, reason: 'invalid' });
-    const b = await started();
-    expect(finishSignIn(new URLSearchParams({ code: 'c', state: b.state }), b.storage, 1000 + 11 * 60 * 1000)).toEqual({ ok: false, reason: 'invalid' });
+    const a = await started('/settings');
+    expect(finishSignIn(new URLSearchParams({ state: a.state }), a.storage, 2000)).toEqual({ ok: false, reason: 'invalid', returnTo: '/settings' });
+    const b = await started('/step/words?source=plan#details');
+    expect(finishSignIn(new URLSearchParams({ code: 'c', state: b.state }), b.storage, 1000 + 11 * 60 * 1000)).toEqual({ ok: false, reason: 'invalid', returnTo: '/step/words?source=plan#details' });
     const broken = memoryStorage();
     broken.setItem('greprep.signIn', '{not json');
     expect(finishSignIn(new URLSearchParams({ code: 'c', state: 's' }), broken)).toEqual({ ok: false, reason: 'invalid' });

@@ -25,6 +25,7 @@ test.beforeEach(async ({ page, watch }) => {
 test('без входа — экран входа: три официальные кнопки, условия, дисклеймер ETS', async ({ page }) => {
   await page.goto('/');
   await page.waitForURL((url) => url.pathname === '/signin');
+  expect(new URL(page.url()).searchParams.has('returnTo')).toBe(false);
   for (const [name] of PROVIDERS) await expect(page.getByRole('button', { name })).toBeVisible();
   await expect(page.getByText('Продолжая, вы принимаете условия и политику конфиденциальности.')).toBeVisible();
   await expect(page.getByText(/is a registered trademark of Educational Testing Service/)).toBeVisible();
@@ -142,6 +143,36 @@ test('401 на шаге → повторный вход → тот же шаг',
   await page.waitForURL((url) => url.pathname === '/step/words');
   await expect(page.getByRole('heading', { name: 'Повторение', exact: true })).toBeVisible();
 });
+
+test('намеренный выход из настроек → новый человек → «Сегодня»', async ({ page, site }, info) => {
+  await site.goto('/settings');
+  await page.getByRole('button', { name: 'Выйти', exact: true }).click();
+  await page.waitForURL((url) => url.pathname === '/signin');
+  expect(new URL(page.url()).searchParams.has('returnTo')).toBe(false);
+  await page.getByPlaceholder('Имя тестового пользователя').fill(`next-${info.testId}`);
+  await page.getByRole('button', { name: 'Войти', exact: true }).click();
+  await page.waitForURL((url) => url.pathname === '/');
+  await expect(page.getByRole('heading', { level: 1, name: 'Сегодня' })).toBeVisible();
+});
+
+for (const failure of ['expired', 'missing-code'] as const) {
+  test(`возврат ${failure} → адрес сохранён → повторный вход в настройки`, async ({ page }, info) => {
+    await page.goto('/signin');
+    await expect(page.getByRole('button', { name: 'Войти с аккаунтом Google' })).toBeVisible();
+    await page.evaluate((kind) => sessionStorage.setItem('greprep.signIn', JSON.stringify({
+      provider: 'google', state: 'attempt-state', nonce: 'n', codeVerifier: 'v'.repeat(43),
+      redirectUri: `${location.origin}/auth/callback`,
+      startedAt: Date.now() - (kind === 'expired' ? 11 * 60 * 1000 : 0), returnTo: '/settings',
+    })), failure);
+    await page.goto(`/auth/callback?state=attempt-state${failure === 'expired' ? '&code=c' : ''}`);
+    await page.waitForURL((url) => url.pathname === '/signin' && url.searchParams.get('reason') === 'failed');
+    expect(new URL(page.url()).searchParams.get('returnTo')).toBe('/settings');
+    await loginAs(page, `retry-${failure}-${info.testId}`);
+    await page.getByRole('button', { name: 'Войти с аккаунтом Google' }).click({ noWaitAfter: true });
+    await page.waitForURL((url) => url.pathname === '/settings');
+    await expect(page.getByRole('heading', { level: 1, name: 'Настройки' })).toBeVisible();
+  });
+}
 
 test.describe('английский браузер', () => {
   test.use({ locale: 'en-US' });

@@ -145,7 +145,7 @@ final class AppModel {
         today = TodayModel(
             api: api,
             cache: cache,
-            isOnline: network.isOnline,
+            network: network,
             onUnauthorized: { [weak self] in self?.handleUnauthorized() },
             report: { [weak self] message, requestID in self?.report(message, route: "today", requestID: requestID) }
         )

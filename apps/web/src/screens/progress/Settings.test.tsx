@@ -12,7 +12,21 @@ describe('настройки', () => {
     await screen.getByRole('button', { name: 'Выйти' }).click();
     await expect.element(screen.getByRole('button', { name: 'Войти через Telegram' })).toBeVisible();
     expect(router.state.location.pathname).toBe('/signin');
+    expect(router.state.location.search).toEqual({});
     expect(requests.some((r) => r.method === 'POST' && r.url.endsWith('/api/auth/logout'))).toBe(true);
+  });
+
+  it('после намеренного выхода следующий человек попадает на «Сегодня»', async () => {
+    fakeServer({ ...signedIn, 'POST /api/auth/logout': () => new Response(null, { status: 204 }),
+      'POST /api/auth/dev': () => json({ expiresAt: '2026-11-05T10:00:00Z', user: user({ name: 'Новый' }) }) });
+    const { screen, router } = await renderApp({ path: '/settings' });
+    await screen.getByRole('button', { name: 'Выйти' }).click();
+    await expect.element(screen.getByPlaceholder('Имя тестового пользователя')).toBeVisible();
+    expect(router.state.location.search).toEqual({});
+    await screen.getByPlaceholder('Имя тестового пользователя').fill('Новый');
+    await screen.getByRole('button', { name: 'Войти', exact: true }).click();
+    await expect.element(screen.getByText('Три шага · около 25 минут')).toBeVisible();
+    expect(router.state.location.pathname).toBe('/');
   });
 
   it('сессия уже кончилась (вышли в другой вкладке) — «Выйти» всё равно выходит и стирает данные', async () => {

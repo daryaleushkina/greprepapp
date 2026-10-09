@@ -3,6 +3,7 @@
 import { isApiError, signInWithAuthorizationCode } from '@greprep/api-client';
 import { useNavigate, useRouterState } from '@tanstack/react-router';
 import { useEffect, useRef, type ReactNode } from 'react';
+import { returnToSearch } from '../../auth/returnTo';
 import { finishSignIn } from '../../auth/oidc';
 import { reportError } from '../../errors/report';
 import { StatusScreen } from '../../components/StatusScreen';
@@ -23,7 +24,7 @@ export function AuthCallback(): ReactNode {
   useEffect(() => {
     if (started.current) return;
     started.current = true;
-    const fail = (reason: SignInReason, returnTo?: string) => void navigate({ to: '/signin', search: { reason, ...(returnTo && { returnTo }) }, replace: true });
+    const fail = (reason: SignInReason, returnTo?: string) => void navigate({ to: '/signin', search: { reason, ...returnToSearch(returnTo) }, replace: true });
     let result: ReturnType<typeof finishSignIn>;
     try {
       result = finishSignIn(new URLSearchParams(search), sessionStorage);

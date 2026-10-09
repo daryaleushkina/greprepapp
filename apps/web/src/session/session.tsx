@@ -36,7 +36,7 @@ export type Session =
   | { status: 'loading' }
   | { status: 'signedIn'; user: User }
   /** expired — сессия была и кончилась (сервер ответил 401): на экране входа — «Вход закончился». */
-  | { status: 'signedOut'; expired: boolean }
+  | { status: 'signedOut'; expired: boolean; signedOutByUser?: true }
   | { status: 'error'; error: unknown; retry: () => void };
 
 interface SessionApi {
@@ -87,7 +87,7 @@ export function SessionProvider({ launch, children }: { launch: TelegramLaunch |
   if (query.isError) {
     session = { status: 'error', error: query.error, retry: () => void query.refetch() };
   } else if (query.data) {
-    session = query.data.user ? { status: 'signedIn', user: query.data.user } : { status: 'signedOut', expired: query.data.expired };
+    session = query.data.user ? { status: 'signedIn', user: query.data.user } : { status: 'signedOut', expired: query.data.expired, signedOutByUser: query.data.signedOutByUser };
   } else {
     session = { status: 'loading' };
   }

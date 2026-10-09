@@ -1,5 +1,7 @@
 import { expect, test, vi } from 'vitest';
 import { render } from 'vitest-browser-react';
+import * as sdkRuntime from '@tma.js/sdk-react';
+import { setTelegramRuntime } from '../telegram/runtime';
 import { ShellProvider } from '../shellContext';
 
 const sdk = vi.hoisted(() => {
@@ -10,9 +12,12 @@ const sdk = vi.hoisted(() => {
 vi.mock('@tma.js/sdk-react', () => ({ mainButton: sdk.main, secondaryButton: sdk.secondary }));
 import { TrainingActions } from './Action';
 
-const pair = (main = 'Начать', secondary: string | null = 'Назад', shell: 'site' | 'telegram' = 'telegram') => <ShellProvider value={{ shell, launch: null }}>
+const pair = (main = 'Начать', secondary: string | null = 'Назад', shell: 'site' | 'telegram' = 'telegram') => {
+  setTelegramRuntime(shell === 'telegram' ? sdkRuntime : null);
+  return <ShellProvider value={{ shell, launch: null }}>
   <TrainingActions primary={{ text: main, disabled: false, onClick: vi.fn() }} secondary={secondary === null ? undefined : { text: secondary, disabled: false, onClick: vi.fn() }} />
 </ShellProvider>;
+};
 const position = () => sdk.secondary.setParams.ifAvailable.mock.calls.at(-1)?.[0]?.position;
 
 test('пара: короткие подписи рядом, длинная главная или вторая — над главной', async () => {

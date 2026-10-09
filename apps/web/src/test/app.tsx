@@ -8,6 +8,7 @@ import { App } from '../App';
 import { makeQueryClient } from '../queryClient';
 import { makeRouter } from '../router';
 import type { Shell } from '../shell';
+import { setTelegramRuntime } from '../telegram/runtime';
 import type { TelegramLaunch } from '../telegram/sdk';
 
 export type Handler = (req: Request) => Response | Promise<Response>;
@@ -51,6 +52,7 @@ export function fakeServer(handlers: Record<string, Handler>) {
 
 export async function renderApp(opts: { path: string; shell?: Shell; launch?: TelegramLaunch | null }) {
   const shell = opts.shell ?? 'site';
+  setTelegramRuntime(shell === 'telegram' ? await import('@tma.js/sdk-react') : null);
   const queryClient = makeQueryClient(shell);
   // Повторы при нехватке сети — без пауз между попытками: правило то же, тест не ждёт секунды.
   const defaults = queryClient.getDefaultOptions();

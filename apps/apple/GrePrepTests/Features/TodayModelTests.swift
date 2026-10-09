@@ -15,6 +15,7 @@ struct TodayModelTests {
     let server = StubServer()
     let cache = temporaryCache()
     let events = Events()
+    let network = NetworkMonitor()
 
     @MainActor final class Events {
         var unauthorized = 0
@@ -26,13 +27,41 @@ struct TodayModelTests {
         let api = API(config: server.config(), session: server.session, tokens: MemoryTokenStore("t"))
         let events = events
         return TodayModel(
-            api: api, cache: cache,
+            api: api, cache: cache, network: network,
             onUnauthorized: { events.unauthorized += 1 },
             report: { message, requestID in
                 events.reports.append(message)
                 events.requestIDs.append(requestID)
             }
         )
+    }
+
+    @Test("«Повторить» и появление экрана пробуют запрос при ошибочном «нет сети» монитора")
+    func retryDespiteOfflineMonitor() async throws {
+        server.on("GET /api/today", .failure(.notConnectedToInternet), .json(200, Fixture.todayJSON))
+        let model = model()
+        network.set(online: false)
+        await model.networkChanged()
+        await model.refresh()
+        #expect(server.requests("GET /api/today").count == 1)
+        #expect(model.content == .unavailable(.offline))
+        await model.refreshIfStale()
+        #expect(server.requests("GET /api/today").count == 2)
+        #expect(model.content == .plan(Fixture.plan))
+    }
+
+    @Test("появление экрана не дублирует автоматический запрос, который уже идёт")
+    func appearanceCoalescesRefresh() async throws {
+        let gate = StubServer.Gate()
+        server.on("GET /api/today", .gated(gate, 500, Fixture.error("internal")))
+        let model = model()
+        let automatic = Task { await model.refresh() }
+        await eventually { !server.requests("GET /api/today").isEmpty }
+        await model.refreshIfStale()
+        gate.open()
+        await automatic.value
+        #expect(server.requests("GET /api/today").count == 1)
+        #expect(events.reports.count == 1)
     }
 
     @Test("свежий план показывается и сохраняется на устройстве")
@@ -94,12 +123,15 @@ struct TodayModelTests {
         let model = model()
         await model.refresh()
         #expect(model.staleReason == .offline)
-        await model.networkChanged(online: false)
+        network.set(online: false)
+        await model.networkChanged()
         #expect(server.requests("GET /api/today").count == 1)
-        await model.networkChanged(online: true)
+        network.set(online: true)
+        await model.networkChanged()
         #expect(model.staleReason == nil)
         #expect(server.requests("GET /api/today").count == 2)
-        await model.networkChanged(online: true)
+        network.set(online: true)
+        await model.networkChanged()
         #expect(server.requests("GET /api/today").count == 2)
     }
 
@@ -118,27 +150,32 @@ struct TodayModelTests {
         server.on("GET /api/today", .json(200, Fixture.todayJSON), .json(200, updated))
         let model = model()
         await model.refresh()
-        await model.networkChanged(online: false)
+        network.set(online: false)
+        await model.networkChanged()
         #expect(model.content == .plan(Fixture.plan))
         #expect(model.staleReason == .offline)
         #expect(server.requests("GET /api/today").count == 1)
-        await model.networkChanged(online: true)
+        network.set(online: true)
+        await model.networkChanged()
         #expect(model.content == .plan(TodayPlan(date: "2026-10-09", steps: [])))
         #expect(model.staleReason == nil)
         #expect(server.requests("GET /api/today").count == 2)
     }
 
-    @Test("с самого запуска без сети — кэш или «Нет сети», запросов нет", arguments: [false, true])
+    @Test(
+        "с самого запуска без сети — кэш или «Нет сети»; появление всё равно пробует запрос", arguments: [false, true])
     func startsOffline(cached: Bool) async throws {
         if cached { try cache.save(Fixture.todayDTO) }
         let api = API(config: server.config(), session: server.session, tokens: MemoryTokenStore("t"))
-        let model = TodayModel(api: api, cache: cache, isOnline: false, onUnauthorized: {}, report: { _, _ in })
+        network.set(online: false)
+        let model = TodayModel(api: api, cache: cache, network: network, onUnauthorized: {}, report: { _, _ in })
         #expect(model.content == (cached ? .plan(Fixture.plan) : .unavailable(.offline)))
         #expect(model.staleReason == (cached ? .offline : nil))
-        await model.refresh()
-        #expect(server.requests.isEmpty)
-        server.on("GET /api/today", .json(200, Fixture.todayJSON))
-        await model.networkChanged(online: true)
+        server.on("GET /api/today", .failure(.notConnectedToInternet), .json(200, Fixture.todayJSON))
+        await model.refreshIfStale()
+        #expect(server.requests("GET /api/today").count == 1)
+        network.set(online: true)
+        await model.networkChanged()
         #expect(model.content == .plan(Fixture.plan))
     }
 
@@ -149,16 +186,20 @@ struct TodayModelTests {
         let model = model()
         let request = Task { await model.refresh() }
         await eventually { !server.requests("GET /api/today").isEmpty }
-        await model.networkChanged(online: false)
+        network.set(online: false)
+        await model.networkChanged()
         gate.open()
         await request.value
         #expect(model.content == .plan(Fixture.plan))
         #expect(model.staleReason == .offline)
-        await model.networkChanged(online: true)
+        network.set(online: true)
+        await model.networkChanged()
         #expect(model.staleReason == nil)
         model.retire()
-        await model.networkChanged(online: false)
-        await model.networkChanged(online: true)
+        network.set(online: false)
+        await model.networkChanged()
+        network.set(online: true)
+        await model.networkChanged()
         #expect(model.staleReason == nil)
         #expect(server.requests("GET /api/today").count == 2)
     }

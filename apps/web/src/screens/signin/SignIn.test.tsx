@@ -5,9 +5,18 @@ const leaveTo = vi.hoisted(() => vi.fn((_url: string) => {}));
 vi.mock('../../leave', () => ({ leaveTo }));
 beforeEach(() => leaveTo.mockClear());
 
+import { telegramRuntime } from '../../telegram/runtime';
+
 const signedOut = { 'GET /api/me': () => apiError(401, 'unauthorized') };
 
 describe('вход на сайте', () => {
+  it('на сайте SDK Telegram отсутствует, как в бою', async () => {
+    fakeServer(signedOut);
+    const { screen } = await renderApp({ path: '/signin' });
+    await expect.element(screen.getByRole('button', { name: 'Войти через Telegram' })).toBeVisible();
+    expect(telegramRuntime()).toBeNull();
+  });
+
   it('глубокая ссылка сохраняется на входе и возвращается после входа подменой', async () => {
     fakeServer({
       ...signedOut,
@@ -28,6 +37,8 @@ describe('вход на сайте', () => {
     const { screen, router } = await renderApp({ path: '/' });
     await expect.element(screen.getByRole('button', { name: 'Войти через Telegram' })).toBeVisible();
     expect(router.state.location.pathname).toBe('/signin');
+    expect(router.state.location.search).toEqual({});
+    expect(telegramRuntime()).toBeNull();
     await expect.element(screen.getByRole('button', { name: 'Вход с Apple' })).toBeVisible();
     await expect.element(screen.getByRole('button', { name: 'Войти с аккаунтом Google' })).toBeVisible();
     await expect.element(screen.getByText(/registered trademark of Educational Testing Service/)).toBeVisible();

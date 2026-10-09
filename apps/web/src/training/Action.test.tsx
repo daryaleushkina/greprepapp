@@ -1,5 +1,7 @@
 import { expect, test, vi } from 'vitest';
 import { render } from 'vitest-browser-react';
+import * as sdkRuntime from '@tma.js/sdk-react';
+import { setTelegramRuntime } from '../telegram/runtime';
 import { ShellProvider } from '../shellContext';
 
 const sdk = vi.hoisted(() => {
@@ -20,9 +22,12 @@ test('короткий hex главной кнопки разворачивае�
   } finally { html.style.removeProperty('--color-accent'); html.style.removeProperty('--color-on-accent'); }
 });
 
-const action = (disabled = false, busy = false, onClick = vi.fn()) => <ShellProvider value={{ shell: 'telegram', launch: null }}>
+const action = (disabled = false, busy = false, onClick = vi.fn()) => {
+  setTelegramRuntime(sdkRuntime);
+  return <ShellProvider value={{ shell: 'telegram', launch: null }}>
   <TrainingAction text="Начать" disabled={disabled} busy={busy} onClick={onClick} />
 </ShellProvider>;
+};
 
 test('главная кнопка Telegram показывает подпись, цвета и один обработчик, который отписывается', async () => {
   const onClick = vi.fn(); const result = await render(action(false, false, onClick));

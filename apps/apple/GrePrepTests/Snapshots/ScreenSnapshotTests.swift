@@ -93,7 +93,6 @@ struct ScreenSnapshotTests {
         let model = try #require(app.today)
         await model.refresh()
         app.network.set(online: false)
-        await model.networkChanged(online: app.network.isOnline)
         #expect(model.staleReason == .offline)
         #expect(server.requests("GET /api/today").count == 1)
         assertScreens(

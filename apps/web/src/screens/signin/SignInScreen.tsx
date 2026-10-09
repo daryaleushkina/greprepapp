@@ -1,7 +1,7 @@
 // Вход на сайте — один экран, три способа (PRODUCT.md, «Stack»: Telegram первым). В мини-аппе этого экрана нет:
 // там человек опознан самим Telegram.
 import { isApiError, signInForDevelopment } from '@greprep/api-client';
-import { Navigate, useNavigate, useSearch } from '@tanstack/react-router';
+import { Navigate, useNavigate, useSearch, type RegisteredRouter } from '@tanstack/react-router';
 import { useEffect, useState, type ReactNode } from 'react';
 import { beginSignIn } from '../../auth/oidc';
 import { BrandMark } from '../../components/BrandMark';
@@ -37,7 +37,7 @@ export function SignInScreen(): ReactNode {
   }, []);
 
   if (shell === 'telegram') return <Navigate to="/" replace />;
-  if (session.status === 'signedIn') return <Navigate to="/" href={returnTo} replace />;
+  if (session.status === 'signedIn') return <Navigate<RegisteredRouter, string, string> href={returnTo} replace />;
 
   const reasonText: Record<SignInReason, string> = {
     expired: t.signIn.expired,
