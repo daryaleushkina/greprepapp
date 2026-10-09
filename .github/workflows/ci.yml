@@ -140,6 +140,7 @@ jobs:
       GATE_APPLE_UI_DB: greprep_ci_apple_ui
       GATE_APPLE_UI_PORT: '8097'
       GATE_APPLE_ARTIFACTS_DIR: ${{ github.workspace }}/test-results/apple
+      GATE_APPLE_SKIP_SNAPSHOTS: '1' # Сглаживание зависит от железа (решение Даши 09.10.2026).
     steps:
       - uses: actions/checkout@v7
         with:
@@ -210,7 +211,7 @@ jobs:
         run: |
           (cd apps/apple && sh scripts/simulator.sh iphone && sh scripts/simulator.sh ipad)
           python3 scripts/ci/apple-diagnostics.py "$GATE_APPLE_ARTIFACTS_DIR/environment"
-      - name: Гейт Apple (iPhone, iPad и Mac)
+      - name: Гейт Apple (iPhone и Mac)
         run: sh scripts/hooks/gate-apple
       - name: Результаты и непрошедшие снимки Apple
         if: failure()

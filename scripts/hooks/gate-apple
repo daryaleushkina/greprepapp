@@ -15,6 +15,8 @@
 # --ui-server-only проверяет только пересоздание базы, миграции, сид и запуск сервера, без Xcode и симуляторов.
 # GATE_APPLE_IPHONE_UDID выбирает созданный CI iPhone с iOS 18; без неё — прежний GrePrep iPhone на iOS 27.
 # GATE_APPLE_ARTIFACTS_DIR сохраняет логи, xcresult и непрошедшие снимки после cleanup для артефакта CI.
+# GATE_APPLE_SKIP_SNAPSHOTS=1 — в облаке без сверки снимков: сглаживание зависит от железа
+# (решение Даши 09.10.2026). Локально снимки обязательны; порог покрытия одинаковый.
 #
 # Порог покрытия — здесь, а правка этой папки — только с согласия Даши (.claude/hooks/protect-gates.mjs):
 # AGENTS.md, «Порог не опускать; подняли покрытие — поднять и порог».
@@ -218,19 +220,29 @@ start_ui_server
 # Свои симуляторы GrePrep (scripts/simulator.sh создаёт их, если нет). Загружаются по одному и заранее, перед
 # прогоном тестов на них, а не все в начале: сборке для тестов симулятор не нужен, iPad нужен только снимкам —
 # держать его включённым всё время шагов iPhone значит занимать место в общей пятёрке зря.
+skip_snapshots="${GATE_APPLE_SKIP_SNAPSHOTS:-0}"
+set --
+if [ "$skip_snapshots" = 1 ]; then
+  set -- -skip-testing:GrePrepTests/ScreenSnapshotTests
+  echo "gate: Apple — снимки не сверялись (CI, решение Даши 09.10.2026)" >&2
+fi
 iphone="${GATE_APPLE_IPHONE_UDID:-}"
 if [ -z "$iphone" ]; then iphone="$(sh scripts/simulator.sh iphone)"; fi
-ipad="$(sh scripts/simulator.sh ipad)"
+if [ "$skip_snapshots" != 1 ]; then ipad="$(sh scripts/simulator.sh ipad)"; fi
 
 # Эталоны снимков гейт не записывает: нет эталона — тест красный.
 export TEST_RUNNER_SNAPSHOT_TESTING_RECORD=never
 export TEST_RUNNER_GP_UI_SERVER="http://127.0.0.1:$UI_PORT"
 
-echo "gate: Apple — iPhone: юнит-тесты, снимки, сценарии UI, покрытие ≥ ${APPLE_COVERAGE_MIN}%" >&2
+if [ "$skip_snapshots" = 1 ]; then
+  echo "gate: Apple — iPhone: юнит-тесты, сценарии UI, покрытие ≥ ${APPLE_COVERAGE_MIN}%" >&2
+else
+  echo "gate: Apple — iPhone: юнит-тесты, снимки, сценарии UI, покрытие ≥ ${APPLE_COVERAGE_MIN}%" >&2
+fi
 build_step tests-ios -scheme GrePrep -destination "id=$iphone" build-for-testing
 sim_boot "$iphone"
 run_tests iphone -scheme GrePrep -destination "id=$iphone" -enableCodeCoverage YES \
-  -resultBundlePath "$work/iphone.xcresult" test-without-building
+  -resultBundlePath "$work/iphone.xcresult" "$@" test-without-building
 sim_release "$iphone"
 total="$(xcrun xccov view --report --json "$work/iphone.xcresult" | /usr/bin/python3 -c '
 import json, sys
@@ -243,11 +255,19 @@ if ! awk -v t="$total" -v m="$APPLE_COVERAGE_MIN" 'BEGIN { exit !(t + 0 >= m + 0
 fi
 echo "gate: покрытие приложения Apple ${total}%" >&2
 
-echo "gate: Apple — iPad: снимки" >&2
-sim_boot "$ipad"
-run_tests ipad -scheme GrePrep -destination "id=$ipad" -only-testing:GrePrepTests/ScreenSnapshotTests \
-  -resultBundlePath "$work/ipad.xcresult" test-without-building
-sim_release "$ipad"
+if [ "$skip_snapshots" != 1 ]; then
+  echo "gate: Apple — iPad: снимки" >&2
+  sim_boot "$ipad"
+  run_tests ipad -scheme GrePrep -destination "id=$ipad" -only-testing:GrePrepTests/ScreenSnapshotTests \
+    -resultBundlePath "$work/ipad.xcresult" test-without-building
+  sim_release "$ipad"
+else
+  echo "gate: Apple — iPad: пропущен, шаг проверяет только снимки" >&2
+fi
 
-echo "gate: Apple — Mac: юнит-тесты и снимки" >&2
-run_tests mac -scheme GrePrepMac -destination 'platform=macOS' -resultBundlePath "$work/mac.xcresult" test
+if [ "$skip_snapshots" = 1 ]; then
+  echo "gate: Apple — Mac: юнит-тесты" >&2
+else
+  echo "gate: Apple — Mac: юнит-тесты и снимки" >&2
+fi
+run_tests mac -scheme GrePrepMac -destination 'platform=macOS' -resultBundlePath "$work/mac.xcresult" "$@" test

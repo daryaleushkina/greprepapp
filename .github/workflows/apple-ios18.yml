@@ -33,6 +33,7 @@ jobs:
       GATE_APPLE_UI_DB: greprep_ci_ios18_ui
       GATE_APPLE_UI_PORT: '8097'
       GATE_APPLE_ARTIFACTS_DIR: ${{ github.workspace }}/test-results/apple-ios18
+      GATE_APPLE_SKIP_SNAPSHOTS: '1' # Сглаживание зависит от железа (решение Даши 09.10.2026).
     steps:
       - uses: actions/checkout@v7
         with:
