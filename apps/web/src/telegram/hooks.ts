@@ -2,8 +2,7 @@
 // обработчик в ref, чтобы новая функция на каждый рендер не переподписывала кнопку; отписка обязательна —
 // иначе обработчики копятся.
 import { useEffect, useLayoutEffect, useRef } from 'react';
-import { useShell } from '../shellContext';
-import { backButton, closingBehavior, swipeBehavior } from '@tma.js/sdk-react';
+import { backButton, swipeBehavior } from '@tma.js/sdk-react';
 
 const SWIPE_RESTORE_KEY = 'greprep.training.swipes';
 
@@ -58,25 +57,4 @@ export function useBackButton(onBack: (() => void) | null): void {
       backButton.hide.ifAvailable();
     };
   }, [visible]);
-}
-
-/** Асинхронная запись ещё не подтверждена диском: до её завершения закрытие требует подтверждения. */
-export function useDraftCloseProtection(unsaved: boolean): void {
-  const { shell } = useShell();
-  useLayoutEffect(() => {
-    const beforeUnload = (event: BeforeUnloadEvent) => { event.preventDefault(); };
-    if (unsaved) window.addEventListener('beforeunload', beforeUnload);
-    let restore: (() => void) | undefined;
-    if (shell === 'telegram') {
-      closingBehavior.mount.ifAvailable();
-      if (closingBehavior.enableConfirmation.isAvailable()) {
-        // После перезагрузки SDK помнит наше подтверждение; восстанавливаем исходное состояние.
-        const key = 'greprep.training.draft-close';
-        const enabled = rememberSetting(key, closingBehavior.isConfirmationEnabled());
-        restore = () => { if (!enabled) closingBehavior.disableConfirmation.ifAvailable(); forgetSetting(key); };
-        if (unsaved) closingBehavior.enableConfirmation.ifAvailable(); else restore();
-      }
-    }
-    return () => { window.removeEventListener('beforeunload', beforeUnload); restore?.(); };
-  }, [shell, unsaved]);
 }

@@ -2,7 +2,7 @@ import { ApiError, getTrainingOptions, startTraining, submitTrainingAnswers, fin
 import { reportError } from '../errors/report';
 import { reportDraftSchema, type ReportDraft, pendingReportSchema, storedTraining, type StoredTraining } from './model';
 import { TrainingRules } from './rules';
-import { TrainingStore, TrainingOwnerChangedError, TrainingStorageBlockedError, type TrainingOwner } from './store';
+import { TrainingStore, TrainingMissingError, TrainingOwnerChangedError, TrainingStorageBlockedError, type TrainingOwner } from './store';
 
 export const SUPPORTED_TYPES = schemas.QuestionType.options;
 const PERMANENT = new Set([400, 404, 409, 410, 422]);
@@ -200,29 +200,39 @@ export class TrainingRepository {
     } catch (error) { this.storageFailed(error); throw error; }
   }
 
-  async reportDraft(id: string, position: number, draft?: ReportDraft): Promise<void> {
+  // Отложенная запись привязана к ревизии открывшейся формы, даже если за время ожидания человек вышел.
+  reportOwner = (): TrainingOwner | null => this.owner ?? null;
+
+  async reportDraft(id: string, position: number, draft?: ReportDraft, owner: TrainingOwner | null = this.owner ?? null): Promise<void> {
     const checked = draft === undefined ? undefined : reportDraftSchema.parse(draft);
-    const owner = this.owner;
     if (!owner) throw new TrainingOwnerChangedError();
     let saved: boolean;
     try {
-      saved = await this.store.update(owner, id, (training) => {
-        if (!training.session.items[position]) return training;
-        const reportDrafts = { ...training.reportDrafts };
-        if (checked === undefined) delete reportDrafts[String(position)]; else reportDrafts[String(position)] = checked;
-        return { ...training, reportDrafts };
-      });
-    } catch (error) { this.reportStorage(error); throw error; }
-    if (!saved) throw new TrainingOwnerChangedError();
+      saved = await this.store.putReportDraft(owner, id, position, checked);
+      if (!saved) throw await this.store.owns(owner) ? new TrainingMissingError() : new TrainingOwnerChangedError();
+    } catch (error) {
+      if (!(error instanceof TrainingOwnerChangedError || error instanceof TrainingMissingError)) this.storageFailed(error, true);
+      throw error;
+    }
   }
 
-  async recordReport(questionId: string, report: QuestionReport, position?: number): Promise<void> {
+  async getReportDraft(id: string, position: number): Promise<ReportDraft | undefined> {
+    try { return this.owner ? await this.store.getReportDraft(this.owner, id, position) : undefined; }
+    catch (error) { this.storageFailed(error); throw error; }
+  }
+
+  async discardReportDraft(id: string, position: number, owner: TrainingOwner | null = this.owner ?? null): Promise<void> {
+    if (!owner) return;
+    try { await this.store.putReportDraft(owner, id, position); }
+    catch (error) { this.reportStorage(error); }
+  }
+
+  async recordReport(questionId: string, report: QuestionReport, position?: number, owner: TrainingOwner | null = this.owner ?? null): Promise<void> {
     const pending = pendingReportSchema.parse({ id: crypto.randomUUID(), questionId, report });
-    const owner = this.owner;
     if (!owner) throw new TrainingOwnerChangedError();
     let saved: boolean;
     try { saved = await this.store.putReport(owner, pending, position); }
-    catch (error) { this.reportStorage(error); throw error; }
+    catch (error) { this.storageFailed(error, true); throw error; }
     if (!saved) throw new TrainingOwnerChangedError();
     this.requestSync();
   }
@@ -322,8 +332,10 @@ export class TrainingRepository {
     // Ни содержимое задания, ни ответы человека, ни сообщение внешней ошибки в отчёт не попадают.
     this.report(new Error(`training storage failed: ${error instanceof Error ? error.name : 'unknown'}`));
   }
-  private storageFailed(error: unknown) {
+  private storageFailed(error: unknown, recoverableQuota = false) {
     if (error instanceof TrainingStorageBlockedError) { this.setStatus('blocked'); return; }
+    // Переполнение не делает базу недоступной: форму можно отправить после освобождения места.
+    if (recoverableQuota && error instanceof DOMException && error.name === 'QuotaExceededError') { this.reportStorage(error); return; }
     this.setStatus('unavailable'); this.reportStorage(error);
   }
   private handle(error: unknown, label = 'training API') {

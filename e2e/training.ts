@@ -468,17 +468,41 @@ export async function reportDraftAndLimit(page: Page) {
   await page.reload();
   await expect(input).toHaveValue('Synthetic draft');
   await expect(page.getByRole('button', { name: 'В переводе', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await input.fill('');
+  await page.evaluate(() => {
+    const source = document.createElement('textarea'); source.id = 'clipboard-fixture'; source.value = 'first\nsecond';
+    document.body.append(source); source.focus(); source.select();
+  });
+  await page.keyboard.press('ControlOrMeta+c');
+  await page.evaluate(() => { document.getElementById('clipboard-fixture')?.remove(); });
+  await input.focus(); await page.keyboard.press('ControlOrMeta+v');
+  await expect(input).toHaveValue('first\nsecond');
+  await expect(page.locator('#report-truncated')).toHaveCount(0);
   await input.fill('a'.repeat(1800));
   await expect(page.getByText('1800 / 2000', { exact: true })).toBeVisible();
+  // Настоящий буфер обмена и родная вставка: WebKit помечает её insertFromPaste.
+  await page.evaluate(() => {
+    const source = document.createElement('textarea'); source.id = 'clipboard-fixture'; source.value = 'b'.repeat(201);
+    document.body.append(source); source.focus(); source.select();
+  });
+  await page.keyboard.press('ControlOrMeta+c');
+  await page.evaluate(() => { document.getElementById('clipboard-fixture')?.remove(); });
+  await input.focus();
   await input.evaluate((element) => {
     if (!(element instanceof HTMLTextAreaElement)) throw new Error('fixture textarea missing');
     element.setSelectionRange(10, 10);
-    const clipboardData = new DataTransfer(); clipboardData.setData('text/plain', 'b'.repeat(201));
-    element.dispatchEvent(new ClipboardEvent('paste', { clipboardData, bubbles: true, cancelable: true }));
   });
+  await page.keyboard.press('ControlOrMeta+v');
   await expect(page.locator('#report-truncated')).toContainText('Вставка сокращена');
   await expect.poll(() => input.evaluate((element) => element instanceof HTMLTextAreaElement ? element.selectionStart : null)).toBe(210);
   await expect(input).toHaveValue('a'.repeat(10) + 'b'.repeat(200) + 'a'.repeat(1790));
+  await page.keyboard.press('ControlOrMeta+z');
+  await expect(input).toHaveValue('a'.repeat(1800));
+  await expect(page.locator('#report-truncated')).toHaveCount(0);
+  await page.keyboard.press('ControlOrMeta+Shift+z');
+  await expect(input).toHaveValue('a'.repeat(10) + 'b'.repeat(200) + 'a'.repeat(1790));
+  await page.keyboard.press('x');
+  await expect(page.locator('#report-truncated')).toHaveCount(0);
   await page.keyboard.press('ArrowLeft'); await page.keyboard.press('Backspace');
   await expect(page.getByText('1999 / 2000', { exact: true })).toBeVisible();
   await trainingBack(page);
@@ -492,4 +516,64 @@ export async function reportDraftAndLimit(page: Page) {
   await page.reload();
   await expect(input).toHaveValue('');
   await expect(page.getByRole('button', { name: 'Отправить', exact: true })).toBeDisabled();
+}
+
+
+export async function reportBackStorageFailure(page: Page) {
+  await startSession(page);
+  await page.getByRole('link', { name: 'Сообщить об ошибке' }).click();
+  await page.getByRole('textbox', { name: 'Что не так' }).fill('Synthetic private draft');
+  await expect(page.getByRole('status').filter({ hasText: 'Черновик сохранён' })).toHaveCount(1);
+  let reported: unknown;
+  await page.route('**/api/client-errors', async (route) => { reported = route.request().postDataJSON(); await route.fulfill({ status: 204 }); });
+  await page.evaluate(() => {
+    const original = IDBObjectStore.prototype.delete;
+    IDBObjectStore.prototype.delete = function (...args) {
+      if (this.name === 'reportDrafts') throw new DOMException('Synthetic private draft', 'SecurityError');
+      return original.apply(this, args);
+    };
+  });
+  await trainingBack(page);
+  await expect(page.getByRole('heading', { name: 'Text Completion' })).toBeVisible();
+  await expect.poll(() => reported).toMatchObject({ message: 'Error: training storage failed: SecurityError' });
+  expect(JSON.stringify(reported)).not.toContain('Synthetic private draft');
+}
+
+
+export async function reportDraftBatchesAndQuota(page: Page) {
+  await startSession(page);
+  await page.getByRole('link', { name: 'Сообщить об ошибке' }).click();
+  await page.getByRole('button', { name: 'Другое', exact: true }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'Черновик сохранён' })).toHaveCount(1);
+  const input = page.getByRole('textbox', { name: 'Что не так' });
+  await page.evaluate(() => {
+    const element = document.getElementById('report-text');
+    if (!(element instanceof HTMLTextAreaElement)) throw new Error('fixture textarea missing');
+    const put = IDBObjectStore.prototype.put;
+    let writes = 0;
+    IDBObjectStore.prototype.put = function (...args) {
+      if (this.name === 'reportDrafts') element.dataset.draftWrites = String(++writes);
+      return put.apply(this, args);
+    };
+  });
+  await input.pressSequentially('a'.repeat(200), { timeout: 30_000 });
+  await expect(page.getByText('200 / 2000', { exact: true })).toBeVisible();
+  await expect(page.getByRole('status').filter({ hasText: 'Черновик сохранён' })).toHaveCount(1);
+  const writes = await input.evaluate((element) => element instanceof HTMLTextAreaElement ? Number(element.dataset.draftWrites) : NaN);
+  expect(writes).toBeGreaterThanOrEqual(1); expect(writes).toBeLessThanOrEqual(3);
+  await page.evaluate(() => {
+    const put = IDBObjectStore.prototype.put; let failed = false;
+    IDBObjectStore.prototype.put = function (...args) {
+      if (this.name === 'reportDrafts' && !failed) { failed = true; throw new DOMException('Synthetic private draft', 'QuotaExceededError'); }
+      return put.apply(this, args);
+    };
+  });
+  await input.fill('Synthetic first');
+  await expect(page.getByRole('alert')).toContainText('Освободите место на устройстве');
+  await expect(input).toHaveAttribute('aria-busy', 'false');
+  await input.fill('Synthetic last');
+  await expect(page.getByRole('alert')).toContainText('Освободите место на устройстве');
+  await expect(input).toHaveAttribute('aria-busy', 'false');
+  await page.getByRole('button', { name: 'Отправить', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Спасибо!' })).toBeVisible();
 }

@@ -54,3 +54,9 @@ test('жалоба без сети отправляется после возв�
 
 import { reportDraftAndLimit } from '../training';
 test('черновик жалобы после перезагрузки, лимит вставки и отмена', async ({ miniApp: page }) => { await reportDraftAndLimit(page); });
+
+import { reportBackStorageFailure } from '../training';
+test('«Назад» уходит при сбое стирания черновика без текста в отчёте', async ({ miniApp: page }) => { await reportBackStorageFailure(page); });
+
+import { reportDraftBatchesAndQuota } from '../training';
+test('200 знаков: несколько записей; переполнение черновика, ввод и повтор', async ({ miniApp: page }) => { await reportDraftBatchesAndQuota(page); });

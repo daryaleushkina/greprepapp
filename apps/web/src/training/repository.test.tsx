@@ -3,7 +3,7 @@ import { deleteDB } from 'idb';
 import { afterEach, expect, test, vi } from 'vitest';
 import { givenAnswer, savedTraining, trainingOptions, trainingSession } from '../test/training';
 import { TrainingRepository } from './repository';
-import { TrainingStore } from './store';
+import { TrainingStore, TrainingStorageBlockedError } from './store';
 
 const opened: { name: string; store: TrainingStore }[] = [];
 const NOW = Date.parse('2026-10-06T09:00:00Z');
@@ -376,7 +376,7 @@ test('жалоба: ошибка устройства не теряет форм
 test('после фонового 401 жалоба записывается прежнему владельцу и ждёт повторного входа', async () => {
   const m = make(); const { owner } = await seed(m);
   m.api.answers.mockRejectedValueOnce(fail(401)); await m.repo.sync();
-  await m.repo.recordReport(questionId, complaint);
+  await m.repo.recordReport(questionId, complaint, undefined, owner);
   expect(await m.store.reports(owner)).toHaveLength(1);
   await m.repo.sync(); expect(m.api.report).not.toHaveBeenCalled();
   expect(m.report).not.toHaveBeenCalled();
@@ -396,12 +396,74 @@ test('черновик жалобы: отказ диска, неизвестны
   const { owner } = await seed(m);
   await m.repo.reportDraft(trainingSession().id, 0, { kind: 'other' });
   await m.repo.reportDraft(trainingSession().id, 99, { kind: 'other' });
-  expect((await m.store.get(owner, trainingSession().id))?.reportDrafts).toEqual({ 0: { kind: 'other' } });
-  await m.repo.reportDraft(trainingSession().id, 0); expect((await m.store.get(owner, trainingSession().id))?.reportDrafts).toEqual({});
-  const update = vi.spyOn(m.store, 'update').mockRejectedValueOnce(new DOMException('fixture', 'SecurityError'));
+  expect(await m.store.getReportDraft(owner, trainingSession().id, 0)).toEqual({ kind: 'other' });
+  await m.repo.reportDraft(trainingSession().id, 0); expect(await m.store.getReportDraft(owner, trainingSession().id, 0)).toBeUndefined();
+  const update = vi.spyOn(m.store, 'putReportDraft').mockRejectedValueOnce(new DOMException('fixture', 'SecurityError'));
   await expect(m.repo.reportDraft(trainingSession().id, 0, {})).rejects.toHaveProperty('name', 'SecurityError');
   expect(m.report).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ message: 'training storage failed: SecurityError' }));
   update.mockRestore();
-  await expect(m.repo.reportDraft('missing', 0, {})).rejects.toHaveProperty('name', 'TrainingOwnerChangedError');
+  await expect(m.repo.reportDraft('missing', 0, { text: 'Synthetic' })).rejects.toHaveProperty('name', 'TrainingMissingError');
   await m.repo.signOut(); m.repo.retryStorage();
+});
+
+
+for (const action of ['draft', 'report'] as const) test(`заблокированное хранилище ${action} идёт в общий экран с повтором без отчёта`, async () => {
+  const m = make(); await seed(m);
+  vi.spyOn(m.store, action === 'draft' ? 'putReportDraft' : 'putReport').mockRejectedValueOnce(new TrainingStorageBlockedError());
+  await expect(action === 'draft' ? m.repo.reportDraft(trainingSession().id, 0, { text: 'Synthetic' }) : m.repo.recordReport(questionId, complaint)).rejects.toHaveProperty('name', 'TrainingStorageBlockedError');
+  expect(m.repo.storageStatus()).toBe('blocked'); expect(m.report).not.toHaveBeenCalled();
+});
+
+test('утраченная тренировка отличается от смены владельца при записи', async () => {
+  const m = make(); await seed(m);
+  await expect(m.repo.reportDraft('missing', 0, { text: 'Synthetic' })).rejects.toHaveProperty('name', 'TrainingMissingError');
+});
+
+test('черновик не уведомляет подписчиков тренировки и не хранит пустое значение', async () => {
+  const m = make(); const { owner } = await seed(m); const changed = vi.fn(); m.store.subscribe(changed);
+  await m.repo.reportDraft(trainingSession().id, 0, { text: 'Synthetic' });
+  expect(changed).not.toHaveBeenCalled();
+  await m.repo.reportDraft(trainingSession().id, 0, { text: '' });
+  expect(await m.store.getReportDraft(owner, trainingSession().id, 0)).toBeUndefined();
+});
+
+
+test('чтение черновика без владельца, сбой чтения и безопасная очистка после выхода', async () => {
+  const m = make(); expect(m.repo.reportOwner()).toBeNull(); expect(await m.repo.getReportDraft(trainingSession().id, 0)).toBeUndefined();
+  await m.repo.discardReportDraft(trainingSession().id, 0);
+  await seed(m);
+  vi.spyOn(m.store, 'getReportDraft').mockRejectedValueOnce(new TrainingStorageBlockedError());
+  await expect(m.repo.getReportDraft(trainingSession().id, 0)).rejects.toHaveProperty('name', 'TrainingStorageBlockedError');
+  expect(m.repo.storageStatus()).toBe('blocked'); expect(m.report).not.toHaveBeenCalled();
+  vi.spyOn(m.store, 'putReportDraft').mockRejectedValueOnce(new DOMException('Synthetic private text', 'SecurityError'));
+  await m.repo.discardReportDraft(trainingSession().id, 0);
+  expect(m.report).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ message: 'training storage failed: SecurityError' }));
+});
+
+test('смена владельца не возвращает его черновик и не сообщает ошибку диска', async () => {
+  const m = make(); await seed(m); await m.store.signIn('b'); m.report.mockClear();
+  await expect(m.repo.reportDraft(trainingSession().id, 0, { text: 'Synthetic' })).rejects.toHaveProperty('name', 'TrainingOwnerChangedError');
+  expect(m.report).not.toHaveBeenCalled(); expect(m.repo.storageStatus()).toBe('ready');
+});
+
+
+test('отложенная жалоба прежнего владельца не записывается новому аккаунту', async () => {
+  const m = make(); const { owner } = await seed(m); await m.repo.signedIn('b');
+  await expect(m.repo.recordReport(questionId, complaint, 0, owner)).rejects.toHaveProperty('name', 'TrainingOwnerChangedError');
+  expect(await m.store.reports(await m.store.signIn('b'))).toEqual([]);
+});
+
+test('отложенный черновик до выхода не возвращается после входа тем же человеком', async () => {
+  const m = make(); const { owner } = await seed(m); await m.repo.signOut(); await m.repo.signedIn('a');
+  const current = await m.store.signIn('a'); await m.store.put(current, savedTraining());
+  await expect(m.repo.reportDraft(trainingSession().id, 0, { text: 'Synthetic stale' }, owner)).rejects.toHaveProperty('name', 'TrainingOwnerChangedError');
+  expect(await m.store.getReportDraft(current, trainingSession().id, 0)).toBeUndefined();
+});
+
+test('отложенная отмена старой формы не удаляет новый черновик после повторного входа', async () => {
+  const m = make(); const { owner } = await seed(m); await m.repo.signOut(); await m.repo.signedIn('a');
+  const current = await m.store.signIn('a'); await m.store.put(current, savedTraining());
+  await m.repo.reportDraft(trainingSession().id, 0, { text: 'Synthetic new' });
+  await m.repo.discardReportDraft(trainingSession().id, 0, owner);
+  expect(await m.store.getReportDraft(current, trainingSession().id, 0)).toEqual({ text: 'Synthetic new' });
 });

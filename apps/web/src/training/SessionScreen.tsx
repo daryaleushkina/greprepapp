@@ -9,7 +9,7 @@ import { FocusLayout } from '../layout/AppLayout';
 import { useShell } from '../shellContext';
 import glass from '../styles/glass.module.css';
 import { TrainingStorageBlocked } from './ReadTraining';
-import { useBackButton } from '../telegram/hooks';
+import { useBackButton, useTrainingSwipes } from '../telegram/hooks';
 import { useOnline } from '../useOnline';
 import { TrainingActions } from './Action';
 import { TYPE_LABELS } from './builder';
@@ -43,6 +43,7 @@ function ActiveSession({ incoming }: { incoming: StoredTraining }) {
   const { t, locale } = useI18n();
   const [language, setLanguage] = useState(locale);
   const { shell } = useShell();
+  useTrainingSwipes(shell === 'telegram' && !s.training.finish);
   const text = t.training;
   const total = s.training.session.items.length;
   const last = s.position === total - 1;

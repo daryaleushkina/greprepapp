@@ -1,7 +1,7 @@
 import { openDB, type DBSchema, type IDBPDatabase, type IDBPTransaction } from 'idb';
 import { z } from 'zod';
 import { reportError } from '../errors/report';
-import { pendingReportSchema, storedTrainingSchema, type PendingReport, type StoredTraining } from './model';
+import { pendingReportSchema, reportDraftSchema, storedTrainingSchema, type PendingReport, type ReportDraft, type StoredTraining } from './model';
 
 const ownerSchema = z.object({ userId: z.string().nullable(), revision: z.number().int().nonnegative() });
 const changeSchema = z.discriminatedUnion('kind', [z.object({ kind: z.literal('owner') }),
@@ -11,15 +11,19 @@ export interface TrainingOwner { userId: string; revision: number }
 interface TrainingDB extends DBSchema {
   trainings: { key: string; value: unknown };
   reports: { key: string; value: unknown };
+  reportDrafts: { key: [string, number]; value: unknown };
   quarantine: { key: string; value: unknown };
   meta: { key: string; value: unknown };
 }
-type Edit = IDBPTransaction<TrainingDB, ['trainings', 'reports', 'quarantine', 'meta'], 'readwrite'>;
-const stores: ['trainings', 'reports', 'quarantine', 'meta'] = ['trainings', 'reports', 'quarantine', 'meta'];
+type Edit = IDBPTransaction<TrainingDB, ['trainings', 'reports', 'reportDrafts', 'quarantine', 'meta'], 'readwrite'>;
+const stores: ['trainings', 'reports', 'reportDrafts', 'quarantine', 'meta'] = ['trainings', 'reports', 'reportDrafts', 'quarantine', 'meta'];
 const KEEP_FINISHED = 3;
 
 export class TrainingStorageBlockedError extends Error {
   constructor() { super('training database upgrade blocked'); this.name = 'TrainingStorageBlockedError'; }
+}
+export class TrainingMissingError extends Error {
+  constructor() { super('training record missing'); this.name = 'TrainingMissingError'; }
 }
 export class TrainingOwnerChangedError extends Error {
   constructor() { super('training report not saved: owner changed'); this.name = 'TrainingOwnerChangedError'; }
@@ -44,10 +48,34 @@ export class TrainingStore {
     let blocked = false;
     let rejectBlocked: (error: Error) => void = () => {};
     const blockedRequest = new Promise<never>((_resolve, reject) => { rejectBlocked = reject; });
-    const opening = openDB<TrainingDB>(this.name, 2, {
-      upgrade(db, oldVersion) {
+    const opening = openDB<TrainingDB>(this.name, 3, {
+      upgrade(db, oldVersion, _newVersion, tx) {
         if (oldVersion < 1) { db.createObjectStore('trainings'); db.createObjectStore('quarantine'); db.createObjectStore('meta'); }
         if (oldVersion < 2) db.createObjectStore('reports');
+        if (oldVersion < 3) {
+          db.createObjectStore('reportDrafts');
+          // Перенос и удаление прежнего поля атомарны с обновлением схемы.
+          void (async () => {
+            let cursor = await tx.objectStore('trainings').openCursor();
+            while (cursor) {
+              const legacy = z.object({ reportDrafts: z.record(z.string(), z.unknown()).optional() }).safeParse(cursor.value);
+              const training = storedTrainingSchema.safeParse(cursor.value);
+              if (legacy.success && legacy.data.reportDrafts && training.success) {
+                for (const [position, raw] of Object.entries(legacy.data.reportDrafts)) {
+                  const draft = reportDraftSchema.safeParse(raw);
+                  if (draft.success && (draft.data.kind || draft.data.text) && training.data.session.items.some((item) => String(item.position) === position)) {
+                    await tx.objectStore('reportDrafts').put(draft.data, [cursor.key, Number(position)]);
+                  }
+                }
+                await cursor.update(training.data);
+              }
+              cursor = await cursor.continue();
+            }
+          })().catch(() => {
+            // Ошибка миграции отклонит openDB через abort: частичный перенос не принимаем.
+            tx.abort();
+          });
+        }
       },
       blocked() { blocked = true; rejectBlocked(new TrainingStorageBlockedError()); },
       blocking: () => {
@@ -83,6 +111,7 @@ export class TrainingStore {
     }, 0);
     const lostReports = await tx.objectStore('reports').count();
     await tx.objectStore('reports').clear();
+    await tx.objectStore('reportDrafts').clear();
     await tx.objectStore('trainings').clear();
     await tx.objectStore('quarantine').clear();
     // Нечитаемая ревизия не должна случайно совпасть с прежней ревизией открытой вкладки.
@@ -113,7 +142,13 @@ export class TrainingStore {
   private async edit<T>(owner: TrainingOwner, action: (tx: Edit) => Promise<T>): Promise<T | undefined> {
     const tx = (await this.open()).transaction(stores, 'readwrite');
     if (!this.matches(await tx.objectStore('meta').get('owner'), owner)) { await tx.done; return undefined; }
-    const result = await action(tx);
+    let result: T;
+    try { result = await action(tx); }
+    catch (error) {
+      // Исключение JS само не откатывает IndexedDB: уже записанная очередь иначе переживёт отказ удаления.
+      if (!tx.error) tx.abort();
+      return tx.done.then(() => { throw error; }, () => { throw error; });
+    }
     await tx.done;
     return result;
   }
@@ -123,6 +158,7 @@ export class TrainingStore {
     const cleared = await this.edit(owner, async (tx) => {
       await tx.objectStore('trainings').clear();
       await tx.objectStore('reports').clear();
+      await tx.objectStore('reportDrafts').clear();
       await tx.objectStore('quarantine').clear();
       await tx.objectStore('meta').put({ userId: null, revision: owner.revision + 1 }, 'owner');
       return true;
@@ -205,18 +241,49 @@ export class TrainingStore {
     const all = (await this.list(owner)).sort((a, b) => b.startedAtMillis - a.startedAtMillis);
     const finished = all.filter((t) => t.finish && t.finishSent && t.unsent.length === 0).slice(KEEP_FINISHED);
     const abandoned = all.filter((t) => !t.finish).slice(1).filter((t) => t.unsent.length === 0);
-    if (finished.length + abandoned.length === 0) return;
     const removed = await this.edit(owner, async (tx) => {
       const ids: string[] = [];
       for (const candidate of [...finished, ...abandoned]) {
         const parsed = storedTrainingSchema.safeParse(await tx.objectStore('trainings').get(this.key(owner, candidate.session.id)));
-        if (!parsed.success || Object.keys(parsed.data.reportDrafts ?? {}).length > 0 || parsed.data.unsent.length > 0 || (parsed.data.finish && !parsed.data.finishSent)) continue;
+        if (!parsed.success || parsed.data.unsent.length > 0 || (parsed.data.finish && !parsed.data.finishSent)) continue;
         await tx.objectStore('trainings').delete(this.key(owner, candidate.session.id));
         ids.push(candidate.session.id);
+      }
+      // Подбираем также черновики записей, пропавших между вкладками или попавших в карантин.
+      for (const key of await tx.objectStore('reportDrafts').getAllKeys()) {
+        if (await tx.objectStore('trainings').getKey(key[0]) === undefined) await tx.objectStore('reportDrafts').delete(key);
       }
       return ids;
     });
     if (removed?.length) this.changed({ kind: 'training', ids: removed, activeChanged: true });
+  }
+
+  async getReportDraft(owner: TrainingOwner, id: string, position: number): Promise<ReportDraft | undefined> {
+    const tx = (await this.open()).transaction(['reportDrafts', 'meta'], 'readonly');
+    if (!this.matches(await tx.objectStore('meta').get('owner'), owner)) { await tx.done; return undefined; }
+    const key: [string, number] = [this.key(owner, id), position];
+    const raw = await tx.objectStore('reportDrafts').get(key);
+    await tx.done;
+    if (raw === undefined) return undefined;
+    const parsed = reportDraftSchema.safeParse(raw);
+    if (parsed.success) return parsed.data;
+    await this.edit(owner, async (tx) => { await tx.objectStore('reportDrafts').delete(key); });
+    this.report(new Error('training report draft unreadable'));
+    return undefined;
+  }
+
+  async putReportDraft(owner: TrainingOwner, id: string, position: number, draft?: ReportDraft): Promise<boolean> {
+    const checked = draft === undefined ? undefined : reportDraftSchema.parse(draft);
+    const saved = await this.edit(owner, async (tx) => {
+      const key: [string, number] = [this.key(owner, id), position];
+      if (!checked?.kind && !checked?.text) { await tx.objectStore('reportDrafts').delete(key); return true; }
+      const training = storedTrainingSchema.safeParse(await tx.objectStore('trainings').get(key[0]));
+      if (!training.success) return false;
+      if (training.data.session.items[position]) await tx.objectStore('reportDrafts').put(checked, key);
+      return true;
+    });
+    // Черновик не меняет тренировку: не будим её запросы и активный экран на вводе.
+    return saved ?? false;
   }
 
   async putReport(owner: TrainingOwner, pending: PendingReport, position?: number): Promise<boolean> {
@@ -226,19 +293,11 @@ export class TrainingStore {
       await tx.objectStore('reports').put({ ...checked, order: previous + 1 }, this.key(owner, checked.id));
       await tx.objectStore('meta').put(previous + 1, 'reportOrder');
       if (checked.report.trainingId && position !== undefined) {
-        const key = this.key(owner, checked.report.trainingId);
-        const training = storedTrainingSchema.safeParse(await tx.objectStore('trainings').get(key));
-        if (training.success) {
-          const reportDrafts = { ...training.data.reportDrafts }; delete reportDrafts[String(position)];
-          await tx.objectStore('trainings').put({ ...training.data, reportDrafts }, key);
-        }
+        await tx.objectStore('reportDrafts').delete([this.key(owner, checked.report.trainingId), position]);
       }
       return true;
     });
-    if (saved) {
-      this.changed({ kind: 'reports' });
-      if (checked.report.trainingId && position !== undefined) this.changed({ kind: 'training', ids: [checked.report.trainingId], activeChanged: false });
-    }
+    if (saved) this.changed({ kind: 'reports' });
     return saved ?? false;
   }
 

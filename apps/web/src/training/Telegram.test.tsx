@@ -97,14 +97,14 @@ for (const stored of ['disabled', 'broken', 'storage-failed', 'cleanup-failed', 
 });
 
 
-test('свайпы выключены в конструкторе, итоге, разборе и жалобе, при выходе восстановлены', async () => {
+test('свайпы выключены только на вопросе и жалобе', async () => {
   sdk.swipeBehavior.isVerticalEnabled.mockReturnValue(true); vi.clearAllMocks();
   fakeServer({ ...signedIn, 'GET /api/trainings/options': () => json(trainingOptions()), 'POST /api/trainings': () => json(trainingSession()) });
   const { trainingRepository } = await import('./repository');
   vi.spyOn(trainingRepository, 'requestSync').mockImplementation(() => {});
   const { screen } = await renderApp({ path: '/training/new', shell: 'telegram', launch });
   await expect.element(screen.getByRole('heading', { name: 'Новая тренировка' })).toBeVisible();
-  expect(sdk.swipeBehavior.disableVertical.ifAvailable).toHaveBeenCalled();
+  expect(sdk.swipeBehavior.disableVertical.ifAvailable).not.toHaveBeenCalled();
   await screen.getByRole('button', { name: /Начать ·/ }).click();
   for (let index = 0; index < 3; index++) {
     await screen.getByRole('button', { name: 'Не знаю', exact: true }).click();
@@ -114,15 +114,15 @@ test('свайпы выключены в конструкторе, итоге, �
   await screen.getByRole('link', { name: /Вопрос 1, без ответа/ }).click();
   await screen.getByRole('link', { name: 'Сообщить об ошибке' }).click();
   await expect.element(screen.getByRole('textbox', { name: 'Что не так' })).toBeVisible();
-  expect(sdk.swipeBehavior.enableVertical.ifAvailable).not.toHaveBeenCalled();
+  expect(sdk.swipeBehavior.enableVertical.ifAvailable).toHaveBeenCalledTimes(1);
   for (const heading of ['Вопрос 1', 'Разбор тренировки', '0 из 3 верно']) { back(); await expect.element(screen.getByRole('heading', { name: heading, exact: true })).toBeVisible(); }
   await screen.getByRole('button', { name: 'Готово', exact: true }).click();
   await expect.element(screen.getByRole('heading', { name: 'Сегодня' })).toBeVisible();
-  expect(sdk.swipeBehavior.enableVertical.ifAvailable).toHaveBeenCalledTimes(1);
+  expect(sdk.swipeBehavior.enableVertical.ifAvailable).toHaveBeenCalledTimes(2);
 });
 
 
-for (const originallyEnabled of [true, false]) test(`черновик Telegram защищён до записи и возвращает подтверждение закрытия: ${originallyEnabled}`, async () => {
+for (const originallyEnabled of [true, false]) test(`черновик Telegram не переключает подтверждение закрытия: ${originallyEnabled}`, async () => {
   sdk.closingBehavior.enableConfirmation.isAvailable.mockReturnValue(true);
   sdk.closingBehavior.isConfirmationEnabled.mockReturnValue(originallyEnabled);
   fakeServer({ ...signedIn, 'GET /api/trainings/options': () => json(trainingOptions()), 'POST /api/trainings': () => json(trainingSession()) });
@@ -131,31 +131,27 @@ for (const originallyEnabled of [true, false]) test(`черновик Telegram �
   await screen.getByRole('button', { name: /Начать ·/ }).click();
   await screen.getByRole('link', { name: 'Сообщить об ошибке' }).click();
   let release = () => {}; const held = new Promise<void>((resolve) => { release = resolve; });
-  const original = trainingRepository.store.update.bind(trainingRepository.store);
-  vi.spyOn(trainingRepository.store, 'update').mockImplementationOnce(async (...args) => { await held; return original(...args); });
+  const original = trainingRepository.store.putReportDraft.bind(trainingRepository.store);
+  vi.spyOn(trainingRepository.store, 'putReportDraft').mockImplementationOnce(async (...args) => { await held; return original(...args); });
   sdk.closingBehavior.disableConfirmation.ifAvailable.mockClear(); sdk.closingBehavior.enableConfirmation.ifAvailable.mockClear();
   try {
     await screen.getByRole('button', { name: 'Другое', exact: true }).click();
-    expect(sdk.closingBehavior.enableConfirmation.ifAvailable).toHaveBeenCalled();
+    expect(sdk.closingBehavior.enableConfirmation.ifAvailable).not.toHaveBeenCalled();
     release(); await expect.element(screen.getByText('Черновик сохранён', { exact: true })).toBeInTheDocument();
-    expect(sdk.closingBehavior.disableConfirmation.ifAvailable.mock.calls.length > 0).toBe(!originallyEnabled);
+    expect(sdk.closingBehavior.disableConfirmation.ifAvailable).not.toHaveBeenCalled();
   } finally { release(); sdk.closingBehavior.enableConfirmation.isAvailable.mockReturnValue(false); }
 });
 
 
-test('перезагрузка формы возвращает исходное подтверждение закрытия Telegram', async () => {
-  sessionStorage.setItem('greprep.training.draft-close', 'disabled');
-  sdk.closingBehavior.enableConfirmation.isAvailable.mockReturnValue(true);
-  sdk.closingBehavior.isConfirmationEnabled.mockReturnValue(true);
-  sdk.closingBehavior.disableConfirmation.ifAvailable.mockClear();
+test('после сохранения жалобы на подтверждении уже нет формы и свайпы восстановлены', async () => {
+  sdk.swipeBehavior.isVerticalEnabled.mockReturnValue(true); vi.clearAllMocks();
   fakeServer({ ...signedIn, 'GET /api/trainings/options': () => json(trainingOptions()), 'POST /api/trainings': () => json(trainingSession()) });
   const { trainingRepository } = await import('./repository'); vi.spyOn(trainingRepository, 'requestSync').mockImplementation(() => {});
   const { screen } = await renderApp({ path: '/training/new', shell: 'telegram', launch });
-  try {
-    await screen.getByRole('button', { name: /Начать ·/ }).click();
-    await screen.getByRole('link', { name: 'Сообщить об ошибке' }).click();
-    await expect.element(screen.getByRole('textbox', { name: 'Что не так' })).toBeVisible();
-    expect(sdk.closingBehavior.disableConfirmation.ifAvailable).toHaveBeenCalled();
-    expect(sessionStorage.getItem('greprep.training.draft-close')).toBeNull();
-  } finally { sdk.closingBehavior.enableConfirmation.isAvailable.mockReturnValue(false); }
+  await screen.getByRole('button', { name: /Начать ·/ }).click();
+  await screen.getByRole('link', { name: 'Сообщить об ошибке' }).click();
+  await screen.getByRole('button', { name: 'Другое', exact: true }).click();
+  await screen.getByRole('button', { name: 'Отправить', exact: true }).click();
+  await expect.element(screen.getByRole('heading', { name: 'Спасибо!' })).toBeVisible();
+  expect(sdk.swipeBehavior.enableVertical.ifAvailable).toHaveBeenCalledTimes(2);
 });
