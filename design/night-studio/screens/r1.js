@@ -46,7 +46,10 @@ NS.add({ id: 'R4', group: 'R', name: 'Text Completion — неверно, раз
       <button type="button" class="icon-btn" aria-label="Закрыть тренировку"><svg class="ic"><use href="#i-close"/></svg></button>
       <div class="session-meta">
         <span class="session-sec"><span class="sec-dot"></span>Verbal · Text Completion</span>
-        <span class="session-count">3 из 10</span>
+        <span class="qnav-pager">
+          <button type="button" class="icon-btn qnav-arrow" aria-label="Предыдущий вопрос — 2"><svg class="ic-sm"><use href="#i-back"/></svg></button>
+          <span class="session-count">3 из 10</span>
+        </span>
       </div>
       <div class="session-bar" role="progressbar" aria-valuemin="0" aria-valuemax="10" aria-valuenow="3" aria-label="Пройдено 3 из 10"><span style="width:30%"></span></div>
     </header>
