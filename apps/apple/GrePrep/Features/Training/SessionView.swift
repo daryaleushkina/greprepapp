@@ -1,6 +1,5 @@
 import Combine
 import GPAPI
-import GameController
 import SwiftUI
 
 /// Системная навигация сверху и одно главное действие снизу во всех состояниях сессии.
@@ -48,7 +47,7 @@ struct TrainingSessionView: View {
             } else {
                 Color(.bg)
             }
-        }.onAppear {
+        }.hardwareKeyboard(override: keyboardAvailable).onAppear {
             // Создание модели откладывается до появления; пересчёт TrainingFlow не создаёт лишних моделей.
             if model == nil { model = SessionModel(id: id, trainings: trainings) }
         }
@@ -63,19 +62,12 @@ private struct TrainingSessionContent: View {
     let onRepeat: (String) -> Void
     @Environment(\.scenePhase) private var scenePhase
     @FocusState private var keyboardFocus: Bool
-    @State private var keyboardConnected = GCKeyboard.coalesced != nil
+    @Environment(\.hasHardwareKeyboard) private var hasKeyboard
     @State private var wideWindow = false
     @State private var review = false
     @State private var reportPosition: Int?
 
-    private var hasKeyboard: Bool {
-        if let keyboardAvailable { return keyboardAvailable }
-        #if os(macOS)
-            return true
-        #else
-            return keyboardConnected && UIDevice.current.userInterfaceIdiom == .pad
-        #endif
-    }
+    private var keyboardEnabled: Bool { hasKeyboard && !review && reportPosition == nil }
 
     var body: some View {
         GeometryReader { geometry in
@@ -122,24 +114,24 @@ private struct TrainingSessionContent: View {
         } action: {
             wideWindow = $0
         }
-        .focusable().focusEffectDisabled().focused($keyboardFocus)
+        .focusable(keyboardEnabled).focusEffectDisabled().focused($keyboardFocus)
         .onKeyPress(
             characters: CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"),
             phases: .down
         ) { press in
-            guard press.modifiers.intersection([.command, .control, .option]).isEmpty,
+            guard keyboardEnabled, press.modifiers.intersection([.command, .control, .option]).isEmpty,
                 !model.overview || wideWindow, !review, reportPosition == nil
             else { return .ignored }
             model.selectKey(press.characters)
             return .handled
         }
         .onKeyPress(keys: [.return], phases: .down) { press in
-            guard press.modifiers.isEmpty, !review, reportPosition == nil else { return .ignored }
+            guard keyboardEnabled, press.modifiers.isEmpty else { return .ignored }
             primary()
             return .handled
         }
         .onKeyPress(keys: [.rightArrow], phases: .down) { press in
-            guard press.modifiers.isEmpty, !model.overview, !review, reportPosition == nil else { return .ignored }
+            guard keyboardEnabled, press.modifiers.isEmpty, !model.overview else { return .ignored }
             model.next()
             return .handled
         }
@@ -158,18 +150,14 @@ private struct TrainingSessionContent: View {
             }
         }
         .onChange(of: scenePhase) { _, phase in if phase == .active { model.tick() } }
-        .onReceive(NotificationCenter.default.publisher(for: .GCKeyboardDidConnect)) { _ in
-            keyboardConnected = true
-            keyboardFocus = true
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .GCKeyboardDidDisconnect)) { _ in keyboardConnected = false
-        }
+        .onChange(of: keyboardEnabled) { _, enabled in keyboardFocus = enabled }
+        .onDisappear { keyboardFocus = false }
         .onAppear {
             model.tick()
-            keyboardFocus = hasKeyboard
+            keyboardFocus = keyboardEnabled
         }
         .navigationDestination(isPresented: $review) {
-            TrainingReviewView(id: model.id, trainings: model.trainings)
+            TrainingReviewView(id: model.id, trainings: model.trainings, onClose: onClose)
         }
         .sheet(isPresented: Binding(get: { reportPosition != nil }, set: { if !$0 { reportPosition = nil } })) {
             if let position = reportPosition {

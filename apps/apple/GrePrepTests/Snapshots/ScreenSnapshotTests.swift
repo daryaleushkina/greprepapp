@@ -3,16 +3,17 @@ import Observation
 import SnapshotTesting
 import SwiftUI
 import Testing
+import Vision
 
 @testable import GrePrep
 
 #if os(iOS)
-    import Vision
 #endif
 
 #if os(macOS)
     @MainActor @Observable private final class ReportSheetState {
         var presented = true
+        var dismissals = 0
     }
 #endif
 
@@ -579,14 +580,44 @@ struct ScreenSnapshotTests {
     }
 
     #if os(macOS)
+        @Test("Первый кадр вопроса итогового разбора содержит объяснение")
+        func trainingReviewFirstFrameIncludesExplanation() async throws {
+            let session = try await sessionModel(TrainingFixture.sample(.textCompletion), check: true)
+            session.end()
+            await eventually { session.trainings.trainings[session.id]?.isFinished == true }
+            let screen = try #require(ReviewModel(id: session.id, trainings: session.trainings).screen(0))
+            let view = ReviewQuestionView(screen: screen, trainings: session.trainings)
+                .frame(width: 760).padding(GPSpace.s24).environment(\.locale, Locale(identifier: "ru"))
+            let image = try #require(ImageRenderer(content: view).cgImage)
+            let request = VNRecognizeTextRequest()
+            request.recognitionLevel = .accurate
+            request.recognitionLanguages = ["ru-RU", "en-US"]
+            try VNImageRequestHandler(cgImage: image).perform([request])
+            let visible = request.results?.compactMap { $0.topCandidates(1).first?.string }.joined(separator: " ") ?? ""
+            #expect(visible.contains("Подсказка"), "Первый кадр не содержит объяснения")
+        }
+
         @Test("Escape закрывает жалобу на Mac и удаляет черновик")
         func trainingMacReportEscape() async throws {
+            try await reportEscape(sending: false)
+        }
+        @Test("Escape не закрывает жалобу, пока идёт её запись")
+        func trainingMacReportEscapeWhileSaving() async throws {
+            try await reportEscape(sending: true)
+        }
+        private func reportEscape(sending: Bool) async throws {
             let session = try await sessionModel(TrainingFixture.sample(.textCompletion))
             let form = QuestionReportModel(id: session.id, position: 0, trainings: session.trainings)
             form.setKind(.other)
             let state = ReportSheetState()
-            let root = Color.clear.sheet(isPresented: Binding(get: { state.presented }, set: { state.presented = $0 }))
-            {
+            let root = Color.clear.sheet(
+                isPresented: Binding(
+                    get: { state.presented },
+                    set: {
+                        state.presented = $0
+                        if !$0 { state.dismissals += 1 }
+                    })
+            ) {
                 QuestionReportView(model: form)
             }
             let controller = NSHostingController(rootView: root)
@@ -604,8 +635,26 @@ struct ScreenSnapshotTests {
                     with: .keyDown, location: .zero, modifierFlags: [],
                     timestamp: ProcessInfo.processInfo.systemUptime, windowNumber: sheet.windowNumber, context: nil,
                     characters: "\u{1b}", charactersIgnoringModifiers: "\u{1b}", isARepeat: false, keyCode: 53))
-            sheet.sendEvent(event)
+            if sending {
+                form.send()
+                #expect(form.saving)
+                sheet.sendEvent(event)
+                #expect(state.presented && form.saving)
+                await eventually { form.sent && !form.saving }
+                // Ждём новый первый responder и разметку подтверждения, затем посылаем новый NSEvent.
+                await Task.yield()
+                controller.view.layoutSubtreeIfNeeded()
+                sheet.contentView?.layoutSubtreeIfNeeded()
+            }
+            let exit = try #require(
+                NSEvent.keyEvent(
+                    with: .keyDown, location: .zero, modifierFlags: [],
+                    timestamp: ProcessInfo.processInfo.systemUptime, windowNumber: sheet.windowNumber, context: nil,
+                    characters: "\u{1b}", charactersIgnoringModifiers: "\u{1b}", isARepeat: false, keyCode: 53))
+            // Как настоящее нажатие: через приложение, чтобы сработали и сочетания клавиш окна (.cancelAction).
+            NSApp.sendEvent(exit)
             await eventually { !state.presented }
+            #expect(state.dismissals == 1)
             #expect(!form.saving && session.trainings.reportDraft(session.id, position: 0).isEmpty)
         }
 

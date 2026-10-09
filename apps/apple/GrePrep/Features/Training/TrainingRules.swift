@@ -21,6 +21,8 @@ struct StoredTraining: Codable, Sendable, Equatable {
     var reports: [PendingQuestionReport]?
     // Только для переноса файлов прежней версии в отдельную запись черновиков.
     var reportDrafts: [Int: QuestionReportDraft]?
+    // Вместе с жалобой отзывается версия черновика; физическое удаление можно повторить после сбоя диска.
+    var reportDraftClearances: [Int: UUID]?
 
     var id: String { session.id }
     var total: Int { session.items.count }

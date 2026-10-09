@@ -207,23 +207,21 @@ actor TrainingRepository {
                 id: UUID(), position: position,
                 body: .init(kind: kind, text: text.isEmpty ? nil : text, trainingId: id)))
         t.reports = pending
-        // Сначала очередь: отказ удаления маленького файла уже не отменяет принятую жалобу.
-        try await persistReport(t, epoch: epoch)
         do {
-            try access.withCurrent(epoch) {
-                try store.saveReportDraft(id, position: position, draft: nil, ownerID: t.ownerID)
+            let saved = try access.withCurrent(epoch) {
+                try store.saveReport(t, position: position) {
+                    report("question report draft cleanup failed: \($0)", nil)
+                }
             }
-        } catch { reportStorage(error) }
-        Task { await sync() }
-    }
-
-    private func persistReport(_ training: StoredTraining, epoch: Int) async throws(APIFailure) {
-        do { try save(training, epoch: epoch) } catch {
+            guard let saved else { throw APIFailure.cancelled }
+            all[id] = saved
+        } catch {
             if (error as? APIFailure) == .cancelled { throw .cancelled }
             reportStorage(error)
             throw .unexpected("question report storage failed")
         }
         await notify()
+        Task { await sync() }
     }
 
     func finish(_ id: String, timedOut: Bool, epoch: Int) async {

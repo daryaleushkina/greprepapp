@@ -2172,6 +2172,16 @@
           }
         }
       }
+    },
+    "Эта тренировка больше не хранится на устройстве.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This training is no longer stored on this device."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

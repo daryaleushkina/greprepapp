@@ -7,7 +7,7 @@ import Observation
 final class ReviewModel {
     let id: String
     let trainings: TrainingModel
-    private let epoch: Int
+    let epoch: Int
     @ObservationIgnored private var snapshot: Snapshot?
     @MainActor private struct Snapshot {
         let training: StoredTraining
@@ -35,8 +35,8 @@ final class ReviewModel {
     }
 
     var training: StoredTraining? {
-        guard epoch == trainings.revision else { return nil }
-        if snapshot == nil, let t = trainings.trainings[id], t.isFinished { snapshot = Snapshot(t) }
+        guard epoch == trainings.revision, let t = trainings.trainings[id], t.isFinished else { return nil }
+        if snapshot == nil { snapshot = Snapshot(t) }
         return snapshot?.training
     }
     enum Outcome { case correct, wrong, unanswered }
@@ -99,7 +99,10 @@ final class QuestionReportModel {
         guard !saving, !sent, question != nil else { return }
         draft = value
         do {
-            try trainings.saveReportDraft(id, position: position, draft: value, epoch: epoch)
+            try trainings.saveReportDraft(id, position: position, draft: value, epoch: epoch) { [weak self] failure in
+                guard let self, self.draft == value, !self.saving, !self.sent else { return }
+                self.problem = failure != nil && failure != .cancelled
+            }
             problem = false
         } catch { problem = error != .cancelled }
     }
@@ -119,6 +122,7 @@ final class QuestionReportModel {
         }
     }
     func cancel(completion: @escaping @MainActor @Sendable () -> Void) {
+        guard !saving else { return }
         // Отмена закрывает лист даже при смене входа или отказе диска; сбой записи уже обезличен в TrainingModel.
         defer {
             saving = false
@@ -126,9 +130,13 @@ final class QuestionReportModel {
             completion()
         }
         guard epoch == trainings.revision else { return }
-        do { try trainings.saveReportDraft(id, position: position, draft: nil, epoch: epoch) } catch {
+        do {
+            try trainings.saveReportDraft(id, position: position, draft: nil, epoch: epoch)
+            Task { await trainings.flushReportDrafts() }
+        } catch {
             // TrainingModel уже сообщает о сбое диска; отмена эпохи ожидаема и не требует второго отчёта.
             problem = error != .cancelled
         }
     }
+    func flush() { Task { await trainings.flushReportDrafts() } }
 }

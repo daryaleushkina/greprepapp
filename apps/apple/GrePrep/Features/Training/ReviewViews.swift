@@ -1,4 +1,3 @@
-import GameController
 import SwiftUI
 
 #if os(iOS)
@@ -6,32 +5,21 @@ import SwiftUI
 #endif
 
 struct TrainingReviewView: View {
-    @State private var model: ReviewModel?
-    private let id: String
-    private let trainings: TrainingModel
+    @State private var lifetime: TrainingViewModelState<ReviewModel>
     private let keyboardAvailable: Bool?
-    init(id: String, trainings: TrainingModel, keyboardAvailable: Bool? = nil) {
-        self.id = id
-        self.trainings = trainings
+    let onClose: () -> Void
+    init(id: String, trainings: TrainingModel, keyboardAvailable: Bool? = nil, onClose: @escaping () -> Void = {}) {
+        _lifetime = State(wrappedValue: TrainingViewModelState { ReviewModel(id: id, trainings: trainings) })
         self.keyboardAvailable = keyboardAvailable
+        self.onClose = onClose
     }
-    init(model: ReviewModel, keyboardAvailable: Bool? = nil) {
-        _model = State(initialValue: model)
-        id = model.id
-        trainings = model.trainings
+    init(model: ReviewModel, keyboardAvailable: Bool? = nil, onClose: @escaping () -> Void = {}) {
+        _lifetime = State(wrappedValue: TrainingViewModelState { model })
         self.keyboardAvailable = keyboardAvailable
+        self.onClose = onClose
     }
     var body: some View {
-        Group {
-            if let model {
-                TrainingReviewContent(model: model, keyboardAvailable: keyboardAvailable)
-            } else {
-                Color(.bg)
-            }
-        }.onAppear {
-            // Публикация очереди не сбрасывает фильтр и выбор и не пересчитывает верность всей тренировки.
-            if model == nil { model = ReviewModel(id: id, trainings: trainings) }
-        }
+        TrainingReviewContent(model: lifetime.value, onClose: onClose).hardwareKeyboard(override: keyboardAvailable)
     }
 }
 
@@ -40,23 +28,9 @@ private struct TrainingReviewContent: View {
     @State private var opened: Int?
     @State private var reportPosition: Int?
     @FocusState private var keyboardFocus: Bool
-    @State private var keyboardConnected = GCKeyboard.coalesced != nil
+    @Environment(\.hasHardwareKeyboard) private var hasKeyboard
     @State private var wideWindow = false
-    private let keyboardAvailable: Bool?
-
-    init(model: ReviewModel, keyboardAvailable: Bool? = nil) {
-        self.model = model
-        self.keyboardAvailable = keyboardAvailable
-    }
-
-    private var hasKeyboard: Bool {
-        if let keyboardAvailable { return keyboardAvailable }
-        #if os(macOS)
-            return true
-        #else
-            return keyboardConnected && UIDevice.current.userInterfaceIdiom == .pad
-        #endif
-    }
+    let onClose: () -> Void
     private var usesSwiftUIKeyboard: Bool {
         #if os(macOS)
             hasKeyboard
@@ -139,10 +113,10 @@ private struct TrainingReviewContent: View {
             return .handled
         }
         .onAppear { keyboardFocus = usesSwiftUIKeyboard }
-        .onReceive(NotificationCenter.default.publisher(for: .GCKeyboardDidConnect)) { _ in keyboardConnected = true }
-        .onReceive(NotificationCenter.default.publisher(for: .GCKeyboardDidDisconnect)) { _ in keyboardConnected = false
-        }
         .onChange(of: hasKeyboard) { _, _ in keyboardFocus = usesSwiftUIKeyboard }
+        .onChange(of: model.training == nil, initial: true) { _, missing in
+            if missing, model.trainings.closeMissingReview(model.id, epoch: model.epoch) { onClose() }
+        }
         .accessibilityElement(children: .contain).accessibilityIdentifier("review")
     }
 
@@ -276,12 +250,12 @@ struct TrainingReviewItemView: View {
 
 struct ReviewQuestionView: View {
     let screen: SessionModel.Screen
-    private let trainings: TrainingModel
-    @State private var explanation: SessionModel?
+    @State private var explanation: TrainingViewModelState<SessionModel>
     var onReport: () -> Void
     init(screen: SessionModel.Screen, trainings: TrainingModel, onReport: @escaping () -> Void = {}) {
         self.screen = screen
-        self.trainings = trainings
+        _explanation = State(
+            wrappedValue: TrainingViewModelState { SessionModel(id: screen.training.id, trainings: trainings) })
         self.onReport = onReport
     }
     var body: some View {
@@ -291,9 +265,7 @@ struct ReviewQuestionView: View {
                 Text("без ответа").gpText(GPType.subhead).foregroundStyle(Color(.textSecondary))
             }
             SessionQuestion(screen: screen, onSelect: { _ in }, onReport: onReport)
-            if let explanation { SessionExplanation(model: explanation, screen: screen) }
-        }.onAppear {
-            if explanation == nil { explanation = SessionModel(id: screen.training.id, trainings: trainings) }
+            SessionExplanation(model: explanation.value, screen: screen)
         }.accessibilityElement(children: .contain).accessibilityIdentifier("reviewItem")
     }
 }
@@ -302,6 +274,7 @@ struct QuestionReportView: View {
     @State var model: QuestionReportModel
     @Environment(\.dismiss) private var dismiss
     @Environment(\.textScale) private var textScale
+    @Environment(\.scenePhase) private var scenePhase
     @ScaledMetric(relativeTo: .callout) private var kindWidth = GPSize.rowTall * 2
     var body: some View {
         NavigationStack {
@@ -372,9 +345,12 @@ struct QuestionReportView: View {
             }.background(Color(.bg)).scrollBounceBehavior(.basedOnSize)
                 .safeAreaInset(edge: .bottom) {
                     if model.sent {
-                        Button("Вернуться к вопросу") { dismiss() }.keyboardShortcut(.cancelAction).buttonStyle(
+                        // После отправки поля ввода нет и фокуса в листе тоже: Escape доходит только как сочетание
+                        // клавиш окна, а не до onExitCommand.
+                        Button("Вернуться к вопросу") { dismiss() }.buttonStyle(
                             PrimaryCapsuleStyle()
                         )
+                        .keyboardShortcut(.cancelAction)
                         .accessibilityIdentifier("report.back").frame(maxWidth: GPLayout.contentMax).padding(
                             GPLayout.gutter
                         )
@@ -395,7 +371,7 @@ struct QuestionReportView: View {
                 .toolbar {
                     if !model.sent {
                         ToolbarItem(placement: .cancellationAction) {
-                            Button("Отмена") { model.cancel { dismiss() } }.keyboardShortcut(.cancelAction)
+                            Button("Отмена") { model.cancel { dismiss() } }.disabled(model.saving)
                                 .accessibilityIdentifier("report.cancel")
                         }
                     }
@@ -404,14 +380,33 @@ struct QuestionReportView: View {
                     .navigationBarTitleDisplayMode(.inline)
                 #endif
         }.tint(Color(.accent))
+            .onDisappear { model.flush() }
+            .onChange(of: scenePhase) { _, phase in if phase != .active { model.flush() } }
+            .interactiveDismissDisabled(model.saving)
             #if os(macOS)
                 // Системный Escape иначе закрывает лист мимо «Отмены» и оставляет черновик.
-                .interactiveDismissDisabled(!model.sent)
+                .interactiveDismissDisabled()
                 .onExitCommand {
-                    if model.sent { dismiss() } else { model.cancel { dismiss() } }
+                    // После отправки Escape берёт «Вернуться к вопросу» (.cancelAction) — здесь только отмена черновика.
+                    guard !model.saving, !model.sent else { return }
+                    model.cancel { dismiss() }
                 }
                 .frame(minWidth: GPLayout.contentMax, minHeight: GPSize.rowTall * 9)
             #endif
+    }
+}
+
+/// State хранит дешёвый контейнер; модель создаётся один раз при чтении первого body, до первого кадра.
+@MainActor
+final class TrainingViewModelState<Value> {
+    private let make: () -> Value
+    private var cached: Value?
+    init(_ make: @escaping () -> Value) { self.make = make }
+    var value: Value {
+        if let cached { return cached }
+        let value = make()
+        cached = value
+        return value
     }
 }
 

@@ -26,6 +26,13 @@ struct TodayView: View {
     var body: some View {
         NavigationStack(path: $path) {
             screen
+                .safeAreaInset(edge: .top) {
+                    if app.trainings.reviewClosed {
+                        Text("Эта тренировка больше не хранится на устройстве.").gpText(GPType.footnote)
+                            .foregroundStyle(Color(.textSecondary)).padding(GPSpace.s12)
+                            .accessibilityIdentifier("today.reviewClosed")
+                    }
+                }
                 .navigationTitle(Text("Сегодня"))
                 .navigationDestination(for: TodayPlan.Step.self) { step in
                     StepPlaceholderView(step: step)

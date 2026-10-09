@@ -18,6 +18,7 @@ struct RootView: View {
         }
         .tint(Color(.accent))
         .onChange(of: scenePhase) { _, phase in
+            if phase != .active { Task { await app.trainings.flushReportDrafts() } }
             if phase == .active {
                 app.retrySessionIfNeeded()
                 app.trainings.sync()

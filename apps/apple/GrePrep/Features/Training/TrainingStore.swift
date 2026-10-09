@@ -1,7 +1,7 @@
 import CryptoKit
 import Foundation
 
-/// По файлу на тренировку; черновики TrainingModel пишет синхронно под замком. Записи атомарные.
+/// По файлу на тренировку и маленький файл черновиков. Записи выполняются вне MainActor и атомарны.
 final class TrainingStore: @unchecked Sendable {
     let directory: URL
     // Подготовка общая для копий ссылки и синхронной отметки выхода; после clear каталог создаётся заново.
@@ -10,10 +10,24 @@ final class TrainingStore: @unchecked Sendable {
     private struct Drafts: Codable, Equatable {
         let ownerID: String
         var questions: [String: [Int: QuestionReportDraft]] = [:]
+        var versions: [String: [Int: UUID]]?
+        mutating func set(_ id: String, _ position: Int, _ draft: QuestionReportDraft?) {
+            questions[id, default: [:]][position] = draft
+            if questions[id]?.isEmpty == true { questions[id] = nil }
+            var versions = self.versions ?? [:]
+            versions[id, default: [:]][position] = draft == nil ? nil : UUID()
+            if versions[id]?.isEmpty == true { versions[id] = nil }
+            self.versions = versions.isEmpty ? nil : versions
+        }
     }
     private var cachedDrafts: Drafts?
+    private var persistedDrafts: Drafts?
+    private let onDraftWrite: @Sendable () -> Void
 
-    init(directory: URL) { self.directory = directory }
+    init(directory: URL, onDraftWrite: @escaping @Sendable () -> Void = {}) {
+        self.directory = directory
+        self.onDraftWrite = onDraftWrite
+    }
 
     static func live(beside cache: TodayCache = .live()) -> TrainingStore {
         TrainingStore(directory: cache.fileURL.deletingLastPathComponent().appending(path: "trainings"))
@@ -27,8 +41,12 @@ final class TrainingStore: @unchecked Sendable {
     /// Маленькая запись до смены экрана: даже завершение процесса сразу после выхода не вернёт очередь.
     /// Сами большие файлы удалит actor, а при оборванном выходе — следующая загрузка.
     func markClear() throws {
-        guard FileManager.default.fileExists(atPath: directory.path) else { return }
-        try write(Data(), to: clearURL)
+        try lock.withLock {
+            cachedDrafts = nil
+            persistedDrafts = nil
+            guard FileManager.default.fileExists(atPath: directory.path) else { return }
+            try writeLocked(Data(), to: clearURL)
+        }
     }
     private struct Identity: Codable {
         let ownerID: String
@@ -98,12 +116,20 @@ final class TrainingStore: @unchecked Sendable {
     func saveOwner(_ ownerID: String, credentialID: String? = nil) throws {
         try lock.withLock {
             try writeLocked(JSONEncoder().encode(Identity(ownerID: ownerID, credentialID: credentialID)), to: ownerURL)
-            if cachedDrafts?.ownerID != ownerID { cachedDrafts = nil }
+            if cachedDrafts?.ownerID != ownerID {
+                cachedDrafts = nil
+                persistedDrafts = nil
+            }
         }
     }
 
-    func reportDraft(_ id: String, position: Int, ownerID: String) throws -> QuestionReportDraft? {
-        try lock.withLock { try draftsLocked(ownerID: ownerID).questions[id]?[position] }
+    func reportDraft(_ id: String, position: Int, ownerID: String, consumed: UUID? = nil) throws -> QuestionReportDraft?
+    {
+        try lock.withLock {
+            let value = try draftsLocked(ownerID: ownerID)
+            if let consumed, value.versions?[id]?[position] == consumed { return nil }
+            return value.questions[id]?[position]
+        }
     }
 
     /// Ввод не ждёт actor или сети и не переписывает файлы с заданиями; копия меняется только после записи.
@@ -116,29 +142,50 @@ final class TrainingStore: @unchecked Sendable {
             if draft != nil, !FileManager.default.fileExists(atPath: file(id).path) {
                 throw TrainingStorageError.missingTraining
             }
-            value.questions[id, default: [:]][position] = draft
-            if value.questions[id]?.isEmpty == true { value.questions[id] = nil }
+            if value.questions[id]?[position] == draft { return }
+            value.set(id, position, draft)
             try saveDraftsLocked(value)
+        }
+    }
+
+    /// Один атомарный файл принимает жалобу и отзывает именно её версию черновика, включая холодный запуск.
+    func saveReport(_ training: StoredTraining, position: Int, report: (String) -> Void) throws -> StoredTraining {
+        try lock.withLock {
+            var value = try draftsLocked(ownerID: training.ownerID)
+            var committed = training
+            if let version = value.versions?[training.id]?[position] {
+                var clearances = committed.reportDraftClearances ?? [:]
+                clearances[position] = version
+                committed.reportDraftClearances = clearances
+            }
+            try writeLocked(JSONEncoder().encode(committed), to: file(committed.id))
+            value.set(training.id, position, nil)
+            // В памяти уже пусто. Неудачную физическую запись повторит reconcileReportDrafts.
+            cachedDrafts = value
+            do { try saveDraftsLocked(value) } catch { report(Self.reason(error)) }
+            return committed
         }
     }
 
     /// Перенос старых черновиков и удаление ссылок на уже убранные или повреждённые тренировки.
     func reconcileReportDrafts(ownerID: String, trainings: [String: StoredTraining], report: (String) -> Void) throws {
         try lock.withLock {
+            guard try owner() == ownerID, !requiresClear else { throw TrainingStorageError.invalidRecord }
             var value: Drafts
-            do { value = try draftsLocked(ownerID: ownerID) } catch {
-                report("question report drafts unreadable: \(Self.reason(error))")
+            do { value = try draftsLocked(ownerID: ownerID) } catch is DecodingError {
+                report("question report drafts unreadable: invalid JSON")
                 if FileManager.default.fileExists(atPath: draftsURL.path) {
                     try FileManager.default.moveItem(
                         at: draftsURL, to: draftsURL.appendingPathExtension("\(UUID().uuidString).broken"))
                 }
                 value = Drafts(ownerID: ownerID)
                 cachedDrafts = value
+                persistedDrafts = nil
             }
             for training in trainings.values where training.ownerID == ownerID {
                 for (position, draft) in training.reportDrafts ?? [:] where !draft.isEmpty {
                     if value.questions[training.id]?[position] == nil {
-                        value.questions[training.id, default: [:]][position] = draft
+                        value.set(training.id, position, draft)
                     }
                 }
             }
@@ -150,30 +197,44 @@ final class TrainingStore: @unchecked Sendable {
                 }
                 value.questions[id] = value.questions[id]?.filter { (0..<training.total).contains($0.key) }
                 if value.questions[id]?.isEmpty == true { value.questions[id] = nil }
+                for position in Array(value.questions[id]?.keys ?? [Int: QuestionReportDraft]().keys) {
+                    if let consumed = training.reportDraftClearances?[position],
+                        value.versions?[id]?[position] == consumed
+                    {
+                        value.set(id, position, nil)
+                    } else if value.versions?[id]?[position] == nil, let draft = value.questions[id]?[position] {
+                        value.set(id, position, draft)
+                    }
+                }
             }
+            value.versions = value.versions?.filter { value.questions[$0.key] != nil }
+            cachedDrafts = value
             try saveDraftsLocked(value)
         }
     }
 
     private func draftsLocked(ownerID: String) throws -> Drafts {
-        if let cachedDrafts, cachedDrafts.ownerID == ownerID { return cachedDrafts }
         guard try owner() == ownerID, !requiresClear else { throw TrainingStorageError.invalidRecord }
+        if let cachedDrafts, cachedDrafts.ownerID == ownerID { return cachedDrafts }
         let value =
             try FileManager.default.fileExists(atPath: draftsURL.path)
             ? JSONDecoder().decode(Drafts.self, from: Data(contentsOf: draftsURL)) : Drafts(ownerID: ownerID)
         guard value.ownerID == ownerID else { throw TrainingStorageError.invalidRecord }
         cachedDrafts = value
+        persistedDrafts = value
         return value
     }
 
     private func saveDraftsLocked(_ value: Drafts) throws {
-        guard cachedDrafts != value else { return }
+        guard persistedDrafts != value else { return }
         if value.questions.isEmpty {
             try removeIfPresent(draftsURL)
         } else {
             try writeLocked(JSONEncoder().encode(value), to: draftsURL)
         }
         cachedDrafts = value
+        persistedDrafts = value
+        onDraftWrite()
     }
 
     func remove(_ id: String) throws {
@@ -184,6 +245,7 @@ final class TrainingStore: @unchecked Sendable {
     func clear() throws {
         try lock.withLock {
             cachedDrafts = nil
+            persistedDrafts = nil
             try removeIfPresent(retiredURL)
             if FileManager.default.fileExists(atPath: directory.path) {
                 // Рекурсивное removeItem могло стереть владельца и остановиться на одном из заданий.

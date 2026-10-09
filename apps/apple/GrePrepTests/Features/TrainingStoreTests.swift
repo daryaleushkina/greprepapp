@@ -12,6 +12,44 @@ struct TrainingStoreTests {
         var questions: [String: [Int: QuestionReportDraft]]
     }
 
+    @Test func clearMarkerRevokesCachedDraftImmediately() throws {
+        let t = TrainingFixture.stored()
+        try store.saveOwner(t.ownerID)
+        try store.save(t)
+        try store.saveReportDraft(t.id, position: 0, draft: .init(kind: .other, text: "x"), ownerID: t.ownerID)
+        try store.markClear()
+        #expect(throws: TrainingStorageError.self) { try store.reportDraft(t.id, position: 0, ownerID: t.ownerID) }
+    }
+
+    @Test func cachedDraftStillChecksOwner() throws {
+        let t = TrainingFixture.stored()
+        try store.saveOwner(t.ownerID)
+        try store.save(t)
+        try store.saveReportDraft(t.id, position: 0, draft: .init(kind: .other, text: "x"), ownerID: t.ownerID)
+        try TrainingStore(directory: store.directory).saveOwner("other")
+        #expect(throws: TrainingStorageError.self) { try store.reportDraft(t.id, position: 0, ownerID: t.ownerID) }
+    }
+
+    @Test("Ожидающее стирание и чужой владелец не портят исправный файл", arguments: [false, true])
+    func draftContextFailureDoesNotQuarantine(clear: Bool) throws {
+        let t = TrainingFixture.stored()
+        try store.saveOwner(t.ownerID)
+        try store.save(t)
+        try store.saveReportDraft(t.id, position: 0, draft: .init(kind: .other, text: "x"), ownerID: t.ownerID)
+        let file = store.directory.appending(path: "report-drafts.json")
+        let before = try Data(contentsOf: file)
+        if clear { try store.markClear() }
+        let cold = TrainingStore(directory: store.directory)
+        #expect(throws: TrainingStorageError.self) {
+            try cold.reconcileReportDrafts(ownerID: clear ? t.ownerID : "other", trainings: [t.id: t]) { _ in }
+        }
+        #expect(try Data(contentsOf: file) == before)
+        #expect(
+            try FileManager.default.contentsOfDirectory(atPath: store.directory.path).allSatisfy {
+                !$0.hasSuffix(".broken")
+            })
+    }
+
     @Test func separateDraftSurvivesRelaunchWithoutChangingTraining() throws {
         let t = TrainingFixture.stored()
         let draft = QuestionReportDraft(kind: .translation, text: "x")
@@ -57,14 +95,12 @@ struct TrainingStoreTests {
         #expect(try store.reportDraft(t.id, position: 0, ownerID: t.ownerID) == nil)
     }
 
-    @Test("Повреждённые или чужие черновики не скрывают тренировку", arguments: [false, true])
-    func damagedDraftIsQuarantinedWithoutText(foreign: Bool) throws {
+    @Test("Нечитаемые черновики изолируются без текста")
+    func damagedDraftIsQuarantinedWithoutText() throws {
         let t = TrainingFixture.stored()
         try store.saveOwner(t.ownerID)
         try store.save(t)
-        let bytes =
-            try foreign
-            ? JSONEncoder().encode(DraftFile(ownerID: "other", questions: [:])) : Data("private-test-marker".utf8)
+        let bytes = Data("private-test-marker".utf8)
         try bytes.write(to: store.directory.appending(path: "report-drafts.json"))
         var messages: [String] = []
         try store.reconcileReportDrafts(ownerID: t.ownerID, trainings: [t.id: t]) { messages.append($0) }
