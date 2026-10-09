@@ -87,6 +87,15 @@ actor TrainingRepository {
                     try selectOwner(user.id, revision: revision)
                 }
             }
+            if let ownerID {
+                try access.withCurrent(revision) {
+                    try store.reconcileReportDrafts(ownerID: ownerID, trainings: all) { report($0, nil) }
+                    for id in Array(all.keys) where all[id]?.reportDrafts != nil {
+                        all[id]?.reportDrafts = nil
+                        if let training = all[id] { try store.save(training) }
+                    }
+                }
+            }
             storageAvailable = true
             await notify()
             // Подключение ждёт только диск и владельца: очередь не задерживает форму и локальные ответы.
@@ -188,15 +197,6 @@ actor TrainingRepository {
         await persist(t, epoch: epoch)
     }
 
-    func saveReportDraft(_ id: String, position: Int, draft: QuestionReportDraft?, epoch: Int) async throws(APIFailure)
-    {
-        guard var t = current(id, epoch), (0..<t.total).contains(position) else { throw .cancelled }
-        var drafts = t.reportDrafts ?? [:]
-        drafts[position] = draft
-        t.reportDrafts = drafts
-        try await persistReport(t, epoch: epoch)
-    }
-
     func recordReport(_ id: String, position: Int, draft: QuestionReportDraft, epoch: Int) async throws(APIFailure) {
         guard var t = current(id, epoch), (0..<t.total).contains(position) else { throw .cancelled }
         guard draft.canSend, let kind = draft.kind else { throw .unexpected("question report invalid input") }
@@ -207,9 +207,13 @@ actor TrainingRepository {
                 id: UUID(), position: position,
                 body: .init(kind: kind, text: text.isEmpty ? nil : text, trainingId: id)))
         t.reports = pending
-        t.reportDrafts?[position] = nil
-        // Одна атомарная запись: черновик исчезает только вместе с сохранённой жалобой.
+        // Сначала очередь: отказ удаления маленького файла уже не отменяет принятую жалобу.
         try await persistReport(t, epoch: epoch)
+        do {
+            try access.withCurrent(epoch) {
+                try store.saveReportDraft(id, position: position, draft: nil, ownerID: t.ownerID)
+            }
+        } catch { reportStorage(error) }
         Task { await sync() }
     }
 
@@ -420,15 +424,19 @@ actor TrainingRepository {
 
     private func prune(epoch: Int) throws {
         try access.withCurrent(epoch) {
-            let finished = all.values.filter { $0.isFinished && $0.isSynced && !$0.hasReportDrafts }.sorted {
+            // Черновик не продлевает хранение тренировки (решение Даши 09.10.2026).
+            let finished = all.values.filter { $0.isFinished && $0.isSynced }.sorted {
                 $0.startedAtMillis > $1.startedAtMillis
             }
             let unfinished = all.values.filter { !$0.isFinished }.sorted { $0.startedAtMillis > $1.startedAtMillis }
             let removed =
-                Array(finished.dropFirst(3)) + unfinished.dropFirst().filter { $0.isSynced && !$0.hasReportDrafts }
+                Array(finished.dropFirst(3)) + unfinished.dropFirst().filter { $0.isSynced }
             for t in removed {
                 try store.remove(t.id)
                 all[t.id] = nil
+            }
+            if let ownerID {
+                try store.reconcileReportDrafts(ownerID: ownerID, trainings: all) { report($0, nil) }
             }
         }
     }

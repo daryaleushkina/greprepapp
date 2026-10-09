@@ -8,6 +8,23 @@ final class ReviewModel {
     let id: String
     let trainings: TrainingModel
     private let epoch: Int
+    @ObservationIgnored private var snapshot: Snapshot?
+    @MainActor private struct Snapshot {
+        let training: StoredTraining
+        let outcomes: [Outcome]
+        let positions: [Int]
+        let mistakes: [Int]
+        let correct: Int
+        init(_ t: StoredTraining) {
+            training = t
+            let positions = t.session.items.map(\.position)
+            let outcomes = positions.map { ReviewModel.outcome(t, position: $0) }
+            self.positions = positions
+            self.outcomes = outcomes
+            mistakes = positions.filter { outcomes[$0] != .correct }
+            correct = outcomes.filter { $0 == .correct }.count
+        }
+    }
     var onlyMistakes = false
     var selected: Int?
 
@@ -18,8 +35,9 @@ final class ReviewModel {
     }
 
     var training: StoredTraining? {
-        guard epoch == trainings.revision, let t = trainings.trainings[id], t.isFinished else { return nil }
-        return t
+        guard epoch == trainings.revision else { return nil }
+        if snapshot == nil, let t = trainings.trainings[id], t.isFinished { snapshot = Snapshot(t) }
+        return snapshot?.training
     }
     enum Outcome { case correct, wrong, unanswered }
     static func outcome(_ t: StoredTraining, position: Int) -> Outcome {
@@ -27,11 +45,13 @@ final class ReviewModel {
         if chosen.isEmpty { return .unanswered }
         return TrainingRules.isCorrect(t.session.items[position].question, chosen) ? .correct : .wrong
     }
-    var mistakes: [Int] {
-        guard let t = training else { return [] }
-        return t.session.items.filter { Self.outcome(t, position: $0.position) != .correct }.map(\.position)
+    var mistakes: [Int] { training == nil ? [] : snapshot?.mistakes ?? [] }
+    var correctCount: Int { training == nil ? 0 : snapshot?.correct ?? 0 }
+    var positions: [Int] { training == nil ? [] : (onlyMistakes ? snapshot?.mistakes : snapshot?.positions) ?? [] }
+    func outcome(_ position: Int) -> Outcome? {
+        guard training != nil, let snapshot, snapshot.outcomes.indices.contains(position) else { return nil }
+        return snapshot.outcomes[position]
     }
-    var positions: [Int] { onlyMistakes ? mistakes : training?.session.items.map(\.position) ?? [] }
     var selectedPosition: Int? {
         if let selected, positions.contains(selected) { return selected }
         return positions.first
@@ -65,7 +85,7 @@ final class QuestionReportModel {
         self.position = position
         self.trainings = trainings
         epoch = trainings.revision
-        draft = trainings.trainings[id]?.reportDrafts?[position] ?? .init()
+        draft = trainings.reportDraft(id, position: position)
     }
     var question: Question? {
         guard epoch == trainings.revision, let t = trainings.trainings[id], t.session.items.indices.contains(position)
@@ -78,18 +98,19 @@ final class QuestionReportModel {
     private func edit(_ value: QuestionReportDraft) {
         guard !saving, !sent, question != nil else { return }
         draft = value
-        trainings.editReport(id, position: position, draft: value) { [weak self] failure in
-            guard let self, self.epoch == self.trainings.revision else { return }
-            self.problem = failure != nil && failure != .cancelled
-        }
+        do {
+            try trainings.saveReportDraft(id, position: position, draft: value, epoch: epoch)
+            problem = false
+        } catch { problem = error != .cancelled }
     }
     func send() {
         guard canSend else { return }
         saving = true
         problem = false
-        trainings.editReport(id, position: position, draft: draft, send: true) { [weak self] failure in
-            guard let self, self.epoch == self.trainings.revision else { return }
+        trainings.recordReport(id, position: position, draft: draft) { [weak self] failure in
+            guard let self else { return }
             self.saving = false
+            guard self.epoch == self.trainings.revision else { return }
             self.problem = failure != nil && failure != .cancelled
             if failure == nil {
                 self.sent = true
@@ -98,16 +119,16 @@ final class QuestionReportModel {
         }
     }
     func cancel(completion: @escaping @MainActor @Sendable () -> Void) {
-        guard !saving else { return }
-        saving = true
-        trainings.editReport(id, position: position, draft: nil) { [weak self] failure in
-            guard let self, self.epoch == self.trainings.revision else { return }
-            self.saving = false
-            self.problem = failure != nil && failure != .cancelled
-            if failure == nil {
-                self.draft = .init()
-                completion()
-            }
+        // Отмена закрывает лист даже при смене входа или отказе диска; сбой записи уже обезличен в TrainingModel.
+        defer {
+            saving = false
+            draft = .init()
+            completion()
+        }
+        guard epoch == trainings.revision else { return }
+        do { try trainings.saveReportDraft(id, position: position, draft: nil, epoch: epoch) } catch {
+            // TrainingModel уже сообщает о сбое диска; отмена эпохи ожидаема и не требует второго отчёта.
+            problem = error != .cancelled
         }
     }
 }

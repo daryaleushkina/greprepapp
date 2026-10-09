@@ -7,6 +7,74 @@ import Testing
 struct TrainingStoreTests {
     let store = temporaryTrainingStore()
 
+    private struct DraftFile: Codable {
+        let ownerID: String
+        var questions: [String: [Int: QuestionReportDraft]]
+    }
+
+    @Test func separateDraftSurvivesRelaunchWithoutChangingTraining() throws {
+        let t = TrainingFixture.stored()
+        let draft = QuestionReportDraft(kind: .translation, text: "x")
+        try store.saveOwner(t.ownerID)
+        try store.save(t)
+        try store.saveReportDraft(t.id, position: 0, draft: draft, ownerID: t.ownerID)
+        let cold = TrainingStore(directory: store.directory)
+        #expect(try cold.reportDraft(t.id, position: 0, ownerID: t.ownerID) == draft)
+        #expect(try cold.load { _ in }[t.id] == t)
+        #expect(throws: TrainingStorageError.self) { try cold.reportDraft(t.id, position: 0, ownerID: "other") }
+        #expect(throws: TrainingStorageError.self) {
+            try store.saveReportDraft("../other", position: 0, draft: draft, ownerID: t.ownerID)
+        }
+        #expect(throws: TrainingStorageError.self) {
+            try store.saveReportDraft(t.id, position: -1, draft: draft, ownerID: t.ownerID)
+        }
+        try store.saveReportDraft(t.id, position: 0, draft: nil, ownerID: t.ownerID)
+        #expect(!FileManager.default.fileExists(atPath: store.directory.appending(path: "report-drafts.json").path))
+        try store.clear()
+        try store.saveOwner("other")
+        #expect(try store.reportDraft(t.id, position: 0, ownerID: "other") == nil)
+    }
+
+    @Test func draftReconciliationRemovesOrphansAndKeepsNewerDraft() throws {
+        var t = TrainingFixture.stored()
+        t.reportDrafts = [0: .init(kind: .question, text: "old")]
+        try store.saveOwner(t.ownerID)
+        try store.save(t)
+        let draft = QuestionReportDraft(kind: .answer, text: "new")
+        let data = DraftFile(
+            ownerID: t.ownerID,
+            questions: [
+                t.id: [0: draft, t.total: draft, 1: .init()],
+                "00000000-0000-4000-8000-000000000999": [0: draft],
+            ])
+        try JSONEncoder().encode(data).write(to: store.directory.appending(path: "report-drafts.json"))
+        try store.reconcileReportDrafts(ownerID: t.ownerID, trainings: [t.id: t]) { _ in Issue.record("повреждён файл")
+        }
+        #expect(try store.reportDraft(t.id, position: 0, ownerID: t.ownerID) == draft)
+        #expect(try store.reportDraft(t.id, position: t.total, ownerID: t.ownerID) == nil)
+        #expect(try store.reportDraft(t.id, position: 1, ownerID: t.ownerID) == nil)
+        try store.reconcileReportDrafts(ownerID: t.ownerID, trainings: [:]) { _ in Issue.record("повреждён файл") }
+        #expect(try store.reportDraft(t.id, position: 0, ownerID: t.ownerID) == nil)
+    }
+
+    @Test("Повреждённые или чужие черновики не скрывают тренировку", arguments: [false, true])
+    func damagedDraftIsQuarantinedWithoutText(foreign: Bool) throws {
+        let t = TrainingFixture.stored()
+        try store.saveOwner(t.ownerID)
+        try store.save(t)
+        let bytes =
+            try foreign
+            ? JSONEncoder().encode(DraftFile(ownerID: "other", questions: [:])) : Data("private-test-marker".utf8)
+        try bytes.write(to: store.directory.appending(path: "report-drafts.json"))
+        var messages: [String] = []
+        try store.reconcileReportDrafts(ownerID: t.ownerID, trainings: [t.id: t]) { messages.append($0) }
+        #expect(messages.count == 1 && messages.allSatisfy { !$0.contains("private-test-marker") })
+        #expect(try store.load { _ in }[t.id] == t)
+        #expect(try store.reportDraft(t.id, position: 0, ownerID: t.ownerID) == nil)
+        let files = try FileManager.default.contentsOfDirectory(at: store.directory, includingPropertiesForKeys: nil)
+        #expect(files.contains { $0.pathExtension == "broken" })
+    }
+
     @Test func survivesRelaunchAndExcludesBackup() throws {
         let t = TrainingFixture.stored(pending: true, finished: true)
         try store.saveOwner(t.ownerID)

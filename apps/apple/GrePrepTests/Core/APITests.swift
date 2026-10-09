@@ -7,6 +7,15 @@ import Testing
 struct APITests {
     let server = StubServer()
 
+    @Test("жалоба сохраняет код договора и id запроса для сверки с сервером")
+    func reportKeepsFailureMetadata() async throws {
+        server.on(
+            "POST /api/questions/q/reports", .json(422, Fixture.error("invalid_request", requestID: "req-report")))
+        await #expect(throws: APIFailure.server(status: 422, code: "invalid_request", requestID: "req-report")) {
+            try await api().reportQuestion("q", report: .init(kind: .other))
+        }
+    }
+
     func api(token: String? = "token-1") -> API {
         API(config: server.config(), session: server.session, tokens: MemoryTokenStore(token))
     }
@@ -180,6 +189,17 @@ struct APITests {
 
 @Suite("APIFailure: что показывать человеку")
 struct APIFailureTests {
+    @Test("описание ошибки не попадает в отчёт клиента")
+    func descriptionIsPrivate() {
+        let failure = APIFailure(
+            NSError(domain: "test", code: 77, userInfo: [NSLocalizedDescriptionKey: "private-error-marker"]))
+        guard case let .unexpected(message) = failure else {
+            Issue.record("нет unexpected")
+            return
+        }
+        #expect(!message.contains("private-error-marker"))
+        #expect(message.contains("NSError") && message.contains("77"))
+    }
     @Test("401 — сессии нет, независимо от кода")
     func unauthorized() {
         #expect(APIFailure.response(status: 401, code: "whatever", requestID: nil) == .unauthorized)

@@ -169,7 +169,7 @@ private struct TrainingSessionContent: View {
             keyboardFocus = hasKeyboard
         }
         .navigationDestination(isPresented: $review) {
-            TrainingReviewView(model: ReviewModel(id: model.id, trainings: model.trainings))
+            TrainingReviewView(id: model.id, trainings: model.trainings)
         }
         .sheet(isPresented: Binding(get: { reportPosition != nil }, set: { if !$0 { reportPosition = nil } })) {
             if let position = reportPosition {

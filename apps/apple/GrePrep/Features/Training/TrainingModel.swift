@@ -123,21 +123,44 @@ final class TrainingModel {
         enqueue { await repository.finish(id, timedOut: timedOut, epoch: epoch) }
     }
 
-    func editReport(
-        _ id: String, position: Int, draft: QuestionReportDraft?, send: Bool = false,
-        completion: @escaping @MainActor @Sendable (APIFailure?) -> Void = { _ in }
+    func saveReportDraft(
+        _ id: String, position: Int, draft: QuestionReportDraft?, epoch: Int
+    ) throws(APIFailure) {
+        guard epoch == revision, let t = trainings[id], (0..<t.total).contains(position) else { throw .cancelled }
+        do {
+            let saved = try access.withCurrent(epoch) {
+                try store.saveReportDraft(id, position: position, draft: draft, ownerID: t.ownerID)
+                return true
+            }
+            guard saved == true else { throw APIFailure.cancelled }
+        } catch {
+            if (error as? APIFailure) == .cancelled || (error as? TrainingStorageError) == .missingTraining {
+                throw .cancelled
+            }
+            report("question report draft storage failed: \(TrainingStore.reason(error))", nil)
+            throw .unexpected("question report draft storage failed")
+        }
+    }
+
+    func recordReport(
+        _ id: String, position: Int, draft: QuestionReportDraft,
+        completion: @escaping @MainActor @Sendable (APIFailure?) -> Void
     ) {
         let epoch = revision
         let repository = repository
         enqueue {
             do {
-                if send, let draft {
-                    try await repository.recordReport(id, position: position, draft: draft, epoch: epoch)
-                } else {
-                    try await repository.saveReportDraft(id, position: position, draft: draft, epoch: epoch)
-                }
+                try await repository.recordReport(id, position: position, draft: draft, epoch: epoch)
                 await completion(nil)
             } catch { await completion(APIFailure(error)) }
+        }
+    }
+
+    func reportDraft(_ id: String, position: Int) -> QuestionReportDraft {
+        guard let t = trainings[id], (0..<t.total).contains(position) else { return .init() }
+        do { return try store.reportDraft(id, position: position, ownerID: t.ownerID) ?? .init() } catch {
+            report("question report draft unreadable: \(TrainingStore.reason(error))", nil)
+            return .init()
         }
     }
 

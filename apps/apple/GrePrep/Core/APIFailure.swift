@@ -40,6 +40,8 @@ enum APIFailure: Error, Equatable, Sendable {
             return
         }
         let underlying = GPAPIClient.underlyingError(error)
+        // Описание ошибки генератора может содержать тело запроса или ответа. В журнал — только тип и код.
+        let diagnostic = "\(String(reflecting: type(of: underlying))) \((underlying as NSError).code)"
         if underlying is CancellationError {
             self = .cancelled
             return
@@ -60,11 +62,11 @@ enum APIFailure: Error, Equatable, Sendable {
             if Self.proxyUnavailable.contains(response.status) {
                 self = .offline
             } else {
-                self = .unexpected("HTTP \(response.status) req=\(response.requestID ?? "-"): \(underlying)")
+                self = .unexpected("HTTP \(response.status) req=\(response.requestID ?? "-"): \(diagnostic)")
             }
             return
         }
-        self = .unexpected(String(describing: underlying))
+        self = .unexpected(diagnostic)
     }
 
     /// Ответ-ошибка сервера: 401 — сессии нет; остальное — по коду договора. Имя — не `server`: функция с

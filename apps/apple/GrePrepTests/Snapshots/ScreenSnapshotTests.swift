@@ -1,4 +1,5 @@
 import GPAPI
+import Observation
 import SnapshotTesting
 import SwiftUI
 import Testing
@@ -7,6 +8,12 @@ import Testing
 
 #if os(iOS)
     import Vision
+#endif
+
+#if os(macOS)
+    @MainActor @Observable private final class ReportSheetState {
+        var presented = true
+    }
 #endif
 
 /// Эталонные снимки экранов: iPhone, iPad и Mac — в светлой и тёмной теме. Каждое устройство снимается на своём
@@ -515,7 +522,7 @@ struct ScreenSnapshotTests {
         session.end()
         await eventually { session.trainings.trainings[session.id]?.isFinished == true }
         let review = ReviewModel(id: session.id, trainings: session.trainings)
-        let view = NavigationStack { TrainingReviewView(model: review) }
+        let view = NavigationStack { TrainingReviewView(model: review, keyboardAvailable: Self.snapshotHasKeyboard) }
         assertScreens(view, named: "training-review")
         assertScreens(view.environment(\.textScale, GPType.textScaleLarge), named: "training-review-larger")
         review.onlyMistakes = true
@@ -535,7 +542,9 @@ struct ScreenSnapshotTests {
         await eventually { perfect.trainings.trainings[perfect.id]?.isFinished == true }
         let noMistakes = ReviewModel(id: perfect.id, trainings: perfect.trainings)
         noMistakes.onlyMistakes = true
-        assertScreens(NavigationStack { TrainingReviewView(model: noMistakes) }, named: "training-review-perfect")
+        assertScreens(
+            NavigationStack { TrainingReviewView(model: noMistakes, keyboardAvailable: Self.snapshotHasKeyboard) },
+            named: "training-review-perfect")
     }
 
     @Test("жалоба: выбор, лимит, подтверждение и крупный текст")
@@ -555,7 +564,7 @@ struct ScreenSnapshotTests {
         model.setText(String(repeating: "x", count: 2001))
         assertScreens(QuestionReportView(model: model), named: "training-report-over-limit")
         model.setText("")
-        await eventually { session.trainings.trainings[session.id]?.reportDrafts?[0]?.text == "" }
+        await eventually { session.trainings.reportDraft(session.id, position: 0).text == "" }
         let backup = store.directory.appendingPathExtension("backup")
         try FileManager.default.moveItem(at: store.directory, to: backup)
         try Data().write(to: store.directory)
@@ -570,6 +579,89 @@ struct ScreenSnapshotTests {
     }
 
     #if os(macOS)
+        @Test("Escape закрывает жалобу на Mac и удаляет черновик")
+        func trainingMacReportEscape() async throws {
+            let session = try await sessionModel(TrainingFixture.sample(.textCompletion))
+            let form = QuestionReportModel(id: session.id, position: 0, trainings: session.trainings)
+            form.setKind(.other)
+            let state = ReportSheetState()
+            let root = Color.clear.sheet(isPresented: Binding(get: { state.presented }, set: { state.presented = $0 }))
+            {
+                QuestionReportView(model: form)
+            }
+            let controller = NSHostingController(rootView: root)
+            let window = NSWindow(
+                contentRect: NSRect(x: -2000, y: -2000, width: 1100, height: 760),
+                styleMask: [.titled, .closable], backing: .buffered, defer: false)
+            window.contentViewController = controller
+            window.setContentSize(NSSize(width: 1100, height: 760))
+            window.makeKeyAndOrderFront(nil)
+            defer { window.orderOut(nil) }
+            await eventually { window.attachedSheet != nil }
+            let sheet = try #require(window.attachedSheet)
+            let event = try #require(
+                NSEvent.keyEvent(
+                    with: .keyDown, location: .zero, modifierFlags: [],
+                    timestamp: ProcessInfo.processInfo.systemUptime, windowNumber: sheet.windowNumber, context: nil,
+                    characters: "\u{1b}", charactersIgnoringModifiers: "\u{1b}", isARepeat: false, keyCode: 53))
+            sheet.sendEvent(event)
+            await eventually { !state.presented }
+            #expect(!form.saving && session.trainings.reportDraft(session.id, position: 0).isEmpty)
+        }
+
+        @Test("Return в широком разборе оставляет список и правую панель")
+        func trainingMacReviewKeyboard() async throws {
+            let session = try await sessionModel(TrainingFixture.sample(.textCompletion), check: true)
+            session.end()
+            await eventually { session.trainings.trainings[session.id]?.isFinished == true }
+            let review = ReviewModel(id: session.id, trainings: session.trainings)
+            let controller = NSHostingController(rootView: NavigationStack { TrainingReviewView(model: review) })
+            let window = NSWindow(
+                contentRect: NSRect(x: -2000, y: -2000, width: 1100, height: 760),
+                styleMask: [.titled, .closable], backing: .buffered, defer: false)
+            window.contentViewController = controller
+            window.setContentSize(NSSize(width: 1100, height: 760))
+            window.makeKeyAndOrderFront(nil)
+            defer { window.orderOut(nil) }
+            await eventually { window.firstResponder != nil }
+            controller.view.layoutSubtreeIfNeeded()
+            await eventually { window.firstResponder !== window }
+            func key(_ characters: String, code: UInt16) throws {
+                let event = try #require(
+                    NSEvent.keyEvent(
+                        with: .keyDown, location: .zero, modifierFlags: [],
+                        timestamp: ProcessInfo.processInfo.systemUptime, windowNumber: window.windowNumber,
+                        context: nil,
+                        characters: characters, charactersIgnoringModifiers: characters, isARepeat: false, keyCode: code
+                    ))
+                window.sendEvent(event)
+            }
+            try key(String(UnicodeScalar(NSDownArrowFunctionKey)!), code: 125)
+            await eventually { review.selectedPosition == 1 }
+            try key("\r", code: 36)
+            // Вместо копии вопроса должна остаться двухколоночная страница; следующий выбор тоже работает.
+            try key(String(UnicodeScalar(NSDownArrowFunctionKey)!), code: 125)
+            await eventually { review.selectedPosition == 2 }
+            try key(String(UnicodeScalar(NSUpArrowFunctionKey)!), code: 126)
+            await eventually { review.selectedPosition == 1 }
+            let replacement = ReviewModel(id: session.id, trainings: session.trainings)
+            controller.rootView = NavigationStack { TrainingReviewView(model: replacement) }
+            await Task.yield()
+            controller.view.layoutSubtreeIfNeeded()
+            let refreshed = try #require(controller.view.bitmapImageRepForCachingDisplay(in: controller.view.bounds))
+            controller.view.cacheDisplay(in: controller.view.bounds, to: refreshed)
+            try key(String(UnicodeScalar(NSDownArrowFunctionKey)!), code: 125)
+            await eventually { review.selectedPosition == 2 }
+            #expect(replacement.selected == nil)
+            controller.view.layoutSubtreeIfNeeded()
+            let bitmap = try #require(controller.view.bitmapImageRepForCachingDisplay(in: controller.view.bounds))
+            controller.view.cacheDisplay(in: controller.view.bounds, to: bitmap)
+            let png = try #require(bitmap.representation(using: .png, properties: [:]))
+            let path = URL(filePath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+                .deletingLastPathComponent().appending(path: "build/revision-mac-review-keyboard.png")
+            try png.write(to: path)
+        }
+
         @Test("клавиши настоящего широкого окна Mac")
         func trainingMacKeyboard() async throws {
             let model = try await sessionModel(TrainingFixture.sample(.textCompletion))

@@ -19,6 +19,7 @@ struct StoredTraining: Codable, Sendable, Equatable {
     var finishSent = false
     // Optional сохраняет совместимость с файлами первых частей тренировок.
     var reports: [PendingQuestionReport]?
+    // Только для переноса файлов прежней версии в отдельную запись черновиков.
     var reportDrafts: [Int: QuestionReportDraft]?
 
     var id: String { session.id }
@@ -26,7 +27,6 @@ struct StoredTraining: Codable, Sendable, Equatable {
     var isCheck: Bool { session.mode == .check }
     var isFinished: Bool { finish != nil }
     var isSynced: Bool { unsent.isEmpty && (reports ?? []).isEmpty && (finish == nil || finishSent) }
-    var hasReportDrafts: Bool { !(reportDrafts ?? [:]).isEmpty }
 }
 
 typealias QuestionReport = Components.Schemas.QuestionReport
@@ -39,6 +39,7 @@ struct QuestionReportDraft: Codable, Sendable, Equatable {
     static let maxLength = 2000
     var length: Int { text.unicodeScalars.count }
     var canSend: Bool { kind != nil && length <= Self.maxLength }
+    var isEmpty: Bool { kind == nil && text.isEmpty }
 }
 
 struct PendingQuestionReport: Codable, Sendable, Equatable, Identifiable {

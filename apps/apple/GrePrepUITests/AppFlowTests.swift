@@ -330,7 +330,14 @@ final class AppFlowTests: XCTestCase {
     }
 
     func testTrainingReviewAnswersAndBack() throws {
+        let keyboardRun = ProcessInfo.processInfo.environment["GP_REVIEW_KEYBOARD"] == "1"
+        XCUIDevice.shared.orientation = .portrait
+        defer { XCUIDevice.shared.orientation = .portrait }
         let app = launch(reset: true)
+        if keyboardRun {
+            try reviewKeyboard(app)
+            return
+        }
         startSession(app, check: true)
         try capture("question")
         choose(app, correct: true)
@@ -357,6 +364,39 @@ final class AppFlowTests: XCTestCase {
         XCTAssertTrue(app.buttons["review.item.1"].waitForExistence(timeout: 5))
         app.navigationBars.buttons.element(boundBy: 0).tap()
         XCTAssertTrue(app.buttons["summary.review"].waitForExistence(timeout: 5))
+    }
+
+    private func reviewKeyboard(_ app: XCUIApplication) throws {
+        XCTAssertEqual(UIDevice.current.userInterfaceIdiom, .pad)
+        signIn(app)
+        app.swipeUp()
+        app.buttons["today.newTraining"].tap()
+        XCTAssertTrue(app.buttons["builder.start"].waitForExistence(timeout: 10))
+        // Для клавиш достаточно штатной проверки: этот путь не зависит от редактирования числа вопросов.
+        app.buttons["builder.preset.timed"].tap()
+        app.buttons["builder.start"].tap()
+        XCTAssertTrue(app.buttons["question.overview"].waitForExistence(timeout: 10))
+        app.buttons["question.overview"].tap()
+        app.buttons["overview.finish"].tap()
+        XCTAssertTrue(app.buttons["summary.review"].waitForExistence(timeout: 5))
+        XCUIDevice.shared.orientation = .landscapeLeft
+        app.buttons["summary.review"].tap()
+        XCTAssertTrue(app.buttons["review.item.0"].waitForExistence(timeout: 5))
+        app.typeKey(.downArrow, modifierFlags: [])
+        waitSelected(app.buttons["review.item.1"])
+        app.typeKey(.return, modifierFlags: [])
+        app.typeKey(.downArrow, modifierFlags: [])
+        waitSelected(app.buttons["review.item.2"])
+        app.typeKey(.upArrow, modifierFlags: [])
+        waitSelected(app.buttons["review.item.1"])
+        try capture("review-keyboard")
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        XCTAssertTrue(app.buttons["summary.review"].waitForExistence(timeout: 5))
+    }
+
+    private func waitSelected(_ element: XCUIElement) {
+        let expectation = XCTNSPredicateExpectation(predicate: NSPredicate(format: "selected == true"), object: element)
+        XCTAssertEqual(XCTWaiter.wait(for: [expectation], timeout: 5), .completed)
     }
 
     func testTrainingReviewReportAndCancel() throws {

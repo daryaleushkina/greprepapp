@@ -1,4 +1,5 @@
 import Foundation
+import Observation
 import Testing
 
 @testable import GrePrep
@@ -33,7 +34,7 @@ struct QuestionReportTests {
         try prepare()
         server.on(route, .failure(.notConnectedToInternet))
         let model = try await model()
-        try await model.repository.saveReportDraft(t.id, position: 0, draft: draft, epoch: model.revision)
+        try model.saveReportDraft(t.id, position: 0, draft: draft, epoch: model.revision)
         try await model.repository.recordReport(t.id, position: 0, draft: draft, epoch: model.revision)
         await model.repository.sync()
         #expect(try store.load { _ in }[t.id]?.reports?.count == 1)
@@ -51,12 +52,23 @@ struct QuestionReportTests {
     @Test func draftSurvivesAndCancelRemovesIt() async throws {
         try prepare()
         let model = try await model()
-        try await model.repository.saveReportDraft(t.id, position: 0, draft: draft, epoch: model.revision)
+        try model.saveReportDraft(t.id, position: 0, draft: draft, epoch: model.revision)
         let again = try await self.model()
-        #expect(again.trainings[t.id]?.reportDrafts?[0] == draft)
-        try await again.repository.saveReportDraft(t.id, position: 0, draft: nil, epoch: again.revision)
+        #expect(try store.reportDraft(t.id, position: 0, ownerID: "person") == draft)
+        try again.saveReportDraft(t.id, position: 0, draft: nil, epoch: again.revision)
         #expect(try store.load { _ in }[t.id]?.reportDrafts?[0] == nil)
         #expect(server.requests(route).isEmpty)
+    }
+    @Test func embeddedDraftMigratesBeforeTrainingIsRewritten() async throws {
+        try prepare()
+        var legacy = t
+        legacy.reportDrafts = [0: draft]
+        try store.save(legacy)
+        let model = try await model()
+        #expect(model.trainings[t.id]?.reportDrafts == nil)
+        let cold = TrainingStore(directory: store.directory)
+        #expect(try cold.reportDraft(t.id, position: 0, ownerID: t.ownerID) == draft)
+        #expect(try cold.load { _ in }[t.id]?.reportDrafts == nil)
     }
 
     @Test("Отказы жалоб", arguments: [400, 404, 409, 410, 422, 401, 403, 408, 429, 500, 503])
@@ -68,7 +80,7 @@ struct QuestionReportTests {
         await model.repository.sync()
         let permanent = [400, 404, 409, 410, 422].contains(status)
         #expect((model.trainings[t.id]?.reports ?? []).isEmpty == permanent)
-        #expect(reports.messages.contains { $0.contains("rejected") } == permanent)
+        #expect(reports.messages.contains { $0.contains("question report rejected:") } == permanent)
         #expect(reports.messages.allSatisfy { !$0.contains(draft.text) })
         if status == 401 {
             #expect(reports.messages.contains("unauthorized"))
@@ -87,7 +99,7 @@ struct QuestionReportTests {
         try prepare()
         server.on(route, .failure(.notConnectedToInternet))
         let model = try await model()
-        try await model.repository.saveReportDraft(t.id, position: 1, draft: draft, epoch: model.revision)
+        try model.saveReportDraft(t.id, position: 1, draft: draft, epoch: model.revision)
         try await model.repository.recordReport(t.id, position: 0, draft: draft, epoch: model.revision)
         await model.repository.sync()
         let other = try await self.model(owner: "other")
@@ -146,7 +158,7 @@ struct QuestionReportTests {
     @Test func rejectedResponseAndDecodeFailureNeverExposeText() async throws {
         try prepare()
         let model = try await model()
-        server.on(route, .json(422, Fixture.error(draft.text)))
+        server.on(route, .json(422, Fixture.error("invalid_request", requestID: "report-42")))
         try await model.repository.recordReport(t.id, position: 0, draft: draft, epoch: model.revision)
         await model.repository.sync()
         server.on(route, .json(500, draft.text))
@@ -159,7 +171,7 @@ struct QuestionReportTests {
     @Test func invalidReportAndDiskFailureKeepDraftAndDoNotSend() async throws {
         try prepare()
         let model = try await model()
-        try await model.repository.saveReportDraft(t.id, position: 0, draft: draft, epoch: model.revision)
+        try model.saveReportDraft(t.id, position: 0, draft: draft, epoch: model.revision)
         for (position, value) in [
             (0, QuestionReportDraft(kind: .other, text: String(repeating: "x", count: 2001))), (-1, draft),
         ] {
@@ -175,7 +187,7 @@ struct QuestionReportTests {
             try await model.repository.recordReport(t.id, position: 0, draft: draft, epoch: model.revision)
             Issue.record("не сохранённая жалоба принята")
         } catch { #expect(error.isReportable) }
-        #expect(model.trainings[t.id]?.reportDrafts?[0] == draft)
+        #expect(try store.reportDraft(t.id, position: 0, ownerID: "person") == draft)
         let pending = model.trainings[t.id]?.reports ?? []
         #expect(pending.isEmpty)
         #expect(server.requests(route).isEmpty)
@@ -183,7 +195,7 @@ struct QuestionReportTests {
         try FileManager.default.moveItem(at: backup, to: store.directory)
     }
 
-    @Test func prunePreservesPendingReportsAndDrafts() async throws {
+    @Test func prunePreservesReportsButRemovesTrainingWithDraft() async throws {
         try store.saveOwner("person")
         for index in 0..<6 {
             var finished = TrainingFixture.stored(
@@ -205,9 +217,37 @@ struct QuestionReportTests {
         #expect(model.trainings.count == 6)
         server.on(route, .json(429, Fixture.error("temporary")))
         await model.repository.sync()
-        #expect(model.trainings.count == 5)
-        #expect(model.trainings.values.contains { $0.hasReportDrafts })
+        #expect(model.trainings.count == 4)
+        #expect(model.trainings["00000000-0000-4000-8000-000000000900"] == nil)
         #expect(model.trainings.values.contains { !($0.reports ?? []).isEmpty })
+    }
+
+    @Test func draftChangesDoNotRewriteOrPublishTrainings() async throws {
+        try prepare()
+        let model = try await model()
+        let file = store.directory.appending(path: t.id + ".training.json")
+        let before = try Data(contentsOf: file)
+        let publications = Reports()
+        withObservationTracking {
+            _ = model.trainings
+        } onChange: {
+            publications.add("changed")
+        }
+        for count in 1...300 {
+            try model.saveReportDraft(
+                t.id, position: 0,
+                draft: .init(kind: .other, text: String(repeating: "x", count: count)), epoch: model.revision)
+        }
+        #expect(try Data(contentsOf: file) == before)
+        #expect(publications.messages.isEmpty)
+    }
+
+    @Test func emptyDraftIsNotStored() async throws {
+        try prepare()
+        let model = try await model()
+        try model.saveReportDraft(t.id, position: 0, draft: .init(), epoch: model.revision)
+        #expect(try store.load { _ in }[t.id]?.reportDrafts?[0] == nil)
+        #expect(!FileManager.default.fileExists(atPath: store.directory.appending(path: "report-drafts.json").path))
     }
 
     @Test func cancelledTransportRetainsReportWithoutClientError() async throws {

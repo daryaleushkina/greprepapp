@@ -1761,12 +1761,12 @@
         }
       }
     },
-    "Сократите текст до 2000 символов.": {
+    "Сократите текст до %lld символов.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Shorten the text to 2000 characters."
+            "value": "Shorten the text to %lld characters."
           }
         }
       }
@@ -1977,6 +1977,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "not answered"
+          }
+        }
+      }
+    },
+    "верно": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "correct"
           }
         }
       }
