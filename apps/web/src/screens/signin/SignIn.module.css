@@ -206,7 +206,7 @@
 }
 
 .devSubmit:disabled {
-  opacity: 0.5;
+  opacity: var(--opacity-disabled);
 }
 
 /* ── компьютер и планшет: карточка-стекло по центру ── */

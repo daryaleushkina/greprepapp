@@ -43,9 +43,10 @@ tools/dev/backlog.sh           # пересобрать это зеркало
 - [#19](https://github.com/daryaleushkina/greprepapp/issues/19) Приложение Apple: передавать язык системы при входе (поле locale)
 - [#20](https://github.com/daryaleushkina/greprepapp/issues/20) Веб: разбить сборку по экранам — один пакет 528 КБ (165 КБ gzip)
 - [#21](https://github.com/daryaleushkina/greprepapp/issues/21) Приложение Apple: тренировки, первый срез — экраны по готовому договору
-- [#22](https://github.com/daryaleushkina/greprepapp/issues/22) Мини-апп и сайт: тренировки, первый срез — экраны по готовому договору
 - [#23](https://github.com/daryaleushkina/greprepapp/issues/23) Задания Quant: формулы сверх Unicode — дроби, степени, корни
 - [#24](https://github.com/daryaleushkina/greprepapp/issues/24) Админка: правка проверенного задания — новой версией, не на месте; очередь жалоб
 - [#25](https://github.com/daryaleushkina/greprepapp/issues/25) Android: истёкший вход стирает неотправленные ответы тренировки без следа
 - [#30](https://github.com/daryaleushkina/greprepapp/issues/30) Android: постоянный отказ пачки ответов выкидывает из очереди и верные ответы
 - [#31](https://github.com/daryaleushkina/greprepapp/issues/31) Android: в списке «Проверки» частично заполненный вопрос помечен отвеченным
+- [#32](https://github.com/daryaleushkina/greprepapp/issues/32) Сайт: «Назад» (BackLink) перехватывает Cmd/Ctrl-клик и среднюю кнопку
+- [#34](https://github.com/daryaleushkina/greprepapp/issues/34) Жалобы на задания: повтор после потерянного ответа создаёт дубль
