@@ -1,0 +1,164 @@
+name: Apple iOS 18
+
+# Загрузка многогигабайтной среды — раз в неделю или вручную, а не на каждый PR
+# (решение Даши 09.10.2026). Все проверки выполняет тот же gate-apple.
+on:
+  schedule:
+    - cron: '23 3 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  apple-ios18:
+    name: Apple на iOS 18
+    runs-on: xcode-27
+    timeout-minutes: 120
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_27.app/Contents/Developer
+      # Последняя стабильная среда iOS 18 в каталоге Apple; версия и сборка закреплены для кэша DMG.
+      # https://devimages-cdn.apple.com/downloads/xcode/simulators/index2.dvtdownloadableindex
+      IOS18_VERSION: '18.6'
+      IOS18_BUILD: '22G86'
+      GATE_APPLE_POSTGRES_URL: postgres://greprep@127.0.0.1:55438/postgres?sslmode=disable
+      GATE_APPLE_UI_DB: greprep_ci_ios18_ui
+      GATE_APPLE_UI_PORT: '8097'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Xcode 27
+        run: |
+          version="$(xcodebuild -version | awk 'NR == 1 { print $2 }')"
+          case "$version" in
+            27.*) ;;
+            *) echo '::error::Нужен Xcode 27 для прогона iOS 18.'; exit 1 ;;
+          esac
+          xcodebuild -version
+          echo "IOS18_CACHE_DIR=$RUNNER_TEMP/ios18-runtime" >> "$GITHUB_ENV"
+      - name: Восстановить DMG среды из кэша
+        id: runtime-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ runner.temp }}/ios18-runtime
+          key: ios-runtime-${{ runner.os }}-${{ runner.arch }}-${{ env.IOS18_VERSION }}-${{ env.IOS18_BUILD }}
+      - name: Скачать iOS 18 при отсутствии кэша (без Apple ID)
+        if: steps.runtime-cache.outputs.cache-hit != 'true'
+        timeout-minutes: 30
+        run: |
+          mkdir -p "$IOS18_CACHE_DIR"
+          xcodebuild -downloadPlatform iOS -buildVersion "$IOS18_VERSION" \
+            -architectureVariant arm64 -exportPath "$IOS18_CACHE_DIR"
+      - name: Установить и проверить среду
+        timeout-minutes: 20
+        run: |
+          # С -exportPath Xcode сохраняет DMG. Импорт нужен и после загрузки, и после восстановления кэша.
+          image="$(python3 - <<'PY'
+          import os
+          import sys
+          from pathlib import Path
+
+          images = list(Path(os.environ["IOS18_CACHE_DIR"]).rglob("*.dmg"))
+          if len(images) != 1:
+              sys.exit("::error::Ожидался один DMG среды iOS 18, найдено: " + str(len(images)))
+          print(images[0])
+          PY
+          )"
+          xcodebuild -importPlatform "$image"
+          xcrun simctl list runtimes --json > "$RUNNER_TEMP/ios18-runtimes.json"
+          runtime="$(python3 - "$RUNNER_TEMP/ios18-runtimes.json" <<'PY'
+          import json
+          import os
+          import sys
+
+          with open(sys.argv[1]) as source:
+              runtimes = json.load(source)["runtimes"]
+          for runtime in runtimes:
+              if (runtime["identifier"].startswith("com.apple.CoreSimulator.SimRuntime.iOS-18-")
+                  and runtime.get("version") == os.environ["IOS18_VERSION"]
+                  and runtime.get("buildversion") == os.environ["IOS18_BUILD"]
+                  and runtime.get("isAvailable", False)):
+                  print(runtime["identifier"])
+                  break
+          else:
+              sys.exit("::error::Установленная iOS 18 недоступна либо её версия/сборка разошлась с ожидаемой.")
+          PY
+          )"
+          echo "IOS18_RUNTIME=$runtime" >> "$GITHUB_ENV"
+          echo "iOS $IOS18_VERSION ($IOS18_BUILD), Xcode 27, iPhone 16 Pro" >> "$GITHUB_STEP_SUMMARY"
+      - name: Сохранить проверенный DMG до запуска тестов
+        if: steps.runtime-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: ${{ runner.temp }}/ios18-runtime
+          key: ${{ steps.runtime-cache.outputs.cache-primary-key }}
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: server/go.mod
+          cache-dependency-path: server/go.sum
+      - name: Кэш SwiftPM
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/Library/Caches/org.swift.swiftpm
+            ~/.swiftpm
+            apps/apple/Tools/.build
+            apps/apple/build/gate/SourcePackages
+          key: swiftpm-${{ runner.os }}-${{ runner.arch }}-xcode27-${{ hashFiles('apps/apple/**/Package.resolved', 'apps/apple/**/Package.swift') }}
+          restore-keys: |
+            swiftpm-${{ runner.os }}-${{ runner.arch }}-xcode27-
+      - name: XcodeGen и свой Postgres 18
+        run: |
+          brew install xcodegen postgresql@18
+          pg_bin="$(brew --prefix postgresql@18)/bin"
+          echo "$pg_bin" >> "$GITHUB_PATH"
+          "$pg_bin/initdb" -D "$RUNNER_TEMP/greprep-postgres" -U greprep --auth=trust --no-locale --encoding=UTF8
+          "$pg_bin/pg_ctl" -D "$RUNNER_TEMP/greprep-postgres" -l "$RUNNER_TEMP/greprep-postgres.log" \
+            -o '-h 127.0.0.1 -p 55438' -w start
+      - name: Свой iPhone 16 Pro на скачанной iOS 18
+        run: |
+          # simulator.sh iphone-ios18 закреплён за 18.0; здесь используется скачанная стабильная 18.x.
+          # Устройство создаётся выключенным; boot и shutdown выполняет sim-devices внутри гейта.
+          iphone="$(xcrun simctl create 'GrePrep iPhone iOS 18 CI' \
+            com.apple.CoreSimulator.SimDeviceType.iPhone-16-Pro "$IOS18_RUNTIME")"
+          echo "GATE_APPLE_IPHONE_UDID=$iphone" >> "$GITHUB_ENV"
+      - name: Общий гейт Apple на выбранном iPhone
+        run: sh scripts/hooks/gate-apple
+      - name: Остановить свой Postgres
+        if: always()
+        run: |
+          if [ -f "$RUNNER_TEMP/greprep-postgres/postmaster.pid" ]; then
+            "$(brew --prefix postgresql@18)/bin/pg_ctl" -D "$RUNNER_TEMP/greprep-postgres" -m fast -w stop
+          fi
+      - name: Погасить и удалить свой iPhone
+        if: always()
+        run: |
+          if [ -n "${GATE_APPLE_IPHONE_UDID:-}" ]; then
+            xcrun simctl list devices --json > "$RUNNER_TEMP/ios18-devices.json"
+            state="$(python3 - "$RUNNER_TEMP/ios18-devices.json" <<'PY'
+          import json
+          import os
+          import sys
+
+          with open(sys.argv[1]) as source:
+              devices = json.load(source)["devices"]
+          for group in devices.values():
+              for device in group:
+                  if device["udid"] == os.environ["GATE_APPLE_IPHONE_UDID"]:
+                      print(device["state"])
+                      sys.exit(0)
+          sys.exit("::error::Не удалось найти свой iPhone для уборки.")
+          PY
+            )"
+            if [ "$state" != Shutdown ]; then xcrun simctl shutdown "$GATE_APPLE_IPHONE_UDID"; fi
+            xcrun simctl delete "$GATE_APPLE_IPHONE_UDID"
+          fi
