@@ -1,0 +1,102 @@
+/* Группа T «Общее»: первый запуск, вход, загрузка, нет сети, смена экзамена. Только на токенах core.css;
+   исключение — кнопки входа: их цвета — правила Telegram, Apple и Google, а не наша палитра
+   (токены sign-in-* в DESIGN.md; ядру их пока не хватает). */
+
+/* Служебный текст только для читалки экрана. */
+.t-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- T2 · первый запуск ---------- */
+.t-first-note { font-size: 14px; line-height: 1.5; color: var(--text-2); margin-top: 6px; max-width: 46ch; }
+
+/* ---------- T4 · вход ---------- */
+.frame .t-signin {
+  --t-sib-telegram-bg: #119AF5; --t-sib-telegram-text: #FFFFFF;
+  --t-sib-apple-bg: #000000; --t-sib-apple-text: #FFFFFF;
+  --t-sib-google-bg: #FFFFFF; --t-sib-google-stroke: #747775; --t-sib-google-text: #1F1F1F;
+  justify-content: space-between; gap: 28px; padding-top: 88px; padding-bottom: 34px;
+}
+.frame[data-theme="dark"] .t-signin {
+  --t-sib-apple-bg: #FFFFFF; --t-sib-apple-text: #000000;
+  --t-sib-google-bg: #131314; --t-sib-google-stroke: #8E918F; --t-sib-google-text: #E3E3E3;
+}
+.t-signin-head { display: flex; flex-direction: column; gap: 14px; }
+.t-brand {
+  align-self: flex-start; padding: 6px 12px; border-radius: 999px;
+  background: var(--accent-soft); color: var(--accent); font-weight: 600; font-size: 15px; letter-spacing: 0.01em;
+}
+.t-signin-head .h1 { font-size: 32px; line-height: 1.12; }
+.t-signin-head .lead { font-size: 16px; line-height: 1.5; max-width: 38ch; }
+.t-signin-buttons { display: flex; flex-direction: column; gap: 12px; margin-top: auto; }
+.t-sib {
+  display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 0 20px;
+  border-radius: 999px; border: 1px solid transparent; font-weight: 600; font-size: 16px;
+}
+.t-sib svg { width: 20px; height: 20px; flex: none; }
+.t-sib-telegram { background: var(--t-sib-telegram-bg); color: var(--t-sib-telegram-text); }
+.t-sib-telegram svg { width: 22px; height: 22px; }
+.t-sib-apple { background: var(--t-sib-apple-bg); color: var(--t-sib-apple-text); }
+.t-sib-apple svg { width: 17px; height: 20px; margin-top: -2px; }
+.t-sib-google { background: var(--t-sib-google-bg); color: var(--t-sib-google-text); border-color: var(--t-sib-google-stroke); }
+.t-signin-foot { display: flex; flex-direction: column; gap: 8px; font-size: 13px; line-height: 1.45; color: var(--text-3); }
+.t-signin-foot a { color: var(--text-2); text-decoration: underline; text-underline-offset: 2px; }
+
+/* ---------- T5 · скелет ---------- */
+.t-skel {
+  display: block; border-radius: 8px;
+  background: linear-gradient(90deg, var(--surface-2) 0%, var(--accent-soft) 50%, var(--surface-2) 100%) 0 0 / 200% 100%;
+  animation: t-shimmer 1.6s ease-in-out infinite;
+}
+@keyframes t-shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+@media (prefers-reduced-motion: reduce) { .t-skel { animation: none; background: var(--surface-2); } }
+.t-skel-card { gap: 12px; }
+.t-skel-row { display: flex; gap: 10px; margin-top: 10px; }
+.t-skel-btn { height: 52px; flex: 1; border-radius: 999px; }
+.t-skel-btn-sm { flex: 0 0 38%; }
+.t-skel-h2 { width: 44%; height: 20px; }
+.t-skel-section { display: flex; align-items: center; gap: 14px; padding: 14px 16px; min-height: 64px; }
+.t-skel-dot { width: 22px; height: 22px; border-radius: 50%; flex: none; }
+.t-skel-lines { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.t-skel-side { gap: 14px; }
+
+/* ---------- T6 · нет сети ---------- */
+.t-offline {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; margin-top: -6px;
+  padding: 7px 12px; border-radius: 999px; background: var(--surface-2); color: var(--text-2); font-size: 13px; font-weight: 500;
+}
+.t-offline .ic-sm { color: var(--text-3); }
+
+/* ---------- T7 · смена экзамена ---------- */
+.t-exam-sheet .h2 { margin-top: 4px; }
+.t-exam-list { display: flex; flex-direction: column; gap: 10px; }
+.t-exam-row {
+  display: grid; grid-template-columns: 76px 1fr 28px; align-items: center; gap: 12px;
+  min-height: 72px; padding: 12px 16px; text-align: left; border-radius: var(--r-m);
+  border: 1px solid var(--line-strong); background: var(--surface);
+}
+.t-exam-row[aria-checked="true"] { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
+.t-exam-name { font: var(--thin) 25px/1 var(--font-display); letter-spacing: -0.02em; }
+.t-exam-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.t-exam-body b { font-weight: 600; font-size: 15px; }
+.t-exam-body small { font-size: 13px; color: var(--text-2); }
+.t-exam-check { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; }
+.t-exam-row[aria-checked="true"] .t-exam-check { background: var(--accent); color: var(--on-accent); }
+.t-exam-note { font-size: 13px; color: var(--text-3); }
+
+/* В тёмной теме шторка приподнята над экраном светлотой: затемнение поверх тёмного почти не видно. */
+.frame[data-theme="dark"] .t-exam-sheet { background: var(--surface-2); box-shadow: 0 -1px 0 var(--line-strong); }
+.frame[data-theme="dark"] .t-exam-row { background: transparent; }
+.frame[data-theme="dark"] .t-exam-row[aria-checked="true"] { background: var(--accent-soft); }
+
+/* =================== Компьютер =================== */
+@container (min-width: 900px) {
+  .frame .t-signin { align-items: center; justify-content: center; gap: 36px; padding-top: 0; }
+  .t-signin-head { align-items: center; text-align: center; max-width: 560px; }
+  .t-brand { align-self: center; }
+  .t-signin-head .h1 { font-size: 44px; }
+  .t-signin-head .lead { font-size: 18px; max-width: 46ch; }
+  .t-signin-buttons { margin-top: 0; width: 400px; }
+  .t-signin-foot { max-width: 520px; text-align: center; }
+  .t-first-note { font-size: 15px; }
+  .t-offline { margin-top: 0; }
+  .t-exam-row { grid-template-columns: 110px 1fr 28px; }
+}

@@ -1,0 +1,168 @@
+/* Группа R, часть 2: только правила своих экранов, на токенах core.css. */
+
+.r2-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* ---------- Сессия: таймер «Проверки» и калькулятор ---------- */
+.r2-meta-end { display: inline-flex; align-items: center; gap: 10px; white-space: nowrap; }
+.r2-meta-end ~ *, .session-meta:has(.r2-timer) .session-sec { white-space: nowrap; }
+/* Длинный вопрос с графиком листается внутри, кнопки остаются на месте. */
+.r2-scroll { margin: 0 -22px; padding: 0 22px 12px; }
+.r2-timer {
+  display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px 3px 8px; border-radius: 999px;
+  background: var(--surface-2); color: var(--text-2); font-size: 14px; font-weight: 500; font-variant-numeric: tabular-nums;
+}
+.r2-instr-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.r2-instr-row .q-instr { margin-bottom: 0; }
+.r2-calc-btn {
+  flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border: 0;
+  border-radius: 999px; background: var(--surface-2); color: var(--text); font-size: 14px; font-weight: 500;
+}
+.r2-calc-btn .ic-sm { color: var(--accent); }
+
+/* ---------- Несколько ответов: квадраты, как на экране GRE ---------- */
+.opt[role="checkbox"] .oval.r2-box { border-radius: 6px; }
+.opt[role="checkbox"] .oval.r2-box::after { content: none; }
+.r2-tick { width: 14px; height: 14px; color: var(--on-accent); opacity: 0; }
+.opt[role="checkbox"][aria-checked="true"] .oval.r2-box { background: var(--accent); border-color: var(--accent); }
+.opt[role="checkbox"][aria-checked="true"] .r2-tick { opacity: 1; }
+.r2-multi { gap: 6px; }
+
+/* ---------- Ввод числа и дроби ---------- */
+.r2-field { display: flex; flex-direction: column; gap: 6px; }
+.r2-field-label { font-size: 13px; font-weight: 500; color: var(--text-3); }
+.r2-field-box {
+  display: flex; align-items: center; gap: 8px; min-height: 60px; padding: 0 16px; max-width: 240px;
+  border-radius: var(--r-m); border: 1px solid var(--line-strong); background: var(--surface);
+}
+.r2-field-box:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.r2-unit { font-size: 22px; font-weight: var(--thin); color: var(--text-2); }
+.r2-field-box input {
+  flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--text);
+  font: var(--thin) 30px/1 var(--font-display); letter-spacing: -0.02em; font-variant-numeric: tabular-nums;
+}
+.r2-frac { display: inline-flex; flex-direction: column; gap: 10px; width: 180px; }
+.r2-frac .r2-field-box { max-width: none; }
+.r2-frac-line { height: 2px; border-radius: 1px; background: var(--text); }
+
+/* ---------- Данные: столбчатая диаграмма ---------- */
+.r2-chart { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; padding: 14px 14px 8px; border-radius: var(--r-m); background: var(--surface); }
+.r2-chart figcaption { font-size: 13px; color: var(--text-2); line-height: 1.35; }
+.r2-chart svg { width: 100%; height: auto; display: block; }
+.r2-grid line { stroke: var(--line); stroke-width: 1; }
+.r2-grid line:first-child { stroke: var(--line-strong); }
+.r2-axis text { fill: var(--text-3); font: 400 12.5px var(--font-body); font-variant-numeric: tabular-nums; }
+.r2-months text { text-anchor: middle; fill: var(--text-2); }
+.r2-bars rect { fill: var(--c-quant); }
+.r2-vals text { fill: var(--text); font: 600 12.5px var(--font-body); text-anchor: middle; font-variant-numeric: tabular-nums; }
+.r2-q-short { font-size: 17px; }
+
+/* ---------- Калькулятор (шторка) ---------- */
+.r2-calc-head { display: flex; align-items: center; justify-content: space-between; }
+.r2-sheet-close { margin: 0 -10px 0 0; }
+.r2-display {
+  display: flex; align-items: baseline; justify-content: flex-end; gap: 10px; min-height: 64px; padding: 0 16px;
+  border-radius: var(--r-m); background: var(--surface-2); color: var(--text);
+  font: var(--thin) 38px/64px var(--font-display); letter-spacing: -0.02em; font-variant-numeric: tabular-nums;
+}
+.r2-mem { margin-right: auto; font: 600 13px/1 var(--font-body); letter-spacing: 0.04em; color: var(--accent); }
+.r2-keys { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; }
+.r2-key {
+  min-height: 48px; border: 0; border-radius: var(--r-s); background: var(--surface-2); color: var(--text);
+  font-size: 19px; font-weight: 500; font-variant-numeric: tabular-nums;
+}
+.r2-key-fn { font-size: 15px; color: var(--text-2); background: transparent; box-shadow: inset 0 0 0 1px var(--line-strong); }
+.r2-key-op { background: var(--accent-soft); color: var(--accent); font-size: 21px; }
+.r2-key-wide { grid-column: 1 / -1; color: var(--accent); font-weight: 600; letter-spacing: 0.01em; }
+
+/* ---------- Итог тренировки ---------- */
+.r2-summary { gap: 18px; }
+.r2-sum-layout { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 30px; }
+.r2-sum-head { display: flex; flex-direction: column; gap: 14px; }
+.r2-sum-sub { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-2); }
+.r2-score { display: flex; align-items: baseline; gap: 12px; margin: 0; }
+.r2-score-num { font: var(--thin) 104px/0.9 var(--font-display); letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+.r2-score-of { font: 500 22px/1.2 var(--font-display); letter-spacing: -0.015em; color: var(--text-2); }
+.r2-score-sm .r2-score-num { font-size: 72px; }
+.r2-score-sm .r2-score-of { font-size: 19px; }
+.r2-marks { display: flex; gap: 6px; margin: 0; padding: 0; list-style: none; flex-wrap: wrap; }
+.r2-mark { position: relative; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; }
+.r2-mark-ok { background: var(--right-soft); color: var(--right); }
+.r2-mark-no { background: var(--wrong-soft); color: var(--wrong); }
+.r2-repeat { display: flex; flex-direction: column; gap: 12px; }
+.r2-topics { display: flex; flex-direction: column; gap: 8px; }
+.r2-topic { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 12px 16px; border-radius: var(--r-m); background: var(--surface); }
+.r2-topic > span { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.r2-topic small { font-size: 13px; color: var(--text-2); }
+.r2-topic > .ic-sm { color: var(--text-3); }
+.r2-note { font-size: 14px; color: var(--text-3); }
+.bottom-bar.r2-stack { flex-direction: column; }
+.bottom-bar.r2-stack .btn { width: 100%; flex: none; }
+
+/* ---------- Разбор «Проверки» ---------- */
+.r2-check-head { display: flex; flex-direction: column; gap: 6px; }
+.r2-list { flex: 1; display: flex; flex-direction: column; margin: 0 -22px; padding: 0 22px; }
+.r2-row { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 8px 0; }
+.r2-list li + li .r2-row { border-top: 1px solid var(--line); }
+.r2-row-n { flex: none; width: 26px; font: var(--thin) 22px/1 var(--font-display); color: var(--text-2); font-variant-numeric: tabular-nums; }
+.r2-row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.r2-row-main b { font-weight: 500; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.r2-row-main small { font-size: 13px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.r2-row-res { flex: none; display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; }
+.r2-res-ok { color: var(--right); }
+.r2-res-no { color: var(--wrong); }
+.r2-row-chev { color: var(--text-3); }
+
+/* ---------- «Сообщить об ошибке» ---------- */
+.r2-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.r2-chip {
+  min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line-strong); background: transparent;
+  color: var(--text); font-size: 15px; font-weight: 500;
+}
+.r2-chip[aria-checked="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+.r2-area { display: flex; flex-direction: column; gap: 6px; }
+.r2-area textarea {
+  resize: none; padding: 12px 14px; border-radius: var(--r-m); border: 1px solid var(--line); background: var(--surface-2);
+  color: var(--text); font: 400 15px/1.45 var(--font-body);
+}
+.r2-area textarea:focus { outline: 0; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+
+/* ---------- Теория ---------- */
+.r2-top-seg { margin-left: auto; }
+.r2-theory { flex: 1; margin: 0 -22px; padding: 0 22px 8px; }
+.r2-theory-body { display: flex; flex-direction: column; gap: 20px; }
+.r2-th-head { display: flex; flex-direction: column; gap: 8px; }
+.r2-lead { font-size: 18px; line-height: 1.5; }
+.r2-th-sec { display: flex; flex-direction: column; gap: 8px; font-size: 15px; line-height: 1.55; }
+.r2-bullets { display: flex; flex-direction: column; gap: 6px; }
+.r2-bullets li { position: relative; padding-left: 18px; }
+.r2-bullets li::before { content: ''; position: absolute; left: 2px; top: 0.62em; width: 6px; height: 6px; border-radius: 50%; background: var(--sec); }
+.r2-ex { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; border-radius: var(--r-m); background: var(--surface); }
+.r2-ex b { color: var(--sec); font-weight: 600; }
+.r2-ex-ru { font-size: 14px; color: var(--text-2); }
+
+/* =================== Компьютер =================== */
+@container (min-width: 900px) {
+  .r2-calc { width: 440px; }
+  .r2-chart { padding: 18px 20px 12px; }
+  .r2-q-short { font-size: 19px; }
+
+  .r2-summary { padding-top: 32px; }
+  .r2-sum-layout { display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 72px; align-content: start; padding-top: 40px; }
+  .r2-score-num { font-size: 152px; }
+  .r2-score-of { font-size: 28px; }
+  .r2-marks { gap: 8px; }
+  .r2-mark { width: 34px; height: 34px; }
+  .bottom-bar.r2-stack { flex-direction: row-reverse; justify-content: flex-start; }
+  .bottom-bar.r2-stack .btn { width: auto; min-width: 200px; }
+
+  .r2-check-head { flex-direction: row; align-items: baseline; justify-content: space-between; }
+  .r2-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 48px; align-content: start; margin: 0; padding: 0; }
+  .r2-list li + li .r2-row { border-top: 0; }
+  .r2-list li .r2-row { border-bottom: 1px solid var(--line); }
+  .r2-list li:nth-child(1) .r2-row, .r2-list li:nth-child(7) .r2-row { border-top: 1px solid var(--line); }
+  .r2-list { grid-auto-flow: column; grid-template-rows: repeat(6, auto); }
+
+  .r2-theory { margin: 0; padding: 0; }
+  .r2-theory-body { max-width: 680px; margin: 0 auto; gap: 24px; }
+  .r2-th-head .h1 { font-size: 44px; }
+}

@@ -1,0 +1,172 @@
+/* Группа R, часть 1: конструктор, темы и вопросы R1–R9. Только правила своих экранов, на токенах core.css. */
+
+/* Скрытая подпись для экранного диктора (у групп вариантов без видимой рубрики). */
+.frame .r1-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.frame .r1-title { margin-top: -8px; }
+
+/* ---------- R1: конструктор ---------- */
+.frame .r1-builder { flex: 1; display: flex; flex-direction: column; gap: 22px; padding-bottom: 4px; }
+.frame .r1-presets { display: flex; flex-direction: column; gap: 6px; }
+.frame .r1-preset {
+  display: flex; align-items: center; gap: 14px; min-height: 60px; padding: 10px 16px; text-align: left;
+  border: 1px solid transparent; border-radius: var(--r-m); background: var(--surface);
+}
+.frame:not([data-theme="dark"]) .r1-preset { border-color: var(--line); }
+.frame .r1-preset .oval { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--text-3); flex: none; display: grid; place-items: center; }
+.frame .r1-preset[aria-checked="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.frame .r1-preset[aria-checked="true"] .oval { border-color: var(--accent); }
+.frame .r1-preset[aria-checked="true"] .oval::after { content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
+.frame .r1-preset-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.frame .r1-preset-body b { font-weight: 600; font-size: 16px; }
+.frame .r1-preset-body small { font-size: 13px; color: var(--text-2); }
+
+.frame .r1-form { display: flex; flex-direction: column; border-radius: var(--r-l); background: var(--surface); }
+.frame:not([data-theme="dark"]) .r1-form { box-shadow: inset 0 0 0 1px var(--line); }
+.frame .r1-form > * + * { border-top: 1px solid var(--line); }
+.frame .r1-field { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 8px 12px; padding: 10px 16px; min-height: 56px; }
+.frame .r1-field .r1-seg { justify-self: end; }
+.frame .r1-hint { grid-column: 1 / -1; font-size: 13px; color: var(--text-2); }
+.frame .r1-label { font-weight: 500; color: var(--text); }
+.frame .r1-seg button { min-height: 36px; padding: 6px 14px; font-size: 14px; }
+.frame .r1-row { display: flex; align-items: center; gap: 10px; min-height: 56px; padding: 0 16px; }
+.frame .r1-row .r1-label { flex: 1; }
+.frame .r1-row-val { color: var(--text-2); }
+.frame .r1-chev { color: var(--text-3); }
+.frame .r1-row-num { cursor: text; }
+.frame .r1-num {
+  width: 76px; min-height: 40px; padding: 0 12px; text-align: right;
+  font: var(--thin) 22px/1 var(--font-body); font-variant-numeric: tabular-nums; letter-spacing: -0.02em;
+  color: var(--text); background: var(--surface-2); border: 1px solid transparent; border-radius: var(--r-s);
+  -moz-appearance: textfield; appearance: textfield;
+}
+.frame .r1-num::-webkit-inner-spin-button, .frame .r1-num::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.frame .r1-num:focus-visible { outline: none; border-color: var(--accent); }
+
+/* ---------- R2: темы ---------- */
+.frame .r1-topics-head { display: flex; flex-direction: column; gap: 6px; }
+.frame .r1-sub { display: flex; align-items: center; gap: 8px; color: var(--text-2); font-size: 14px; }
+.frame .r1-topics-grid { flex: 1; display: flex; flex-direction: column; gap: 18px; }
+.frame .r1-topics { display: flex; flex-direction: column; border-radius: var(--r-l); background: var(--surface); }
+.frame:not([data-theme="dark"]) .r1-topics { box-shadow: inset 0 0 0 1px var(--line); }
+.frame .r1-topics li + li { border-top: 1px solid var(--line); }
+.frame .r1-switch-row { display: flex; align-items: center; gap: 12px; min-height: 58px; padding: 8px 16px; cursor: pointer; }
+.frame .r1-topic { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.frame .r1-topic b { font-weight: 500; }
+.frame .r1-topic small { font-size: 13px; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.frame .r1-switch {
+  position: relative; flex: none; width: 48px; height: 28px; padding: 0; border: 0; border-radius: 999px;
+  background: var(--line-strong); transition: background-color 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.frame .r1-switch::after {
+  content: ''; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%;
+  background: var(--surface); box-shadow: 0 1px 3px rgb(5 10 25 / 0.25); transition: transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.frame .r1-switch[aria-checked="true"] { background: var(--accent); }
+.frame .r1-switch[aria-checked="true"]::after { transform: translateX(20px); background: var(--on-accent); }
+.frame .r1-diff { padding: 0; grid-template-columns: 1fr; }
+.frame .r1-diff .r1-seg { justify-self: stretch; display: grid; grid-template-columns: repeat(4, 1fr); }
+.frame .r1-diff .r1-seg button { padding-inline: 6px; }
+
+/* ---------- Кнопка, которая ещё не работает ---------- */
+.frame .btn.r1-disabled { background: var(--surface-2); color: var(--text-3); box-shadow: none; cursor: default; }
+.frame .r1-icon-btn { flex: none; width: 52px; padding: 0; }
+
+/* ---------- Квадраты «выберите несколько» и состояние «верно» ---------- */
+.frame .r1-box {
+  width: 20px; height: 20px; border-radius: 6px; border: 1.5px solid var(--text-3); flex: none;
+  display: grid; place-items: center; color: transparent;
+}
+.frame .r1-box .ic-sm { width: 14px; height: 14px; }
+.frame .r1-opt-box[aria-checked="true"] .r1-box { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
+.frame .opt.r1-right { border-color: var(--right); background: var(--right-soft); }
+.frame .opt.r1-right .r1-box { border-color: var(--right); background: var(--right); color: var(--surface); }
+.frame .r1-verdict-right { background: var(--right-soft); color: var(--right); }
+.frame .r1-verdict-right span { color: var(--text); }
+.frame .r1-verdict-right b { color: var(--right); }
+.frame .r1-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.frame .r1-grid2 .opt { font-size: 16px; padding-inline: 12px; }
+
+/* ---------- R5: три пропуска ---------- */
+.frame .r1-tc3 .q-text { font-size: 18px; }
+.frame .r1-cols { gap: 12px; }
+.frame .r1-cols .opt { min-height: 46px; }
+
+/* ---------- R7, R8: Reading Comprehension ---------- */
+.frame .r1-rc { gap: 14px; }
+.frame .r1-passage {
+  flex: none; max-height: 300px; padding: 16px 18px; border-radius: var(--r-l);
+  background: var(--surface-2); font-size: 16px; line-height: 1.6;
+}
+.frame .r1-passage p { margin: 0; }
+.frame .r1-q { font-size: 17px; font-weight: 500; line-height: 1.45; margin-bottom: 10px; }
+.frame .r1-rc .opt { font-size: 15px; min-height: 48px; line-height: 1.35; }
+.frame .r1-rc .opt-group { gap: 6px; }
+.frame .r1-passage-select { max-height: none; flex: 1; }
+.frame .r1-sent {
+  display: inline; padding: 1px 0; border: 0; border-radius: 4px; background: transparent; color: inherit;
+  font: inherit; line-height: inherit; text-align: left; cursor: pointer;
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
+  text-decoration: underline; text-decoration-color: var(--line-strong); text-decoration-thickness: 1px; text-underline-offset: 4px;
+}
+.frame .r1-sent[aria-pressed="true"] { background: var(--accent-soft); color: var(--text); text-decoration-color: var(--accent); text-decoration-thickness: 2px; box-shadow: 0 0 0 3px var(--accent-soft); }
+.frame .r1-rc-q .q-instr { margin-bottom: 6px; }
+
+/* ---------- R9: сравнение величин ---------- */
+.frame .r1-cond { font-size: 18px; margin-bottom: 14px; }
+.frame .r1-qc { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.frame .r1-qty { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 16px 10px; border-radius: var(--r-m); background: var(--surface-2); }
+.frame .r1-qty-l { font-size: 13px; color: var(--text-3); font-weight: 500; }
+.frame .r1-qty-v { font: var(--thin) 30px/1.1 var(--font-body); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.frame .r1-qty-v i, .frame .r1-cond i { font-family: 'Source Serif 4', Georgia, serif; font-style: italic; }
+
+/* =================== Компьютер =================== */
+@container (min-width: 900px) {
+  .frame .r1-title { margin-top: -12px; }
+  .frame .r1-builder { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; align-content: start; overflow: visible; }
+  .frame .r1-topics-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 40px; align-content: start; }
+  .frame .r1-topics { display: grid; grid-template-columns: 1fr 1fr; }
+  .frame .r1-topics li + li { border-top: 0; }
+  .frame .r1-topics li:nth-child(n + 3) { border-top: 1px solid var(--line); }
+  .frame .r1-topics li:nth-child(odd) { border-right: 1px solid var(--line); }
+  .frame .r1-diff { align-self: start; }
+
+  .frame .r1-tc3 { grid-template-columns: 1fr; gap: 36px; }
+  .frame .r1-tc3 .q-text { font-size: 22px; max-width: 64ch; }
+  .frame .r1-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+
+  .frame .r1-rc { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: start; }
+  .frame .r1-passage { max-height: 520px; padding: 24px 28px; font-size: 18px; line-height: 1.7; }
+  .frame .r1-q { font-size: 19px; }
+  /* В «выберите предложение» вопрос слева, текст справа шире. */
+  .frame .r1-rc-q + .r1-passage-select { grid-column: 2; grid-row: 1; }
+  .frame .r1-rc-q { grid-column: 1; grid-row: 1; }
+
+  .frame .r1-qc { max-width: 520px; }
+  .frame .r1-grid2 { gap: 10px; }
+}
+@container (min-width: 900px) {
+  .frame .r1-rc:has(.r1-rc-q) { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); }
+}
+
+/* ---------- Доводка после снимков ---------- */
+/* Раздел · тип — в одну строку, счётчик не переносится. */
+.frame .r1-top .session-meta { min-width: 0; }
+.frame .r1-top .session-sec { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.frame .r1-top .session-count { white-space: nowrap; }
+/* На телефоне длинный вопрос листается над нижней кнопкой, а не уходит под неё. */
+.frame .r1-tc3, .frame .r1-rc { overflow-y: auto; scrollbar-width: none; padding-bottom: 8px; }
+.frame .r1-tc3::-webkit-scrollbar, .frame .r1-rc::-webkit-scrollbar { display: none; }
+.frame .r1-cols .opt { min-height: 44px; padding-block: 8px; }
+.frame .r1-cols { gap: 10px; }
+.frame .r1-rc .r1-passage:not(.r1-passage-select) { max-height: 236px; }
+.frame .r1-builder { gap: 18px; }
+@container (min-width: 900px) {
+  .frame .r1-tc3, .frame .r1-rc { overflow: visible; }
+  .frame .r1-rc .r1-passage:not(.r1-passage-select) { max-height: 520px; }
+}
+@container (min-width: 900px) {
+  .frame .r1-cond { font-size: 22px; }
+  .frame .r1-qty { padding: 24px 12px; }
+  .frame .r1-qty-v { font-size: 40px; }
+}
