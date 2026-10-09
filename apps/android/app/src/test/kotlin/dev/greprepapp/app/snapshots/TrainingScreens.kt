@@ -141,21 +141,24 @@ object TrainingScreens {
     fun ReviewItem() = ReviewItemContent(review, position = 0, onBack = {}, onReport = {})
 
     @Composable
-    fun Report(sent: Boolean = false) =
-        ReportContent(
-            state =
-                ReportViewModel.UiState(
-                    kind = QuestionReport.Kind.TRANSLATION,
-                    text = "В английском разборе опечатка: «recomendation».",
-                    sent = sent,
-                ),
-            position = 3,
-            typeLabel = "Text Completion",
-            onKind = {},
-            onText = {},
-            onSend = {},
-            onBack = {},
-        )
+    fun Report(
+        sent: Boolean = false,
+        failed: Boolean = false,
+    ) = ReportContent(
+        state =
+            ReportViewModel.UiState(
+                kind = QuestionReport.Kind.TRANSLATION,
+                text = "В английском разборе опечатка: «recomendation».",
+                sent = sent,
+                failed = failed,
+            ),
+        position = 3,
+        typeLabel = "Text Completion",
+        onKind = {},
+        onText = {},
+        onSend = {},
+        onBack = {},
+    )
 
     private val readyBuilder =
         BuilderViewModel.Content.Ready(

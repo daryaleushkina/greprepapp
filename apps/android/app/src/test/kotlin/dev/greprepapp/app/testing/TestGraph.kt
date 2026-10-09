@@ -34,9 +34,14 @@ class TestGraph(
     // Не backgroundScope: его задачи advanceUntilIdle не ждёт, а тесту нужен итог фоновой работы.
     val appScope = CoroutineScope(SupervisorJob() + dispatcher)
     val reporter = ClientErrorReporter({ publicApi }, config, clock, appScope)
-    val cache = TodayCache(directory)
+    val cache = TodayCache(directory, reporter)
     val trainingStore = TrainingStore(directory)
     val serverSignOuts = mutableListOf<String>()
+    var ownerCalls = 0
+    var ownerReply: dev.greprepapp.api.ApiResult<String> =
+        dev.greprepapp.api.ApiResult
+            .Ok(session().user.id)
+    var ownerGate: kotlinx.coroutines.CompletableDeferred<Unit>? = null
     val session =
         SessionManager(
             tokens = tokens,
@@ -44,6 +49,11 @@ class TestGraph(
             personal = setOf(cache, trainingStore),
             serverSignOut = { serverSignOuts += it },
             reporter = reporter,
+            account = {
+                ownerCalls++
+                ownerGate?.await()
+                ownerReply
+            },
             scope = appScope,
             io = dispatcher,
         )

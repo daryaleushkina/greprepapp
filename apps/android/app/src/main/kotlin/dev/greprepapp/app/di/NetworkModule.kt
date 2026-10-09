@@ -4,15 +4,20 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import dev.greprepapp.api.ApiResult
 import dev.greprepapp.api.GrePrepApi
+import dev.greprepapp.api.apiCall
 import dev.greprepapp.api.apiCallNoContent
 import dev.greprepapp.api.apis.AuthApi
 import dev.greprepapp.api.apis.PublicApi
 import dev.greprepapp.api.apis.TodayApi
 import dev.greprepapp.api.apis.TrainingsApi
 import dev.greprepapp.app.core.AppConfig
+import dev.greprepapp.app.core.session.AccountResolver
 import dev.greprepapp.app.core.session.ServerSignOut
 import dev.greprepapp.app.core.session.TokenHolder
+import dev.greprepapp.app.feature.signin.LocalizedAuthApi
+import dev.greprepapp.app.feature.signin.SignInLocale
 import okhttp3.OkHttpClient
 import java.time.Duration
 import javax.inject.Singleton
@@ -62,12 +67,24 @@ object NetworkModule {
         return GrePrepApi(config.apiBaseUrl, client)
     }
 
+    @Provides
+    fun accountResolver(api: GrePrepApi): AccountResolver =
+        AccountResolver {
+            when (val result = apiCall { api.account.getMe() }) {
+                is ApiResult.Ok -> ApiResult.Ok(result.value.id)
+                is ApiResult.Failed -> result
+            }
+        }
+
     // Экраны получают только свою часть договора — в тестах её легко подменить.
     @Provides
     fun todayApi(api: GrePrepApi): TodayApi = api.today
 
     @Provides
-    fun authApi(api: GrePrepApi): AuthApi = api.auth
+    fun authApi(
+        api: GrePrepApi,
+        locale: SignInLocale,
+    ): AuthApi = LocalizedAuthApi(api.auth, locale)
 
     @Provides
     fun publicApi(api: GrePrepApi): PublicApi = api.public

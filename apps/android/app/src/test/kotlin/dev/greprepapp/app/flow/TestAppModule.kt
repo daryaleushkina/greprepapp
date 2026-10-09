@@ -12,6 +12,7 @@ import dev.greprepapp.app.core.AppScope
 import dev.greprepapp.app.core.IoDispatcher
 import dev.greprepapp.app.core.NetworkStatus
 import dev.greprepapp.app.core.Ticker
+import dev.greprepapp.app.core.report.ClientErrorReporter
 import dev.greprepapp.app.core.session.TokenStore
 import dev.greprepapp.app.di.AppModule
 import dev.greprepapp.app.feature.today.TodayCache
@@ -79,7 +80,8 @@ object TestAppModule {
     @Singleton
     fun todayCache(
         @ApplicationContext context: Context,
-    ): TodayCache = TodayCache(File(context.cacheDir, "flow").apply { mkdirs() })
+        reporter: ClientErrorReporter,
+    ): TodayCache = TodayCache(File(context.cacheDir, "flow").apply { mkdirs() }, reporter)
 
     @Provides
     @Singleton

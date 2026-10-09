@@ -27,6 +27,8 @@ data class StoredTraining(
     val position: Int = 0,
     val finish: TrainingFinish? = null,
     val finishSent: Boolean = false,
+    /** Сервер подтвердил, что тренировки больше нет: новые локальные действия не оживляют её очередь. */
+    val rejected: Boolean = false,
 ) {
     val id: String get() = session.id
     val total: Int get() = session.items.size

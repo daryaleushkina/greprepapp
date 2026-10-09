@@ -245,4 +245,10 @@
         <item quantity="many">%d ошибок</item>
         <item quantity="other">%d ошибки</item>
     </plurals>
+    <string name="ets_disclaimer" translatable="false">GRE® is a registered trademark of Educational Testing Service (ETS). This product is not endorsed or approved by ETS.</string>
+    <string name="keyboard_start">начать</string>
+    <string name="keyboard_choose">выбрать</string>
+    <string name="keyboard_next">дальше</string>
+    <string name="keyboard_review">выбрать вопрос</string>
+    <string name="report_save_failed">Не удалось сохранить жалобу. Попробуйте ещё раз.</string>
 </resources>

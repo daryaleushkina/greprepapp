@@ -12,6 +12,7 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.ListSerializer
 import java.io.File
 import java.io.IOException
+import java.security.MessageDigest
 
 /** «Сообщить об ошибке», которое ещё не дошло до сервера: без сети жалоба не теряется. */
 @Serializable
@@ -31,6 +32,60 @@ class TrainingStore(
 ) : PersonalData {
     private val dir = File(directory, "trainings")
     private val reportsFile = File(dir, "reports.json")
+    private val ownerFile = File(dir, "owner.json")
+    private var owner: Owner? = null
+    private var connected = false
+    private val mutableVisible = MutableStateFlow<Map<String, StoredTraining>>(emptyMap())
+    val visible: StateFlow<Map<String, StoredTraining>> = mutableVisible.asStateFlow()
+    private val loadProblems = mutableListOf<String>()
+
+    private fun publish() {
+        mutableVisible.value = if (connected) mutableTrainings.value else emptyMap()
+    }
+
+    @Serializable
+    private data class Owner(
+        val id: String,
+        val credentialHash: String,
+    )
+
+    private fun credentialHash(credential: String): String =
+        MessageDigest.getInstance("SHA-256").digest(credential.toByteArray()).joinToString("") { "%02x".format(it) }
+
+    @Synchronized
+    override fun isConnected(credential: String): Boolean {
+        ensureLoaded()
+        return (owner?.credentialHash == credentialHash(credential)).also {
+            connected = it
+            publish()
+        }
+    }
+
+    /** 401 отсоединяет сеть, но не стирает тренировки (решение Даши 09.10.2026, #25). */
+    @Synchronized
+    override fun expire() {
+        connected = false
+        publish()
+    }
+
+    @Synchronized
+    override fun connect(
+        ownerId: String,
+        credential: String,
+    ): String? {
+        ensureLoaded()
+        val changed = owner != null && owner?.id != ownerId
+        val answers = if (changed) mutableTrainings.value.values.sumOf { it.unsent.size } else 0
+        val reports = if (changed) mutableReports.value.size else 0
+        if (changed) clear()
+        val next = Owner(ownerId, credentialHash(credential))
+        write(ownerFile, Owner.serializer(), next)
+        owner = next
+        connected = true
+        publish()
+        return if (answers + reports > 0) "training owner changed: lost answers=$answers reports=$reports" else null
+    }
+
     private val mutableTrainings = MutableStateFlow<Map<String, StoredTraining>>(emptyMap())
     private val mutableReports = MutableStateFlow<List<PendingReport>>(emptyList())
     private var loaded = false
@@ -46,9 +101,30 @@ class TrainingStore(
      */
     @Synchronized
     fun load(): List<String> {
-        if (loaded) return emptyList()
+        ensureLoaded()
+        return loadProblems.toList().also { loadProblems.clear() }
+    }
+
+    private fun ensureLoaded() {
+        if (loaded) return
         loaded = true
         val dropped = mutableListOf<String>()
+        owner =
+            when (val r = read(ownerFile, Owner.serializer())) {
+                is Read.Ok -> {
+                    r.value
+                }
+
+                Read.Missing -> {
+                    null
+                }
+
+                is Read.Failed -> {
+                    dropped += r.reason
+                    setAside(ownerFile)
+                    null
+                }
+            }
         val files = dir.listFiles { f -> f.name.endsWith(TRAINING_SUFFIX) }.orEmpty()
         mutableTrainings.value =
             files
@@ -87,7 +163,8 @@ class TrainingStore(
                     emptyList()
                 }
             }
-        return dropped
+        loadProblems += dropped
+        publish()
     }
 
     /** Отложить нечитаемый файл: он больше не читается, но и не пропадает (выход сотрёт и его). */
@@ -97,7 +174,7 @@ class TrainingStore(
 
     @Synchronized
     fun get(id: String): StoredTraining? {
-        load()
+        ensureLoaded()
         return mutableTrainings.value[id]
     }
 
@@ -107,33 +184,38 @@ class TrainingStore(
      */
     @Synchronized
     fun put(training: StoredTraining) {
-        load()
+        ensureLoaded()
         mutableTrainings.value += training.id to training
+        publish()
         write(File(dir, training.id + TRAINING_SUFFIX), StoredTraining.serializer(), training)
     }
 
     @Synchronized
     fun remove(id: String) {
-        load()
+        ensureLoaded()
         val file = File(dir, id + TRAINING_SUFFIX)
         if (file.exists() && !file.delete()) throw IOException("training delete failed")
         mutableTrainings.value -= id
+        publish()
     }
 
     @Synchronized
     fun putReports(reports: List<PendingReport>) {
-        load()
-        mutableReports.value = reports
+        ensureLoaded()
         write(reportsFile, ListSerializer(PendingReport.serializer()), reports)
+        mutableReports.value = reports
     }
 
     /** Выход: тренировки и жалобы прошлого человека стираются вместе с ним. */
     @Synchronized
     override fun clear() {
         loaded = true
+        connected = false
+        publish()
         mutableTrainings.value = emptyMap()
         mutableReports.value = emptyList()
         if (dir.exists() && !dir.deleteRecursively()) throw IOException("trainings delete failed")
+        owner = null
     }
 
     /** Итог чтения файла: прочитан, нет его, испорчен или не открылся сейчас. */

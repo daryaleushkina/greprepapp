@@ -197,4 +197,9 @@
         <item quantity="one">%d mistake</item>
         <item quantity="other">%d mistakes</item>
     </plurals>
+    <string name="keyboard_start">start</string>
+    <string name="keyboard_choose">choose</string>
+    <string name="keyboard_next">next</string>
+    <string name="keyboard_review">select question</string>
+    <string name="report_save_failed">Could not save the report. Please try again.</string>
 </resources>

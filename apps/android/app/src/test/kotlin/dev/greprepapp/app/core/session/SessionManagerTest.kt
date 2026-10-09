@@ -38,6 +38,27 @@ class SessionManagerTest {
     }
 
     @Test
+    fun trainingStoreConnectionFailureIsReportedAndDoesNotBlockSignIn() =
+        runTest(main.dispatcher) {
+            val g = TestGraph(this, main.dispatcher, folder.root)
+            g.trainingStore.connect("owner", "old-token")
+            java.io.File(folder.root, "trainings/owner.json.tmp").apply { mkdirs() }
+            g.settle()
+            val failure =
+                try {
+                    g.session.didSignIn("new-token", "owner")
+                    null
+                } catch (error: IOException) {
+                    error
+                }
+            assertNull(failure)
+            assertEquals("new-token", g.tokens.token)
+            assertTrue(g.session.state.value is SessionState.SignedIn)
+            g.settle()
+            assertTrue(g.publicApi.reports.any { it.message.contains("IOException") || it.message.contains("FileNotFoundException") })
+        }
+
+    @Test
     fun savedTokenSignsInWithoutWaitingForNetwork() =
         runTest(main.dispatcher) {
             val graph = graph(token = "saved")
@@ -97,7 +118,12 @@ class SessionManagerTest {
         runTest(main.dispatcher) {
             val graph = graph(token = null)
             graph.cache.save(starterPlan)
-            graph.session.didSignIn("fresh")
+            graph.session.didSignIn(
+                "fresh",
+                dev.greprepapp.app.testing
+                    .session()
+                    .user.id,
+            )
             assertEquals("fresh", graph.tokens.token)
             assertEquals("fresh", graph.holder.token)
             assertNull("план прошлого человека стёрт", graph.cache.load())
@@ -110,7 +136,12 @@ class SessionManagerTest {
             val graph = graph(token = "a")
             graph.session.signOut()
             advanceUntilIdle()
-            graph.session.didSignIn("b")
+            graph.session.didSignIn(
+                "b",
+                dev.greprepapp.app.testing
+                    .session()
+                    .user.id,
+            )
             assertEquals(SessionState.SignedIn(2), graph.session.state.value)
             assertTrue(graph.session.isCurrent(2))
             assertTrue(!graph.session.isCurrent(1))

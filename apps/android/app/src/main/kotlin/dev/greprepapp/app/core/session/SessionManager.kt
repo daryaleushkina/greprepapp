@@ -1,5 +1,7 @@
 package dev.greprepapp.app.core.session
 
+import dev.greprepapp.api.ApiFailure
+import dev.greprepapp.api.ApiResult
 import dev.greprepapp.app.core.AppScope
 import dev.greprepapp.app.core.IoDispatcher
 import dev.greprepapp.app.core.report.ClientErrorReporter
@@ -18,6 +20,23 @@ import javax.inject.Singleton
 /** Данные одного человека на устройстве: стираются при входе другого и при выходе. */
 fun interface PersonalData {
     fun clear()
+
+    fun expire() = clear()
+
+    fun isConnected(credential: String): Boolean = true
+
+    /** Возвращает только счётчики потерь; содержимое личных данных в отчёт не попадает. */
+    fun connect(
+        ownerId: String,
+        credential: String,
+    ): String? {
+        clear()
+        return null
+    }
+}
+
+fun interface AccountResolver {
+    suspend fun owner(): ApiResult<String>
 }
 
 /** Почему человек снова на экране входа — чтобы не гадал, куда делся вход. */
@@ -65,10 +84,12 @@ class SessionManager
         private val personal: Set<@JvmSuppressWildcards PersonalData>,
         private val serverSignOut: ServerSignOut,
         private val reporter: ClientErrorReporter,
+        private val account: AccountResolver,
         @param:AppScope private val scope: CoroutineScope,
         @param:IoDispatcher private val io: CoroutineDispatcher,
     ) {
         private val mutex = Mutex()
+        private val ownerChecks = Mutex()
         private var counter = 0L
         private val mutableState = MutableStateFlow<SessionState>(SessionState.Restoring)
         val state: StateFlow<SessionState> = mutableState.asStateFlow()
@@ -101,15 +122,87 @@ class SessionManager
             }
 
         /** Вход прошёл: токен — в Keystore, данные прошлого человека — прочь. Не сохранился — бросает. */
-        suspend fun didSignIn(token: String) =
-            withContext(io) {
-                mutex.withLock {
-                    tokens.save(token)
-                    holder.token = token
-                    clearPersonal("sign-in")
-                    mutableState.value = SessionState.SignedIn(++counter)
+        suspend fun didSignIn(
+            token: String,
+            ownerId: String,
+        ) = withContext(io) {
+            mutex.withLock {
+                connectPersonal(ownerId, token)
+                tokens.save(token)
+                holder.token = token
+                mutableState.value = SessionState.SignedIn(++counter)
+            }
+        }
+
+        /** Старый файл владельца доверяется только тому токену, с которым его записали. */
+        suspend fun ensureOwner(id: Long): ApiResult<Unit> =
+            try {
+                withContext(io) {
+                    // Новый подтверждённый вход не ждёт запрос /me, оставшийся в полёте от прошлого входа.
+                    val connected =
+                        mutex.withLock {
+                            if (!isCurrent(id)) return@withContext ApiResult.Failed(ApiFailure.Unauthorized)
+                            val token = holder.token ?: return@withContext ApiResult.Failed(ApiFailure.Unauthorized)
+                            personal.all { it.isConnected(token) }
+                        }
+                    if (connected) return@withContext ApiResult.Ok(Unit)
+                    ownerChecks.withLock {
+                        val credential =
+                            mutex.withLock {
+                                if (!isCurrent(id)) return@withContext ApiResult.Failed(ApiFailure.Unauthorized)
+                                val token = holder.token ?: return@withContext ApiResult.Failed(ApiFailure.Unauthorized)
+                                if (personal.all { it.isConnected(token) }) return@withContext ApiResult.Ok(Unit)
+                                token
+                            }
+                        val result = account.owner()
+                        mutex.withLock {
+                            if (!isCurrent(id) || holder.token != credential) return@withLock ApiResult.Failed(ApiFailure.Unauthorized)
+                            when (result) {
+                                is ApiResult.Ok -> {
+                                    if (connectPersonal(result.value, credential, onlyDisconnected = true)) {
+                                        ApiResult.Ok(Unit)
+                                    } else {
+                                        ApiResult.Failed(ApiFailure.Unexpected("training ownership unavailable"))
+                                    }
+                                }
+
+                                is ApiResult.Failed -> {
+                                    if (result.failure == ApiFailure.Unauthorized) {
+                                        forget(SignOutReason.SessionExpired)
+                                    } else if (result.failure.isReportable) {
+                                        reporter.report("training owner: ${result.failure}", route = "training")
+                                    }
+                                    result
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (failure: Exception) {
+                if (!failure.isStorageFailure()) throw failure
+                reporter.report("training owner write failed: ${failure.javaClass.simpleName}", route = "training")
+                ApiResult.Failed(ApiFailure.Unexpected("training ownership unavailable"))
+            }
+
+        private fun connectPersonal(
+            ownerId: String,
+            credential: String,
+            onlyDisconnected: Boolean = false,
+        ): Boolean {
+            var connected = true
+            for (data in personal) {
+                try {
+                    // /me подтверждает очередь после восстановления, не сбрасывает свежий план дня.
+                    if (onlyDisconnected && data.isConnected(credential)) continue
+                    data.connect(ownerId, credential)?.let { reporter.report(it, route = "training") }
+                } catch (failure: Exception) {
+                    if (!failure.isStorageFailure()) throw failure
+                    reporter.report("personal data connect failed: ${failure.javaClass.simpleName}", route = "sign-in")
+                    connected = false
                 }
             }
+            return connected
+        }
 
         /**
          * Выход: на устройстве — сразу и до конца (токен, данные), на сервере — следом, без ожидания. Не дошло
@@ -164,15 +257,18 @@ class SessionManager
                     // Отчёт уже ушёл; в памяти токена нет — до перезапуска человек вышел.
                 }
             }
-            clearPersonal("sign-out")
+            clearPersonal("sign-out", expired = reason == SignOutReason.SessionExpired)
             mutableState.value = SessionState.SignedOut(reason)
             return token
         }
 
-        private fun clearPersonal(route: String) {
+        private fun clearPersonal(
+            route: String,
+            expired: Boolean = false,
+        ) {
             for (data in personal) {
                 try {
-                    data.clear()
+                    if (expired) data.expire() else data.clear()
                 } catch (failure: Exception) {
                     if (!failure.isStorageFailure()) throw failure
                     // Только класс ошибки: в тексте — путь к файлу.
