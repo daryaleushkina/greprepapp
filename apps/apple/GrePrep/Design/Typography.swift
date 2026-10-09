@@ -25,8 +25,8 @@ enum Fonts {
 
 extension Font {
     /// Роль текста из токенов (GPType): Onest, растёт с Dynamic Type вместе со своим системным стилем.
-    static func gp(_ style: GPTextStyle) -> Font {
-        .custom(GPType.fontFamily, size: style.size, relativeTo: style.relativeTo).weight(style.weight)
+    static func gp(_ style: GPTextStyle, scale: CGFloat = 1) -> Font {
+        .custom(GPType.fontFamily, size: style.size * scale, relativeTo: style.relativeTo).weight(style.weight)
     }
 }
 
@@ -34,6 +34,7 @@ extension Font {
 /// высоту строки, поэтому добавка считается от метрик Onest (ascender 970 + descender 305 на 1000).
 struct GPTextModifier: ViewModifier {
     let style: GPTextStyle
+    @Environment(\.textScale) private var textScale
     @ScaledMetric private var scale: CGFloat = 1
 
     init(_ style: GPTextStyle) {
@@ -43,12 +44,20 @@ struct GPTextModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .font(.gp(style))
-            .tracking(style.tracking * style.size * scale)
-            .lineSpacing(max(0, (style.lineHeight - style.size * Self.naturalLineHeight) * scale))
+            .font(
+                .custom(GPType.fontFamily, size: style.size * textScale, relativeTo: style.relativeTo).weight(
+                    style.weight)
+            )
+            .tracking(style.tracking * style.size * scale * textScale)
+            .lineSpacing(max(0, (style.lineHeight - style.size * Self.naturalLineHeight) * scale * textScale))
     }
 
     static let naturalLineHeight: CGFloat = 1.275
+}
+
+extension EnvironmentValues {
+    /// «Крупнее» поверх Dynamic Type; будущая настройка и снимки используют один множитель из токенов.
+    @Entry var textScale: CGFloat = 1
 }
 
 extension View {

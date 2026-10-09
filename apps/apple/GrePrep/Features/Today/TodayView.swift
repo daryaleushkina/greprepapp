@@ -7,26 +7,43 @@ struct TodayView: View {
     let model: TodayModel
     /// Снимки экранов выключают запрос при появлении: иначе кадр ловит его на полпути.
     let refreshesOnAppear: Bool
+    let onTraining: (TrainingEntry) -> Void
+    @State private var didRefreshOnAppear = false
     @State private var path: [TodayPlan.Step] = []
     @State private var blockedStepID: TodayPlan.Step.ID?
 
     /// blockedStepID — шаг, у которого уже показано «нужна сеть» (для снимков экрана).
-    init(model: TodayModel, refreshesOnAppear: Bool = true, blockedStepID: TodayPlan.Step.ID? = nil) {
+    init(
+        model: TodayModel, refreshesOnAppear: Bool = true, blockedStepID: TodayPlan.Step.ID? = nil,
+        onTraining: @escaping (TrainingEntry) -> Void = { _ in }
+    ) {
         self.model = model
         self.refreshesOnAppear = refreshesOnAppear
+        self.onTraining = onTraining
         _blockedStepID = State(initialValue: blockedStepID)
     }
 
     var body: some View {
         NavigationStack(path: $path) {
             screen
+                .safeAreaInset(edge: .top) {
+                    if app.trainings.reviewClosed {
+                        Text("Эта тренировка больше не хранится на устройстве.").gpText(GPType.footnote)
+                            .foregroundStyle(Color(.textSecondary)).padding(GPSpace.s12)
+                            .accessibilityIdentifier("today.reviewClosed")
+                    }
+                }
                 .navigationTitle(Text("Сегодня"))
                 .navigationDestination(for: TodayPlan.Step.self) { step in
                     StepPlaceholderView(step: step)
                 }
         }
         .task {
-            if refreshesOnAppear { await model.refresh() }
+            // Полноэкранная тренировка скрывает вкладки; возврат не требует повторять исходный запрос.
+            if refreshesOnAppear, !didRefreshOnAppear {
+                didRefreshOnAppear = true
+                await model.refresh()
+            }
         }
         .onChange(of: app.network.isOnline) { _, online in
             if online { blockedStepID = nil }
@@ -66,8 +83,35 @@ struct TodayView: View {
                     StaleNotice(reason: stale)
                         .padding(.top, GPSpace.s12)
                 }
+                if let training = app.trainings.active {
+                    Button {
+                        onTraining(.session(training.id))
+                    } label: {
+                        HStack(spacing: GPSpace.s12) {
+                            VStack(alignment: .leading, spacing: GPSpace.s4) {
+                                Text("Продолжить тренировку").gpText(GPType.headline)
+                                Text(verbatim: TrainingCopy.continuation(training)).gpText(GPType.subhead)
+                                    .foregroundStyle(StudySection(training.session.section).color)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            Spacer(minLength: GPSpace.s8)
+                            Image(systemName: "chevron.forward").foregroundStyle(Color(.textSecondary))
+                        }.frame(minHeight: GPSize.rowTall).padding(GPSpace.s16)
+                            .background(Color(.surface), in: RoundedRectangle(cornerRadius: GPRadius.xxl))
+                            .contentShape(RoundedRectangle(cornerRadius: GPRadius.xxl))
+                    }.buttonStyle(PressScaleStyle()).padding(.top, GPSpace.s20)
+                        .accessibilityIdentifier("today.continueTraining")
+                }
                 StepRibbon(plan: plan, blockedStepID: blockedStepID, onSelect: select)
                     .padding(.top, GPSpace.s28)
+                Button {
+                    onTraining(.builder(nil))
+                } label: {
+                    Text("Своя тренировка").gpText(GPType.callout)
+                        .frame(maxWidth: .infinity, minHeight: GPSize.button)
+                        .background(Color(.surface), in: Capsule())
+                }.buttonStyle(.plain).padding(.top, GPSpace.s32)
+                    .accessibilityIdentifier("today.newTraining")
             }
             // Колонка не шире 720 и прижата к краю заголовка: на iPad и Mac лишняя ширина остаётся справа
             // пустой (DESIGN.md, «Раскладка»), а лента не уезжает от заголовка экрана.
@@ -92,6 +136,10 @@ struct TodayView: View {
             return
         }
         blockedStepID = nil
+        if step.section == .verbal || step.section == .quant {
+            onTraining(.builder(.init(section: step.section == .verbal ? .verbal : .quant)))
+            return
+        }
         path.append(step)
     }
 }

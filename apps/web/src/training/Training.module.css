@@ -19,7 +19,7 @@
 .modeRow { border-bottom: var(--size-hairline) solid var(--color-line); padding-bottom: var(--space-12); }
 .modeRow .row { border: 0; }
 .action { width: 100%; min-height: var(--size-button); border: 0; border-radius: var(--radius-full); padding: var(--space-12) var(--space-24); background: var(--color-accent); color: var(--color-on-accent); font: var(--font-callout); font-weight: var(--font-weight-semibold); font-variant-numeric: tabular-nums; }
-.action:disabled, .row:disabled, .segments button:disabled { opacity: 0.5; }
+.action:disabled, .row:disabled, .segments button:disabled { opacity: var(--opacity-disabled); }
 .section { color: var(--color-verbal); font: var(--font-subhead); font-weight: var(--font-weight-medium); margin-top: calc(-1 * var(--space-16)); }
 .section[data-section='quant'] { color: var(--color-quant); }
 .difficulty { border: 0; margin: 0; padding: 0; }

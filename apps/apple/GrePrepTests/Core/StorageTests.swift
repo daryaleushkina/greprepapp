@@ -95,6 +95,17 @@ struct AppConfigTests {
 
 @Suite("Каталог строк")
 struct LocalizationTests {
+    @Test("статусы разбора и предел жалобы переведены")
+    func reviewAndReportStringsExist() throws {
+        let url = URL(filePath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+            .deletingLastPathComponent().appending(path: "GrePrep/Resources/Localizable.xcstrings")
+        let catalog = try #require(try JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any])
+        let strings = try #require(catalog["strings"] as? [String: [String: Any]])
+        for key in ["верно", "неверно", "без ответа", "Сократите текст до %lld символов."] {
+            let entry = try #require(strings[key], "нет строки \(key)")
+            #expect((entry["localizations"] as? [String: Any])?["en"] != nil)
+        }
+    }
     /// Каждая строка интерфейса переведена на английский: иначе человек с английским интерфейсом увидит русский.
     @Test("у каждой строки есть английский")
     func everyStringHasEnglish() throws {

@@ -104,6 +104,7 @@
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-text-scale-large: 1.125;
+  --opacity-disabled: 0.5;
   --color-bg: #F5F6F9;
   --color-surface: #FFFFFF;
   --color-text: #1B1E28;

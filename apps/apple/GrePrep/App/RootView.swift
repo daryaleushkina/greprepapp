@@ -18,7 +18,13 @@ struct RootView: View {
         }
         .tint(Color(.accent))
         .onChange(of: scenePhase) { _, phase in
-            if phase == .active { app.retrySessionIfNeeded() }
+            if phase == .active {
+                app.retrySessionIfNeeded()
+                app.trainings.sync()
+            }
+        }
+        .onChange(of: app.network.isOnline) { _, online in
+            if online { app.trainings.sync() }
         }
     }
 }

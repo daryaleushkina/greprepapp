@@ -113,6 +113,68 @@ struct API: Sendable {
 
     // MARK: - Данные
 
+    func me() async throws(APIFailure) -> UserDTO {
+        let output = try await call { try await client.getMe() }
+        switch output {
+        case let .ok(ok):
+            guard case let .json(value) = ok.body else { throw .unexpected("training: unexpected body") }
+            return value
+        case let .default(status, error): throw failure(status, error)
+        }
+    }
+
+    func trainingOptions() async throws(APIFailure) -> TrainingOptions {
+        let output = try await call {
+            try await client.getTrainingOptions(query: .init(types: Components.Schemas.QuestionType.allCases))
+        }
+        switch output {
+        case let .ok(ok):
+            guard case let .json(value) = ok.body else { throw .unexpected("training: unexpected body") }
+            return value
+        case let .default(status, error): throw failure(status, error)
+        }
+    }
+
+    func startTraining(_ request: TrainingRequest) async throws(APIFailure) -> TrainingSession {
+        let output = try await call { try await client.startTraining(body: .json(request)) }
+        switch output {
+        case let .created(created):
+            guard case let .json(value) = created.body else { throw .unexpected("training: unexpected body") }
+            return value
+        case let .default(status, error): throw failure(status, error)
+        }
+    }
+
+    func trainingAnswers(_ id: String, answers: [GivenAnswer]) async throws(APIFailure) {
+        let output = try await call {
+            try await client.submitTrainingAnswers(path: .init(trainingId: id), body: .json(.init(answers: answers)))
+        }
+        switch output {
+        case .noContent: return
+        case let .default(status, error): throw failure(status, error)
+        }
+    }
+
+    func trainingFinish(_ id: String, finish: TrainingFinish) async throws(APIFailure) {
+        let output = try await call {
+            try await client.finishTraining(path: .init(trainingId: id), body: .json(finish))
+        }
+        switch output {
+        case .ok: return
+        case let .default(status, error): throw failure(status, error)
+        }
+    }
+
+    func reportQuestion(_ id: String, report: QuestionReport) async throws(APIFailure) {
+        let output = try await call {
+            try await client.reportQuestion(path: .init(questionId: id), body: .json(report))
+        }
+        switch output {
+        case .noContent: return
+        case let .default(status, error): throw failure(status, error)
+        }
+    }
+
     func today() async throws(APIFailure) -> TodayDTO {
         let output = try await call { try await client.getToday() }
         switch output {
@@ -140,7 +202,7 @@ struct API: Sendable {
             Self.log.error("client error report rejected by server")
         } catch {
             // Без сети отчёт не дойдёт — это ожидаемо; в системный журнал, чтобы сломанный канал было видно.
-            Self.log.error("client error report failed: \(String(describing: error), privacy: .public)")
+            Self.log.error("client error report failed: \(String(describing: APIFailure(error)), privacy: .public)")
         }
     }
 

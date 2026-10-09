@@ -1,6 +1,190 @@
 {
   "sourceLanguage": "ru",
   "strings": {
+    "%@ · %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %@"
+          }
+        }
+      }
+    },
+    "%@ · %@ · %lld мин, как секция экзамена": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %@ · %lld min, like an exam section"
+          }
+        }
+      }
+    },
+    "%@ из %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ of %lld"
+          }
+        }
+      }
+    },
+    "%@ — выбрать · Enter — проверить / дальше · → — дальше": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ select · Enter check / next · → next"
+          }
+        }
+      }
+    },
+    "%lld %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld %@"
+          }
+        }
+      }
+    },
+    "%lld / %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld / %lld"
+          }
+        }
+      }
+    },
+    "%lld вопросов": {
+      "localizations": {
+        "ru": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld вопрос"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld вопроса"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld вопросов"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld вопроса"
+                }
+              }
+            }
+          }
+        },
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld question"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld questions"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld заданий": {
+      "localizations": {
+        "ru": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld задание"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld задания"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld заданий"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld задания"
+                }
+              }
+            }
+          }
+        },
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld question"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld questions"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld из %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld of %lld"
+          }
+        }
+      }
+    },
+    "%lld из %lld символов": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld of %lld characters"
+          }
+        }
+      }
+    },
     "%lld мин": {
       "localizations": {
         "en": {
@@ -63,6 +247,68 @@
         }
       }
     },
+    "%lld ошибок": {
+      "localizations": {
+        "ru": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ошибка"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ошибки"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ошибок"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ошибки"
+                }
+              }
+            }
+          }
+        },
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld mistake"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld mistakes"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld пропуска": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld blanks"
+          }
+        }
+      }
+    },
     "%lld шагов": {
       "localizations": {
         "ru": {
@@ -115,6 +361,46 @@
         }
       }
     },
+    "Enter / → — дальше": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter / → next"
+          }
+        }
+      }
+    },
+    "Enter — готово": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter done"
+          }
+        }
+      }
+    },
+    "Enter — закончить": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter finish"
+          }
+        }
+      }
+    },
+    "Enter — повторить": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter repeat"
+          }
+        }
+      }
+    },
     "Quant": {
       "shouldTranslate": false
     },
@@ -127,6 +413,86 @@
           "stringUnit": {
             "state": "translated",
             "value": "~%lld min"
+          }
+        }
+      }
+    },
+    "Без ошибок — повторять нечего.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No mistakes — nothing to review."
+          }
+        }
+      }
+    },
+    "В задании": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In the question"
+          }
+        }
+      }
+    },
+    "В ответе": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In the answer"
+          }
+        }
+      }
+    },
+    "В переводе": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In the translation"
+          }
+        }
+      }
+    },
+    "В разборе": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In the explanation"
+          }
+        }
+      }
+    },
+    "Величина A": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quantity A"
+          }
+        }
+      }
+    },
+    "Величина B": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quantity B"
+          }
+        }
+      }
+    },
+    "Вернуться к вопросу": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to the question"
           }
         }
       }
@@ -171,12 +537,102 @@
         }
       }
     },
+    "Вопрос %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Question %lld"
+          }
+        }
+      }
+    },
+    "Вопрос %lld · %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Question %lld · %@"
+          }
+        }
+      }
+    },
+    "Вопрос %lld из %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Question %lld of %lld"
+          }
+        }
+      }
+    },
+    "Вопрос %lld, %@, %@, %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Question %lld, %@, %@, %@"
+          }
+        }
+      }
+    },
+    "Вопросов": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questions"
+          }
+        }
+      }
+    },
     "Восемь шагов": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Eight steps"
+          }
+        }
+      }
+    },
+    "Время вышло — неотвеченные не считаются ошибками темы.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Time ran out — unanswered questions don’t count as topic mistakes."
+          }
+        }
+      }
+    },
+    "Все · %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All · %lld"
+          }
+        }
+      }
+    },
+    "Все вопросы": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All questions"
+          }
+        }
+      }
+    },
+    "Все ответы и разборы": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All answers and explanations"
           }
         }
       }
@@ -221,12 +677,72 @@
         }
       }
     },
+    "Выберите ещё один ответ": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose one more answer"
+          }
+        }
+      }
+    },
+    "Выбран": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected"
+          }
+        }
+      }
+    },
     "Выйти": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Sign out"
+          }
+        }
+      }
+    },
+    "Где ошибка": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Where’s the mistake"
+          }
+        }
+      }
+    },
+    "Готово": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        }
+      }
+    },
+    "Готово · %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done · %@"
+          }
+        }
+      }
+    },
+    "Дальше · %lld из %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next · %lld of %lld"
           }
         }
       }
@@ -251,6 +767,16 @@
         }
       }
     },
+    "Другое": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other"
+          }
+        }
+      }
+    },
     "Завтра здесь будет новый план.": {
       "localizations": {
         "en": {
@@ -267,6 +793,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Loading today’s plan"
+          }
+        }
+      }
+    },
+    "Загружаем темы": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading topics"
+          }
+        }
+      }
+    },
+    "Заданий пока нет": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No questions yet"
+          }
+        }
+      }
+    },
+    "Закончить": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finish"
           }
         }
       }
@@ -317,6 +873,66 @@
           "stringUnit": {
             "state": "translated",
             "value": "Test user name"
+          }
+        }
+      }
+    },
+    "Итог": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Results"
+          }
+        }
+      }
+    },
+    "К вопросу %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To question %lld"
+          }
+        }
+      }
+    },
+    "К списку вопросов": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To question list"
+          }
+        }
+      }
+    },
+    "Как в прошлый раз": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Same as last time"
+          }
+        }
+      }
+    },
+    "Любая": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Any"
+          }
+        }
+      }
+    },
+    "Лёгкая": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Easy"
           }
         }
       }
@@ -381,12 +997,42 @@
         }
       }
     },
+    "Начать · %@ · ~%lld мин": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start · %@ · ~%lld min"
+          }
+        }
+      }
+    },
     "Начать шаг": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Start the step"
+          }
+        }
+      }
+    },
+    "Не выбран": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not selected"
+          }
+        }
+      }
+    },
+    "Не знаю": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I don’t know"
           }
         }
       }
@@ -411,12 +1057,52 @@
         }
       }
     },
+    "Не получилось загрузить темы": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t load topics"
+          }
+        }
+      }
+    },
+    "Не получилось начать тренировку. Попробуйте ещё раз.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t start the practice. Please try again."
+          }
+        }
+      }
+    },
     "Не получилось обновить план — покажем свежий, как только сервер ответит.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Couldn’t update the plan — we’ll show a fresh one as soon as the server responds."
+          }
+        }
+      }
+    },
+    "Не получилось сохранить жалобу. Попробуйте ещё раз.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t save the report. Try again."
+          }
+        }
+      }
+    },
+    "Не успел · %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ran out of time · %@"
           }
         }
       }
@@ -451,12 +1137,266 @@
         }
       }
     },
+    "Нет сети — тренировку не начать. Попробуйте, когда она появится.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No connection — the practice can’t start. Try again once you’re online."
+          }
+        }
+      }
+    },
+    "Новая тренировка": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New practice"
+          }
+        }
+      }
+    },
     "Один шаг": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "One step"
+          }
+        }
+      }
+    },
+    "Она могла устареть. Начните новую с экрана «Сегодня».": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "It may have expired. Start a new one from Today."
+          }
+        }
+      }
+    },
+    "Осталось %lld минут %lld секунд": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Осталось %#@minutes@ %#@seconds@"
+          },
+          "substitutions": {
+            "minutes": {
+              "argNum": 1,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg минута"
+                    }
+                  },
+                  "few": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg минуты"
+                    }
+                  },
+                  "many": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg минут"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg минуты"
+                    }
+                  }
+                }
+              }
+            },
+            "seconds": {
+              "argNum": 2,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg секунда"
+                    }
+                  },
+                  "few": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg секунды"
+                    }
+                  },
+                  "many": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg секунд"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg секунды"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@minutes@ %#@seconds@ remaining"
+          },
+          "substitutions": {
+            "minutes": {
+              "argNum": 1,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg minute"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg minutes"
+                    }
+                  }
+                }
+              }
+            },
+            "seconds": {
+              "argNum": 2,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg second"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg seconds"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Осталось выбрать слова для пропусков %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose words for blanks %@"
+          }
+        }
+      }
+    },
+    "Осталось выбрать слово для пропуска %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a word for blank %@"
+          }
+        }
+      }
+    },
+    "Остальные варианты: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other options: %@"
+          }
+        }
+      }
+    },
+    "Отвечено %lld из %lld · отмечено %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Answered %lld of %lld · marked %lld"
+          }
+        }
+      }
+    },
+    "Отмена": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        }
+      }
+    },
+    "Отметить, чтобы вернуться": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flag to return"
+          }
+        }
+      }
+    },
+    "Отправить": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send"
+          }
+        }
+      }
+    },
+    "Ошибки · %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mistakes · %lld"
+          }
+        }
+      }
+    },
+    "Ошибок нет, но не успели %@.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No mistakes, but %@ ran out of time."
+          }
+        }
+      }
+    },
+    "Ошибок нет.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No mistakes."
           }
         }
       }
@@ -491,12 +1431,92 @@
         }
       }
     },
+    "Повторить · %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review · %@"
+          }
+        }
+      }
+    },
+    "Под этот выбор заданий пока нет — попробуйте другие темы или сложность.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No questions match this yet — try other topics or difficulty."
+          }
+        }
+      }
+    },
     "Подготовка к GRE® с разбором каждой ошибки — по-русски и по-английски.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "GRE® prep that explains every mistake — in Russian and in English."
+          }
+        }
+      }
+    },
+    "Показать": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show"
+          }
+        }
+      }
+    },
+    "Практика": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Practice"
+          }
+        }
+      }
+    },
+    "Проверим вручную и поправим задание.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We’ll check it by hand and fix the question."
+          }
+        }
+      }
+    },
+    "Проверить": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check"
+          }
+        }
+      }
+    },
+    "Проверка": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check"
+          }
+        }
+      }
+    },
+    "Проверка на время": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Timed check"
           }
         }
       }
@@ -521,12 +1541,142 @@
         }
       }
     },
+    "Продолжить тренировку": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue practice"
+          }
+        }
+      }
+    },
+    "Пропуск %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blank %lld"
+          }
+        }
+      }
+    },
+    "Пропуск %lld, %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blank %lld, %@"
+          }
+        }
+      }
+    },
+    "Пропустить": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skip"
+          }
+        }
+      }
+    },
     "Пять шагов": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Five steps"
+          }
+        }
+      }
+    },
+    "Разбор после каждого вопроса, без таймера": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explanation after each question, no timer"
+          }
+        }
+      }
+    },
+    "Разбор проверки": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check review"
+          }
+        }
+      }
+    },
+    "Разбор тренировки": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Training review"
+          }
+        }
+      }
+    },
+    "Разбор — после последнего вопроса": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explanations after the last question"
+          }
+        }
+      }
+    },
+    "Развёрнуто": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expanded"
+          }
+        }
+      }
+    },
+    "Раздел": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Section"
+          }
+        }
+      }
+    },
+    "Режим": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mode"
+          }
+        }
+      }
+    },
+    "Своя тренировка": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Custom practice"
+          }
+        }
+      }
+    },
+    "Свёрнуто": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collapsed"
           }
         }
       }
@@ -591,6 +1741,106 @@
         }
       }
     },
+    "Сложность": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Difficulty"
+          }
+        }
+      }
+    },
+    "Снять отметку": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unflag"
+          }
+        }
+      }
+    },
+    "Сократите текст до %lld символов.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shorten the text to %lld characters."
+          }
+        }
+      }
+    },
+    "Сообщить об ошибке": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Report a mistake"
+          }
+        }
+      }
+    },
+    "Спасибо!": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thank you!"
+          }
+        }
+      }
+    },
+    "Средняя": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Medium"
+          }
+        }
+      }
+    },
+    "Таймер как на экзамене, разбор в конце": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exam-pace timer, explanations at the end"
+          }
+        }
+      }
+    },
+    "Темы и сложность": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Topics and difficulty"
+          }
+        }
+      }
+    },
+    "Тип": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type"
+          }
+        }
+      }
+    },
+    "Тренировки нет на устройстве": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This practice isn’t on the device"
+          }
+        }
+      }
+    },
     "Тренировок ещё не было": {
       "localizations": {
         "en": {
@@ -611,12 +1861,52 @@
         }
       }
     },
+    "Трудная": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hard"
+          }
+        }
+      }
+    },
     "Четыре шага": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Four steps"
+          }
+        }
+      }
+    },
+    "Что не так": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What’s wrong"
+          }
+        }
+      }
+    },
+    "Что повторить": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What to review"
+          }
+        }
+      }
+    },
+    "Чтобы начать тренировку, нужна сеть: задания скачаются целиком, и дальше можно без неё.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starting a practice needs a connection: the questions download in full, and after that you can go offline."
           }
         }
       }
@@ -671,6 +1961,136 @@
         }
       }
     },
+    "Язык разбора": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explanation language"
+          }
+        }
+      }
+    },
+    "без ответа": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "not answered"
+          }
+        }
+      }
+    },
+    "верно": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "correct"
+          }
+        }
+      }
+    },
+    "ваш ответ": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "your answer"
+          }
+        }
+      }
+    },
+    "верный": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "correct"
+          }
+        }
+      }
+    },
+    "вопрос %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "question %@"
+          }
+        }
+      }
+    },
+    "вопрос %lld из %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "question %lld of %lld"
+          }
+        }
+      }
+    },
+    "вопросы %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "questions %@"
+          }
+        }
+      }
+    },
+    "все": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "all"
+          }
+        }
+      }
+    },
+    "два ответа": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "two answers"
+          }
+        }
+      }
+    },
+    "и": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "and"
+          }
+        }
+      }
+    },
+    "из %lld верно": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "of %lld correct"
+          }
+        }
+      }
+    },
+    "неверно": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "incorrect"
+          }
+        }
+      }
+    },
     "около %lld минут": {
       "localizations": {
         "ru": {
@@ -719,6 +2139,46 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "отвечен": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "answered"
+          }
+        }
+      }
+    },
+    "отмечен": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "marked"
+          }
+        }
+      }
+    },
+    "скоро": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "soon"
+          }
+        }
+      }
+    },
+    "Эта тренировка больше не хранится на устройстве.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This training is no longer stored on this device."
           }
         }
       }

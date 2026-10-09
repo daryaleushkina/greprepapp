@@ -44,9 +44,9 @@ struct PressScaleStyle: ButtonStyle {
 /// Главная кнопка внутри экрана: капсула цвета accent (DESIGN.md, «Primary»).
 struct PrimaryCapsuleStyle: ButtonStyle {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.isEnabled) private var isEnabled
 
-    // Своего «выключенного» вида нет: в каркасе кнопка выключается только на время запроса и тогда показывает
-    // крутилку (TodayUnavailableView).
+    // Выключенный вид общий для всех главных действий, включая ожидание запроса и пустой выбор.
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .gpText(GPType.callout)
@@ -56,6 +56,7 @@ struct PrimaryCapsuleStyle: ButtonStyle {
             .padding(.horizontal, GPSpace.s24)
             .background(Color(.accent), in: Capsule())
             .contentShape(Capsule())
+            .opacity(isEnabled ? 1 : GPOpacity.disabled)
             .scaleEffect(configuration.isPressed && !reduceMotion ? GPMotion.pressScale : 1)
             .animation(GPMotion.easeOut(duration: GPMotion.press), value: configuration.isPressed)
     }
