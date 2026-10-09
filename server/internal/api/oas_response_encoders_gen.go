@@ -25,6 +25,19 @@ func encodeFinishTrainingResponse(response *TrainingSummary, w http.ResponseWrit
 	return nil
 }
 
+func encodeGetExamsResponse(response *ExamList, w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(200)
+
+	e := new(jx.Encoder)
+	response.Encode(e)
+	if _, err := e.WriteTo(w); err != nil {
+		return errors.Wrap(err, "write")
+	}
+
+	return nil
+}
+
 func encodeGetHealthResponse(response *Health, w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(200)
@@ -111,6 +124,19 @@ func encodeReportClientErrorResponse(response *ReportClientErrorNoContent, w htt
 
 func encodeReportQuestionResponse(response *ReportQuestionNoContent, w http.ResponseWriter) error {
 	w.WriteHeader(204)
+
+	return nil
+}
+
+func encodeSetActiveExamResponse(response *User, w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(200)
+
+	e := new(jx.Encoder)
+	response.Encode(e)
+	if _, err := e.WriteTo(w); err != nil {
+		return errors.Wrap(err, "write")
+	}
 
 	return nil
 }

@@ -43,7 +43,7 @@ func (e *env) start(t *testing.T, token string, body map[string]any) map[string]
 }
 
 func practice(section string, count int, types ...string) map[string]any {
-	return map[string]any{"section": section, "questionTypes": types, "count": count, "mode": "practice"}
+	return map[string]any{"exam": "gre", "section": section, "questionTypes": types, "count": count, "mode": "practice"}
 }
 
 func items(t *testing.T, session map[string]any) []map[string]any {
@@ -119,7 +119,7 @@ func (e *env) finish(t *testing.T, token, id string, at time.Time, timedOut bool
 }
 
 // optionsPath — клиент, который умеет показывать все типы первого среза.
-const optionsPath = "/api/trainings/options?types=text_completion&types=sentence_equivalence&types=quantitative_comparison&types=multiple_choice"
+const optionsPath = "/api/trainings/options?exam=gre&types=text_completion&types=sentence_equivalence&types=quantitative_comparison&types=multiple_choice"
 
 func num(v any) int {
 	f, _ := v.(float64)
@@ -193,7 +193,7 @@ func TestTrainingOptions(t *testing.T) {
 	}
 
 	// После тренировки по Quant — «Как в прошлый раз» с тем же запросом, и «Проверка» — по Quant.
-	last := map[string]any{"section": "quant", "questionTypes": []string{"multiple_choice"}, "topicIds": []string{"percents"}, "difficulty": "easy", "count": 3, "mode": "practice"}
+	last := map[string]any{"exam": "gre", "section": "quant", "questionTypes": []string{"multiple_choice"}, "topicIds": []string{"percents"}, "difficulty": "easy", "count": 3, "mode": "practice"}
 	e.start(t, token, last)
 	r = e.do(t, call{method: "GET", path: optionsPath, bearer: token})
 	presets, _ = r.body["presets"].([]any)
@@ -211,7 +211,7 @@ func TestTrainingOptions(t *testing.T) {
 
 	// Старое приложение умеет только Text Completion: других типов и наборов с ними оно не получает —
 	// прошлая тренировка по Quant не предлагается, «Проверка» собирается из того, что оно покажет.
-	old := e.do(t, call{method: "GET", path: "/api/trainings/options?types=text_completion", bearer: token})
+	old := e.do(t, call{method: "GET", path: "/api/trainings/options?exam=gre&types=text_completion", bearer: token})
 	types, _ = old.body["types"].([]any)
 	presets, _ = old.body["presets"].([]any)
 	if old.status != http.StatusOK || len(types) != 1 || len(presets) != 1 {
@@ -222,7 +222,7 @@ func TestTrainingOptions(t *testing.T) {
 	if only["kind"] != "timed" || fmt.Sprint(strs(onlyReq["questionTypes"])) != "[text_completion]" {
 		t.Fatalf("old client presets = %s", old.raw)
 	}
-	for _, path := range []string{"/api/trainings/options", "/api/trainings/options?types=reading_aloud"} {
+	for _, path := range []string{"/api/trainings/options", "/api/trainings/options?types=text_completion", "/api/trainings/options?exam=sat&types=text_completion", "/api/trainings/options?exam=gre&types=reading_aloud"} {
 		wantError(t, e.do(t, call{method: "GET", path: path, bearer: token}), http.StatusBadRequest, "bad_request")
 	}
 }
@@ -262,7 +262,7 @@ func TestStartTraining(t *testing.T) {
 	wantError(t, e.do(t, call{method: "GET", path: "/api/trainings/" + id}), http.StatusUnauthorized, "unauthorized")
 
 	// «Проверка»: заданий меньше, чем просили, — выдаётся сколько есть, время — по темпу Quant.
-	check := e.start(t, token, map[string]any{"section": "quant", "questionTypes": []string{"quantitative_comparison", "multiple_choice"}, "count": 50, "mode": "check"})
+	check := e.start(t, token, map[string]any{"exam": "gre", "section": "quant", "questionTypes": []string{"quantitative_comparison", "multiple_choice"}, "count": 50, "mode": "check"})
 	if n := len(items(t, check)); n != 10 || num(check["timeLimitSeconds"]) != 10*105 {
 		t.Fatalf("check session: %d items, limit %v", n, check["timeLimitSeconds"])
 	}
@@ -272,7 +272,7 @@ func TestStartTraining(t *testing.T) {
 	}
 
 	// Фильтры темы и сложности.
-	hard := e.start(t, token, map[string]any{"section": "quant", "questionTypes": []string{"quantitative_comparison"}, "difficulty": "hard", "count": 10, "mode": "practice"})
+	hard := e.start(t, token, map[string]any{"exam": "gre", "section": "quant", "questionTypes": []string{"quantitative_comparison"}, "difficulty": "hard", "count": 10, "mode": "practice"})
 	for _, it := range items(t, hard) {
 		if question(t, it)["difficulty"] != "hard" {
 			t.Fatalf("difficulty filter: %v", it)
@@ -281,7 +281,7 @@ func TestStartTraining(t *testing.T) {
 	if n := len(items(t, hard)); n != 2 {
 		t.Fatalf("hard quantitative comparison: %d, want 2", n)
 	}
-	topic := e.start(t, token, map[string]any{"section": "quant", "questionTypes": []string{"multiple_choice"}, "topicIds": []string{"percents"}, "count": 10, "mode": "practice"})
+	topic := e.start(t, token, map[string]any{"exam": "gre", "section": "quant", "questionTypes": []string{"multiple_choice"}, "topicIds": []string{"percents"}, "count": 10, "mode": "practice"})
 	if its := items(t, topic); len(its) != 1 || question(t, its[0])["topicId"] != "percents" {
 		t.Fatalf("topic filter: %v", topic)
 	}
@@ -304,14 +304,14 @@ func TestStartTrainingRejects(t *testing.T) {
 		practice("verbal", 5),
 		practice("verbal", 5, "text_completion", "text_completion"),
 		practice("verbal", 5, "reading_comprehension"),
-		{"section": "verbal", "questionTypes": []string{"text_completion"}, "count": 5, "mode": "practice", "extra": true},
-		{"section": "verbal", "questionTypes": []string{"text_completion"}, "count": 5, "mode": "exam"},
+		{"exam": "gre", "section": "verbal", "questionTypes": []string{"text_completion"}, "count": 5, "mode": "practice", "extra": true},
+		{"exam": "gre", "section": "verbal", "questionTypes": []string{"text_completion"}, "count": 5, "mode": "exam"},
 	}
 	for _, body := range bad {
 		wantError(t, e.do(t, call{method: "POST", path: "/api/trainings", bearer: token, body: body}), http.StatusBadRequest, "bad_request")
 	}
-	noTopic := map[string]any{"section": "verbal", "questionTypes": []string{"text_completion"}, "topicIds": []string{"no-such-topic"}, "count": 5, "mode": "practice"}
-	wantError(t, e.do(t, call{method: "POST", path: "/api/trainings", bearer: token, body: noTopic}), http.StatusConflict, "no_questions")
+	noTopic := map[string]any{"exam": "gre", "section": "verbal", "questionTypes": []string{"text_completion"}, "topicIds": []string{"no-such-topic"}, "count": 5, "mode": "practice"}
+	wantError(t, e.do(t, call{method: "POST", path: "/api/trainings", bearer: token, body: noTopic}), http.StatusBadRequest, "bad_request")
 	wantError(t, e.do(t, call{method: "POST", path: "/api/trainings", body: practice("verbal", 5, "text_completion")}), http.StatusUnauthorized, "unauthorized")
 }
 
@@ -430,7 +430,7 @@ func TestCheckTrainingTimesOut(t *testing.T) {
 	e := newEnv(t, nil)
 	e.seed(t)
 	token, _ := e.devSignIn(t, "checker", "")
-	s := e.start(t, token, map[string]any{"section": "quant", "questionTypes": []string{"multiple_choice"}, "count": 3, "mode": "check"})
+	s := e.start(t, token, map[string]any{"exam": "gre", "section": "quant", "questionTypes": []string{"multiple_choice"}, "count": 3, "mode": "check"})
 	id, _ := s["id"].(string)
 	its := items(t, s)
 	q0 := question(t, its[0])

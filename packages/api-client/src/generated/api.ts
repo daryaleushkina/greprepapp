@@ -25,6 +25,7 @@ import type {
 } from '@tanstack/react-query';
 
 import {
+  ExamList,
   Health,
   ReviewQueue,
   Session,
@@ -40,6 +41,7 @@ import type {
   ClientError,
   DevSignIn,
   Error,
+  ExamChoice,
   GetTrainingOptionsParams,
   IdTokenSignIn,
   QuestionReport,
@@ -711,6 +713,197 @@ export function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TError = Err
 
 
 
+export const getGetExamsUrl = () => {
+
+
+
+
+  return `/api/exams`
+}
+
+/**
+ * @summary Экзамены и разделы в порядке прохождения
+ */
+export const getExams = async ( options?: Parameters<typeof http>[1]): Promise<ExamList> => {
+
+  return http<ExamList>(getGetExamsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+    ,
+    schema: ExamList
+  }
+);}
+
+
+
+
+
+export const getGetExamsQueryKey = () => {
+    return [
+    `/api/exams`
+    ] as const;
+    }
+
+
+export const getGetExamsQueryOptions = <TData = Awaited<ReturnType<typeof getExams>>, TError = ErrorType<Error>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getExams>>, TError, TData>>, request?: SecondParameter<typeof http>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetExamsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getExams>>> = ({ signal }) => getExams({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getExams>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetExamsQueryResult = NonNullable<Awaited<ReturnType<typeof getExams>>>
+export type GetExamsQueryError = ErrorType<Error>
+
+
+export function useGetExams<TData = Awaited<ReturnType<typeof getExams>>, TError = ErrorType<Error>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getExams>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getExams>>,
+          TError,
+          Awaited<ReturnType<typeof getExams>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof http>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetExams<TData = Awaited<ReturnType<typeof getExams>>, TError = ErrorType<Error>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getExams>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getExams>>,
+          TError,
+          Awaited<ReturnType<typeof getExams>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof http>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetExams<TData = Awaited<ReturnType<typeof getExams>>, TError = ErrorType<Error>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getExams>>, TError, TData>>, request?: SecondParameter<typeof http>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Экзамены и разделы в порядке прохождения
+ */
+
+export function useGetExams<TData = Awaited<ReturnType<typeof getExams>>, TError = ErrorType<Error>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getExams>>, TError, TData>>, request?: SecondParameter<typeof http>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetExamsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSetActiveExamUrl = () => {
+
+
+
+
+  return `/api/me/exam`
+}
+
+/**
+ * @summary Выбрать активный экзамен аккаунта (решение Даши 09.10.2026)
+ */
+export const setActiveExam = async (examChoice: ExamChoice, options?: Parameters<typeof http>[1]): Promise<User> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<User>(getSetActiveExamUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(examChoice),
+    schema: User
+  }
+);}
+
+
+
+
+
+export const getSetActiveExamMutationKey = () => ['setActiveExam'] as const;
+
+export const getSetActiveExamMutationOptions = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setActiveExam>>, TError,SetActiveExamMutationVariables, TContext>, request?: SecondParameter<typeof http>}
+): UseMutationOptions<Awaited<ReturnType<typeof setActiveExam>>, TError,SetActiveExamMutationVariables, TContext> => {
+
+const mutationKey = getSetActiveExamMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setActiveExam>>, SetActiveExamMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  setActiveExam(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetActiveExamMutationResult = NonNullable<Awaited<ReturnType<typeof setActiveExam>>>
+    export type SetActiveExamMutationBody = ExamChoice
+    export type SetActiveExamMutationError = ErrorType<Error>
+    export type SetActiveExamMutationVariables = {data: ExamChoice}
+
+    /**
+ * @summary Выбрать активный экзамен аккаунта (решение Даши 09.10.2026)
+ */
+export const useSetActiveExam = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setActiveExam>>, TError,SetActiveExamMutationVariables, TContext>, request?: SecondParameter<typeof http>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof setActiveExam>>,
+        TError,
+        SetActiveExamMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSetActiveExamMutationOptions(options), queryClient);
+    }
+
 export const getGetTodayUrl = () => {
 
 
@@ -826,7 +1019,9 @@ export const getGetTrainingOptionsUrl = (params: GetTrainingOptionsParams,) => {
       return;
     }
 
-
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
   });
 
   const stringifiedParams = normalizedParams.toString();

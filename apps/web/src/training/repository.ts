@@ -1,3 +1,4 @@
+import { CURRENT_EXAM } from './exam';
 import { ApiError, getTrainingOptions, startTraining, submitTrainingAnswers, finishTraining, reportQuestion, schemas, type GivenAnswer, type QuestionReport, type TrainingRequest } from '@greprep/api-client';
 import { reportError } from '../errors/report';
 import { type ReportDraft, pendingReportSchema, storedTraining, type StoredTraining } from './model';
@@ -125,7 +126,7 @@ export class TrainingRepository {
 
   async options(signal?: AbortSignal) {
     const generation = this.generation;
-    try { return await this.api.options({ types: SUPPORTED_TYPES }, { signal }); }
+    try { return await this.api.options({ exam: CURRENT_EXAM, types: SUPPORTED_TYPES }, { signal }); }
     catch (error) { if (generation === this.generation) this.handle(error); throw error; }
   }
 

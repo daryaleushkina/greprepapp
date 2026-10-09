@@ -1,3 +1,4 @@
+import { CURRENT_EXAM } from './exam';
 import type { Difficulty, QuestionType, TrainingMode, TrainingOptions, TrainingRequest } from '@greprep/api-client';
 
 export const TYPE_LABELS: Record<QuestionType, string> = {
@@ -51,7 +52,7 @@ export function requestOf(state: BuilderState): TrainingRequest | undefined {
   const count = /^\d+$/.test(form.countText) ? Number(form.countText) : 0;
   const questions = Math.min(count, available(state), options.maxQuestions);
   if (questions < 1) return undefined;
-  return { section: form.section, questionTypes: [form.type], count: questions, mode: form.mode,
+  return { exam: CURRENT_EXAM, section: form.section, questionTypes: [form.type], count: questions, mode: form.mode,
     ...(form.topicIds && { topicIds: form.topicIds.filter((id) => topicsOf(state).some((topic) => topic.id === id)) }), ...(form.difficulty && { difficulty: form.difficulty }) };
 }
 export function minutes(options: TrainingOptions, request: TrainingRequest): number {

@@ -2,7 +2,7 @@
   "topics": [
     {
       "id": "contrast-signals",
-      "section": "verbal",
+      "exam": "gre", "section": "verbal",
       "title": {
         "ru": "Слова-сигналы контраста",
         "en": "Contrast signal words"
@@ -11,7 +11,7 @@
     },
     {
       "id": "similarity-signals",
-      "section": "verbal",
+      "exam": "gre", "section": "verbal",
       "title": {
         "ru": "Сигналы сходства и следствия",
         "en": "Similarity and consequence signals"
@@ -20,7 +20,7 @@
     },
     {
       "id": "cause-effect",
-      "section": "verbal",
+      "exam": "gre", "section": "verbal",
       "title": {
         "ru": "Причина и следствие",
         "en": "Cause and effect"
@@ -29,7 +29,7 @@
     },
     {
       "id": "tone-attitude",
-      "section": "verbal",
+      "exam": "gre", "section": "verbal",
       "title": {
         "ru": "Тон и отношение автора",
         "en": "Tone and attitude"
@@ -38,7 +38,7 @@
     },
     {
       "id": "close-synonyms",
-      "section": "verbal",
+      "exam": "gre", "section": "verbal",
       "title": {
         "ru": "Близкие синонимы",
         "en": "Close synonyms"
@@ -47,7 +47,7 @@
     },
     {
       "id": "inequalities",
-      "section": "quant",
+      "exam": "gre", "section": "quant",
       "title": {
         "ru": "Неравенства",
         "en": "Inequalities"
@@ -56,7 +56,7 @@
     },
     {
       "id": "percents",
-      "section": "quant",
+      "exam": "gre", "section": "quant",
       "title": {
         "ru": "Проценты и доли",
         "en": "Percents and fractions"
@@ -65,7 +65,7 @@
     },
     {
       "id": "exponents-roots",
-      "section": "quant",
+      "exam": "gre", "section": "quant",
       "title": {
         "ru": "Степени и корни",
         "en": "Exponents and roots"
@@ -74,7 +74,7 @@
     },
     {
       "id": "number-properties",
-      "section": "quant",
+      "exam": "gre", "section": "quant",
       "title": {
         "ru": "Свойства чисел",
         "en": "Number properties"
@@ -83,7 +83,7 @@
     },
     {
       "id": "geometry",
-      "section": "quant",
+      "exam": "gre", "section": "quant",
       "title": {
         "ru": "Геометрия",
         "en": "Geometry"

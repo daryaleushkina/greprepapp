@@ -22,6 +22,15 @@ func (UnimplementedHandler) FinishTraining(ctx context.Context, req *TrainingFin
 	return r, ht.ErrNotImplemented
 }
 
+// GetExams implements getExams operation.
+//
+// Экзамены и разделы в порядке прохождения.
+//
+// GET /api/exams
+func (UnimplementedHandler) GetExams(ctx context.Context) (r *ExamList, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
 // GetHealth implements getHealth operation.
 //
 // Жив ли сервер и какая сборка (сверка после выкладки).
@@ -97,6 +106,15 @@ func (UnimplementedHandler) ReportClientError(ctx context.Context, req *ClientEr
 // POST /api/questions/{questionId}/reports
 func (UnimplementedHandler) ReportQuestion(ctx context.Context, req *QuestionReport, params ReportQuestionParams) error {
 	return ht.ErrNotImplemented
+}
+
+// SetActiveExam implements setActiveExam operation.
+//
+// Выбрать активный экзамен аккаунта (решение Даши 09.10.2026).
+//
+// PUT /api/me/exam
+func (UnimplementedHandler) SetActiveExam(ctx context.Context, req *ExamChoice) (r *User, _ error) {
+	return r, ht.ErrNotImplemented
 }
 
 // SignInForDevelopment implements signInForDevelopment operation.

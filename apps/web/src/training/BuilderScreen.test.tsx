@@ -30,7 +30,7 @@ test('выбор набора показывает его раздел, типы
   await expect.element(screen.getByRole('combobox', { name: 'Тип' })).toHaveValue('preset');
   await screen.getByRole('button', { name: /Начать ·/ }).click();
   await expect.element(screen.getByRole('heading', { name: 'Text Completion' })).toBeVisible();
-  expect(await server.requests.find((r) => r.method === 'POST')?.json()).toMatchObject({ section: 'verbal', count: 12, mode: 'check', questionTypes: ['text_completion', 'sentence_equivalence'] });
+  expect(await server.requests.find((r) => r.method === 'POST')?.json()).toMatchObject({ exam: 'gre', section: 'verbal', count: 12, mode: 'check', questionTypes: ['text_completion', 'sentence_equivalence'] });
 });
 
 test('повторная загрузка вариантов сохраняет недособранную форму и открытые темы', async () => {
@@ -67,7 +67,7 @@ test('поля, набор и темы меняют запрос; начать �
   await screen.getByRole('button', { name: /Начать ·/ }).click();
   await expect.element(screen.getByRole('heading', { name: 'Text Completion' })).toBeVisible();
   const posted = server.requests.find((r) => r.method === 'POST' && new URL(r.url).pathname === '/api/trainings');
-  expect(await posted?.json()).toEqual({ section: 'quant', questionTypes: ['multiple_choice'], count: 2, mode: 'check', topicIds: ['cause'], difficulty: 'medium' });
+  expect(await posted?.json()).toEqual({ exam: 'gre', section: 'quant', questionTypes: ['multiple_choice'], count: 2, mode: 'check', topicIds: ['cause'], difficulty: 'medium' });
   await screen.getByRole('link', { name: 'Закрыть тренировку' }).click();
   await expect.element(screen.getByRole('link', { name: /Продолжить тренировку/ })).toBeVisible();
   expect(screen.getByRole('link', { name: /Продолжить тренировку/ }).elements()).toHaveLength(1);
@@ -86,7 +86,7 @@ test('снять все темы, вернуть их и снять сложно
   await expect.element(screen.getByRole('heading', { name: 'Новая тренировка' })).toBeVisible();
 });
 test('прошлый набор выбирается сразу, один тип отражается в полях', async () => {
-  const options = trainingOptions(); options.presets.push({ kind: 'last', request: { section: 'quant', questionTypes: ['multiple_choice'], count: 4, mode: 'practice' } });
+  const options = trainingOptions(); options.presets.push({ kind: 'last', request: { exam: 'gre', section: 'quant', questionTypes: ['multiple_choice'], count: 4, mode: 'practice' } });
   const { screen } = await boot('/training/new', options);
   await expect.element(screen.getByRole('radio', { name: 'Как в прошлый раз' })).toBeChecked();
   await screen.getByRole('radio', { name: 'Проверка на время' }).click(); await screen.getByRole('radio', { name: 'Как в прошлый раз' }).click();

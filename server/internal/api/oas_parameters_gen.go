@@ -148,6 +148,7 @@ func decodeGetTrainingParams(args [1]string, argsEscaped bool, r *http.Request) 
 
 // GetTrainingOptionsParams is parameters of getTrainingOptions operation.
 type GetTrainingOptionsParams struct {
+	Exam Exam
 	// Типы заданий, которые клиент умеет показывать. Других
 	// сервер не присылает ни в списке, ни в наборах: новый тип
 	// на сервере не ломает уже установленные версии
@@ -156,6 +157,13 @@ type GetTrainingOptionsParams struct {
 }
 
 func unpackGetTrainingOptionsParams(packed middleware.Parameters) (params GetTrainingOptionsParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "exam",
+			In:   "query",
+		}
+		params.Exam = packed[key].(Exam)
+	}
 	{
 		key := middleware.ParameterKey{
 			Name: "types",
@@ -168,6 +176,50 @@ func unpackGetTrainingOptionsParams(packed middleware.Parameters) (params GetTra
 
 func decodeGetTrainingOptionsParams(args [0]string, argsEscaped bool, r *http.Request) (params GetTrainingOptionsParams, _ error) {
 	q := uri.NewQueryDecoder(r.URL.Query())
+	// Decode query: exam.
+	if err := func() error {
+		cfg := uri.QueryParameterDecodingConfig{
+			Name:    "exam",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.HasParam(cfg); err == nil {
+			if err := q.DecodeParam(cfg, func(d uri.Decoder) error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToString(val)
+				if err != nil {
+					return err
+				}
+
+				params.Exam = Exam(c)
+				return nil
+			}); err != nil {
+				return err
+			}
+			if err := func() error {
+				if err := params.Exam.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "exam",
+			In:   "query",
+			Err:  err,
+		}
+	}
 	// Decode query: types.
 	if err := func() error {
 		cfg := uri.QueryParameterDecodingConfig{

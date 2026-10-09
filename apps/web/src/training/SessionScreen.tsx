@@ -1,3 +1,5 @@
+import { sectionLang } from '../screens/today/summary';
+import { CURRENT_EXAM } from './exam';
 import type { TrainingRequest } from '@greprep/api-client';
 import { isApiError } from '@greprep/api-client';
 import { Link, useNavigate, useParams } from '@tanstack/react-router';
@@ -136,12 +138,15 @@ function Summary({ training }: { training: StoredTraining }) {
   const count = TrainingRules.repeatCount(result.review.reduce((sum, topic) => sum + topic.mistakes, 0));
   const time = TrainingRules.summaryMinutes(result.durationSeconds, training.session.mode === 'check' ? training.session.timeLimitSeconds : undefined);
   const duration = t.today.minutes(time.minutes).replaceAll(' ', '\u00a0');
-  const line = time.limitMinutes === undefined ? [training.session.section === 'quant' ? 'Quant' : 'Verbal', ...training.session.questionTypes.map((type) => TYPE_LABELS[type]), duration].join(' · ') : [text.mode_check, training.session.section === 'quant' ? 'Quant' : 'Verbal', text.summary_of_limit(duration, time.limitMinutes)].join(' · ');
+  const section = <span lang={sectionLang(training.session.section)}>{t.sections[training.session.section]}</span>;
+  const line = time.limitMinutes === undefined
+    ? <>{section}{' · '}{[...training.session.questionTypes.map((type) => TYPE_LABELS[type]), duration].join(' · ')}</>
+    : <>{text.mode_check}{' · '}{section}{' · '}{text.summary_of_limit(duration, time.limitMinutes)}</>;
   const close = () => void navigate({ to: '/' });
   const repeat = async () => {
     if (starting.current || !online) return;
     starting.current = true; setBusy(true); setProblem(undefined);
-    const request: TrainingRequest = { section: training.session.section, questionTypes: training.session.questionTypes, count, mode: 'practice', topicIds: result.review.map((topic) => topic.topicId) };
+    const request: TrainingRequest = { exam: training.session.exam ?? CURRENT_EXAM, section: training.session.section, questionTypes: training.session.questionTypes, count, mode: 'practice', topicIds: result.review.map((topic) => topic.topicId) };
     try {
       const trainingId = await trainingRepository.start(request);
       await navigate({ to: '/training/$trainingId', params: { trainingId } });

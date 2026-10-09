@@ -247,6 +247,7 @@ class BuilderViewModel
                 val questions = minOf(count, available(c.options, f), c.options.maxQuestions)
                 if (questions < 1) return null
                 return TrainingRequest(
+                    exam = CURRENT_EXAM,
                     section = f.section,
                     questionTypes = setOf(f.type),
                     count = questions,

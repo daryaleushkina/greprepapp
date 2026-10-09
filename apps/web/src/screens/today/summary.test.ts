@@ -35,3 +35,7 @@ describe('sectionLang', () => {
     expect(sectionLang('essay')).toBeUndefined();
   });
 });
+
+it.each(['reading', 'listening', 'writing', 'speaking'] as const)('раздел TOEFL %s читается английским голосом', (section) => {
+  expect(sectionLang(section)).toBe('en');
+});

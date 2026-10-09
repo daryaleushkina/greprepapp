@@ -125,7 +125,8 @@ struct API: Sendable {
 
     func trainingOptions() async throws(APIFailure) -> TrainingOptions {
         let output = try await call {
-            try await client.getTrainingOptions(query: .init(types: Components.Schemas.QuestionType.allCases))
+            try await client.getTrainingOptions(
+                query: .init(exam: currentExam, types: Components.Schemas.QuestionType.allCases))
         }
         switch output {
         case let .ok(ok):
@@ -239,3 +240,6 @@ struct API: Sendable {
         return .response(status: status, code: error.code, requestID: error.requestId)
     }
 }
+
+// Выбор экзамена в редизайне заменит эту константу (решение Даши 09.10.2026).
+let currentExam: Components.Schemas.Exam = .gre

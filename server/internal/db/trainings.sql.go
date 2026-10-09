@@ -16,7 +16,7 @@ const countApprovedQuestions = `-- name: CountApprovedQuestions :many
 SELECT t.section, q.question_type, t.id AS topic_id, t.title_ru, t.title_en, q.difficulty, count(*)::integer AS available
 FROM questions q
 JOIN topics t ON t.id = q.topic_id
-WHERE q.status = 'approved'
+WHERE q.status = 'approved' AND t.exam_id = $1
 GROUP BY t.section, q.question_type, t.id, t.title_ru, t.title_en, t.position, q.difficulty
 ORDER BY t.position, t.id
 `
@@ -32,8 +32,8 @@ type CountApprovedQuestionsRow struct {
 }
 
 // Сколько проверенных заданий в каждой теме по типу и сложности — для конструктора (макеты R1, R2).
-func (q *Queries) CountApprovedQuestions(ctx context.Context) ([]CountApprovedQuestionsRow, error) {
-	rows, err := q.db.Query(ctx, countApprovedQuestions)
+func (q *Queries) CountApprovedQuestions(ctx context.Context, examID string) ([]CountApprovedQuestionsRow, error) {
+	rows, err := q.db.Query(ctx, countApprovedQuestions, examID)
 	if err != nil {
 		return nil, err
 	}
@@ -61,9 +61,9 @@ func (q *Queries) CountApprovedQuestions(ctx context.Context) ([]CountApprovedQu
 }
 
 const createTraining = `-- name: CreateTraining :one
-INSERT INTO trainings (user_id, mode, section, question_types, request, time_limit_seconds, started_at)
-VALUES ($1, $2, $3, $4, $5, $6, $7)
-RETURNING id, user_id, mode, section, question_types, request, time_limit_seconds, started_at, finished_at, timed_out
+INSERT INTO trainings (user_id, mode, section, question_types, request, time_limit_seconds, started_at, exam_id)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+RETURNING id, user_id, mode, section, question_types, request, time_limit_seconds, started_at, finished_at, timed_out, exam_id
 `
 
 type CreateTrainingParams struct {
@@ -74,6 +74,7 @@ type CreateTrainingParams struct {
 	Request          []byte
 	TimeLimitSeconds *int
 	StartedAt        time.Time
+	ExamID           string
 }
 
 func (q *Queries) CreateTraining(ctx context.Context, arg CreateTrainingParams) (Training, error) {
@@ -85,6 +86,7 @@ func (q *Queries) CreateTraining(ctx context.Context, arg CreateTrainingParams) 
 		arg.Request,
 		arg.TimeLimitSeconds,
 		arg.StartedAt,
+		arg.ExamID,
 	)
 	var i Training
 	err := row.Scan(
@@ -98,6 +100,7 @@ func (q *Queries) CreateTraining(ctx context.Context, arg CreateTrainingParams) 
 		&i.StartedAt,
 		&i.FinishedAt,
 		&i.TimedOut,
+		&i.ExamID,
 	)
 	return i, err
 }
@@ -134,11 +137,18 @@ func (q *Queries) FinishTraining(ctx context.Context, arg FinishTrainingParams) 
 }
 
 const getLastTrainingRequest = `-- name: GetLastTrainingRequest :one
-SELECT request FROM trainings WHERE user_id = $1 ORDER BY started_at DESC LIMIT 1
+SELECT (request || jsonb_build_object('exam', exam_id))::jsonb AS request
+FROM trainings WHERE user_id = $1 AND exam_id = $2 ORDER BY started_at DESC LIMIT 1
 `
 
-func (q *Queries) GetLastTrainingRequest(ctx context.Context, userID uuid.UUID) ([]byte, error) {
-	row := q.db.QueryRow(ctx, getLastTrainingRequest, userID)
+type GetLastTrainingRequestParams struct {
+	UserID uuid.UUID
+	ExamID string
+}
+
+// Старый сервер после миграции ещё пишет JSON без exam; источником истины остаётся столбец строки.
+func (q *Queries) GetLastTrainingRequest(ctx context.Context, arg GetLastTrainingRequestParams) ([]byte, error) {
+	row := q.db.QueryRow(ctx, getLastTrainingRequest, arg.UserID, arg.ExamID)
 	var request []byte
 	err := row.Scan(&request)
 	return request, err
@@ -156,7 +166,7 @@ func (q *Queries) GetTopicSection(ctx context.Context, id string) (string, error
 }
 
 const getTraining = `-- name: GetTraining :one
-SELECT id, user_id, mode, section, question_types, request, time_limit_seconds, started_at, finished_at, timed_out FROM trainings WHERE id = $1 AND user_id = $2
+SELECT id, user_id, mode, section, question_types, request, time_limit_seconds, started_at, finished_at, timed_out, exam_id FROM trainings WHERE id = $1 AND user_id = $2
 `
 
 type GetTrainingParams struct {
@@ -179,6 +189,7 @@ func (q *Queries) GetTraining(ctx context.Context, arg GetTrainingParams) (Train
 		&i.StartedAt,
 		&i.FinishedAt,
 		&i.TimedOut,
+		&i.ExamID,
 	)
 	return i, err
 }
@@ -276,7 +287,7 @@ func (q *Queries) ListTrainingItems(ctx context.Context, trainingID uuid.UUID) (
 }
 
 const lockTraining = `-- name: LockTraining :one
-SELECT id, user_id, mode, section, question_types, request, time_limit_seconds, started_at, finished_at, timed_out FROM trainings WHERE id = $1 AND user_id = $2 FOR UPDATE
+SELECT id, user_id, mode, section, question_types, request, time_limit_seconds, started_at, finished_at, timed_out, exam_id FROM trainings WHERE id = $1 AND user_id = $2 FOR UPDATE
 `
 
 type LockTrainingParams struct {
@@ -299,6 +310,7 @@ func (q *Queries) LockTraining(ctx context.Context, arg LockTrainingParams) (Tra
 		&i.StartedAt,
 		&i.FinishedAt,
 		&i.TimedOut,
+		&i.ExamID,
 	)
 	return i, err
 }
@@ -308,22 +320,24 @@ WITH seen AS (
   SELECT DISTINCT i.question_id
   FROM trainings tr
   JOIN training_items i ON i.training_id = tr.id
-  WHERE tr.user_id = $6
+  WHERE tr.user_id = $7
 )
 SELECT q.id
 FROM questions q
 JOIN topics t ON t.id = q.topic_id
 LEFT JOIN seen s ON s.question_id = q.id
 WHERE q.status = 'approved'
-  AND t.section = $1
-  AND q.question_type = ANY ($2::text[])
-  AND (cardinality($3::text[]) = 0 OR q.topic_id = ANY ($3::text[]))
-  AND ($4::text IS NULL OR q.difficulty = $4::text)
+  AND t.exam_id = $1
+  AND t.section = $2
+  AND q.question_type = ANY ($3::text[])
+  AND (cardinality($4::text[]) = 0 OR q.topic_id = ANY ($4::text[]))
+  AND ($5::text IS NULL OR q.difficulty = $5::text)
 ORDER BY s.question_id IS NOT NULL, random()
-LIMIT $5::integer
+LIMIT $6::integer
 `
 
 type PickQuestionsParams struct {
+	ExamID        string
 	Section       string
 	QuestionTypes []string
 	TopicIds      []string
@@ -336,6 +350,7 @@ type PickQuestionsParams struct {
 // по тренировкам самого человека (индекс по user_id), а не по всем показам задания всем людям.
 func (q *Queries) PickQuestions(ctx context.Context, arg PickQuestionsParams) ([]uuid.UUID, error) {
 	rows, err := q.db.Query(ctx, pickQuestions,
+		arg.ExamID,
 		arg.Section,
 		arg.QuestionTypes,
 		arg.TopicIds,
@@ -447,6 +462,30 @@ func (q *Queries) TrainingHasQuestion(ctx context.Context, arg TrainingHasQuesti
 	return exists, err
 }
 
+const trainingSelectionValid = `-- name: TrainingSelectionValid :one
+SELECT (COALESCE(EXISTS (
+  SELECT 1 FROM exam_sections s WHERE s.exam_id = $1 AND s.section = $2
+) AND (
+  SELECT count(*)::integer FROM topics t
+  WHERE t.id = ANY ($3::text[])
+    AND t.exam_id = $1 AND t.section = $2
+) = cardinality($3::text[]), false))::boolean AS valid
+`
+
+type TrainingSelectionValidParams struct {
+	ExamID   string
+	Section  string
+	TopicIds []string
+}
+
+// Весь выбор проверяется до подбора заданий: чужая или неизвестная тема — 400, а не пустая тренировка.
+func (q *Queries) TrainingSelectionValid(ctx context.Context, arg TrainingSelectionValidParams) (bool, error) {
+	row := q.db.QueryRow(ctx, trainingSelectionValid, arg.ExamID, arg.Section, arg.TopicIds)
+	var valid bool
+	err := row.Scan(&valid)
+	return valid, err
+}
+
 const upsertQuestion = `-- name: UpsertQuestion :exec
 INSERT INTO questions (id, question_type, topic_id, difficulty, status, body, answer, explanation)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
@@ -481,9 +520,9 @@ func (q *Queries) UpsertQuestion(ctx context.Context, arg UpsertQuestionParams) 
 }
 
 const upsertTopic = `-- name: UpsertTopic :exec
-INSERT INTO topics (id, section, title_ru, title_en, position) VALUES ($1, $2, $3, $4, $5)
+INSERT INTO topics (id, section, title_ru, title_en, position, exam_id) VALUES ($1, $2, $3, $4, $5, $6)
 ON CONFLICT (id) DO UPDATE SET section = excluded.section, title_ru = excluded.title_ru,
-  title_en = excluded.title_en, position = excluded.position
+  title_en = excluded.title_en, position = excluded.position, exam_id = excluded.exam_id
 `
 
 type UpsertTopicParams struct {
@@ -492,6 +531,7 @@ type UpsertTopicParams struct {
 	TitleRu  string
 	TitleEn  string
 	Position int
+	ExamID   string
 }
 
 // Набор для разработки (greprep seed-dev) и тестов; в бой контент приходит через админку.
@@ -502,6 +542,7 @@ func (q *Queries) UpsertTopic(ctx context.Context, arg UpsertTopicParams) error 
 		arg.TitleRu,
 		arg.TitleEn,
 		arg.Position,
+		arg.ExamID,
 	)
 	return err
 }

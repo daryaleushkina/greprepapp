@@ -28,7 +28,7 @@ func (q *Queries) CreateIdentity(ctx context.Context, arg CreateIdentityParams) 
 }
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (name, role, locale) VALUES ($1, $2, $3) RETURNING id, name, role, locale, created_at
+INSERT INTO users (name, role, locale) VALUES ($1, $2, $3) RETURNING id, name, role, locale, created_at, active_exam
 `
 
 type CreateUserParams struct {
@@ -46,12 +46,13 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Role,
 		&i.Locale,
 		&i.CreatedAt,
+		&i.ActiveExam,
 	)
 	return i, err
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, name, role, locale, created_at FROM users WHERE id = $1
+SELECT id, name, role, locale, created_at, active_exam FROM users WHERE id = $1
 `
 
 func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (User, error) {
@@ -63,12 +64,13 @@ func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.Role,
 		&i.Locale,
 		&i.CreatedAt,
+		&i.ActiveExam,
 	)
 	return i, err
 }
 
 const getUserByIdentity = `-- name: GetUserByIdentity :one
-SELECT u.id, u.name, u.role, u.locale, u.created_at
+SELECT u.id, u.name, u.role, u.locale, u.created_at, u.active_exam
 FROM identities i
 JOIN users u ON u.id = i.user_id
 WHERE i.provider = $1 AND i.subject = $2
@@ -88,6 +90,7 @@ func (q *Queries) GetUserByIdentity(ctx context.Context, arg GetUserByIdentityPa
 		&i.Role,
 		&i.Locale,
 		&i.CreatedAt,
+		&i.ActiveExam,
 	)
 	return i, err
 }

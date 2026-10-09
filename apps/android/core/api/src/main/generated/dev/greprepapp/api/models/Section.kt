@@ -31,7 +31,7 @@ import kotlinx.serialization.Serializable
 /**
  * 
  *
- * Values: VERBAL,QUANT,WORDS,ESSAY
+ * Values: VERBAL,QUANT,WORDS,ESSAY,READING,LISTENING,WRITING,SPEAKING
  */
 @Serializable
 enum class Section(val value: kotlin.String) {
@@ -46,7 +46,19 @@ enum class Section(val value: kotlin.String) {
     WORDS("words"),
 
     @SerialName(value = "essay")
-    ESSAY("essay");
+    ESSAY("essay"),
+
+    @SerialName(value = "reading")
+    READING("reading"),
+
+    @SerialName(value = "listening")
+    LISTENING("listening"),
+
+    @SerialName(value = "writing")
+    WRITING("writing"),
+
+    @SerialName(value = "speaking")
+    SPEAKING("speaking");
 
     /**
      * Override [toString()] to avoid using the enum variable name as the value, and instead use

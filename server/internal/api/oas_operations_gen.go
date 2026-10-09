@@ -7,6 +7,7 @@ type OperationName = string
 
 const (
 	FinishTrainingOperation              OperationName = "FinishTraining"
+	GetExamsOperation                    OperationName = "GetExams"
 	GetHealthOperation                   OperationName = "GetHealth"
 	GetMeOperation                       OperationName = "GetMe"
 	GetReviewQueueOperation              OperationName = "GetReviewQueue"
@@ -15,6 +16,7 @@ const (
 	GetTrainingOptionsOperation          OperationName = "GetTrainingOptions"
 	ReportClientErrorOperation           OperationName = "ReportClientError"
 	ReportQuestionOperation              OperationName = "ReportQuestion"
+	SetActiveExamOperation               OperationName = "SetActiveExam"
 	SignInForDevelopmentOperation        OperationName = "SignInForDevelopment"
 	SignInWithAuthorizationCodeOperation OperationName = "SignInWithAuthorizationCode"
 	SignInWithIdTokenOperation           OperationName = "SignInWithIdToken"

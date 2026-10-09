@@ -15,7 +15,7 @@ describe('конструктор — поведение Android', () => {
     expect(requestOf(updateOptions(state, trainingOptions({ types: [] })))).toBeUndefined();
   });
   test('набор сохраняется при перестановке, но пропавший фильтр или тип больше не запускается', () => {
-    const last = { kind: 'last', request: { section: 'verbal', questionTypes: ['text_completion'], count: 3, mode: 'practice', topicIds: ['cause'] } } as const;
+    const last = { kind: 'last', request: { exam: 'gre', section: 'verbal', questionTypes: ['text_completion'], count: 3, mode: 'practice', topicIds: ['cause'] } } as const;
     const before = trainingOptions({ presets: [{ ...last, request: { ...last.request, questionTypes: [...last.request.questionTypes], topicIds: [...last.request.topicIds] } }] });
     const state = initialBuilder(before);
     const reordered = trainingOptions({ presets: [options.presets[0]!, before.presets[0]!] });
@@ -34,7 +34,7 @@ describe('конструктор — поведение Android', () => {
   });
   test('умолчание, прошлый набор и вход из шага', () => {
     expect(initialBuilder(options).form).toMatchObject({ section: 'verbal', type: 'text_completion', countText: '10', mode: 'practice' });
-    const request = { section: 'quant', questionTypes: ['multiple_choice'], count: 7, mode: 'check', topicIds: ['cause'], difficulty: 'hard' } as const;
+    const request = { exam: 'gre', section: 'quant', questionTypes: ['multiple_choice'], count: 7, mode: 'check', topicIds: ['cause'], difficulty: 'hard' } as const;
     const withLast = trainingOptions({ presets: [{ kind: 'last', request: { ...request, questionTypes: [...request.questionTypes], topicIds: [...request.topicIds] } }, { kind: 'unknown', request: options.presets[0]!.request }] });
     expect(presetsOf(withLast)).toHaveLength(1);
     expect(initialBuilder(withLast)).toMatchObject({ preset: 0, form: { type: 'multiple_choice', countText: '7', topicIds: ['cause'], difficulty: 'hard' } });
@@ -68,7 +68,7 @@ describe('конструктор — поведение Android', () => {
     expect(toggleTopic(oneAgain, 'cause').topicIds).toBeUndefined();
   });
   test('восстановление набора без фильтров и минуты', () => {
-    const request = { section: 'verbal', questionTypes: ['text_completion'], count: 3, mode: 'practice' } as const;
+    const request = { exam: 'gre', section: 'verbal', questionTypes: ['text_completion'], count: 3, mode: 'practice' } as const;
     expect(formOf({ ...request, questionTypes: [...request.questionTypes], topicIds: [] }, options).topicIds).toBeUndefined();
     expect(minutes(options, { ...request, questionTypes: [...request.questionTypes] })).toBe(5);
     expect(minutes({ ...options, types: [] }, { ...request, questionTypes: [...request.questionTypes] })).toBe(0);

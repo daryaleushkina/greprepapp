@@ -42,6 +42,15 @@ const (
 // Types — все типы первого среза в порядке конструктора.
 var Types = []Type{TextCompletion, SentenceEquivalence, QuantitativeComparison, MultipleChoice}
 
+// ExamOf — типы первого среза относятся к GRE. Конвейер добавит типы других экзаменов явно, вместе
+// с проверкой тела и ответа; одинаковое название формата ещё не делает его типом другого экзамена.
+func ExamOf(t Type) string {
+	if slices.Contains(Types, t) {
+		return "gre"
+	}
+	return ""
+}
+
 // SectionOf — раздел типа задания; пусто — тип неизвестен.
 func SectionOf(t Type) Section {
 	switch t {

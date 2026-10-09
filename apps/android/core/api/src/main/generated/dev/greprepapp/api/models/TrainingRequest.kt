@@ -24,6 +24,7 @@
 package dev.greprepapp.api.models
 
 import dev.greprepapp.api.models.Difficulty
+import dev.greprepapp.api.models.Exam
 import dev.greprepapp.api.models.QuestionType
 import dev.greprepapp.api.models.Section
 import dev.greprepapp.api.models.TrainingMode
@@ -35,6 +36,7 @@ import kotlinx.serialization.Contextual
 /**
  * 
  *
+ * @param exam 
  * @param section 
  * @param questionTypes Конструктор даёт один тип; «Проверка на время» — все типы раздела вперемешку (макет R16)
  * @param count 
@@ -45,6 +47,9 @@ import kotlinx.serialization.Contextual
 @Serializable
 
 data class TrainingRequest (
+
+    @Contextual @SerialName(value = "exam")
+    val exam: Exam,
 
     @Contextual @SerialName(value = "section")
     val section: Section,

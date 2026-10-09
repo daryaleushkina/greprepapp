@@ -101,6 +101,7 @@ fun session(token: String? = "token-1"): Session =
         expiresAt = "2026-11-05T00:00:00Z",
         user =
             User(
+                activeExam = null,
                 id = "00000000-0000-0000-0000-000000000001",
                 name = "Test",
                 role = Role.USER,
@@ -131,6 +132,8 @@ class FakeAuthApi : AuthApi {
 
 class FakePublicApi : PublicApi {
     val reports = mutableListOf<ClientError>()
+
+    override suspend fun getExams(): Response<dev.greprepapp.api.models.ExamList> = error("not used")
 
     override suspend fun getHealth(): Response<Health> = error("not used")
 

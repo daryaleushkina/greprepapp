@@ -308,7 +308,7 @@ private fun presetSubtitle(
     options: TrainingOptions,
 ): String {
     val r = preset.request
-    val section = r.section.study().label()
+    val section = r.section.label()
     if (preset.kind == BuilderViewModel.PRESET_TIMED) {
         return stringResource(
             R.string.builder_preset_timed_subtitle,
@@ -541,7 +541,7 @@ private fun TopicsContent(
     val english = LocalConfiguration.current.locales[0].language == "en"
     val topicList: @Composable () -> Unit = {
         Text(
-            text = (listOf(f.section.study().label(), f.type.label())).joinToString(" · "),
+            text = (listOf(f.section.label(), f.type.label())).joinToString(" · "),
             style = Gp.type.subhead,
             color = Gp.colors.textSecondary,
         )

@@ -9,6 +9,7 @@ import kotlinx.serialization.Serializable
 
 import dev.greprepapp.api.models.AnswerBatch
 import dev.greprepapp.api.models.Error
+import dev.greprepapp.api.models.Exam
 import dev.greprepapp.api.models.QuestionReport
 import dev.greprepapp.api.models.QuestionType
 import dev.greprepapp.api.models.TrainingFinish
@@ -55,11 +56,12 @@ interface TrainingsApi {
      *  - 200: Варианты конструктора
      *  - 0: Любая ошибка — машинный код, текст для журнала, id запроса
      *
+     * @param exam 
      * @param types Типы заданий, которые клиент умеет показывать. Других сервер не присылает ни в списке, ни в наборах: новый тип на сервере не ломает уже установленные версии приложений.
      * @return [TrainingOptions]
      */
     @GET("api/trainings/options")
-    suspend fun getTrainingOptions(@Query("types") types: @JvmSuppressWildcards kotlin.collections.List<QuestionType>): Response<TrainingOptions>
+    suspend fun getTrainingOptions(@Query("exam") exam: Exam, @Query("types") types: @JvmSuppressWildcards kotlin.collections.List<QuestionType>): Response<TrainingOptions>
 
     /**
      * POST api/questions/{questionId}/reports

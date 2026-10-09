@@ -1024,6 +1024,275 @@ public enum Operations {
             }
         }
     }
+    /// Экзамены и разделы в порядке прохождения
+    ///
+    /// - Remark: HTTP `GET /api/exams`.
+    /// - Remark: Generated from `#/paths//api/exams/get(getExams)`.
+    public enum GetExams {
+        public static let id: Swift.String = "getExams"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/api/exams/GET/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetExams.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetExams.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.GetExams.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - headers:
+            public init(headers: Operations.GetExams.Input.Headers = .init()) {
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/exams/GET/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/api/exams/GET/responses/200/content/application\/json`.
+                    case json(Components.Schemas.ExamList)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ExamList {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetExams.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetExams.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Доступные экзамены
+            ///
+            /// - Remark: Generated from `#/paths//api/exams/get(getExams)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.GetExams.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.GetExams.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Любая ошибка — машинный код, текст для журнала, id запроса
+            ///
+            /// - Remark: Generated from `#/paths//api/exams/get(getExams)/responses/default`.
+            ///
+            /// HTTP response code: `default`.
+            case `default`(statusCode: Swift.Int, Components.Responses._Error)
+            /// The associated value of the enum case if `self` is `.`default``.
+            ///
+            /// - Throws: An error if `self` is not `.`default``.
+            /// - SeeAlso: `.`default``.
+            public var `default`: Components.Responses._Error {
+                get throws {
+                    switch self {
+                    case let .`default`(_, response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "default",
+                            response: self
+                        )
+                    }
+                }
+            }
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Выбрать активный экзамен аккаунта (решение Даши 09.10.2026)
+    ///
+    /// - Remark: HTTP `PUT /api/me/exam`.
+    /// - Remark: Generated from `#/paths//api/me/exam/put(setActiveExam)`.
+    public enum SetActiveExam {
+        public static let id: Swift.String = "setActiveExam"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/api/me/exam/PUT/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.SetActiveExam.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.SetActiveExam.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.SetActiveExam.Input.Headers
+            /// - Remark: Generated from `#/paths/api/me/exam/PUT/requestBody`.
+            @frozen public enum Body: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/me/exam/PUT/requestBody/content/application\/json`.
+                case json(Components.Schemas.ExamChoice)
+            }
+            public var body: Operations.SetActiveExam.Input.Body
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - headers:
+            ///   - body:
+            public init(
+                headers: Operations.SetActiveExam.Input.Headers = .init(),
+                body: Operations.SetActiveExam.Input.Body
+            ) {
+                self.headers = headers
+                self.body = body
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/me/exam/PUT/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/api/me/exam/PUT/responses/200/content/application\/json`.
+                    case json(Components.Schemas.User)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.User {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.SetActiveExam.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.SetActiveExam.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Пользователь с выбранным экзаменом
+            ///
+            /// - Remark: Generated from `#/paths//api/me/exam/put(setActiveExam)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.SetActiveExam.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.SetActiveExam.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Любая ошибка — машинный код, текст для журнала, id запроса
+            ///
+            /// - Remark: Generated from `#/paths//api/me/exam/put(setActiveExam)/responses/default`.
+            ///
+            /// HTTP response code: `default`.
+            case `default`(statusCode: Swift.Int, Components.Responses._Error)
+            /// The associated value of the enum case if `self` is `.`default``.
+            ///
+            /// - Throws: An error if `self` is not `.`default``.
+            /// - SeeAlso: `.`default``.
+            public var `default`: Components.Responses._Error {
+                get throws {
+                    switch self {
+                    case let .`default`(_, response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "default",
+                            response: self
+                        )
+                    }
+                }
+            }
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
     /// Лента шагов на сегодня (экран «Сегодня»)
     ///
     /// - Remark: HTTP `GET /api/today`.
@@ -1164,6 +1433,8 @@ public enum Operations {
         public struct Input: Sendable, Hashable {
             /// - Remark: Generated from `#/paths/api/trainings/options/GET/query`.
             public struct Query: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/trainings/options/GET/query/exam`.
+                public var exam: Components.Schemas.Exam
                 /// Типы заданий, которые клиент умеет показывать. Других сервер не присылает ни в списке, ни в наборах: новый тип на сервере не ломает уже установленные версии приложений.
                 ///
                 /// - Remark: Generated from `#/paths/api/trainings/options/GET/query/types`.
@@ -1171,8 +1442,13 @@ public enum Operations {
                 /// Creates a new `Query`.
                 ///
                 /// - Parameters:
+                ///   - exam:
                 ///   - types: Типы заданий, которые клиент умеет показывать. Других сервер не присылает ни в списке, ни в наборах: новый тип на сервере не ломает уже установленные версии приложений.
-                public init(types: [Components.Schemas.QuestionType]) {
+                public init(
+                    exam: Components.Schemas.Exam,
+                    types: [Components.Schemas.QuestionType]
+                ) {
+                    self.exam = exam
                     self.types = types
                 }
             }

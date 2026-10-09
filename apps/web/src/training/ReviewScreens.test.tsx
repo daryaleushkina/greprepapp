@@ -324,3 +324,11 @@ test('после переполнения localStorage форма работае
   await expect.element(screen.getByRole('heading', { name: 'Спасибо!' })).toBeVisible();
   expect(trainingRepository.getReportDraft(trainingSession().id, 0)).toBeUndefined();
 });
+
+test('разбор TOEFL подписан Reading по-английски', async () => {
+  const training = completed();
+  training.session.exam = 'toefl'; training.session.section = 'reading';
+  const { screen } = await boot(training);
+  await screen.getByRole('link', { name: 'Все ответы и разборы' }).click();
+  await expect.element(screen.getByText('Reading', { exact: true })).toHaveAttribute('lang', 'en');
+});

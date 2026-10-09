@@ -23,6 +23,7 @@
 
 package dev.greprepapp.api.models
 
+import dev.greprepapp.api.models.ActiveExam
 import dev.greprepapp.api.models.LinkedIdentity
 import dev.greprepapp.api.models.Locale
 import dev.greprepapp.api.models.Role
@@ -38,6 +39,7 @@ import kotlinx.serialization.Contextual
  * @param name 
  * @param role 
  * @param locale 
+ * @param activeExam 
  * @param identities 
  */
 @Serializable
@@ -55,6 +57,9 @@ data class User (
 
     @Contextual @SerialName(value = "locale")
     val locale: Locale,
+
+    @Contextual @SerialName(value = "activeExam")
+    val activeExam: ActiveExam?,
 
     @SerialName(value = "identities")
     val identities: kotlin.collections.List<LinkedIdentity>

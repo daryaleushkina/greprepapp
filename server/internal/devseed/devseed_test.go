@@ -27,7 +27,7 @@ func TestLoad(t *testing.T) {
 }
 
 func TestParseRejects(t *testing.T) {
-	topic := `{"id":"t","section":"verbal","title":{"ru":"т","en":"t"},"position":0}`
+	topic := `{"id":"t","exam":"gre","section":"verbal","title":{"ru":"т","en":"t"},"position":0}`
 	why := `{"ru":"р","en":"s"}`
 	question := func(typ, diff string) string {
 		return `{"id":"d3f00000-0000-4000-8000-000000000001","type":"` + typ + `","topic":"t","difficulty":"` + diff + `",

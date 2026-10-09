@@ -468,3 +468,18 @@ test('список проверки: SE отвечен только после �
   await expect.element(screen.getByText('Отвечено 1 из 1 · отмечено 0', { exact: true })).toBeVisible();
   await expect.element(screen.getByRole('button', { name: 'Вопрос 1, отвечен', exact: true })).toHaveAttribute('data-answered', 'true');
 });
+
+for (const exam of ['toefl', undefined] as const) test(`повтор сохраняет экзамен сессии: ${exam ?? 'старый формат'}`, async () => {
+  const session = trainingSession({ exam, section: 'reading' });
+  const summary = { ...storedTraining(session, Date.now() - 62000), answers: { 0: givenAnswer({ optionIds: ['B'] }) }, finish: { finishedAt: new Date().toISOString(), timedOut: false } };
+  const start = vi.spyOn(trainingRepository, 'start').mockResolvedValue('00000000-0000-4000-8000-000000000101');
+  const { screen } = await boot(summary);
+  await screen.getByRole('button', { name: /Повторить ·/ }).click();
+  await expect.poll(() => start.mock.calls[0]?.[0]).toMatchObject({ exam: exam ?? 'gre', section: 'reading' });
+});
+
+test('итог TOEFL подписан Reading по-английски', async () => {
+  const training = { ...storedTraining(trainingSession({ exam: 'toefl', section: 'reading' }), Date.now() - 62000), finish: { finishedAt: new Date().toISOString(), timedOut: false } };
+  const { screen } = await boot(training);
+  await expect.element(screen.getByText('Reading', { exact: true })).toHaveAttribute('lang', 'en');
+});

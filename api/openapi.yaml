@@ -5,7 +5,8 @@ openapi: 3.1.0
 # Осторожное подмножество OpenAPI 3.1 — его понимают все четыре генератора:
 #   • без oneOf / anyOf / allOf (генератор Kotlin их не поддерживает);
 #   • у каждого объекта additionalProperties: false — сервер (ogen) отклоняет лишние поля с 400;
-#   • вместо null — необязательное поле (null в 3.1 у Kotlin в бете);
+#   • отсутствие значения — необязательное поле; исключение ActiveExam: nullable enum через type
+#     [string, null], без union-схем, проверяется тестами Go, веба, Swift и Kotlin;
 #   • securitySchemes генератор Swift игнорирует — токен там добавляет своя прослойка.
 info:
   title: GrePrepApp API
@@ -153,6 +154,38 @@ paths:
               schema: { $ref: '#/components/schemas/User' }
         default: { $ref: '#/components/responses/Error' }
 
+  /api/exams:
+    get:
+      operationId: getExams
+      summary: Экзамены и разделы в порядке прохождения
+      tags: [public]
+      security: []
+      responses:
+        '200':
+          description: Доступные экзамены
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ExamList' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /api/me/exam:
+    put:
+      operationId: setActiveExam
+      summary: Выбрать активный экзамен аккаунта (решение Даши 09.10.2026)
+      tags: [account]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ExamChoice' }
+      responses:
+        '200':
+          description: Пользователь с выбранным экзаменом
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+        default: { $ref: '#/components/responses/Error' }
+
   /api/today:
     get:
       operationId: getToday
@@ -175,6 +208,10 @@ paths:
         тренировка — чтобы «Начать» было видно сразу. Только проверенные задания.
       tags: [trainings]
       parameters:
+        - name: exam
+          in: query
+          required: true
+          schema: { $ref: '#/components/schemas/Exam' }
         - name: types
           in: query
           required: true
@@ -525,7 +562,7 @@ components:
     User:
       type: object
       additionalProperties: false
-      required: [id, name, role, locale, identities]
+      required: [id, name, role, locale, identities, activeExam]
       properties:
         id:
           type: string
@@ -534,6 +571,7 @@ components:
           type: string
         role: { $ref: '#/components/schemas/Role' }
         locale: { $ref: '#/components/schemas/Locale' }
+        activeExam: { $ref: '#/components/schemas/ActiveExam' }
         identities:
           type: array
           maxItems: 3
@@ -549,9 +587,45 @@ components:
           type: string
           format: date-time
 
+    Exam:
+      type: string
+      enum: [gre, toefl]
+
+    ActiveExam:
+      type: [string, 'null']
+      enum: [gre, toefl, null]
+      description: Новый аккаунт без экзамена; выбор общий для всех устройств
+
+    ExamChoice:
+      type: object
+      additionalProperties: false
+      required: [exam]
+      properties:
+        exam: { $ref: '#/components/schemas/Exam' }
+
+    ExamInfo:
+      type: object
+      additionalProperties: false
+      required: [id, sections]
+      properties:
+        id: { $ref: '#/components/schemas/Exam' }
+        sections:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/Section' }
+
+    ExamList:
+      type: object
+      additionalProperties: false
+      required: [exams]
+      properties:
+        exams:
+          type: array
+          items: { $ref: '#/components/schemas/ExamInfo' }
+
     Section:
       type: string
-      enum: [verbal, quant, words, essay]
+      enum: [verbal, quant, words, essay, reading, listening, writing, speaking]
 
     StepState:
       type: string
@@ -740,8 +814,9 @@ components:
     TrainingRequest:
       type: object
       additionalProperties: false
-      required: [section, questionTypes, count, mode]
+      required: [exam, section, questionTypes, count, mode]
       properties:
+        exam: { $ref: '#/components/schemas/Exam' }
         section: { $ref: '#/components/schemas/Section' }
         questionTypes:
           type: array
@@ -893,6 +968,9 @@ components:
       required: [id, mode, section, questionTypes, startedAt, items]
       properties:
         id: { type: string, format: uuid }
+        exam:
+          $ref: '#/components/schemas/Exam'
+          description: Необязательное только для чтения сохранённых сессий старого формата; сервер возвращает всегда
         mode: { $ref: '#/components/schemas/TrainingMode' }
         section: { $ref: '#/components/schemas/Section' }
         questionTypes:

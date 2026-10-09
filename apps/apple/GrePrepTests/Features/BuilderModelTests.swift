@@ -21,6 +21,7 @@ struct BuilderModelTests {
         let model = model(loadsOnInit: true)
         await eventually { model.options != nil }
         #expect(server.requests("GET /api/trainings/options").count == 1)
+        #expect(server.requests("GET /api/trainings/options").first?.query?.contains("exam=gre") == true)
     }
 
     @Test func reloadPreservesEditsAndRemovesMissingChoices() {
@@ -208,7 +209,8 @@ struct BuilderModelTests {
             .init(
                 kind: "last",
                 request: .init(
-                    section: .quant, questionTypes: [.quantitativeComparison], topicIds: ["numbers"], difficulty: .hard,
+                    exam: currentExam, section: .quant, questionTypes: [.quantitativeComparison], topicIds: ["numbers"],
+                    difficulty: .hard,
                     count: 5, mode: .check))
         ]
         let model = model()

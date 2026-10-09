@@ -78,7 +78,8 @@ final class BuilderModel {
         let questions = min(count, available, options.maxQuestions)
         guard questions > 0 else { return nil }
         return .init(
-            section: form.section, questionTypes: [form.type], topicIds: form.topicIDs.map { $0.sorted() },
+            exam: currentExam, section: form.section, questionTypes: [form.type],
+            topicIds: form.topicIDs.map { $0.sorted() },
             difficulty: form.difficulty, count: questions, mode: form.mode)
     }
 

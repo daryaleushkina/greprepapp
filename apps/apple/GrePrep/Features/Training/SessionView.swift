@@ -77,7 +77,8 @@ private struct TrainingSessionContent: View {
                     content(s, wide: wide)
                         .background { SectionGlow(section: StudySection(s.training.session.section)) }
                         .navigationTitle(
-                            s.result == nil ? Text(StudySection(s.training.session.section).label) : Text("Итог")
+                            s.result == nil
+                                ? Text(verbatim: TrainingText.sectionLabel(s.training.session.section)) : Text("Итог")
                         )
                         .toolbar {
                             if s.result == nil {
@@ -437,7 +438,7 @@ struct SessionSummary: View {
         let time = TrainingRules.summaryMinutes(
             result.durationSeconds, limit: t.isCheck ? t.session.timeLimitSeconds : nil)
         let duration = String(localized: "\(time.minutes) минут").replacingOccurrences(of: " ", with: "\u{00A0}")
-        let section = String(localized: section.label)
+        let section = TrainingText.sectionLabel(t.session.section)
         if let limit = time.limit {
             return String(localized: "Проверка") + " · " + section + " · "
                 + String(localized: "\(duration) из \(limit)")

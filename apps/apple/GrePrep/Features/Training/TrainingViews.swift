@@ -234,7 +234,7 @@ struct TrainingBuilderView: View {
 
     private func presetSubtitle(_ preset: Components.Schemas.TrainingPreset) -> String {
         let r = preset.request
-        let section = String(localized: StudySection(r.section).label)
+        let section = TrainingText.sectionLabel(r.section)
         if preset.kind == TrainingPresetKind.timed.rawValue {
             return String(
                 localized:
@@ -374,7 +374,7 @@ struct TrainingTopicsView: View {
                     if wide { Text("Темы и сложность").gpText(GPType.title2Wide) }
                     Text(
                         verbatim:
-                            "\(String(localized: StudySection(model.form.section).label)) · \(model.form.type.label)"
+                            "\(TrainingText.sectionLabel(model.form.section)) · \(model.form.type.label)"
                     )
                     .gpText(GPType.subhead).foregroundStyle(StudySection(model.form.section).color)
                     topics
@@ -452,7 +452,7 @@ enum TrainingCopy {
     static func tasks(_ count: Int) -> String { String(localized: "\(count) заданий") }
     static func mistakes(_ count: Int) -> String { String(localized: "\(count) ошибок") }
     static func continuation(_ training: StoredTraining) -> String {
-        let section = String(localized: StudySection(training.session.section).label)
+        let section = TrainingText.sectionLabel(training.session.section)
         let types = training.session.questionTypes.map(\.label).joined(separator: " · ")
         let position = String(localized: "вопрос \(training.position + 1) из \(training.total)")
             .replacingOccurrences(of: " ", with: "\u{00A0}")

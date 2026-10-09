@@ -20,6 +20,7 @@ export const user = (over: Partial<User> = {}): User => ({
   name: 'Даша',
   role: 'user',
   locale: 'ru',
+  activeExam: null,
   identities: [{ provider: 'telegram', linkedAt: '2026-10-06T10:00:00Z' }],
   ...over,
 });

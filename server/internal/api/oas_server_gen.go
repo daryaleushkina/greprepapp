@@ -14,6 +14,12 @@ type Handler interface {
 	//
 	// POST /api/trainings/{trainingId}/finish
 	FinishTraining(ctx context.Context, req *TrainingFinish, params FinishTrainingParams) (*TrainingSummary, error)
+	// GetExams implements getExams operation.
+	//
+	// Экзамены и разделы в порядке прохождения.
+	//
+	// GET /api/exams
+	GetExams(ctx context.Context) (*ExamList, error)
 	// GetHealth implements getHealth operation.
 	//
 	// Жив ли сервер и какая сборка (сверка после выкладки).
@@ -67,6 +73,12 @@ type Handler interface {
 	//
 	// POST /api/questions/{questionId}/reports
 	ReportQuestion(ctx context.Context, req *QuestionReport, params ReportQuestionParams) error
+	// SetActiveExam implements setActiveExam operation.
+	//
+	// Выбрать активный экзамен аккаунта (решение Даши 09.10.2026).
+	//
+	// PUT /api/me/exam
+	SetActiveExam(ctx context.Context, req *ExamChoice) (*User, error)
 	// SignInForDevelopment implements signInForDevelopment operation.
 	//
 	// Включается переменной DEV_AUTH=1, которую сервер

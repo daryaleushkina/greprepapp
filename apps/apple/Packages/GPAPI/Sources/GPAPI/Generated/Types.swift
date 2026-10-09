@@ -52,6 +52,16 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `GET /api/me`.
     /// - Remark: Generated from `#/paths//api/me/get(getMe)`.
     func getMe(_ input: Operations.GetMe.Input) async throws -> Operations.GetMe.Output
+    /// Экзамены и разделы в порядке прохождения
+    ///
+    /// - Remark: HTTP `GET /api/exams`.
+    /// - Remark: Generated from `#/paths//api/exams/get(getExams)`.
+    func getExams(_ input: Operations.GetExams.Input) async throws -> Operations.GetExams.Output
+    /// Выбрать активный экзамен аккаунта (решение Даши 09.10.2026)
+    ///
+    /// - Remark: HTTP `PUT /api/me/exam`.
+    /// - Remark: Generated from `#/paths//api/me/exam/put(setActiveExam)`.
+    func setActiveExam(_ input: Operations.SetActiveExam.Input) async throws -> Operations.SetActiveExam.Output
     /// Лента шагов на сегодня (экран «Сегодня»)
     ///
     /// - Remark: HTTP `GET /api/today`.
@@ -193,6 +203,26 @@ extension APIProtocol {
     /// - Remark: Generated from `#/paths//api/me/get(getMe)`.
     public func getMe(headers: Operations.GetMe.Input.Headers = .init()) async throws -> Operations.GetMe.Output {
         try await getMe(Operations.GetMe.Input(headers: headers))
+    }
+    /// Экзамены и разделы в порядке прохождения
+    ///
+    /// - Remark: HTTP `GET /api/exams`.
+    /// - Remark: Generated from `#/paths//api/exams/get(getExams)`.
+    public func getExams(headers: Operations.GetExams.Input.Headers = .init()) async throws -> Operations.GetExams.Output {
+        try await getExams(Operations.GetExams.Input(headers: headers))
+    }
+    /// Выбрать активный экзамен аккаунта (решение Даши 09.10.2026)
+    ///
+    /// - Remark: HTTP `PUT /api/me/exam`.
+    /// - Remark: Generated from `#/paths//api/me/exam/put(setActiveExam)`.
+    public func setActiveExam(
+        headers: Operations.SetActiveExam.Input.Headers = .init(),
+        body: Operations.SetActiveExam.Input.Body
+    ) async throws -> Operations.SetActiveExam.Output {
+        try await setActiveExam(Operations.SetActiveExam.Input(
+            headers: headers,
+            body: body
+        ))
     }
     /// Лента шагов на сегодня (экран «Сегодня»)
     ///
