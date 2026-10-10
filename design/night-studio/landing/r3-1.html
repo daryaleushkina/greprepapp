@@ -1,0 +1,543 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>[Имя] — подготовка к экзамену без репетитора</title>
+<!-- Главная, раунд 3, вариант 1 «Репетитор в окне» (10.10.2026). Развитие round1/a.html: слева мысль «заменяем
+     репетитора» и четыре экзамена, справа окно продукта, где на глазах печатается разбор ошибки. Стартовое событие —
+     окно открывается из тонкой лазурной линии. Только реальные функции продукта (PRODUCT.md); текста — минимум.
+     Вид — «Ночная студия» (design/night-studio/core.css). -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geologica:wght@200;300;400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;family=Roboto:wght@500&amp;display=swap">
+<style>
+/* Раскладка: колонка 1200 px; первый экран — две колонки (мысль | окно), дальше — строки по сетке без карточек. */
+:root {
+  --bg: #F3F5FB; --surface: #FFFFFF; --surface-2: #E9EDF7;
+  --text: #0E1430; --text-2: #48516F; --text-3: #5D6685;
+  --line: rgb(14 20 48 / 0.1); --line-strong: rgb(14 20 48 / 0.22);
+  --accent: #0067B5; --accent-soft: rgb(0 103 181 / 0.09); --on-accent: #FFFFFF;
+  --right: #0B7A4E; --right-soft: rgb(11 122 78 / 0.1); --wrong: #C23A1E; --wrong-soft: rgb(194 58 30 / 0.09);
+  --verbal: #5A3FD6; --quant: #00775B; --essay: #985800; --words: #B02F69;
+  --reading: #2C5FD0; --listening: #00778A; --writing: #985800; --speaking: #B02F69;
+  --tg-bg: #119AF5; --tg-text: #FFFFFF;
+  --apple-bg: #000000; --apple-text: #FFFFFF;
+  --google-bg: #FFFFFF; --google-stroke: #747775; --google-text: #1F1F1F;
+  --font: 'Geologica', 'Onest', system-ui, sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+  --thin: 300;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0A0F1F; --surface: #121931; --surface-2: #1A2343;
+    --text: #EDF1FB; --text-2: #A8B1CC; --text-3: #8892B0;
+    --line: rgb(168 184 232 / 0.12); --line-strong: rgb(168 184 232 / 0.24);
+    --accent: #5CCFFF; --accent-soft: rgb(92 207 255 / 0.13); --on-accent: #051425;
+    --right: #6BE3A4; --right-soft: rgb(107 227 164 / 0.13); --wrong: #FF8B78; --wrong-soft: rgb(255 139 120 / 0.13);
+    --verbal: #A897FF; --quant: #4FD9B0; --essay: #FFBE63; --words: #FF86B4;
+    --reading: #8DB1FF; --listening: #5FD3E6; --writing: #FFBE63; --speaking: #FF86B4;
+    --apple-bg: #FFFFFF; --apple-text: #000000;
+    --google-bg: #131314; --google-stroke: #8E918F; --google-text: #E3E3E3;
+    --thin: 200;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0A0F1F; --surface: #121931; --surface-2: #1A2343;
+  --text: #EDF1FB; --text-2: #A8B1CC; --text-3: #8892B0;
+  --line: rgb(168 184 232 / 0.12); --line-strong: rgb(168 184 232 / 0.24);
+  --accent: #5CCFFF; --accent-soft: rgb(92 207 255 / 0.13); --on-accent: #051425;
+  --right: #6BE3A4; --right-soft: rgb(107 227 164 / 0.13); --wrong: #FF8B78; --wrong-soft: rgb(255 139 120 / 0.13);
+  --verbal: #A897FF; --quant: #4FD9B0; --essay: #FFBE63; --words: #FF86B4;
+  --reading: #8DB1FF; --listening: #5FD3E6; --writing: #FFBE63; --speaking: #FF86B4;
+  --apple-bg: #FFFFFF; --apple-text: #000000;
+  --google-bg: #131314; --google-stroke: #8E918F; --google-text: #E3E3E3;
+  --thin: 200;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body { margin: 0; background: var(--bg); color: var(--text); font: 400 17px/1.5 var(--font); -webkit-font-smoothing: antialiased; overflow-x: clip; }
+a { color: inherit; }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+p, h1, h2, h3, ul, figure, blockquote { margin: 0; }
+ul { padding: 0; list-style: none; }
+.num { font-variant-numeric: tabular-nums; }
+.nw { white-space: nowrap; }
+.wrap { width: min(1200px, 100% - 48px); margin-inline: auto; }
+@media (max-width: 600px) { .wrap { width: calc(100% - 40px); } }
+
+/* ---------- Шапка ---------- */
+.top { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
+.top .wrap { display: flex; align-items: center; gap: 28px; min-height: 64px; }
+.brand { font-weight: 600; letter-spacing: -0.01em; text-decoration: none; margin-right: auto; }
+.top nav { display: flex; gap: 24px; font-size: 15px; color: var(--text-2); }
+.top nav a { text-decoration: none; padding: 10px 0; }
+.top nav a:hover { color: var(--text); }
+.theme { border: 0; background: none; color: var(--text-2); font-size: 15px; min-height: 44px; padding: 0 4px; }
+.theme:hover { color: var(--text); }
+.top-actions { display: flex; align-items: center; gap: 8px; }
+.link-btn { display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border-radius: 10px; text-decoration: none; font-size: 15px; font-weight: 500; }
+.link-btn.ghost { color: var(--text-2); }
+.link-btn.ghost:hover { color: var(--text); }
+.link-btn.solid { background: var(--text); color: var(--bg); }
+@media (max-width: 860px) { .top nav { display: none; } }
+@media (max-width: 420px) { .top .wrap { gap: 6px; } .link-btn { padding: 0 10px; } }
+
+/* ---------- Первый экран ---------- */
+.hero { padding: clamp(48px, 9vh, 112px) 0 clamp(64px, 10vh, 120px); }
+.hero-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: clamp(40px, 6vw, 96px); align-items: center; }
+@media (max-width: 960px) { .hero-grid { grid-template-columns: minmax(0, 1fr); } }
+h1 { font-weight: 500; font-size: clamp(40px, 5.4vw, 72px); line-height: 1.02; letter-spacing: -0.035em; text-wrap: balance; }
+h1 .w { display: inline-block; }
+.exams-line { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-top: 28px; font-weight: var(--thin); font-size: clamp(28px, 3.4vw, 44px); letter-spacing: -0.02em; line-height: 1; color: var(--text-2); }
+.exams-line span { display: inline-block; }
+.lead { margin-top: 28px; max-width: 34ch; color: var(--text-2); font-size: 18px; }
+.signin { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 36px; max-width: 460px; }
+.provider { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; padding: 0 18px; border-radius: 12px; border: 1px solid transparent; font-size: 16px; font-weight: 500; transition: transform 160ms var(--ease-out); }
+.provider:active { transform: scale(0.97); }
+.provider svg { flex: none; }
+.p-telegram { flex: 1 1 100%; background: var(--tg-bg); color: var(--tg-text); }
+.p-telegram svg { width: 22px; height: 22px; }
+.p-apple, .p-google { flex: 1 1 0; }
+.p-apple { background: var(--apple-bg); color: var(--apple-text); }
+.p-apple svg { width: 15px; height: 18px; margin-top: -2px; }
+.p-google { background: var(--google-bg); color: var(--google-text); border-color: var(--google-stroke); font-family: 'Roboto', var(--font); }
+.p-google svg { width: 18px; height: 18px; }
+@media (max-width: 480px) { .p-apple, .p-google { flex-basis: 100%; } .sec { padding: 64px 0; } }
+.trial { margin-top: 14px; font-size: 14px; color: var(--text-3); }
+
+/* Окно продукта. Без свечения: только поверхность и тонкая рамка. */
+.stage { position: relative; }
+.window { position: relative; border-radius: 16px; background: var(--surface); border: 1px solid var(--line-strong); overflow: hidden; }
+.bar { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; padding: 16px 20px 12px; font-size: 14px; color: var(--text-2); }
+.bar .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--verbal); }
+.bar .count { font-weight: var(--thin); font-size: 20px; color: var(--text); }
+.progress { height: 2px; margin: 0 20px; background: var(--line); }
+.progress span { display: block; height: 100%; width: 20%; background: var(--accent); transition: transform 700ms var(--ease-out); transform-origin: 0 50%; }
+.body { padding: 22px 20px 20px; display: grid; gap: 18px; }
+.q { font-size: 18px; line-height: 1.6; }
+.blank { display: inline-block; min-width: 108px; border-bottom: 2px solid var(--text-3); text-align: center; font-weight: 600; transition: color 300ms ease, border-color 300ms ease; }
+.blank.filled { color: var(--right); border-color: var(--right); }
+.opts { display: grid; gap: 8px; }
+.opt { display: flex; align-items: center; gap: 12px; min-height: 46px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--line-strong); font-size: 16px; transition: border-color 300ms ease, background-color 300ms ease; }
+.oval { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--text-3); flex: none; display: grid; place-items: center; transition: border-color 300ms ease; }
+.oval::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: currentColor; opacity: 0; transform: scale(0.6); transition: opacity 200ms ease, transform 200ms var(--ease-out); }
+.opt .tag { margin-left: auto; font-size: 13px; opacity: 0; transition: opacity 300ms ease; }
+.opt.chosen .oval::after { opacity: 1; transform: scale(1); }
+.opt.is-wrong { border-color: var(--wrong); background: var(--wrong-soft); color: var(--text); }
+.opt.is-wrong .oval { border-color: var(--wrong); color: var(--wrong); }
+.opt.is-wrong .tag { opacity: 1; color: var(--wrong); }
+.opt.is-right { border-color: var(--right); background: var(--right-soft); }
+.opt.is-right .oval { border-color: var(--right); }
+.opt.is-right .tag { opacity: 1; color: var(--right); }
+.explain { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 600ms var(--ease-out); }
+.explain.open { grid-template-rows: 1fr; }
+.explain > div { min-height: 0; overflow: hidden; }
+.explain-in { display: grid; gap: 12px; padding-top: 2px; }
+.explain-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.verdict { font-size: 15px; color: var(--text-2); }
+.verdict b { color: var(--wrong); font-weight: 600; }
+.seg { display: inline-flex; padding: 3px; border-radius: 10px; background: var(--surface-2); }
+.seg button { border: 0; background: none; min-width: 44px; min-height: 32px; border-radius: 8px; font-size: 13px; font-weight: 600; color: var(--text-3); }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--text); }
+.etext { font-size: 15px; line-height: 1.6; min-height: 4.8em; }
+.etext .k { color: var(--accent); font-weight: 600; }
+.caret { display: inline-block; width: 1px; height: 1em; margin-left: 1px; vertical-align: -0.12em; background: var(--accent); animation: caret 900ms steps(2) infinite; }
+@keyframes caret { 50% { opacity: 0; } }
+.chip { justify-self: start; display: inline-flex; align-items: center; gap: 8px; min-height: 34px; padding: 0 12px; border-radius: 8px; background: var(--accent-soft); color: var(--text); font-size: 14px; opacity: 0; transform: translateY(6px); transition: opacity 400ms ease, transform 400ms var(--ease-out); }
+.chip.on { opacity: 1; transform: none; }
+.foot { display: flex; justify-content: flex-end; gap: 8px; padding: 0 20px 20px; }
+.fbtn { min-height: 44px; padding: 0 18px; border-radius: 10px; border: 0; font-size: 15px; font-weight: 600; background: var(--surface-2); color: var(--text); }
+.fbtn.main { background: var(--accent); color: var(--on-accent); transition: transform 160ms var(--ease-out); }
+.fbtn.main.press { transform: scale(0.96); }
+.under { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-top: 16px; }
+.score { display: flex; align-items: baseline; gap: 12px; opacity: 0; transition: opacity 500ms ease; }
+.score.on { opacity: 1; }
+.score b { font-weight: var(--thin); font-size: 44px; letter-spacing: -0.03em; line-height: 1; }
+.score small { font-size: 13px; color: var(--text-3); }
+.replay { border: 0; background: none; color: var(--text-3); font-size: 14px; min-height: 44px; padding: 0; text-decoration: underline; text-underline-offset: 4px; text-decoration-color: var(--line-strong); }
+.replay:hover { color: var(--text); }
+
+/* Стартовое событие: тонкая линия раскрывается в окно. */
+.slit { position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: var(--accent); transform-origin: 50% 50%; transform: scaleX(0.02); opacity: 0; pointer-events: none; }
+.intro .slit { animation: slit 1500ms var(--ease-out) 350ms both; }
+@keyframes slit { 0% { opacity: 0; transform: scaleX(0.02); } 12% { opacity: 1; } 55% { opacity: 1; transform: scaleX(1); } 100% { opacity: 0; transform: scaleX(1); } }
+.intro .window { animation: open 900ms var(--ease-in-out) 1050ms both; }
+@keyframes open { from { clip-path: inset(50% 0 50% 0 round 16px); } to { clip-path: inset(0 0 0 0 round 16px); } }
+.intro .bar, .intro .progress, .intro .body, .intro .foot { animation: rise 600ms var(--ease-out) both; }
+.intro .bar { animation-delay: 1650ms; } .intro .progress { animation-delay: 1700ms; } .intro .body { animation-delay: 1760ms; } .intro .foot { animation-delay: 1820ms; }
+.intro h1 .w { animation: word 900ms var(--ease-out) both; animation-delay: calc(250ms + var(--i) * 70ms); }
+.intro .exams-line span { animation: word 900ms var(--ease-out) both; animation-delay: calc(700ms + var(--i) * 90ms); }
+.intro .lead, .intro .signin, .intro .trial { animation: rise 700ms var(--ease-out) both; }
+.intro .lead { animation-delay: 1100ms; } .intro .signin { animation-delay: 1200ms; } .intro .trial { animation-delay: 1280ms; }
+@keyframes word { from { opacity: 0; transform: translateY(14px); filter: blur(8px); } to { opacity: 1; transform: none; filter: blur(0); } }
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* ---------- Секции ---------- */
+.sec { padding: clamp(72px, 11vh, 140px) 0; border-top: 1px solid var(--line); }
+.sec-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px 64px; align-items: end; margin-bottom: clamp(36px, 6vh, 64px); }
+@media (max-width: 860px) { .sec-head { grid-template-columns: minmax(0, 1fr); } }
+h2 { font-weight: 500; font-size: clamp(32px, 4vw, 52px); line-height: 1.05; letter-spacing: -0.03em; text-wrap: balance; }
+.sec-head p { color: var(--text-2); font-size: 18px; max-width: 40ch; }
+
+/* Что делает репетитор: строки по сетке, без карточек. */
+.does li { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px 64px; align-items: baseline; padding: 26px 0; border-top: 1px solid var(--line); }
+.does li:last-child { border-bottom: 1px solid var(--line); }
+.does b { font-weight: var(--thin); font-size: clamp(24px, 2.6vw, 34px); letter-spacing: -0.02em; line-height: 1.15; }
+.does span { color: var(--text-2); }
+@media (max-width: 760px) { .does li { grid-template-columns: minmax(0, 1fr); } }
+
+/* Экзамены: четыре колонки-разворота, как «Один сайт» из первого раунда. */
+.exams { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid var(--line-strong); }
+.exam { padding: 28px 28px 32px 0; display: grid; align-content: start; gap: 14px; }
+.exam + .exam { padding-left: 28px; border-left: 1px solid var(--line); }
+.exam-name { font-weight: var(--thin); font-size: clamp(40px, 4.4vw, 60px); letter-spacing: -0.03em; line-height: 1; }
+.exam-for { color: var(--text-2); font-size: 15px; min-height: 2.9em; }
+.exam ul { display: grid; gap: 8px; font-size: 15px; }
+.exam li { display: flex; align-items: center; gap: 10px; }
+.exam li i { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+.exam-meta { margin-top: 6px; font-family: var(--mono); font-size: 13px; color: var(--text-3); line-height: 1.6; }
+@media (max-width: 1000px) {
+  .exams { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .exam:nth-child(3) { padding-left: 0; border-left: 0; }
+  .exam:nth-child(n+3) { border-top: 1px solid var(--line); }
+}
+@media (max-width: 560px) {
+  .exams { grid-template-columns: minmax(0, 1fr); }
+  .exam, .exam + .exam { padding: 24px 0; border-left: 0; }
+  .exam + .exam { border-top: 1px solid var(--line); }
+  .exam-for { min-height: 0; }
+}
+
+/* Отзывы: типографика, без карточек. */
+.quotes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 48px; }
+.quote { display: grid; align-content: start; gap: 22px; padding-top: 24px; border-top: 1px solid var(--line-strong); }
+.quote p { font-size: 21px; line-height: 1.45; letter-spacing: -0.01em; }
+.quote footer { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; font-size: 15px; color: var(--text-2); }
+.quote footer b { font-weight: var(--thin); font-size: 32px; letter-spacing: -0.02em; color: var(--text); white-space: nowrap; }
+@media (max-width: 900px) { .quotes { grid-template-columns: minmax(0, 1fr); gap: 36px; } }
+
+/* Цена и вход. */
+.price { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 32px 64px; align-items: end; }
+.price-big { font-weight: var(--thin); font-size: clamp(56px, 8vw, 112px); letter-spacing: -0.045em; line-height: 0.95; }
+.price-line { margin-top: 20px; color: var(--text-2); font-size: 18px; }
+.price .signin { margin-top: 0; }
+@media (max-width: 860px) { .price { grid-template-columns: minmax(0, 1fr); } }
+
+/* Скачать и подвал. */
+.dl { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px 40px; }
+.dl p { font-size: 20px; letter-spacing: -0.01em; }
+.stores { display: flex; flex-wrap: wrap; gap: 12px; }
+.store { display: inline-flex; align-items: center; gap: 12px; min-height: 52px; padding: 0 18px 0 14px; border-radius: 12px; border: 1px solid var(--line-strong); text-decoration: none; }
+.store svg { width: 22px; height: 22px; flex: none; }
+.store span { display: grid; line-height: 1.1; }
+.store small { font-size: 11px; color: var(--text-2); }
+.store b { font-weight: 500; font-size: 17px; }
+.store:hover { border-color: var(--text-3); }
+footer.site { padding: 40px 0 56px; border-top: 1px solid var(--line); color: var(--text-3); font-size: 13px; }
+footer.site .wrap { display: grid; gap: 10px; }
+footer.site p { max-width: 90ch; }
+
+/* Появление при прокрутке — один раз. */
+.reveal { opacity: 0; transform: translateY(16px); transition: opacity 800ms ease, transform 800ms var(--ease-out); transition-delay: calc(var(--i, 0) * 80ms); }
+.reveal.in { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .intro *, .intro .window { animation: none !important; }
+  .slit { display: none; }
+  .reveal { transition: opacity 300ms ease; transform: none; }
+  .explain, .chip, .score, .progress span { transition-duration: 0ms !important; }
+  .caret { animation: none; }
+}
+</style>
+<script>if (!navigator.webdriver && !matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('intro');</script>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-tg" viewBox="0 0 22 22"><path fill="currentColor" d="M2.81376 10.5943C7.36914 8.61002 10.406 7.30175 11.9245 6.66971C16.265 4.86489 17.1658 4.55143 17.7542 4.54094C17.8836 4.53874 18.1716 4.57072 18.3596 4.72281C18.5158 4.85097 18.5598 5.0243 18.5818 5.14588C18.6013 5.26745 18.6282 5.54454 18.6062 5.76083C18.3719 8.23138 17.3539 14.2266 16.8363 16.9938C16.619 18.1647 16.1869 18.5572 15.7695 18.5955C14.8613 18.679 14.1728 17.996 13.294 17.42C11.9196 16.5185 11.1433 15.9575 9.80793 15.0779C8.26505 14.0613 9.26594 13.5025 10.1448 12.5895C10.3743 12.3505 14.373 8.71426 14.4487 8.3844C14.4584 8.34315 14.4682 8.18929 14.3755 8.10817C14.2852 8.02677 14.1508 8.0546 14.0532 8.07667C13.9142 8.10817 11.7158 9.56129 7.45089 12.4354C6.82664 12.8645 6.26174 13.0735 5.7529 13.0623C5.19524 13.0503 4.12016 12.7465 3.32096 12.4865C2.34201 12.1683 1.5626 12.0001 1.63096 11.4602C1.66613 11.1792 2.05417 10.8902 2.81376 10.5943Z"/></symbol>
+    <symbol id="i-apple" viewBox="0 0 814 1000"><path fill="currentColor" d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76.5 0-103.7 40.8-165.9 40.8s-105.6-57-155.5-127C46.7 790.7 0 663 0 541.8c0-194.4 126.4-297.5 250.8-297.5 66.1 0 121.2 43.4 162.7 43.4 39.5 0 101.1-46 176.3-46 28.5 0 130.9 2.6 198.3 99.2zm-234-181.5c31.1-36.9 53.1-88.1 53.1-139.3 0-7.1-.6-14.3-1.9-20.1-50.6 1.9-110.8 33.7-147.1 75.8-28.5 32.4-55.1 83.6-55.1 135.5 0 7.8 1.3 15.6 1.9 18.1 3.2.6 8.4 1.3 13.6 1.3 45.4 0 102.5-30.4 135.5-71.3z"/></symbol>
+    <symbol id="i-google" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></symbol>
+    <symbol id="i-gplay" viewBox="0 0 24 24"><path fill="currentColor" d="M4 2.6 13.6 12 4 21.4c-.3-.2-.5-.6-.5-1V3.6c0-.4.2-.8.5-1zm10.6 10.4 2.6 2.6-11 6.3 8.4-8.9zm3.6-3.6 3 1.7c.8.5.8 1.3 0 1.8l-3 1.7-2.8-2.6 2.8-2.6zM6.2 2.1l11 6.3-2.6 2.6-8.4-8.9z"/></symbol>
+  </defs>
+</svg>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#top">[Имя]</a>
+    <nav aria-label="Разделы страницы">
+      <a href="#tutor">Что внутри</a>
+      <a href="#exams">Экзамены</a>
+      <a href="#reviews">Отзывы</a>
+      <a href="#price">Цена</a>
+    </nav>
+    <div class="top-actions">
+      <button type="button" class="theme" id="theme" aria-label="Сменить тему">Светлая</button>
+      <a class="link-btn ghost" href="#download">Скачать</a>
+      <a class="link-btn solid" href="#price">Войти</a>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero" aria-labelledby="h-hero">
+    <div class="wrap hero-grid">
+      <div>
+        <h1 id="h-hero"><span class="w" style="--i:0">Подготовка</span> <span class="w" style="--i:1">к&nbsp;экзамену</span> <span class="w" style="--i:2">без&nbsp;репетитора</span></h1>
+        <p class="exams-line" aria-label="Экзамены: GRE, TOEFL, SAT, GMAT"><span style="--i:0">GRE</span><span style="--i:1">TOEFL</span><span style="--i:2">SAT</span><span style="--i:3">GMAT</span></p>
+        <p class="lead">Тренировки, разбор каждой ошибки <span class="nw">по-русски</span> и&nbsp;пробник, как настоящий экзамен.</p>
+        <div class="signin" role="group" aria-label="Войти">
+          <button type="button" class="provider p-telegram"><svg aria-hidden="true"><use href="#i-tg"/></svg>Войти через Telegram</button>
+          <button type="button" class="provider p-apple"><svg aria-hidden="true"><use href="#i-apple"/></svg>Войти с&nbsp;Apple</button>
+          <button type="button" class="provider p-google"><svg aria-hidden="true"><use href="#i-google"/></svg>Войти с&nbsp;Google</button>
+        </div>
+        <p class="trial">7&nbsp;дней бесплатно</p>
+      </div>
+
+      <div class="stage" aria-label="Пример: разбор ошибки в тренировке">
+        <div class="slit" aria-hidden="true"></div>
+        <div class="window" id="win">
+          <div class="bar"><span class="dot" aria-hidden="true"></span><span>Verbal · Text Completion</span><span class="count num">3 из&nbsp;10</span></div>
+          <div class="progress" aria-hidden="true"><span id="prog"></span></div>
+          <div class="body">
+            <p class="q" lang="en">Although the committee’s report was praised for its concision, critics noted that several crucial objections were dismissed in a single <span class="blank" id="blank">&nbsp;</span> sentence.</p>
+            <div class="opts" role="radiogroup" aria-label="Варианты ответа">
+              <div class="opt" id="o-right" role="radio" aria-checked="false"><span class="oval"></span><span lang="en">perfunctory</span><span class="tag">верно</span></div>
+              <div class="opt" id="o-wrong" role="radio" aria-checked="false"><span class="oval"></span><span lang="en">meticulous</span><span class="tag">ваш ответ</span></div>
+              <div class="opt" role="radio" aria-checked="false"><span class="oval"></span><span lang="en">impassioned</span></div>
+            </div>
+            <div class="explain" id="explain">
+              <div><div class="explain-in">
+                <div class="explain-head">
+                  <p class="verdict"><b>Неверно.</b> Почему meticulous соблазняет</p>
+                  <div class="seg" role="group" aria-label="Язык разбора">
+                    <button type="button" data-lang="ru" aria-pressed="true">RU</button>
+                    <button type="button" data-lang="en" aria-pressed="false">EN</button>
+                  </div>
+                </div>
+                <p class="etext" id="etext" aria-live="polite"></p>
+                <span class="chip" id="chip">Повторить: контраст после <i lang="en">although</i></span>
+              </div></div>
+            </div>
+          </div>
+          <div class="foot">
+            <button type="button" class="fbtn" tabindex="-1">Не знаю</button>
+            <button type="button" class="fbtn main" id="check" tabindex="-1">Проверить</button>
+          </div>
+        </div>
+        <div class="under">
+          <p class="score" id="score"><b class="num" id="score-n">150</b><small>Verbal · наша оценка</small></p>
+          <button type="button" class="replay" id="replay">Ещё раз</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="tutor" aria-labelledby="h-tutor">
+    <div class="wrap">
+      <div class="sec-head reveal"><h2 id="h-tutor">Всё, что делает репетитор</h2></div>
+      <ul class="does">
+        <li class="reveal"><b>Разбирает каждую ошибку</b><span>Почему соблазнил неверный вариант и&nbsp;чем лучше верный. По-русски или <span class="nw">по-английски</span>.</span></li>
+        <li class="reveal"><b>Подсказывает, что повторить</b><span>После тренировки&nbsp;— темы с&nbsp;ошибками и&nbsp;задания по&nbsp;ним.</span></li>
+        <li class="reveal"><b>Учит слова</b><span>Услышать, написать, перевести и&nbsp;сказать вслух.</span></li>
+        <li class="reveal"><b>Проводит пробный экзамен</b><span>Те&nbsp;же секции и&nbsp;время, в&nbsp;конце&nbsp;— примерный балл.</span></li>
+        <li class="reveal"><b>Проверяет письмо и&nbsp;речь</b><span>Эссе, Writing и&nbsp;Speaking с&nbsp;оценкой и&nbsp;советами.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="sec" id="exams" aria-labelledby="h-exams">
+    <div class="wrap">
+      <div class="sec-head reveal"><h2 id="h-exams">Выберите свой экзамен</h2><p>Задания, слова и&nbsp;пробник подстроятся под&nbsp;него.</p></div>
+      <div class="exams">
+        <article class="exam reveal" style="--i:0">
+          <span class="exam-name">GRE</span>
+          <span class="exam-for">Магистратура и&nbsp;PhD</span>
+          <ul><li><i style="background:var(--verbal)"></i>Verbal</li><li><i style="background:var(--quant)"></i>Quant</li><li><i style="background:var(--essay)"></i>Analytical Writing</li></ul>
+          <p class="exam-meta">1&nbsp;ч 58&nbsp;мин · 130–170</p>
+        </article>
+        <article class="exam reveal" style="--i:1">
+          <span class="exam-name">TOEFL</span>
+          <span class="exam-for">Английский для&nbsp;учёбы</span>
+          <ul><li><i style="background:var(--reading)"></i>Reading</li><li><i style="background:var(--listening)"></i>Listening</li><li><i style="background:var(--writing)"></i>Writing</li><li><i style="background:var(--speaking)"></i>Speaking</li></ul>
+          <p class="exam-meta">≈1&nbsp;ч 30&nbsp;мин · 1–6</p>
+        </article>
+        <article class="exam reveal" style="--i:2">
+          <span class="exam-name">SAT</span>
+          <span class="exam-for">Бакалавриат в&nbsp;США</span>
+          <ul><li><i style="background:var(--reading)"></i>Reading and Writing</li><li><i style="background:var(--quant)"></i>Math</li></ul>
+          <p class="exam-meta">2&nbsp;ч 14&nbsp;мин · 400–1600</p>
+        </article>
+        <article class="exam reveal" style="--i:3">
+          <span class="exam-name">GMAT</span>
+          <span class="exam-for">Бизнес-школы и&nbsp;MBA</span>
+          <ul><li><i style="background:var(--quant)"></i>Quantitative</li><li><i style="background:var(--verbal)"></i>Verbal</li><li><i style="background:var(--listening)"></i>Data Insights</li></ul>
+          <p class="exam-meta">2&nbsp;ч 15&nbsp;мин · 205–805</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Отзывы — ЗАГЛУШКИ для макета (решение Даши 10.10.2026). До запуска заменить настоящими, с согласия авторов;
+       выдуманные отзывы на рабочем сайте публиковать нельзя. -->
+  <section class="sec" id="reviews" aria-labelledby="h-reviews">
+    <div class="wrap">
+      <div class="sec-head reveal"><h2 id="h-reviews">Сдали без репетитора</h2></div>
+      <div class="quotes">
+        <figure class="quote reveal" style="--i:0">
+          <blockquote><p>Готовилась три месяца по вечерам. Когда не понимала, почему ошиблась, читала разбор <span class="nw">по-русски</span>, и всё вставало на место.</p></blockquote>
+          <footer><span>Алина, TOEFL</span><b class="num">5,5</b></footer>
+        </figure>
+        <figure class="quote reveal" style="--i:1">
+          <blockquote><p>Слова учил в метро: послушать, написать, сказать. За два месяца перестал спотыкаться на Text Completion.</p></blockquote>
+          <footer><span>Тимур, GRE Verbal</span><b class="num">161</b></footer>
+        </figure>
+        <figure class="quote reveal" style="--i:2">
+          <blockquote><p>Пробник показал 158–162. На экзамене было ровно 160, так что в день сдачи я уже знал, чего ждать.</p></blockquote>
+          <footer><span>Денис, GRE Quant</span><b class="num">160</b></footer>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="price" aria-labelledby="h-price">
+    <div class="wrap price">
+      <div class="reveal">
+        <h2 id="h-price" class="price-big">7&nbsp;дней бесплатно</h2>
+        <p class="price-line">Затем [ЦЕНА] в&nbsp;месяц. Отменить можно в&nbsp;любой день.</p>
+      </div>
+      <div class="signin reveal" style="--i:1" role="group" aria-label="Войти">
+        <button type="button" class="provider p-telegram"><svg aria-hidden="true"><use href="#i-tg"/></svg>Войти через Telegram</button>
+        <button type="button" class="provider p-apple"><svg aria-hidden="true"><use href="#i-apple"/></svg>Войти с&nbsp;Apple</button>
+        <button type="button" class="provider p-google"><svg aria-hidden="true"><use href="#i-google"/></svg>Войти с&nbsp;Google</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="download" aria-label="Скачать">
+    <div class="wrap dl reveal">
+      <p>Сайт, Telegram, iPhone, iPad, Mac и&nbsp;Android</p>
+      <div class="stores">
+        <a class="store" href="#"><svg aria-hidden="true"><use href="#i-apple"/></svg><span><small>Загрузите в</small><b>App Store</b></span></a>
+        <a class="store" href="#"><svg aria-hidden="true"><use href="#i-gplay"/></svg><span><small>Доступно в</small><b>Google Play</b></span></a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <p>[Имя] · подготовка к&nbsp;GRE®, TOEFL®, SAT® и&nbsp;GMAT™</p>
+    <p lang="en">GRE® and TOEFL® are registered trademarks of Educational Testing Service (ETS). SAT® is a registered trademark of the College Board. GMAT™ is a trademark of the Graduate Management Admission Council (GMAC). This product is not endorsed or approved by ETS, the College Board or GMAC.</p>
+  </div>
+</footer>
+
+<script>
+(() => {
+  const root = document.documentElement;
+  const auto = navigator.webdriver === true; // снимки: всё в готовом виде, без ожидания прокрутки
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Тема: сначала как в системе, переключатель запоминается.
+  const themeBtn = document.getElementById('theme');
+  const current = () => root.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  const label = () => { themeBtn.textContent = current() === 'dark' ? 'Светлая' : 'Тёмная'; };
+  try { const t = localStorage.getItem('landing-theme'); if (t) root.dataset.theme = t; } catch (e) { /* без памяти — как в системе */ }
+  label();
+  themeBtn.addEventListener('click', () => {
+    root.dataset.theme = current() === 'dark' ? 'light' : 'dark';
+    try { localStorage.setItem('landing-theme', root.dataset.theme); } catch (e) { /* необязательно */ }
+    label();
+  });
+
+  // Появление секций — один раз.
+  const items = document.querySelectorAll('.reveal');
+  if (auto || reduce || !('IntersectionObserver' in window)) items.forEach(el => el.classList.add('in'));
+  else {
+    const io = new IntersectionObserver((es) => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { rootMargin: '0px 0px -10% 0px' });
+    items.forEach(el => io.observe(el));
+  }
+
+  // Сцена в окне: человек выбирает неверный вариант, проверяет — печатается разбор.
+  const TEXT = {
+    ru: [['«Dismissed in a single sentence»', 'k'], [' — возражения отбросили наспех. Нужно слово «для галочки»: '], ['perfunctory', 'k'], ['. Meticulous звучит как похвала, но тщательно возражения не отбрасывают.']],
+    en: [['“Dismissed in a single sentence”', 'k'], [' means the objections were brushed aside. The blank needs “done as a formality”: '], ['perfunctory', 'k'], ['. Meticulous sounds like praise, but careful work doesn’t dismiss objections.']],
+  };
+  const $ = (id) => document.getElementById(id);
+  const etext = $('etext'), wrong = $('o-wrong'), right = $('o-right'), check = $('check');
+  let lang = 'ru', timers = [], typing = 0;
+  const later = (fn, ms) => timers.push(setTimeout(fn, ms));
+  const clear = () => { timers.forEach(clearTimeout); timers = []; cancelAnimationFrame(typing); };
+
+  function render(full, upto) {
+    etext.textContent = '';
+    let left = full ? Infinity : upto;
+    for (const [s, cls] of TEXT[lang]) {
+      if (left <= 0) break;
+      const piece = s.slice(0, left); left -= s.length;
+      if (cls) { const b = document.createElement('span'); b.className = cls; b.textContent = piece; etext.append(b); } else etext.append(piece);
+    }
+    if (!full && left <= 0) { const c = document.createElement('span'); c.className = 'caret'; etext.append(c); }
+  }
+  const total = () => TEXT[lang].reduce((n, [s]) => n + s.length, 0);
+  function type() {
+    const start = performance.now(), n = total();
+    const step = (t) => { const k = Math.min(n, Math.floor((t - start) / 16)); render(false, k); if (k < n) typing = requestAnimationFrame(step); else render(true); };
+    typing = requestAnimationFrame(step);
+  }
+  function countTo(to) {
+    const el = $('score-n'), from = 150, t0 = performance.now();
+    const step = (t) => { const p = Math.min(1, (t - t0) / 1200); const e = 1 - Math.pow(1 - p, 3); el.textContent = Math.round(from + (to - from) * e); if (p < 1) requestAnimationFrame(step); };
+    requestAnimationFrame(step);
+  }
+  function reset() {
+    clear();
+    [wrong, right].forEach(o => { o.classList.remove('chosen', 'is-wrong', 'is-right'); o.setAttribute('aria-checked', 'false'); });
+    $('blank').innerHTML = '&nbsp;'; $('blank').classList.remove('filled');
+    $('explain').classList.remove('open'); $('chip').classList.remove('on'); $('score').classList.remove('on');
+    $('score-n').textContent = '150'; $('prog').style.transform = 'scaleX(1)'; etext.textContent = '';
+  }
+  function finalState() {
+    wrong.classList.add('chosen', 'is-wrong'); wrong.setAttribute('aria-checked', 'true'); right.classList.add('is-right');
+    $('blank').textContent = 'perfunctory'; $('blank').classList.add('filled');
+    $('explain').classList.add('open'); render(true); $('chip').classList.add('on'); $('score').classList.add('on'); $('score-n').textContent = '154';
+    $('prog').style.transform = 'scaleX(1.5)';
+  }
+  function play(delay) {
+    reset();
+    if (reduce || auto) { finalState(); return; }
+    later(() => { wrong.classList.add('chosen'); wrong.setAttribute('aria-checked', 'true'); }, delay);
+    later(() => check.classList.add('press'), delay + 650);
+    later(() => { check.classList.remove('press'); wrong.classList.add('is-wrong'); right.classList.add('is-right'); $('blank').textContent = 'perfunctory'; $('blank').classList.add('filled'); $('prog').style.transform = 'scaleX(1.5)'; }, delay + 820);
+    later(() => { $('explain').classList.add('open'); }, delay + 1250);
+    later(type, delay + 1750);
+    later(() => $('chip').classList.add('on'), delay + 1750 + total() * 16 + 200);
+    later(() => { $('score').classList.add('on'); countTo(154); }, delay + 1750 + total() * 16 + 500);
+  }
+
+  document.querySelectorAll('.seg [data-lang]').forEach(b => b.addEventListener('click', () => {
+    lang = b.dataset.lang;
+    document.querySelectorAll('.seg [data-lang]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    cancelAnimationFrame(typing); render(true);
+  }));
+  $('replay').addEventListener('click', () => play(400));
+
+  // Стартовое событие: тишина → линия → окно открывается → сцена. На телефоне сцена ждёт, пока окно на экране.
+  const startDelay = (reduce || auto) ? 0 : 2600;
+  const win = $('win');
+  if (!reduce && !auto && 'IntersectionObserver' in window && innerWidth < 960) {
+    const io = new IntersectionObserver((es) => { if (es[0].isIntersecting) { io.disconnect(); play(900); } }, { threshold: 0.5 });
+    later(() => io.observe(win), startDelay);
+  } else play(startDelay);
+})();
+</script>
+</body>
+</html>

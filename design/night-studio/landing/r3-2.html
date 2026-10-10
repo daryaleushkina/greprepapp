@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>[Имя] — подготовка к экзамену без репетитора</title>
+<!-- Раунд 3, вариант 2 «Ночной кадр 2.0» (просьба Даши 10.10.2026: «просто и дорого», мало текста, стартовая
+     анимация как в round1/b, только реальные функции). Открытие: тишина → под строкой экзаменов прочерчивается
+     линия, от неё поднимается свет и проявляет заголовок. Свет идёт от строки экзаменов, а не от пятна. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geologica:wght@200;300;400;500;600&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;1,8..60,400&amp;display=swap">
+<style>
+:root {
+  --bg: #F3F5FB; --surface: #FFFFFF; --surface-2: #E9EDF7;
+  --text: #0E1430; --text-2: #48516F; --text-3: #5D6685;
+  --line: rgb(14 20 48 / 0.1); --line-strong: rgb(14 20 48 / 0.2);
+  --accent: #0067B5; --accent-soft: rgb(0 103 181 / 0.1); --on-accent: #FFFFFF;
+  --right: #0B7A4E; --right-soft: rgb(11 122 78 / 0.1); --wrong: #C23A1E; --wrong-soft: rgb(194 58 30 / 0.09);
+  --light: 0 103 181;      /* цвет света из строки экзаменов, RGB */
+  --light-core: 255 255 255;
+  --tg: #119AF5; --apple-bg: #000000; --apple-fg: #FFFFFF; --g-bg: #FFFFFF; --g-line: #747775; --g-fg: #1F1F1F;
+  --thin: 300;
+  --ease: cubic-bezier(0.23, 1, 0.32, 1);
+  --display: 'Geologica', 'Onest', system-ui, sans-serif;
+  --serif: 'Source Serif 4', Georgia, serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0A0F1F; --surface: #121931; --surface-2: #1A2343;
+  --text: #EDF1FB; --text-2: #A8B1CC; --text-3: #8892B0;
+  --line: rgb(168 184 232 / 0.1); --line-strong: rgb(168 184 232 / 0.22);
+  --accent: #5CCFFF; --accent-soft: rgb(92 207 255 / 0.13); --on-accent: #051425;
+  --right: #6BE3A4; --right-soft: rgb(107 227 164 / 0.13); --wrong: #FF8B78; --wrong-soft: rgb(255 139 120 / 0.13);
+  --light: 92 207 255; --light-core: 220 244 255;
+  --apple-bg: #FFFFFF; --apple-fg: #000000; --g-bg: #131314; --g-line: #8E918F; --g-fg: #E3E3E3;
+  --thin: 200; color-scheme: dark;
+} }
+:root[data-theme="dark"] {
+  --bg: #0A0F1F; --surface: #121931; --surface-2: #1A2343;
+  --text: #EDF1FB; --text-2: #A8B1CC; --text-3: #8892B0;
+  --line: rgb(168 184 232 / 0.1); --line-strong: rgb(168 184 232 / 0.22);
+  --accent: #5CCFFF; --accent-soft: rgb(92 207 255 / 0.13); --on-accent: #051425;
+  --right: #6BE3A4; --right-soft: rgb(107 227 164 / 0.13); --wrong: #FF8B78; --wrong-soft: rgb(255 139 120 / 0.13);
+  --light: 92 207 255; --light-core: 220 244 255;
+  --apple-bg: #FFFFFF; --apple-fg: #000000; --g-bg: #131314; --g-line: #8E918F; --g-fg: #E3E3E3;
+  --thin: 200; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 400 17px/1.5 var(--display); -webkit-font-smoothing: antialiased; overflow-x: clip; }
+a { color: inherit; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+.wrap { width: min(1180px, 100% - 40px); margin-inline: auto; }
+.num { font-variant-numeric: tabular-nums; }
+
+/* ---------- Шапка ---------- */
+.top { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--bg) 86%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+.top .wrap { display: flex; align-items: center; justify-content: space-between; min-height: 64px; gap: 16px; padding-top: env(safe-area-inset-top, 0px); }
+.brand { font-weight: 600; letter-spacing: -0.01em; text-decoration: none; }
+.top nav { display: flex; align-items: center; gap: 4px; }
+.top nav a, .top nav button { display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 10px; border: 0; background: none; text-decoration: none; font-size: 15px; color: var(--text-2); cursor: pointer; }
+.top nav a:hover, .top nav button:hover { color: var(--text); }
+.top nav .enter { color: var(--text); font-weight: 500; }
+.theme b { font-weight: 500; color: var(--text); }
+
+/* ---------- Первый экран ---------- */
+.hero { position: relative; isolation: isolate; min-height: min(860px, calc(100svh - 64px)); display: grid; place-items: center; text-align: center; padding: 48px 0 72px; }
+.hero canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
+.hero .inner { display: grid; justify-items: center; gap: 28px; }
+.hero h1 { margin: 0; font-weight: var(--thin); font-size: clamp(42px, 7.4vw, 104px); line-height: 1.02; letter-spacing: -0.035em; text-wrap: balance; max-width: 14ch; }
+.hero .sub { margin: -8px 0 0; color: var(--text-2); font-size: clamp(17px, 1.6vw, 20px); }
+.exams { position: relative; display: flex; gap: clamp(18px, 4vw, 56px); margin: 12px 0 0; padding: 0 0 18px; list-style: none; font-weight: 400; font-size: clamp(18px, 2.2vw, 26px); letter-spacing: 0.08em; }
+.exams li { color: var(--text); }
+.exams::after { content: ''; position: absolute; left: -12%; right: -12%; bottom: 0; height: 1px; background: linear-gradient(90deg, transparent, rgb(var(--light)) 30%, rgb(var(--light)) 70%, transparent); transform-origin: 50% 50%; }
+.signin { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; padding: 0 20px; border-radius: 999px; font-size: 16px; font-weight: 500; text-decoration: none; border: 1px solid transparent; cursor: pointer; white-space: nowrap; }
+.btn svg { width: 20px; height: 20px; flex: none; }
+.btn-tg { background: var(--tg); color: #fff; }
+.btn-apple { background: var(--apple-bg); color: var(--apple-fg); }
+.btn-g { background: var(--g-bg); color: var(--g-fg); border-color: var(--g-line); }
+.trial { margin: -12px 0 0; font-size: 14px; color: var(--text-3); }
+
+/* Открытие: всё скрыто до старта, кроме случая без JS. */
+.js .hero h1, .js .hero .sub, .js .exams li, .js .signin, .js .trial { opacity: 0; }
+.js .exams::after { transform: scaleX(0); }
+.play .exams li { animation: name-in 900ms var(--ease) both; animation-delay: calc(500ms + var(--i) * 120ms); }
+.play .exams::after { animation: line-in 1400ms var(--ease) 900ms both; }
+.play .hero h1 { animation: rise 1300ms var(--ease) 1700ms both; }
+.play .hero .sub { animation: rise 1100ms var(--ease) 2050ms both; }
+.play .signin { animation: rise 1000ms var(--ease) 2350ms both; }
+.play .trial { animation: fade 900ms var(--ease) 2600ms both; }
+@keyframes name-in { from { opacity: 0; letter-spacing: 0.3em; filter: blur(6px); } to { opacity: 1; letter-spacing: 0.08em; filter: blur(0); } }
+@keyframes line-in { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes rise { from { opacity: 0; transform: translateY(14px); filter: blur(8px); } to { opacity: 1; transform: none; filter: blur(0); } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+
+/* ---------- Лента продукта ---------- */
+section { padding: clamp(72px, 10vw, 140px) 0; }
+.sec-head { display: grid; gap: 10px; margin-bottom: clamp(36px, 5vw, 64px); }
+.sec-head h2 { margin: 0; font-weight: var(--thin); font-size: clamp(32px, 4.4vw, 60px); line-height: 1.05; letter-spacing: -0.03em; text-wrap: balance; }
+.sec-head p { margin: 0; color: var(--text-2); max-width: 46ch; }
+.reel { display: grid; gap: clamp(56px, 8vw, 120px); }
+.shot { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: clamp(28px, 6vw, 96px); align-items: center; }
+.shot h3 { margin: 0 0 8px; font-weight: 400; font-size: clamp(24px, 2.6vw, 34px); letter-spacing: -0.02em; line-height: 1.15; }
+.shot p { margin: 0; color: var(--text-2); max-width: 34ch; }
+.screen { background: var(--surface); border-radius: 22px; padding: clamp(20px, 3vw, 32px); display: grid; gap: 16px; min-width: 0; }
+.bar { display: flex; justify-content: space-between; align-items: center; font-size: 14px; color: var(--text-3); }
+.bar b { color: var(--text); font-weight: 500; font-variant-numeric: tabular-nums; }
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #7A66F0; margin-right: 8px; }
+.q { margin: 0; font-family: var(--serif); font-size: clamp(19px, 2vw, 23px); line-height: 1.5; }
+.gap { display: inline-block; min-width: 110px; border-bottom: 1.5px solid var(--text-3); text-align: center; }
+.gap.filled { color: var(--wrong); text-decoration: line-through; text-decoration-thickness: 1.5px; border-color: var(--wrong); }
+.opts { display: grid; gap: 8px; }
+.opt { display: flex; align-items: center; gap: 12px; min-height: 46px; padding: 0 14px; border-radius: 14px; background: var(--surface-2); font-size: 16px; }
+.opt i { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--text-3); flex: none; display: grid; place-items: center; }
+.opt.on { box-shadow: inset 0 0 0 1.5px var(--accent); }
+.opt.on i { border-color: var(--accent); }
+.opt.on i::after { content: ''; width: 9px; height: 9px; border-radius: 50%; background: var(--accent); }
+.opt.wrong { box-shadow: inset 0 0 0 1.5px var(--wrong); }
+.opt.wrong i { border-color: var(--wrong); }
+.opt.wrong i::after { content: ''; width: 9px; height: 9px; border-radius: 50%; background: var(--wrong); }
+.opt.right { box-shadow: inset 0 0 0 1.5px var(--right); background: var(--right-soft); }
+.opt.right i { border-color: var(--right); }
+.verdict { display: flex; gap: 10px; align-items: baseline; padding: 12px 14px; border-radius: 14px; background: var(--wrong-soft); font-size: 15px; }
+.verdict b { color: var(--wrong); font-weight: 600; }
+.explain { display: grid; gap: 10px; font-size: 16px; line-height: 1.55; }
+.explain p { margin: 0; }
+.explain em { font-style: normal; color: var(--accent); }
+.seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; background: var(--surface-2); justify-self: start; }
+.seg button { min-height: 34px; padding: 0 14px; border: 0; border-radius: 999px; background: none; font-size: 13px; font-weight: 600; color: var(--text-3); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--text); }
+:root[data-theme="dark"] .seg button[aria-pressed="true"] { background: #273152; }
+.word { font-weight: var(--thin); font-size: clamp(54px, 7vw, 84px); letter-spacing: -0.03em; line-height: 1; }
+.word-meta { display: flex; align-items: center; gap: 12px; color: var(--text-2); font-size: 15px; }
+.play-btn { display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; border: 0; background: var(--accent-soft); color: var(--accent); cursor: pointer; }
+.play-btn svg { width: 20px; height: 20px; }
+.word-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.word-steps div { padding: 14px; border-radius: 14px; background: var(--surface-2); display: grid; gap: 6px; min-width: 0; }
+.word-steps div > span { font-size: 13px; color: var(--text-3); }
+.word-steps b { font-weight: 500; font-size: 16px; overflow-wrap: anywhere; }
+.word-steps s { color: var(--wrong); text-decoration-thickness: 1.5px; }
+.word-steps u { color: var(--right); text-decoration: none; }
+.parts { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.parts div { display: grid; gap: 4px; padding: 12px 10px; border-radius: 12px; background: var(--surface-2); font-size: 13px; color: var(--text-3); min-width: 0; }
+.parts b { color: var(--text); font-weight: 500; font-size: 14px; }
+.parts .done { background: var(--accent-soft); }
+.score { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+.score b { font-weight: var(--thin); font-size: clamp(52px, 6vw, 76px); letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; }
+.score span { color: var(--text-3); font-size: 14px; }
+
+/* ---------- Отзывы ---------- */
+.quotes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(28px, 4vw, 56px); margin: 0; padding: 0; list-style: none; }
+.quotes li { display: grid; gap: 22px; align-content: start; padding-top: 22px; border-top: 1px solid var(--line-strong); }
+.quotes blockquote { margin: 0; font-weight: 300; font-size: clamp(20px, 1.9vw, 24px); line-height: 1.4; letter-spacing: -0.01em; }
+.quotes figcaption, .quotes .who { font-size: 15px; color: var(--text-2); }
+.who b { display: block; color: var(--text); font-weight: 500; }
+.who .res { color: var(--accent); font-variant-numeric: tabular-nums; }
+
+/* ---------- Экзамены ---------- */
+.ex-list { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--line-strong); }
+.ex-list li { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) auto; align-items: baseline; gap: 24px; padding: clamp(18px, 2.4vw, 28px) 0; border-bottom: 1px solid var(--line); }
+.ex-name { font-weight: var(--thin); font-size: clamp(44px, 6.4vw, 92px); letter-spacing: -0.03em; line-height: 1; }
+.ex-parts { color: var(--text-2); }
+.ex-time { color: var(--text-3); font-size: 15px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+/* ---------- Финал: цена, вход, магазины ---------- */
+.final { text-align: center; }
+.final .big { margin: 0; font-weight: var(--thin); font-size: clamp(56px, 9vw, 132px); letter-spacing: -0.04em; line-height: 0.95; }
+.final .then { margin: 18px 0 36px; color: var(--text-2); font-size: clamp(17px, 1.6vw, 20px); }
+.stores { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 28px; scroll-margin-top: 96px; }
+.store { display: inline-flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 18px; border-radius: 12px; border: 1px solid var(--line-strong); text-decoration: none; color: var(--text); }
+.store svg { width: 22px; height: 22px; flex: none; }
+.store span { display: grid; text-align: left; line-height: 1.15; }
+.store small { font-size: 11px; color: var(--text-3); }
+.store b { font-size: 16px; font-weight: 500; }
+
+footer { padding: 40px 0 calc(40px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--line); }
+footer .wrap { display: grid; gap: 10px; font-size: 13px; color: var(--text-3); }
+footer p { margin: 0; max-width: 92ch; }
+
+/* Появление по прокрутке — один раз. */
+.js .rv { opacity: 0; transform: translateY(18px); transition: opacity 900ms var(--ease), transform 900ms var(--ease); }
+.js .rv.in { opacity: 1; transform: none; }
+
+@media (max-width: 860px) {
+  .shot { grid-template-columns: minmax(0, 1fr); }
+  .quotes { grid-template-columns: minmax(0, 1fr); }
+  .ex-list li { grid-template-columns: minmax(0, 1fr) auto; gap: 6px 16px; }
+  .ex-parts { grid-column: 1 / -1; grid-row: 2; }
+  .parts { grid-template-columns: repeat(5, minmax(56px, 1fr)); overflow-x: auto; }
+  .word-steps { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 520px) {
+  .top nav .theme { padding: 0 8px; font-size: 14px; }
+  .top nav a { padding: 0 8px; }
+  .exams { gap: 16px; letter-spacing: 0.04em; }
+  .signin { flex-direction: column; align-items: stretch; width: min(340px, 100%); }
+  .parts { grid-template-columns: repeat(3, minmax(0, 1fr)); overflow: visible; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .play .exams li, .play .exams::after, .play .hero h1, .play .hero .sub, .play .signin, .play .trial { animation: fade 400ms linear both; animation-delay: 0ms; }
+  .js .exams::after { transform: none; }
+  .js .rv { transition: opacity 300ms linear; transform: none; }
+}
+</style>
+</head>
+<body>
+<script>
+// Тема: сначала выбор человека, иначе система. JS-класс включает открытие; без JS всё видно сразу.
+(function () {
+  var r = document.documentElement; r.classList.add('js');
+  try { var t = localStorage.getItem('landing-theme'); if (t === 'light' || t === 'dark') r.dataset.theme = t; } catch (e) { /* без памяти — как в системе */ }
+})();
+</script>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#top">[Имя]</a>
+    <nav aria-label="Главное">
+      <a href="#download">Скачать</a>
+      <button type="button" class="theme" id="theme" aria-label="Сменить тему"><span id="theme-label">Светлая</span></button>
+      <a class="enter" href="#signin">Войти</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <div class="hero" id="hero">
+    <canvas aria-hidden="true"></canvas>
+    <div class="inner wrap">
+      <h1>Подготовка к&nbsp;экзамену без&nbsp;репетитора</h1>
+      <p class="sub">Каждая ошибка разобрана по-русски.</p>
+      <ul class="exams" aria-label="Экзамены">
+        <li style="--i:0">GRE</li><li style="--i:1">TOEFL</li><li style="--i:2">SAT</li><li style="--i:3">GMAT</li>
+      </ul>
+      <div class="signin" id="signin">
+        <a class="btn btn-tg" href="#"><svg viewBox="0 0 22 22" aria-hidden="true"><path fill="currentColor" d="M2.81376 10.5943C7.36914 8.61002 10.406 7.30175 11.9245 6.66971C16.265 4.86489 17.1658 4.55143 17.7542 4.54094C17.8836 4.53874 18.1716 4.57072 18.3596 4.72281C18.5158 4.85097 18.5598 5.0243 18.5818 5.14588C18.6013 5.26745 18.6282 5.54454 18.6062 5.76083C18.3719 8.23138 17.3539 14.2266 16.8363 16.9938C16.619 18.1647 16.1869 18.5572 15.7695 18.5955C14.8613 18.679 14.1728 17.996 13.294 17.42C11.9196 16.5185 11.1433 15.9575 9.80793 15.0779C8.26505 14.0613 9.26594 13.5025 10.1448 12.5895C10.3743 12.3505 14.373 8.71426 14.4487 8.38445C14.4585 8.34319 14.4683 8.18939 14.3755 8.10834C14.2852 8.02705 14.1508 8.05488 14.0532 8.07685C13.914 8.1081 11.7193 9.56015 7.4618 12.4328C6.83928 12.861 6.27536 13.0697 5.76758 13.0587C5.21097 13.0468 4.13689 12.7433 3.3386 12.484C2.3621 12.166 1.5833 11.9977 1.65166 11.4575C1.68583 11.1763 2.07406 10.8884 2.81376 10.5943Z"/></svg>Войти через Telegram</a>
+        <a class="btn btn-apple" href="#"><svg viewBox="0 0 814 1000" aria-hidden="true"><path fill="currentColor" d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76.5 0-103.7 40.8-165.9 40.8s-105.6-57-155.5-127C46.7 790.7 0 663 0 541.8c0-194.4 126.4-297.5 250.8-297.5 66.1 0 121.2 43.4 162.7 43.4 39.5 0 101.1-46 176.3-46 28.5 0 130.9 2.6 198.3 99.2zm-234-181.5c31.1-36.9 53.1-88.1 53.1-139.3 0-7.1-.6-14.3-1.9-20.1-50.6 1.9-110.8 33.7-147.1 75.8-28.5 32.4-55.1 83.6-55.1 135.5 0 7.8 1.3 15.6 1.9 18.1 3.2.6 8.4 1.3 13.6 1.3 45.4 0 102.5-30.4 135.5-71.3z"/></svg>Войти с&nbsp;Apple</a>
+        <a class="btn btn-g" href="#"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>Войти с&nbsp;Google</a>
+      </div>
+      <p class="trial">7&nbsp;дней бесплатно</p>
+    </div>
+  </div>
+
+  <section aria-labelledby="h-how">
+    <div class="wrap">
+      <div class="sec-head rv"><h2 id="h-how">Как с&nbsp;репетитором, только в&nbsp;любое время</h2></div>
+      <div class="reel">
+
+        <article class="shot rv">
+          <div><h3>Задания как на&nbsp;экзамене</h3><p>Все типы заданий, тот&nbsp;же формат и&nbsp;время.</p></div>
+          <div class="screen" aria-label="Пример вопроса">
+            <div class="bar"><span><span class="dot"></span>Verbal · Text Completion</span><b>3 из&nbsp;10</b></div>
+            <p class="q" lang="en">The senator’s apology was so <span class="gap">&nbsp;</span> that it seemed designed less to make amends than to end the conversation.</p>
+            <div class="opts" lang="en">
+              <div class="opt"><i></i>contrite</div>
+              <div class="opt on"><i></i>perfunctory</div>
+              <div class="opt"><i></i>heartfelt</div>
+            </div>
+          </div>
+        </article>
+
+        <article class="shot rv">
+          <div><h3>Разбор каждой ошибки</h3><p>Почему ответ соблазнил и&nbsp;что повторить.</p></div>
+          <div class="screen" id="review" data-lang="ru">
+            <div class="verdict"><b>Неверно.</b><span>Выбрано contrite, верно perfunctory.</span></div>
+            <div class="seg" role="group" aria-label="Язык разбора"><button type="button" data-l="ru" aria-pressed="true">RU</button><button type="button" data-l="en" aria-pressed="false">EN</button></div>
+            <div class="explain" data-for="ru"><p><em>Contrite</em> соблазняет: рядом стоит слово apology. Но&nbsp;извинились, чтобы закончить разговор, значит формально.</p><p>Повторить: конструкция less&nbsp;…&nbsp;than.</p></div>
+            <div class="explain" data-for="en" hidden lang="en"><p><em>Contrite</em> tempts because of “apology”. But the apology was meant to end the talk, so it was done for form’s sake.</p><p>Review: the less … than structure.</p></div>
+          </div>
+        </article>
+
+        <article class="shot rv">
+          <div><h3>Слова на&nbsp;слух, письмом и&nbsp;голосом</h3><p>Выучено то, что вы&nbsp;написали и&nbsp;сказали верно.</p></div>
+          <div class="screen" aria-label="Пример карточки слова">
+            <div class="word" lang="en">laconic</div>
+            <div class="word-meta"><button type="button" class="play-btn" id="say" aria-label="Послушать laconic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M15.5 8.5a5 5 0 0 1 0 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button><span lang="en">/ləˈkɒnɪk/</span><span>лаконичный</span></div>
+            <div class="word-steps">
+              <div><span>Перевод</span><b>немногословный</b></div>
+              <div><span>Написать</span><b lang="en">la<s>k</s><u>c</u>onic</b></div>
+              <div><span>Сказать</span><b>Услышано: <span lang="en">laconic</span></b></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="shot rv">
+          <div><h3>Пробный экзамен и&nbsp;примерный балл</h3><p>Как настоящий: секции, время, карта частей.</p></div>
+          <div class="screen" aria-label="Пример результата пробника">
+            <div class="parts">
+              <div class="done"><b>Essay</b>30 мин</div><div class="done"><b>Verbal 1</b>18 мин</div><div class="done"><b>Verbal 2</b>23 мин</div><div class="done"><b>Quant 1</b>21 мин</div><div class="done"><b>Quant 2</b>26 мин</div>
+            </div>
+            <div class="score"><b>152–156</b><span>Verbal · наша оценка, не&nbsp;официальный балл</span></div>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Отзывы — заглушки для макета (просьба Даши 10.10.2026). До запуска заменить настоящими, с согласия авторов. -->
+  <section aria-labelledby="h-quotes">
+    <div class="wrap">
+      <div class="sec-head rv"><h2 id="h-quotes">Сдали без репетитора</h2></div>
+      <ul class="quotes">
+        <li class="rv"><blockquote>Готовилась сама. Больше всего помог разбор: сразу видно, почему выбрала не&nbsp;то.</blockquote><p class="who"><b>Алина К.</b>TOEFL · <span class="res">5,5 из&nbsp;6</span></p></li>
+        <li class="rv"><blockquote>Занимался по&nbsp;двадцать минут в&nbsp;метро. За&nbsp;два месяца Verbal вырос со&nbsp;152 до&nbsp;160.</blockquote><p class="who"><b>Дмитрий С.</b>GRE · <span class="res">324</span></p></li>
+        <li class="rv"><blockquote>Слова учила голосом, заодно подтянула произношение для Speaking.</blockquote><p class="who"><b>Мадина Р.</b>TOEFL · <span class="res">5 из&nbsp;6</span></p></li>
+      </ul>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-exams">
+    <div class="wrap">
+      <div class="sec-head rv"><h2 id="h-exams">Выберите свой экзамен</h2></div>
+      <ul class="ex-list">
+        <li class="rv"><span class="ex-name">GRE</span><span class="ex-parts">Verbal, Quant, эссе</span><span class="ex-time">1&nbsp;ч 58&nbsp;мин</span></li>
+        <li class="rv"><span class="ex-name">TOEFL</span><span class="ex-parts">Reading, Listening, Writing, Speaking</span><span class="ex-time">около 1,5&nbsp;ч</span></li>
+        <li class="rv"><span class="ex-name">SAT</span><span class="ex-parts">Reading and Writing, Math</span><span class="ex-time">2&nbsp;ч 14&nbsp;мин</span></li>
+        <li class="rv"><span class="ex-name">GMAT</span><span class="ex-parts">Quantitative, Verbal, Data Insights</span><span class="ex-time">2&nbsp;ч 15&nbsp;мин</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="final" aria-labelledby="h-price">
+    <div class="wrap">
+      <h2 class="big rv" id="h-price">7&nbsp;дней бесплатно</h2>
+      <p class="then rv">Затем [ЦЕНА] в&nbsp;месяц. Сайт, Telegram и&nbsp;приложения.</p>
+      <div class="signin rv" style="justify-content:center">
+        <a class="btn btn-tg" href="#"><svg viewBox="0 0 22 22" aria-hidden="true"><path fill="currentColor" d="M2.81376 10.5943C7.36914 8.61002 10.406 7.30175 11.9245 6.66971C16.265 4.86489 17.1658 4.55143 17.7542 4.54094C17.8836 4.53874 18.1716 4.57072 18.3596 4.72281C18.5158 4.85097 18.5598 5.0243 18.5818 5.14588C18.6013 5.26745 18.6282 5.54454 18.6062 5.76083C18.3719 8.23138 17.3539 14.2266 16.8363 16.9938C16.619 18.1647 16.1869 18.5572 15.7695 18.5955C14.8613 18.679 14.1728 17.996 13.294 17.42C11.9196 16.5185 11.1433 15.9575 9.80793 15.0779C8.26505 14.0613 9.26594 13.5025 10.1448 12.5895C10.3743 12.3505 14.373 8.71426 14.4487 8.38445C14.4585 8.34319 14.4683 8.18939 14.3755 8.10834C14.2852 8.02705 14.1508 8.05488 14.0532 8.07685C13.914 8.1081 11.7193 9.56015 7.4618 12.4328C6.83928 12.861 6.27536 13.0697 5.76758 13.0587C5.21097 13.0468 4.13689 12.7433 3.3386 12.484C2.3621 12.166 1.5833 11.9977 1.65166 11.4575C1.68583 11.1763 2.07406 10.8884 2.81376 10.5943Z"/></svg>Войти через Telegram</a>
+        <a class="btn btn-apple" href="#"><svg viewBox="0 0 814 1000" aria-hidden="true"><path fill="currentColor" d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76.5 0-103.7 40.8-165.9 40.8s-105.6-57-155.5-127C46.7 790.7 0 663 0 541.8c0-194.4 126.4-297.5 250.8-297.5 66.1 0 121.2 43.4 162.7 43.4 39.5 0 101.1-46 176.3-46 28.5 0 130.9 2.6 198.3 99.2zm-234-181.5c31.1-36.9 53.1-88.1 53.1-139.3 0-7.1-.6-14.3-1.9-20.1-50.6 1.9-110.8 33.7-147.1 75.8-28.5 32.4-55.1 83.6-55.1 135.5 0 7.8 1.3 15.6 1.9 18.1 3.2.6 8.4 1.3 13.6 1.3 45.4 0 102.5-30.4 135.5-71.3z"/></svg>Войти с&nbsp;Apple</a>
+        <a class="btn btn-g" href="#"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>Войти с&nbsp;Google</a>
+      </div>
+      <div class="stores rv" id="download">
+        <a class="store" href="#"><svg viewBox="0 0 814 1000" aria-hidden="true"><path fill="currentColor" d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76.5 0-103.7 40.8-165.9 40.8s-105.6-57-155.5-127C46.7 790.7 0 663 0 541.8c0-194.4 126.4-297.5 250.8-297.5 66.1 0 121.2 43.4 162.7 43.4 39.5 0 101.1-46 176.3-46 28.5 0 130.9 2.6 198.3 99.2zm-234-181.5c31.1-36.9 53.1-88.1 53.1-139.3 0-7.1-.6-14.3-1.9-20.1-50.6 1.9-110.8 33.7-147.1 75.8-28.5 32.4-55.1 83.6-55.1 135.5 0 7.8 1.3 15.6 1.9 18.1 3.2.6 8.4 1.3 13.6 1.3 45.4 0 102.5-30.4 135.5-71.3z"/></svg><span><small>Загрузите в</small><b>App Store</b></span></a>
+        <a class="store" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4.2 2.4 13.9 12l-9.7 9.6c-.4-.2-.7-.7-.7-1.2V3.6c0-.5.3-1 .7-1.2Zm10.8 10.7 2.4 2.4-11 6.3 8.6-8.7Zm0-2.2L6.4 2.2l11 6.3-2.4 2.4Zm3.7.4 2.7 1.5c.8.5.8 1.6 0 2.1l-2.7 1.5-2.6-2.6 2.6-2.5Z"/></svg><span><small>Доступно в</small><b>Google Play</b></span></a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>[Имя] · подготовка к&nbsp;GRE®, TOEFL®, SAT® и&nbsp;GMAT™</p>
+    <p lang="en">GRE® and TOEFL® are registered trademarks of Educational Testing Service (ETS). SAT® is a registered trademark of the College Board. GMAT™ is a trademark of the Graduate Management Admission Council (GMAC). This product is not endorsed or approved by ETS, the College Board or GMAC.</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var robot = navigator.webdriver === true;
+
+  // ---------- Тема ----------
+  var label = document.getElementById('theme-label');
+  function current() { return root.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); }
+  function syncLabel() { label.textContent = current() === 'dark' ? 'Светлая' : 'Тёмная'; }
+  document.getElementById('theme').addEventListener('click', function () {
+    var next = current() === 'dark' ? 'light' : 'dark';
+    root.dataset.theme = next;
+    try { localStorage.setItem('landing-theme', next); } catch (e) { /* тема только на этот показ */ }
+    syncLabel(); restartLight();
+  });
+  syncLabel();
+
+  // ---------- Свет из строки экзаменов ----------
+  // Канвас в четверть разрешения: размытие получается само. Свет растёт от линии под экзаменами вверх
+  // и вниз; через 4 с дышит едва заметно и останавливается, когда первый экран не виден.
+  var hero = document.getElementById('hero');
+  var canvas = hero.querySelector('canvas');
+  var ctx = canvas.getContext && canvas.getContext('2d');
+  var line = hero.querySelector('.exams');
+  var start = 0, raf = 0, visible = true;
+  function rgb(name) { return getComputedStyle(root).getPropertyValue(name).trim().split(/\s+/).join(','); }
+  function resize() {
+    var r = hero.getBoundingClientRect();
+    canvas.width = Math.max(1, Math.round(r.width / 4));
+    canvas.height = Math.max(1, Math.round(r.height / 4));
+  }
+  function draw(now) {
+    if (!ctx) return;
+    var w = canvas.width, h = canvas.height;
+    var hr = hero.getBoundingClientRect(), lr = line.getBoundingClientRect();
+    var y = (lr.bottom - hr.top) / 4;               // линия под экзаменами
+    var t = reduce || robot ? 1 : Math.min(1, Math.max(0, (now - start - 900) / 3600));
+    var e = 1 - Math.pow(1 - t, 3);
+    var breath = reduce || robot ? 1 : 1 + 0.04 * Math.sin((now - start) / 2400);
+    var c = rgb('--light'), core = rgb('--light-core');
+    var dark = current() === 'dark';
+    ctx.clearRect(0, 0, w, h);
+    // Широкое мягкое свечение над линией — освещает заголовок.
+    var up = h * (0.75 * e) * breath;
+    ctx.save(); ctx.translate(w / 2, y); ctx.scale(2.6, 0.5);
+    var g = ctx.createRadialGradient(0, 0, 0, 0, 0, Math.max(1, up));
+    g.addColorStop(0, 'rgba(' + c + ',' + (dark ? 0.24 : 0.12) * e + ')');
+    g.addColorStop(0.45, 'rgba(' + c + ',' + (dark ? 0.07 : 0.04) * e + ')');
+    g.addColorStop(1, 'rgba(' + c + ',0)');
+    ctx.fillStyle = g; ctx.fillRect(-w, -h * 2, w * 2, h * 4); ctx.restore();
+    if (!reduce && !robot && visible) raf = requestAnimationFrame(draw);
+  }
+  function restartLight() { if (!ctx) return; resize(); cancelAnimationFrame(raf); raf = requestAnimationFrame(draw); }
+  if (ctx) {
+    new IntersectionObserver(function (es) { visible = es[0].isIntersecting; if (visible) restartLight(); }).observe(hero);
+    addEventListener('resize', restartLight, { passive: true });
+  }
+
+  function begin() {
+    start = performance.now();
+    root.classList.add('play');
+    restartLight();
+  }
+  // Ждём шрифт, чтобы строка экзаменов не прыгнула во время открытия.
+  (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(begin);
+
+  // ---------- Появление по прокрутке ----------
+  var rv = document.querySelectorAll('.rv');
+  if (robot || reduce || !('IntersectionObserver' in window)) {
+    rv.forEach(function (el) { el.classList.add('in'); });
+  } else {
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } });
+    }, { rootMargin: '0px 0px -10% 0px' });
+    rv.forEach(function (el) { io.observe(el); });
+  }
+
+  // ---------- Язык разбора ----------
+  var review = document.getElementById('review');
+  review.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-l]'); if (!b) return;
+    review.querySelectorAll('[data-l]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+    review.querySelectorAll('[data-for]').forEach(function (x) { x.hidden = x.dataset.for !== b.dataset.l; });
+  });
+
+  // ---------- Озвучка слова ----------
+  // В приложении — заранее записанный звук; здесь — синтез речи браузера, только по нажатию.
+  document.getElementById('say').addEventListener('click', function () {
+    if (!('speechSynthesis' in window)) return;
+    var u = new SpeechSynthesisUtterance('laconic'); u.lang = 'en-US'; u.rate = 0.9;
+    speechSynthesis.cancel(); speechSynthesis.speak(u);
+  });
+})();
+</script>
+</body>
+</html>
