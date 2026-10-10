@@ -777,8 +777,10 @@ ul { padding: 0; list-style: none; }
   const show = (list, i) => list.forEach((s, k) => s.classList.toggle('on', k === i));
   const go = (i) => { cur = i; show(heroScreens, i); pager.forEach((b, k) => b.setAttribute('aria-current', String(k === i))); };
   go(0);
-  pager.forEach((b) => b.addEventListener('click', () => { clearInterval(timer); timer = null; go(Number(b.dataset.to)); }));
-  if (!still) setTimeout(() => { timer = setInterval(() => go((cur + 1) % pager.length), 2600); }, 3200);
+  // Ручной выбор отменяет и уже идущее автолистание, и запланированный его запуск.
+  let startTimer = null;
+  pager.forEach((b) => b.addEventListener('click', () => { clearTimeout(startTimer); clearInterval(timer); timer = null; go(Number(b.dataset.to)); }));
+  if (!still) startTimer = setTimeout(() => { timer = setInterval(() => go((cur + 1) % pager.length), 2600); }, 3200);
 
   // Телефон в «приборе» меняет экран под секцию, которая сейчас по центру.
   const tourScreens = [...document.querySelectorAll('#tour-screen .s')];

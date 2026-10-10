@@ -4,7 +4,7 @@
 import { chromium } from 'playwright';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
-const [variant = 'a', width = '1440', theme = 'dark', out = 'shot.png', delay = '4000', full] = process.argv.slice(2);
+const [variant = 'r3-4', width = '1440', theme = 'dark', out = 'shot.png', delay = '4000', full] = process.argv.slice(2);
 const here = dirname(fileURLToPath(import.meta.url));
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: Number(width), height: Number(width) > 600 ? 900 : 844 } });

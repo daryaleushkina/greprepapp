@@ -59,7 +59,8 @@
 
 /* ---------- Оболочка ---------- */
 .app { height: 100%; display: flex; flex-direction: column; }
-.main { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; gap: 20px; padding: 12px 20px 0; }
+/* Экран листается внутри рамки: длинная главная не прячет нижние карточки под вкладками. */
+.main { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; display: flex; flex-direction: column; gap: 20px; padding: 12px 20px 0; }
 .has-nav .main { padding-bottom: 96px; }
 
 .nav {
@@ -118,7 +119,7 @@
 .side-week { display: none; }
 
 /* ---------- Сессия: вопрос и разбор ---------- */
-.session-top { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 4px 8px; }
+.session-top { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 4px 8px; }
 .session-meta { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 14px; }
 .session-sec { display: inline-flex; align-items: center; gap: 8px; color: var(--text-2); font-weight: 500; }
 .session-count { font-variant-numeric: tabular-nums; font-weight: 600; }

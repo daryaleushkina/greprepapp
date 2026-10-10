@@ -129,6 +129,16 @@ function render() {
         frame.className = `frame device-${state.device}`;
         frame.dataset.theme = t;
         frame.innerHTML = s.html;
+        // Обе темы — две копии одной разметки: id и ссылки на них делаем уникальными, иначе подпись
+        // поля в тёмной копии фокусирует поле светлой.
+        frame.querySelectorAll('[id]').forEach(el => { el.id = `${el.id}--${t}`; });
+        frame.querySelectorAll('[for]').forEach(el => el.setAttribute('for', `${el.getAttribute('for')}--${t}`));
+        frame.querySelectorAll('[aria-labelledby],[aria-describedby],[aria-controls]').forEach(el => {
+          for (const a of ['aria-labelledby', 'aria-describedby', 'aria-controls']) {
+            const v = el.getAttribute(a);
+            if (v) el.setAttribute(a, v.split(/\s+/).map(x => `${x}--${t}`).join(' '));
+          }
+        });
         frames.append(frame);
       }
       row.append(fig);
@@ -149,6 +159,8 @@ document.addEventListener('click', (e) => {
   }
   // Живые мелочи внутри экранов: выбор варианта (один — radio, несколько — checkbox) и язык разбора.
   const opt = e.target.closest('.frame .opt');
+  // Заблокированный ответ (вернулась к прошлому вопросу) не меняется.
+  if (opt && (opt.closest('fieldset[disabled]') || opt.classList.contains('qnav-locked'))) return;
   if (opt) {
     if (opt.getAttribute('role') === 'checkbox') opt.setAttribute('aria-checked', String(opt.getAttribute('aria-checked') !== 'true'));
     else opt.closest('.opt-group').querySelectorAll('.opt').forEach(o => o.setAttribute('aria-checked', String(o === opt)));
