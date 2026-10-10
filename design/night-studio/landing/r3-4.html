@@ -124,9 +124,9 @@ section[id] { scroll-margin-top: 72px; }
 /* Экраны приложения: по одному видно, переключаются плавно. */
 .s { position: absolute; inset: 0; padding: 58px 18px 0; display: flex; flex-direction: column; gap: 14px; font-size: 13px; line-height: 1.4; opacity: 0; transform: translateY(10px); transition: opacity 520ms var(--ease), transform 620ms var(--ease); }
 .s.on { opacity: 1; transform: none; }
-.s .tabs { position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-around; padding: 12px 6px 28px; font-size: 11px; background: var(--nav-bg); border-top: 1px solid var(--line); font-size: 10px; color: var(--text-3); }
-.s .tabs span { display: grid; justify-items: center; gap: 5px; }
-.s .tabs svg { width: 20px; height: 20px; }
+.s .tabs { position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-around; padding: 8px 6px 22px; font-size: 11px; background: var(--nav-bg); border-top: 1px solid var(--line); font-size: 10px; color: var(--text-3); }
+.s .tabs span { display: grid; justify-items: center; gap: 3px; }
+.s .tabs svg { width: 18px; height: 18px; }
 /* Шапка экрана: чип экзамена и аватар профиля — без пятой вкладки. */
 .s-top { display: flex; align-items: center; justify-content: space-between; }
 .avatar { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: color-mix(in srgb, var(--verbal) 22%, var(--surface-2)); color: var(--text); font-weight: 600; font-size: 13px; flex: none; }
@@ -509,7 +509,7 @@ section[id] { scroll-margin-top: 72px; }
   .cta { width: 100%; }
   .device { width: 100%; height: auto; padding: 0; border-radius: 28px; background: none; box-shadow: none; }
   .device::before, .device::after { display: none; }
-  .screen { height: 560px; border-radius: 28px; border: 1px solid var(--line); }
+  .screen { height: 580px; border-radius: 28px; border: 1px solid var(--line); }
   .s { padding-top: 22px; }
   /* В секциях — один экран, высота по содержимому: без пустого низа. */
   .step .mobile-screen .screen { height: auto; }

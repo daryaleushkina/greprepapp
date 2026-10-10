@@ -250,7 +250,7 @@
   .nav-item[aria-current="page"] { background: var(--accent-soft); }
   .top .exam-switch-top { display: none; }
   /* Шапка, в которой только переключатель экзамена, на компьютере не нужна: он в боковой панели. */
-  .has-nav .top:has(> .exam-switch-top:only-child) { display: none; }
+  .has-nav .top:not(:has(> :not(.exam-switch-top, .top-avatar))) { display: none; }
   .main { padding: 40px 56px 0; gap: 28px; }
   .has-nav .main { padding-bottom: 40px; }
   .h1 { font-size: 40px; }

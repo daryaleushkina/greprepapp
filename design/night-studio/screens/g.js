@@ -107,7 +107,7 @@ NS.add({ id: 'G2', group: 'G', name: 'Профиль и настройки', htm
   ${NS.nav('profile')}
   <div class="main scroll g-settings">
     <h1 class="h1">Профиль</h1>
-    <div class="g-profile"><span class="avatar g-avatar" aria-hidden="true">А</span><span class="g-profile-text"><b>Алина Карпова</b><small>Вход через Telegram · @alina_k</small></span></div>
+    <div class="g-profile"><span class="avatar g-avatar" aria-hidden="true">А</span><span class="g-profile-text"><b>Алина Карпова</b><small>Вход с Apple</small></span></div>
     <ul class="g-list" role="list">
       <li><a href="#" class="g-row"><span class="g-row-label">Экзамен</span><span class="g-row-value">GRE</span><svg class="ic-sm g-chev"><use href="#i-chevron-right"/></svg></a></li>
     </ul>
@@ -127,7 +127,7 @@ NS.add({ id: 'G2', group: 'G', name: 'Профиль и настройки', htm
     </ul>
     <ul class="g-list" role="list">
       <li><a href="#" class="g-row"><svg class="ic g-row-ic"><use href="#i-g-card"/></svg><span class="g-row-label">Подписка</span><span class="g-row-value">до 9 ноября</span><svg class="ic-sm g-chev"><use href="#i-chevron-right"/></svg></a></li>
-      <li><a href="#" class="g-row"><svg class="ic g-row-ic"><use href="#i-g-key"/></svg><span class="g-row-label">Способы входа</span><span class="g-row-value">Telegram</span><svg class="ic-sm g-chev"><use href="#i-chevron-right"/></svg></a></li>
+      <li><a href="#" class="g-row"><svg class="ic g-row-ic"><use href="#i-g-key"/></svg><span class="g-row-label">Способы входа</span><span class="g-row-value">Apple</span><svg class="ic-sm g-chev"><use href="#i-chevron-right"/></svg></a></li>
       <li><a href="#" class="g-row"><svg class="ic g-row-ic"><use href="#i-g-mail"/></svg><span class="g-row-label">Написать нам</span><svg class="ic-sm g-chev"><use href="#i-chevron-right"/></svg></a></li>
     </ul>
     <footer class="g-legal" lang="en">

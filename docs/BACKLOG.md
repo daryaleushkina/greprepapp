@@ -21,7 +21,7 @@ tools/dev/backlog.sh           # пересобрать это зеркало
 - [#5](https://github.com/daryaleushkina/greprepapp/issues/5) Вход через Google в приложении Apple: где менять код на id_token
 - [#6](https://github.com/daryaleushkina/greprepapp/issues/6) Аккаунт Apple Developer: подключить к приложению
 - [#7](https://github.com/daryaleushkina/greprepapp/issues/7) Экран входа: ссылки на условия и политику конфиденциальности
-- [#12](https://github.com/daryaleushkina/greprepapp/issues/12) Android: вход через Telegram, Google и Apple
+- [#12](https://github.com/daryaleushkina/greprepapp/issues/12) Android: вход через Google и Apple (без Telegram — решение Даши 10.10.2026)
 - [#14](https://github.com/daryaleushkina/greprepapp/issues/14) Android: эмулятор и инструментальные тесты (Keystore, сеть, запуск)
 
 ## Инфраструктура
@@ -46,3 +46,4 @@ tools/dev/backlog.sh           # пересобрать это зеркало
 - [#32](https://github.com/daryaleushkina/greprepapp/issues/32) Сайт: «Назад» (BackLink) перехватывает Cmd/Ctrl-клик и среднюю кнопку
 - [#34](https://github.com/daryaleushkina/greprepapp/issues/34) Жалобы на задания: повтор после потерянного ответа создаёт дубль
 - [#41](https://github.com/daryaleushkina/greprepapp/issues/41) Apple: снимок training-report-failed-ipad-dark нестабилен — фон системной кнопки «Отмена»
+- [#42](https://github.com/daryaleushkina/greprepapp/issues/42) Вход через Telegram на сайте и в приложениях: убрать (решение Даши 10.10.2026)
