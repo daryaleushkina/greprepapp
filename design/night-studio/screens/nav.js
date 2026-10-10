@@ -47,11 +47,11 @@ NS.add({ id: 'R19', group: 'R', name: 'Разбор тренировки — н�
         </div>
         <div class="explain-body" data-lang-block="ru">
           <p>«Brevity came at a cost» и «dismissed in a single sentence» говорят, что возражения разобрали наспех. Нужно слово с оттенком «для галочки».</p>
-          <p class="trap"><b>Почему соблазняет meticulous.</b> Звучит как похвала отчёту, но «скрупулёзный» противоречит «dismissed».</p>
+          <p class="trap"><b>Почему meticulous кажется верным.</b> Звучит как похвала отчёту, но «скрупулёзный» противоречит «dismissed».</p>
         </div>
         <div class="explain-body" data-lang-block="en">
           <p>“Brevity came at a cost” and “dismissed in a single sentence” signal that the objections were handled hastily.</p>
-          <p class="trap"><b>Why meticulous tempts.</b> It sounds like praise, but “meticulous” clashes with “dismissed”.</p>
+          <p class="trap"><b>Why meticulous looks right.</b> It sounds like praise, but “meticulous” clashes with “dismissed”.</p>
         </div>
       </section>
     </div>

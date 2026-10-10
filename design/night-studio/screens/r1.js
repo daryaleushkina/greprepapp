@@ -85,12 +85,12 @@ NS.add({ id: 'R4', group: 'R', name: 'Text Completion — неверно, раз
         <div class="explain-body" data-lang-block="ru">
           <p>«Brevity came at a cost» и «dismissed in a single sentence» говорят, что возражения разобрали наспех. Нужно слово с оттенком «для галочки».</p>
           <p><b>Perfunctory</b> — сделанный формально, поверхностно. Это и есть цена краткости.</p>
-          <p class="trap"><b>Почему соблазняет meticulous.</b> Звучит как похвала отчёту, но «скрупулёзный» противоречит «dismissed»: тщательно возражения не отбрасывают.</p>
+          <p class="trap"><b>Почему meticulous кажется верным.</b> Звучит как похвала отчёту, но «скрупулёзный» противоречит «dismissed»: тщательно возражения не отбрасывают.</p>
         </div>
         <div class="explain-body" data-lang-block="en">
           <p>“Brevity came at a cost” and “dismissed in a single sentence” signal that the objections were handled hastily. The blank needs a word meaning “done only as a formality.”</p>
           <p><b>Perfunctory</b> — carried out with minimal effort. That is the cost of brevity.</p>
-          <p class="trap"><b>Why meticulous tempts.</b> It sounds like praise for the report, but “meticulous” clashes with “dismissed”: careful work doesn’t brush objections aside.</p>
+          <p class="trap"><b>Why meticulous looks right.</b> It sounds like praise for the report, but “meticulous” clashes with “dismissed”: careful work doesn’t brush objections aside.</p>
         </div>
         <a href="#" class="topic-link"><svg class="ic-sm"><use href="#i-book"/></svg><span>Тема: контраст после <i>although</i></span><svg class="ic-sm"><use href="#i-chevron-right"/></svg></a>
         <a href="#" class="report-link"><svg class="ic-sm"><use href="#i-flag"/></svg>Сообщить об ошибке</a>

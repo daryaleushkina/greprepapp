@@ -127,7 +127,7 @@ NS.add({ id: 'T2', group: 'T', name: 'Тренировка — первый за
           <p class="eyebrow">Первая тренировка</p>
           <h2 class="start-title">Verbal</h2>
           <p class="start-meta"><span class="sec-dot"></span>Text Completion · 10 вопросов · ~12 мин</p>
-          <p class="t-first-note">После каждого ответа — разбор по-русски: почему верно и чем соблазняют остальные варианты.</p>
+          <p class="t-first-note">После каждого ответа — разбор на вашем языке: почему верно и где ловушка в остальных вариантах.</p>
           <div class="start-actions">
             <button type="button" class="btn btn-primary">Начать</button>
             <button type="button" class="btn btn-ghost"><svg class="ic-sm"><use href="#i-sliders"/></svg>Настроить</button>
