@@ -298,25 +298,27 @@
    Светлая — не инверсия: холодный белый, тот же лазурный, затемнённый до AA, те же тонкие цифры. */
 
 /* ---------- Токены: светлая ---------- */
+/* Светлая — не белая (правка Даши 10.10.2026: «слишком белая»): холодный светло-серый фон, карточки чуть
+   светлее фона, но не #FFF. Цвета текста и разделов подобраны под AA на всех трёх поверхностях. */
 .frame {
-  --bg: #F3F5FB; --surface: #FFFFFF; --surface-2: #E9EDF7;
-  --text: #0E1430; --text-2: #48516F; --text-3: #5D6685;
-  --line: rgb(14 20 48 / 0.09); --line-strong: rgb(14 20 48 / 0.2);
-  --accent: #0067B5; --on-accent: #FFFFFF; --accent-soft: rgb(0 103 181 / 0.09); --focus: #0067B5;
-  --right: #0B7A4E; --right-soft: rgb(11 122 78 / 0.1); --wrong: #C23A1E; --wrong-soft: rgb(194 58 30 / 0.09);
-  --c-verbal: #5A3FD6; --c-verbal-soft: rgb(90 63 214 / 0.1);
-  --c-quant: #00775B; --c-quant-soft: rgb(0 119 91 / 0.1);
-  --c-essay: #985800; --c-essay-soft: rgb(152 88 0 / 0.1);
-  --c-words: #B02F69; --c-words-soft: rgb(176 47 105 / 0.1);
-  --c-exam: #0E1430; --c-exam-soft: rgb(14 20 48 / 0.07);
+  --bg: #E4E8F0; --surface: #F1F3F8; --surface-2: #D9DFEA;
+  --text: #0E1430; --text-2: #48516F; --text-3: #535C7A;
+  --line: rgb(14 20 48 / 0.1); --line-strong: rgb(14 20 48 / 0.22);
+  --accent: #005A9F; --on-accent: #FFFFFF; --accent-soft: rgb(0 90 159 / 0.1); --focus: #005A9F;
+  --right: #00664E; --right-soft: rgb(0 102 78 / 0.11); --wrong: #A82F17; --wrong-soft: rgb(168 47 23 / 0.1);
+  --c-verbal: #5A3FD6; --c-verbal-soft: rgb(90 63 214 / 0.11);
+  --c-quant: #00664E; --c-quant-soft: rgb(0 102 78 / 0.11);
+  --c-essay: #844C00; --c-essay-soft: rgb(132 76 0 / 0.11);
+  --c-words: #A12A60; --c-words-soft: rgb(161 42 96 / 0.11);
+  --c-exam: #0E1430; --c-exam-soft: rgb(14 20 48 / 0.08);
   --font-display: 'Geologica', 'Onest', system-ui, sans-serif;
   --font-body: 'Geologica', 'Onest', system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
   --r-s: 10px; --r-m: 16px; --r-l: 24px;
   /* Свои: свечение главной кнопки и вес тонких цифр. */
-  --glow: 0 10px 28px -8px rgb(0 103 181 / 0.45);
+  --glow: 0 10px 28px -8px rgb(0 90 159 / 0.4);
   --thin: 300;
-  --nav-bg: #FFFFFF;
+  --nav-bg: #EDF0F5;
   font-weight: 400;
   letter-spacing: -0.005em;
 }
