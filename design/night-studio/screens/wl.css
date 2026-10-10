@@ -145,3 +145,45 @@
   .frame .wl-done-head { grid-column: 1 / -1; }
   .frame .wl-done-num .w-num { font-size: 120px; }
 }
+
+/* ---------- W18–W20 перевод ---------- */
+.frame .wl-prompt-word { display: flex; align-items: center; gap: 14px; font-size: 40px; font-weight: 300; letter-spacing: -0.02em; line-height: 1.1; }
+.frame .wl-input-right, .frame[data-theme="dark"] .wl-input-right { box-shadow: 0 0 0 2px var(--right); }
+.frame .wl-verdict-play { align-items: center; }
+.frame .wl-verdict-play > span { flex: 1; }
+.frame .wl-verdict-play .ipa { font-family: var(--font-mono); font-size: 13px; color: var(--text-2); margin-left: 6px; }
+.frame .wl-verdict-play .icon-btn { margin: 0; }
+.frame .wl-phrase { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; font-size: 22px; line-height: 1.4; }
+.frame .wl-phrase b { font-weight: 600; color: var(--sec); }
+.frame .wl-answer {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-height: 64px; padding: 10px 0;
+  border-bottom: 2px solid var(--line-strong);
+}
+.frame .wl-answer-gap { width: 72px; height: 40px; border-radius: 12px; border: 1.5px dashed var(--line-strong); }
+.frame .wl-chip {
+  min-height: 44px; padding: 0 16px; border: 0; border-radius: 12px; background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line-strong); font-size: 17px; font-weight: 500; color: var(--text);
+}
+.frame[data-theme="dark"] .wl-chip { background: var(--surface-2); box-shadow: none; }
+.frame .wl-chip-on, .frame[data-theme="dark"] .wl-chip-on { background: var(--sec-soft); color: var(--text); box-shadow: none; }
+
+/* ---------- W21 карта занятия ---------- */
+.frame .wl-map { flex: 1; display: flex; flex-direction: column; gap: 24px; }
+.frame .wl-map-head { display: flex; flex-direction: column; gap: 8px; }
+.frame .wl-steps { display: flex; flex-direction: column; position: relative; }
+.frame .wl-steps::before { content: ''; position: absolute; left: 21px; top: 22px; bottom: 22px; width: 2px; background: var(--line-strong); }
+.frame .wl-step { position: relative; display: flex; align-items: flex-start; gap: 16px; padding-block: 10px; }
+.frame .wl-step-ic {
+  flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%;
+  background: var(--bg); box-shadow: inset 0 0 0 2px var(--sec); color: var(--sec);
+}
+.frame .wl-step-text { display: flex; flex-direction: column; gap: 2px; padding-top: 2px; }
+.frame .wl-step-text b { font-size: 17px; font-weight: 600; }
+.frame .wl-step-text small { font-size: 14px; color: var(--text-2); line-height: 1.4; }
+.frame .wl-map-note { font-size: 14px; color: var(--text-3); }
+
+@container (min-width: 900px) {
+  .frame .wl-map { width: 100%; max-width: 640px; margin-inline: auto; }
+  .frame .wl-prompt-word { font-size: 56px; }
+  .frame .wl-phrase { font-size: 26px; }
+}

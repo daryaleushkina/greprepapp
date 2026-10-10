@@ -294,4 +294,127 @@ NS.icon('i-wl-hint', '<path d="M9 18h6M10 21h4M12 3a6 6 0 00-3.5 10.9c.6.4 1 1.1
   </div>
 </div>
 ` });
+
+  // ---------- Перевод: в обе стороны и фразой (просьба Даши 10.10.2026: «и написать, и перевести, и сказать») ----------
+  NS.icon('i-wl-build', '<rect x="3" y="7" width="7" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><rect x="14" y="7" width="7" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>');
+  NS.icon('i-wl-pen', '<path d="M4 20h4L19 9a2.8 2.8 0 00-4-4L4 16v4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M13.5 6.5l4 4" fill="none" stroke="currentColor" stroke-width="2"/>');
+  NS.icon('i-wl-translate', '<path d="M4 5h9M8.5 3v2M6 5c.5 3 2.5 5.5 5 7M11 5c-.8 3.5-3.3 6.5-7 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12.5 21l4-9 4 9M14 18h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>');
+  NS.icon('i-wl-eye', '<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/>');
+
+  NS.add({ id: 'W18', group: 'W', name: 'Перевести на русский — проверено', html: `
+<div class="app no-nav" data-screen="wl-tr-ru">
+  <div class="main">
+    ${session(5)}
+    <div class="wl-ask">
+      <div class="wl-prompt">
+        <p class="w-task">Переведите на русский</p>
+        <p class="wl-prompt-word" lang="en">equivocal ${listen('equivocal')}</p>
+      </div>
+      <div class="wl-input-wrap">
+        <label class="wl-input wl-input-right" for="w18-word">
+          <span class="sr-only">Перевод</span>
+          <input id="w18-word" type="text" value="двусмысленный" lang="ru" autocomplete="off" spellcheck="false" readonly>
+          <span class="wl-kbd" aria-hidden="true">RU</span>
+        </label>
+      </div>
+      <div class="verdict verdict-right" role="status">
+        <svg class="ic"><use href="#i-check"/></svg>
+        <span><b>Верно.</b> Принимаем: двусмысленный, уклончивый, неоднозначный.</span>
+      </div>
+    </div>
+    <footer class="bottom-bar">
+      <button type="button" class="btn btn-primary btn-wide">Дальше</button>
+    </footer>
+  </div>
+</div>
+` });
+
+  NS.add({ id: 'W19', group: 'W', name: 'Перевести на английский — верно', html: `
+<div class="app no-nav" data-screen="wl-tr-en">
+  <div class="main">
+    ${session(7)}
+    <div class="wl-ask">
+      <div class="wl-prompt">
+        <p class="w-task">Напишите по-английски</p>
+        <p class="wl-prompt-tr">лаконичный, немногословный</p>
+      </div>
+      <div class="wl-input-wrap">
+        <label class="wl-input wl-input-right" for="w19-word">
+          <span class="sr-only">Слово</span>
+          <input id="w19-word" type="text" value="laconic" lang="en" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" readonly>
+          <span class="wl-kbd" aria-hidden="true">EN</span>
+        </label>
+      </div>
+      <div class="verdict verdict-right wl-verdict-play" role="status">
+        <svg class="ic"><use href="#i-check"/></svg>
+        <span><b>Верно.</b> <span lang="en">laconic</span> <span class="ipa">/ləˈkɒnɪk/</span></span>
+        <button type="button" class="icon-btn icon-btn-soft" aria-label="Послушать laconic"><svg class="ic"><use href="#i-play"/></svg></button>
+      </div>
+    </div>
+    <footer class="bottom-bar">
+      <button type="button" class="btn btn-primary btn-wide">Дальше</button>
+    </footer>
+  </div>
+</div>
+` });
+
+  // Фраза: собрать перевод из плашек; две лишние — чтобы не угадывать по количеству.
+  const placed = ['Его', 'лаконичный', 'ответ'];
+  const left = [['закончил', false], ['многословный', false], ['разговор', false], ['начал', false]];
+  NS.add({ id: 'W20', group: 'W', name: 'Перевести фразу — собрать из слов', html: `
+<div class="app no-nav" data-screen="wl-tr-phrase">
+  <div class="main">
+    ${session(9)}
+    <div class="wl-ask">
+      <div class="wl-prompt">
+        <p class="w-task">Переведите фразу</p>
+        <p class="wl-phrase" lang="en"><span>His <b>laconic</b> reply ended the discussion.</span>${listen('фразу')}</p>
+      </div>
+      <div class="wl-answer" aria-label="Ваш перевод: Его лаконичный ответ…">
+        ${placed.map((w) => `<button type="button" class="wl-chip wl-chip-on">${w}</button>`).join('')}
+        <span class="wl-answer-gap" aria-hidden="true"></span>
+      </div>
+      <div class="wl-tiles" role="group" aria-label="Слова">
+        ${left.map(([w]) => `<button type="button" class="wl-chip">${w}</button>`).join('')}
+      </div>
+    </div>
+    <footer class="bottom-bar">
+      <button type="button" class="btn btn-ghost">Не знаю</button>
+      <button type="button" class="btn btn-primary" disabled>Проверить</button>
+    </footer>
+  </div>
+</div>
+` });
+
+  // Карта одного занятия: открывается со старта (W9) по «Как проходит занятие». Без этапов памяти и дат.
+  const steps = [
+    ['i-play', 'Услышать', 'Слово, значение и пример — с озвучкой, можно медленно'],
+    ['i-wl-eye', 'Узнать', 'Выбрать перевод, определение или синоним из четырёх'],
+    ['i-wl-build', 'Собрать', 'Сложить слово из букв — только для новых слов'],
+    ['i-wl-pen', 'Написать', 'По значению или на слух, ошибка показана по буквам'],
+    ['i-wl-translate', 'Перевести', 'Слово в обе стороны и короткую фразу'],
+    ['i-wl-mic', 'Сказать', 'Вслух в микрофон — телефон проверит, узнаётся ли слово'],
+  ];
+  NS.add({ id: 'W21', group: 'W', name: 'Как проходит занятие — все шаги', html: `
+<div class="app no-nav" data-screen="wl-map">
+  <div class="main">
+    <header class="top">
+      <button type="button" class="icon-btn" aria-label="Назад"><svg class="ic"><use href="#i-back"/></svg></button>
+    </header>
+    <div class="wl-map scroll">
+      <div class="wl-map-head">
+        <h1 class="h1">Как проходит занятие</h1>
+        <p class="lead">Каждое новое слово проходит шесть шагов. Ошиблись — слово вернётся в этом же занятии.</p>
+      </div>
+      <ol class="wl-steps">
+        ${steps.map(([ic, t, d]) => `<li class="wl-step"><span class="wl-step-ic"><svg class="ic"><use href="#${ic}"/></svg></span><span class="wl-step-text"><b>${t}</b><small>${d}</small></span></li>`).join('')}
+      </ol>
+      <p class="wl-map-note">Знакомые слова начинают сразу со второго шага. Без звука или без микрофона шаги «услышать» и «сказать» пропускаются.</p>
+    </div>
+    <footer class="bottom-bar">
+      <button type="button" class="btn btn-primary btn-wide">Начать · 10 слов</button>
+    </footer>
+  </div>
+</div>
+` });
 })();
