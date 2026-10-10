@@ -33,6 +33,8 @@
   --font: 'Geologica', 'Onest', system-ui, sans-serif;
   --mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  /* Один отступ у всех больших секций — один ритм страницы. */
+  --sec-pad: clamp(96px, 13vh, 144px);
   color-scheme: dark;
 }
 @media (prefers-color-scheme: light) {
@@ -201,18 +203,18 @@ ul { padding: 0; list-style: none; }
 .tour { border-top: 1px solid var(--line); }
 .tour .wrap { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 64px; }
 .tour-steps { display: grid; }
-.step { min-height: 78vh; display: flex; flex-direction: column; justify-content: center; gap: 14px; padding-block: 48px; }
+.step { min-height: 72vh; display: flex; flex-direction: column; justify-content: center; gap: 14px; padding-block: 48px; }
 .h2 { font-weight: 300; font-size: clamp(34px, 3.8vw, 54px); line-height: 1.08; letter-spacing: -0.03em; text-wrap: balance; max-width: 16ch; }
 .step p { color: var(--text-2); font-size: 19px; max-width: 34ch; }
 .step .mobile-screen { display: none; }
-.tour-device { position: sticky; top: calc(64px + (100vh - 64px - 712px) / 2); align-self: start; height: 712px; margin-top: calc((78vh - 712px) / 2); }
+.tour-device { position: sticky; top: calc(64px + (100vh - 64px - 712px) / 2); align-self: start; height: 712px; margin-top: calc((72vh - 712px) / 2); }
 
 /* ---------- Цена, вход, скачать ---------- */
-.price { padding-block: clamp(88px, 14vh, 160px); border-top: 1px solid var(--line); text-align: center; }
+.price { padding-block: var(--sec-pad); border-top: 1px solid var(--line); text-align: center; }
 .price .big { font-weight: 200; font-size: clamp(64px, 9vw, 128px); line-height: 0.95; letter-spacing: -0.045em; }
 .price p { margin-top: 20px; color: var(--text-2); font-size: 19px; }
 .price .cta { margin-top: 40px; }
-.get { padding-block: 72px; border-top: 1px solid var(--line); }
+.get { padding-block: 64px; border-top: 1px solid var(--line); }
 .get .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 24px; }
 .get h2 { font-weight: 300; font-size: 28px; letter-spacing: -0.02em; }
 .get p { color: var(--text-2); font-size: 15px; margin-top: 6px; }
@@ -221,7 +223,7 @@ ul { padding: 0; list-style: none; }
 .store:hover { border-color: var(--text-2); }
 .store svg { width: 22px; height: 24px; flex: none; }
 .store span { white-space: nowrap; display: grid; line-height: 1.15; font-weight: 500; font-size: 17px; }
-.store small { font-size: 11px; font-weight: 400; color: var(--text-2); }
+.store small { font-size: 12px; font-weight: 400; color: var(--text-2); }
 .foot { padding-block: 40px 56px; border-top: 1px solid var(--line); color: var(--text-3); font-size: 13px; }
 .foot .wrap { display: grid; gap: 12px; }
 .foot p { max-width: 90ch; }
@@ -257,30 +259,74 @@ ul { padding: 0; list-style: none; }
 .parts b { flex: 1; font-weight: 600; }
 .parts .tm { font-family: var(--mono); color: var(--text-2); font-size: 12px; }
 
-/* ---------- Отзывы: лица, разный ритм ---------- */
-.reviews { padding-block: clamp(80px, 12vh, 140px); border-top: 1px solid var(--line); }
-.reviews .h2 { margin-bottom: 56px; }
-.rv { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 0 88px; align-items: start; }
-.rv-main { display: grid; gap: 32px; position: sticky; top: 120px; }
-.face { --c: var(--accent); display: grid; place-items: center; width: 72px; height: 90px; border-radius: 16px; flex: none; font-weight: 200; font-size: 26px; letter-spacing: -0.02em; color: var(--text); background: linear-gradient(165deg, color-mix(in srgb, var(--c) 38%, var(--surface-2)) 0%, var(--surface) 100%); box-shadow: inset 0 0 0 1px var(--line); }
-.rv-main .face { width: 168px; height: 210px; font-size: 60px; border-radius: 26px; }
-.rv-main blockquote { font-weight: 300; font-size: clamp(26px, 2.5vw, 36px); line-height: 1.22; letter-spacing: -0.02em; text-wrap: pretty; }
-.who { display: flex; align-items: flex-end; gap: 16px; }
-.who-t { display: grid; gap: 2px; min-width: 0; }
-.who-t b { font-weight: 600; font-size: 17px; }
-.who-t span { color: var(--text-2); font-size: 15px; }
-.res { margin-left: auto; text-align: right; font-weight: 200; font-size: 56px; line-height: 0.95; letter-spacing: -0.035em; font-variant-numeric: tabular-nums; }
-.res small { display: block; margin-top: 6px; font: 400 13px var(--mono); letter-spacing: 0.05em; color: var(--text-3); }
-.rv-side { display: grid; }
-.rv-item { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 16px 20px; padding-block: 32px; }
-.rv-item + .rv-item { border-top: 1px solid var(--line); }
-.rv-item:first-child { padding-top: 0; }
-.rv-item blockquote { grid-column: 2; font-size: 18px; line-height: 1.5; }
-.rv-item .res { font-size: 40px; }
-
+/* ---------- Отзывы: «отчёт о результате» ----------
+   Каждая история — наш бланк результата (не официальный отчёт ETS, College Board или GMAC): шапка моноширинным,
+   разделы в шкале экзамена, «было → стало» и полоса шкалы с двумя отметками, куда поступили, одна фраза автора.
+   Рядом — слот под портрет 4:5 с направляющими кадра: фото будут настоящими, а не сток и не ИИ. */
+.reviews { padding-block: var(--sec-pad); border-top: 1px solid var(--line); }
+.reviews .h2 { margin-bottom: 72px; }
+.rx { display: grid; gap: 104px; }
+.rx-row { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 72px; align-items: start; }
+.rx-col { display: grid; gap: 64px; }
+.rep { --from: 0%; --to: 0%; display: grid; grid-template-columns: var(--ph) minmax(0, 1fr); gap: 0 40px; align-items: start; }
+.rep-lg { --ph: 296px; gap: 0 64px; }
+.rep-md { --ph: 176px; }
+.rep-sm { --ph: 104px; gap: 0 28px; }
+.ph { position: relative; width: 100%; aspect-ratio: 4 / 5; border-radius: 20px; overflow: hidden; border: 1px solid var(--line-strong);
+  background: linear-gradient(172deg, color-mix(in srgb, var(--text) 9%, var(--surface)) 0%, var(--surface) 56%, color-mix(in srgb, var(--bg) 70%, var(--surface)) 100%); }
+.rep-sm .ph { border-radius: 14px; }
+/* Направляющие кадра по третям: глаза героя — на верхней линии. */
+.ph::before, .ph::after { content: ''; position: absolute; pointer-events: none; }
+.ph::before { left: 0; right: 0; top: 33.33%; height: 33.33%; border-block: 1px solid var(--line); }
+.ph::after { top: 0; bottom: 0; left: 33.33%; width: 33.33%; border-inline: 1px solid var(--line); }
+.ph-cap { position: absolute; left: 14px; right: 14px; bottom: 12px; z-index: 1; font: 400 12px/1.3 var(--mono); letter-spacing: 0.02em; color: var(--text-3); }
+.rep-sm .ph-cap { display: none; }
+.rep-card { display: grid; gap: 22px; min-width: 0; padding-top: 18px; border-top: 1px solid var(--line-strong); }
+.rep-sm .rep-card { gap: 16px; padding-top: 14px; }
+.rep-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 16px; font: 400 13px/1.4 var(--mono); letter-spacing: 0.04em; color: var(--text-3); }
+.rep-head b { font-weight: 400; color: var(--text); }
+.rep-quote { font-weight: 300; font-size: 19px; line-height: 1.45; letter-spacing: -0.005em; text-wrap: pretty; }
+.rep-lg .rep-quote { font-size: clamp(24px, 2.2vw, 32px); line-height: 1.25; letter-spacing: -0.02em; }
+.rep-sm .rep-quote { font-size: 17px; }
+.rep-who { color: var(--text-2); font-size: 15px; }
+.rep-who b { color: var(--text); font-weight: 600; }
+.rep-secs { display: flex; flex-wrap: wrap; gap: 14px 36px; }
+.rep-secs li { display: grid; gap: 6px; }
+.rep-secs .n { font-weight: 200; font-size: 44px; line-height: 0.92; letter-spacing: -0.035em; font-variant-numeric: tabular-nums; }
+.rep-lg .rep-secs .n { font-size: clamp(52px, 5vw, 72px); }
+.rep-sm .rep-secs { gap: 10px 24px; }
+.rep-sm .rep-secs .n { font-size: 32px; }
+.rep-secs .l { color: var(--text-2); font-size: 14px; }
+.rep-secs .total { padding-left: 32px; border-left: 1px solid var(--line-strong); }
+.rep-secs .total .n { color: var(--accent); }
+/* В средней истории разделов больше, чем места в строке: итог — отдельной строкой под ними, а не висит после переноса. */
+.rep-md .rep-secs { gap: 14px 28px; }
+.rep-md .rep-secs .n { font-size: 38px; }
+.rep-md .rep-secs .total { flex-basis: 100%; padding: 14px 0 0; border-left: 0; border-top: 1px solid var(--line); }
+.rep-delta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; font-size: 15px; color: var(--text-2); }
+.rep-delta b { color: var(--text); font-weight: 500; font-variant-numeric: tabular-nums; }
+.rep-delta .up { font: 400 13px var(--mono); color: var(--right); }
+/* Шкала экзамена: тонкая линия, отрезок роста и две отметки — «было» и «стало». */
+.rep-scale { position: relative; height: 34px; margin-top: -8px; }
+.rep-scale::before { content: ''; position: absolute; left: 0; right: 0; top: 9px; height: 1px; background: var(--line-strong); }
+.rep-fill { position: absolute; top: 8px; height: 3px; border-radius: 2px; left: var(--from); width: calc(var(--to) - var(--from)); background: var(--accent); transform-origin: left; }
+.rep-mark { position: absolute; top: 5px; width: 9px; height: 9px; margin-left: -4.5px; border-radius: 50%; }
+.rep-mark.was { left: var(--from); background: var(--bg); box-shadow: inset 0 0 0 1.5px var(--text-3); }
+.rep-mark.now { left: var(--to); background: var(--accent); }
+.rep-end { position: absolute; bottom: 0; font: 400 12px var(--mono); color: var(--text-3); }
+.rep-end.min { left: 0; }
+.rep-end.max { right: 0; }
+.rep-adm { font-size: 17px; }
+.rep-adm b { font-weight: 600; }
+.rep-pct { font: 400 13px var(--mono); color: var(--text-2); }
+/* Появление: отрезок растёт от отметки «было», отметка «стало» едет следом, число отсчитывается в скрипте. */
+.rep.anim .rep-fill { transform: scaleX(0); }
+.rep.anim .rep-mark.now { left: var(--from); }
+.rep.anim.go .rep-fill { transform: none; transition: transform 900ms var(--ease); }
+.rep.anim.go .rep-mark.now { left: var(--to); transition: left 900ms var(--ease); }
 
 /* ---------- Пробный экзамен: экран вопроса и итог в баллах экзамена ---------- */
-.mock { padding-block: clamp(80px, 12vh, 140px); border-top: 1px solid var(--line); }
+.mock { padding-block: var(--sec-pad); border-top: 1px solid var(--line); }
 .mock .wrap { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 64px; align-items: start; }
 /* Колонка текста начинается на уровне экрана телефона и не прыгает при смене экзамена. */
 .mock-text { padding-top: 48px; }
@@ -346,8 +392,8 @@ ul { padding: 0; list-style: none; }
 
 /* ---------- Компьютер поуже ---------- */
 @media (max-width: 1180px) {
-  .rv { gap: 0 48px; }
-  .rv-main .face { width: 132px; height: 165px; font-size: 48px; }
+  .rep-lg { --ph: 240px; gap: 0 48px; }
+  .rx-row { gap: 56px; }
 }
 
 /* ---------- Телефон: одна колонка, экраны крупно и без рамки устройства ---------- */
@@ -381,19 +427,33 @@ ul { padding: 0; list-style: none; }
   .mock-nums { gap: 16px 28px; }
   /* Итог на телефоне — отдельной строкой под разделами, а не висит после переноса. */
   .mock-nums .total { flex-basis: 100%; padding: 16px 0 0; border-left: 0; border-top: 1px solid var(--line-strong); }
-  .mock-device .screen { height: 600px; }
+  .mock-device .screen { height: 540px; }
   .step { min-height: 0; padding-block: 40px; }
   .step .mobile-screen { display: block; margin-top: 18px; }
   .step .mobile-screen .s { opacity: 1; transform: none; }
   .h2 { font-size: clamp(32px, 9vw, 40px); }
   .step p, .price p { font-size: 17px; }
-  .rv { grid-template-columns: minmax(0, 1fr); }
-  .rv-main { position: static; margin-bottom: 40px; }
-  .rv-main .face { width: 112px; height: 140px; font-size: 40px; border-radius: 20px; }
-  .res { font-size: 44px; }
-  .rv-item .res { font-size: 34px; }
-  .rv-item { grid-template-columns: auto minmax(0, 1fr); }
-  .rv-item .face { width: 56px; height: 70px; font-size: 20px; }
+  :root { --sec-pad: 80px; }
+  .reviews .h2 { margin-bottom: 48px; }
+  .rx, .rx-col { gap: 64px; }
+  .rx-row { grid-template-columns: minmax(0, 1fr); gap: 64px; }
+  /* На телефоне портрет сверху: у первой истории — крупный, у остальных — поменьше, рядом подпись. */
+  .rep, .rep-lg, .rep-md, .rep-sm { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .rep-lg .ph { width: min(240px, 66%); }
+  /* Средняя и малая история: маленький портрет рядом с именем, бланк — на всю ширину под ними. */
+  .rep-md, .rep-sm { grid-template-columns: 64px minmax(0, 1fr); gap: 18px 16px; align-items: center; }
+  .rep-md .rep-card, .rep-sm .rep-card { display: contents; }
+  .rep-md .ph, .rep-sm .ph { width: 64px; grid-row: 1; border-radius: 12px; }
+  .rep-md .rep-who, .rep-sm .rep-who { grid-row: 1; grid-column: 2; }
+  .rep-md .rep-card > :not(.rep-who), .rep-sm .rep-card > :not(.rep-who) { grid-column: 1 / -1; }
+  .rep-md .rep-head, .rep-sm .rep-head { padding-top: 14px; border-top: 1px solid var(--line-strong); }
+  .rep-md .rep-quote, .rep-sm .rep-quote { font-size: 17px; }
+  .rep-sm .ph-cap, .rep-md .ph-cap { display: none; }
+  .rep-lg .rep-secs .n { font-size: 44px; }
+  .rep-secs .n { font-size: 36px; }
+  .rep-sm .rep-secs .n { font-size: 30px; }
+  .rep-secs { gap: 14px 24px; }
+  .rep-secs .total { padding-left: 20px; }
   .store { flex: 1; }
 }
 </style>
@@ -481,6 +541,7 @@ ul { padding: 0; list-style: none; }
       <div class="tour-steps">
         <article class="step" data-screen="0" id="cover">
           <h2 class="h2">Все разделы вашего экзамена</h2>
+          <p>Каждый тип заданий, как в самом экзамене.</p>
           <div class="exam-pick" role="radiogroup" aria-label="Экзамен">
             <button type="button" role="radio" aria-checked="true" data-exam="gre">GRE</button>
             <button type="button" role="radio" aria-checked="false" data-exam="toefl">TOEFL</button>
@@ -508,6 +569,7 @@ ul { padding: 0; list-style: none; }
         </article>
         <article class="step" data-screen="3">
           <h2 class="h2">Слова: услышать, написать, перевести, сказать</h2>
+          <p>С озвучкой и проверкой голосом.</p>
           <div class="mobile-screen"><div class="screen"><div class="s on"><div class="sess"><div class="sess-m"><span><span class="dot" style="background:var(--words)"></span> Слова</span><b>8 из 12</b></div><div class="bar"><i style="width:60%"></i></div></div>
 <div class="word"><span class="hw" lang="en">laconic</span><span class="ipa">/ləˈkɒnɪk/</span><span class="tr">лаконичный, немногословный</span></div>
 <div class="mic"><svg aria-hidden="true"><use href="#i-mic"/></svg></div><p class="heard">Услышано: “laconic”</p>
@@ -584,37 +646,69 @@ ul { padding: 0; list-style: none; }
     </div>
   </section>
 
-  <!-- Отзывы — ЗАГЛУШКИ для макета: имена, тексты, программы и результаты придуманы; на месте инициалов — фото
-       автора отзыва. До запуска заменить настоящими отзывами с согласия авторов: выдуманные отзывы публиковать нельзя. -->
+  <!-- Отзывы и бланки результатов — ЗАГЛУШКИ для макета: имена, баллы, даты, вузы и фразы придуманы, на месте
+       слотов 4:5 — фото авторов. До запуска заменить настоящими историями с согласия авторов (и их фото, отчётов
+       о баллах со скрытыми номерами регистрации): выдуманные отзывы публиковать нельзя. -->
   <section class="reviews" id="reviews" aria-labelledby="h-rev">
     <div class="wrap">
       <h2 class="h2 reveal" id="h-rev">Сдали без репетитора</h2>
-      <div class="rv">
-        <figure class="rv-main reveal">
-          <!-- сюда — фото автора отзыва -->
-          <span class="face" style="--c: var(--speaking)" aria-hidden="true">АК</span>
-          <blockquote><p>Два месяца по вечерам после работы. Разборы объясняли то, что я не понимала в&nbsp;английских пособиях.</p></blockquote>
-          <figcaption class="who"><span class="who-t"><b>Алина Карпова</b><span>Магистратура по урбанистике, Нидерланды</span></span><span class="res">5,5<small>TOEFL</small></span></figcaption>
-        </figure>
-        <div class="rv-side">
-          <figure class="rv-item reveal">
-            <!-- сюда — фото автора отзыва -->
-            <span class="face" style="--c: var(--verbal)" aria-hidden="true">ТР</span>
-            <figcaption class="who"><span class="who-t"><b>Тимур Рахимов</b><span>PhD по физике, Германия</span></span><span class="res">161<small>GRE Verbal</small></span></figcaption>
-            <blockquote><p>Слова учил в&nbsp;метро. За&nbsp;месяц Verbal вырос на&nbsp;девять баллов.</p></blockquote>
-          </figure>
-          <figure class="rv-item reveal">
-            <!-- сюда — фото автора отзыва -->
-            <span class="face" style="--c: var(--quant)" aria-hidden="true">МЛ</span>
-            <figcaption class="who"><span class="who-t"><b>Мария Лебедева</b><span>Магистратура по данным, США</span></span><span class="res">325<small>GRE</small></span></figcaption>
-            <blockquote><p>Пробник по&nbsp;ощущениям как настоящий экзамен. В&nbsp;день GRE не&nbsp;было ни одного сюрприза.</p></blockquote>
-          </figure>
-          <figure class="rv-item reveal">
-            <!-- сюда — фото автора отзыва -->
-            <span class="face" style="--c: var(--essay)" aria-hidden="true">ДС</span>
-            <figcaption class="who"><span class="who-t"><b>Дана Сеитова</b><span>MBA, Великобритания</span></span><span class="res">665<small>GMAT</small></span></figcaption>
-            <blockquote><p>Раньше платила репетитору за&nbsp;то&nbsp;же самое.</p></blockquote>
-          </figure>
+      <div class="rx">
+        <article class="rep rep-lg" data-from="152" data-to="161" data-min="130" data-max="170" data-dec="0">
+          <!-- сюда — фото автора отзыва, кадр 4:5 -->
+          <div class="ph" role="img" aria-label="Место для фото: <b>Алина Карпова</b>"><span class="ph-cap">фото: Алина, май 2026</span></div>
+          <div class="rep-card">
+            <p class="rep-head"><b>GRE General</b><span>сдан 14.08.2026</span></p>
+            <ul class="rep-secs"><li><span class="n">161</span><span class="l">Verbal</span></li><li><span class="n">164</span><span class="l">Quant</span></li><li><span class="n">4,5</span><span class="l">Analytical Writing</span></li></ul>
+            <p class="rep-delta"><span>Verbal: было</span><b>152</b><span>→ стало</span><b class="cnt">161</b><span class="up">▲9</span></p>
+            <div class="rep-scale" aria-hidden="true"><i class="rep-fill"></i><i class="rep-mark was"></i><i class="rep-mark now"></i><span class="rep-end min">130</span><span class="rep-end max">170</span></div>
+            <p class="rep-pct">Verbal — 87-й перцентиль</p>
+            <p class="rep-adm"><b>Принята:</b> TU Delft, MSc Urbanism</p>
+            <blockquote class="rep-quote"><p>Каждый вечер десять вопросов и разбор. Через два месяца перестала путать слова, которые раньше казались одинаковыми.</p></blockquote>
+            <p class="rep-who"><b>Алина Карпова</b>, Казань</p>
+          </div>
+        </article>
+        <div class="rx-row">
+        <article class="rep rep-md" data-from="4.5" data-to="5.5" data-min="1" data-max="6" data-dec="1">
+          <!-- сюда — фото автора отзыва, кадр 4:5 -->
+          <div class="ph" role="img" aria-label="Место для фото: <b>Тимур Рахимов</b>"><span class="ph-cap">фото: Тимур</span></div>
+          <div class="rep-card">
+            <p class="rep-head"><b>TOEFL iBT</b><span>сдан 03.09.2026</span></p>
+            <ul class="rep-secs"><li><span class="n">5,5</span><span class="l">Reading</span></li><li><span class="n">6</span><span class="l">Listening</span></li><li><span class="n">5</span><span class="l">Writing</span></li><li><span class="n">5,5</span><span class="l">Speaking</span></li><li class="total"><span class="n">5,5</span><span class="l">Итог</span></li></ul>
+            <p class="rep-delta"><span>Итог: было</span><b>4,5</b><span>→ стало</span><b class="cnt">5,5</b><span class="up">▲1</span></p>
+            <div class="rep-scale" aria-hidden="true"><i class="rep-fill"></i><i class="rep-mark was"></i><i class="rep-mark now"></i><span class="rep-end min">1</span><span class="rep-end max">6</span></div>
+            <p class="rep-adm"><b>Принят:</b> TU München, MSc Physics</p>
+            <blockquote class="rep-quote"><p>Speaking записывал в машине: ответил, послушал совет, записал ещё раз.</p></blockquote>
+            <p class="rep-who"><b>Тимур Рахимов</b>, Ташкент</p>
+          </div>
+        </article>
+          <div class="rx-col">
+        <article class="rep rep-sm" data-from="605" data-to="665" data-min="205" data-max="805" data-dec="0">
+          <!-- сюда — фото автора отзыва, кадр 4:5 -->
+          <div class="ph" role="img" aria-label="Место для фото: <b>Дана Сеитова</b>"><span class="ph-cap"></span></div>
+          <div class="rep-card">
+            <p class="rep-head"><b>GMAT Focus</b><span>сдан 22.07.2026</span></p>
+            <ul class="rep-secs"><li><span class="n">83</span><span class="l">Quant</span></li><li><span class="n">82</span><span class="l">Verbal</span></li><li><span class="n">80</span><span class="l">Data Insights</span></li><li class="total"><span class="n">665</span><span class="l">Итог</span></li></ul>
+            <p class="rep-delta"><span>Итог: было</span><b>605</b><span>→ стало</span><b class="cnt">665</b><span class="up">▲60</span></p>
+            <div class="rep-scale" aria-hidden="true"><i class="rep-fill"></i><i class="rep-mark was"></i><i class="rep-mark now"></i><span class="rep-end min">205</span><span class="rep-end max">805</span></div>
+            <p class="rep-adm"><b>Принята:</b> Imperial College London, MBA</p>
+            <blockquote class="rep-quote"><p>Data Insights пугал больше всего. Через месяц ошибалась там реже, чем в Quant.</p></blockquote>
+            <p class="rep-who"><b>Дана Сеитова</b>, Алматы</p>
+          </div>
+        </article>
+        <article class="rep rep-sm" data-from="1310" data-to="1480" data-min="400" data-max="1600" data-dec="0">
+          <!-- сюда — фото автора отзыва, кадр 4:5 -->
+          <div class="ph" role="img" aria-label="Место для фото: <b>Арсений Ким</b>"><span class="ph-cap"></span></div>
+          <div class="rep-card">
+            <p class="rep-head"><b>SAT</b><span>сдан 04.10.2026</span></p>
+            <ul class="rep-secs"><li><span class="n">720</span><span class="l">Reading and Writing</span></li><li><span class="n">760</span><span class="l">Math</span></li><li class="total"><span class="n">1480</span><span class="l">Итог</span></li></ul>
+            <p class="rep-delta"><span>Итог: было</span><b>1310</b><span>→ стало</span><b class="cnt">1480</b><span class="up">▲170</span></p>
+            <div class="rep-scale" aria-hidden="true"><i class="rep-fill"></i><i class="rep-mark was"></i><i class="rep-mark now"></i><span class="rep-end min">400</span><span class="rep-end max">1600</span></div>
+            <p class="rep-adm"><b>Принят:</b> University of Toronto, Computer Science</p>
+            <blockquote class="rep-quote"><p>Решал по десять вопросов между уроками. Math вырос раньше, чем я ожидал.</p></blockquote>
+            <p class="rep-who"><b>Арсений Ким</b>, Новосибирск</p>
+          </div>
+        </article>
+          </div>
         </div>
       </div>
     </div>
@@ -774,6 +868,34 @@ ul { padding: 0; list-style: none; }
   const dl = document.querySelector('.dl');
   document.addEventListener('click', (e) => { if (dl.open && !dl.contains(e.target)) dl.open = false; });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') dl.open = false; });
+
+  // Отзывы: отрезок шкалы растёт от «было» к «стало», число отсчитывается за ~900 мс. Без движения — сразу итог.
+  const reps = [...document.querySelectorAll('.rep')];
+  const fmt = (v, dec) => (dec ? v.toFixed(dec).replace('.', ',').replace(',0', '') : String(Math.round(v)));
+  reps.forEach((r) => {
+    const { from, to, min, max } = Object.fromEntries(['from', 'to', 'min', 'max'].map((k) => [k, Number(r.dataset[k])]));
+    const pos = (v) => `${((v - min) / (max - min)) * 100}%`;
+    r.style.setProperty('--from', pos(from));
+    r.style.setProperty('--to', pos(to));
+  });
+  if (!still && 'IntersectionObserver' in window) {
+    const ease = (t) => 1 - Math.pow(1 - t, 3);
+    const run = (r) => {
+      const from = Number(r.dataset.from), to = Number(r.dataset.to), dec = Number(r.dataset.dec || 0);
+      const cnt = r.querySelector('.cnt');
+      const t0 = performance.now();
+      r.classList.add('go');
+      const tick = (t) => {
+        const k = Math.min(1, (t - t0) / 900);
+        cnt.textContent = fmt(from + (to - from) * ease(k), dec);
+        if (k < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    };
+    reps.forEach((r) => { r.classList.add('anim'); r.querySelector('.cnt').textContent = fmt(Number(r.dataset.from), Number(r.dataset.dec || 0)); });
+    const io3 = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { run(e.target); io3.unobserve(e.target); } }), { rootMargin: '0px 0px -25% 0px' });
+    reps.forEach((r) => io3.observe(r));
+  }
 
   // Появление блоков при прокрутке — один раз.
   const rev = document.querySelectorAll('.reveal');
