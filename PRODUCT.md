@@ -15,7 +15,9 @@ adaptive
 
 - мини-апп Telegram (веб в WebView Telegram на iOS, Android и Desktop) и сайт
   для компьютера в браузере — один веб-код;
-- iPhone, iPad и Mac — одно приложение на Swift (SwiftUI);
+- iPhone, iPad и Mac — одно приложение на Swift (SwiftUI); версия для Mac
+  распространяется файлом `.dmg` с сайта, а не через Mac App Store (решение Даши
+  10.10.2026; как платить на Mac — открытый вопрос, `docs/ROADMAP.md`, §1);
 - Android — Kotlin (Jetpack Compose), свой код интерфейса. Skip (SwiftUI →
   Compose из одного Swift-кода) рассмотрен и отклонён (решение Даши 05.10.2026):
   важнее лучшее качество Android и никаких посредников, чем один код на две
