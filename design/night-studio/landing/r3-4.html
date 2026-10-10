@@ -40,30 +40,30 @@
 }
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]) {
-    --bg: #E4E8F0; --surface: #F1F3F8; --surface-2: #D9DFEA;
-    --text: #0E1430; --text-2: #48516F; --text-3: #535C7A;
-    --line: rgb(14 20 48 / 0.1); --line-strong: rgb(14 20 48 / 0.22);
-    --accent: #005A9F; --on-accent: #FFFFFF; --accent-soft: rgb(0 90 159 / 0.1);
+    --bg: #E2E3F1; --surface: #EEEFF8; --surface-2: #D4D6EA;
+    --text: #11132E; --text-2: #454A6E; --text-3: #4F5579;
+    --line: rgb(17 19 46 / 0.1); --line-strong: rgb(17 19 46 / 0.22);
+    --accent: #3B3FB0; --on-accent: #FFFFFF; --accent-soft: rgb(59 63 176 / 0.1);
     --right: #00664E; --right-soft: rgb(0 102 78 / 0.11); --wrong: #A82F17; --wrong-soft: rgb(168 47 23 / 0.1);
     --verbal: #5A3FD6; --quant: #00664E; --essay: #844C00; --words: #A12A60;
-    --reading: #2A55BD; --listening: #00687A; --writing: #844C00; --speaking: #A12A60;
+    --reading: #2A55BD; --listening: #006273; --writing: #844C00; --speaking: #A12A60;
     --device: #10131C; --device-edge: rgb(255 255 255 / 0.1);
-    --nav-bg: #EDF0F5; --alu-1: #CBD1DC; --alu-2: #A9B1C0;
+    --nav-bg: #E8E9F5; --alu-1: #CDCFE2; --alu-2: #ABAEC6;
     --apple-bg: #000000; --apple-fg: #FFFFFF;
     --google-bg: #FFFFFF; --google-stroke: #747775; --google-fg: #1F1F1F;
     color-scheme: light;
   }
 }
 :root[data-theme="light"] {
-  --bg: #E4E8F0; --surface: #F1F3F8; --surface-2: #D9DFEA;
-  --text: #0E1430; --text-2: #48516F; --text-3: #535C7A;
-  --line: rgb(14 20 48 / 0.1); --line-strong: rgb(14 20 48 / 0.22);
-  --accent: #005A9F; --on-accent: #FFFFFF; --accent-soft: rgb(0 90 159 / 0.1);
+  --bg: #E2E3F1; --surface: #EEEFF8; --surface-2: #D4D6EA;
+  --text: #11132E; --text-2: #454A6E; --text-3: #4F5579;
+  --line: rgb(17 19 46 / 0.1); --line-strong: rgb(17 19 46 / 0.22);
+  --accent: #3B3FB0; --on-accent: #FFFFFF; --accent-soft: rgb(59 63 176 / 0.1);
   --right: #00664E; --right-soft: rgb(0 102 78 / 0.11); --wrong: #A82F17; --wrong-soft: rgb(168 47 23 / 0.1);
   --verbal: #5A3FD6; --quant: #00664E; --essay: #844C00; --words: #A12A60;
-  --reading: #2A55BD; --listening: #00687A; --writing: #844C00; --speaking: #A12A60;
+  --reading: #2A55BD; --listening: #006273; --writing: #844C00; --speaking: #A12A60;
   --device: #10131C; --device-edge: rgb(255 255 255 / 0.1);
-  --nav-bg: #EDF0F5; --alu-1: #CBD1DC; --alu-2: #A9B1C0;
+  --nav-bg: #E8E9F5; --alu-1: #CDCFE2; --alu-2: #ABAEC6;
   --apple-bg: #000000; --apple-fg: #FFFFFF;
   --google-bg: #FFFFFF; --google-stroke: #747775; --google-fg: #1F1F1F;
   color-scheme: light;
@@ -479,6 +479,12 @@ section[id] { scroll-margin-top: 72px; }
   .duo { zoom: 0.8; }
   .rep-lg { --ph: 240px; gap: 0 48px; }
   .rx-row { gap: 56px; }
+}
+
+/* ---------- Средние окна: тексту не хватает места рядом с ноутбуком — заголовок сверху, устройства под ним ---------- */
+@media (max-width: 1080px) and (min-width: 861px) {
+  .hero .wrap { grid-template-columns: minmax(0, 1fr); gap: 48px; }
+  .hero .duo { justify-self: center; }
 }
 
 /* ---------- Телефон: одна колонка, экраны крупно и без рамки устройства ---------- */
