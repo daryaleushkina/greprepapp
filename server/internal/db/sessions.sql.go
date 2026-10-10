@@ -58,7 +58,7 @@ func (q *Queries) DeleteSession(ctx context.Context, tokenHash []byte) error {
 }
 
 const getLiveSession = `-- name: GetLiveSession :one
-SELECT s.token_hash, s.last_seen_at, s.idle_expires_at, u.id, u.name, u.role, u.locale, u.created_at
+SELECT s.token_hash, s.last_seen_at, s.idle_expires_at, u.id, u.name, u.role, u.locale, u.created_at, u.active_exam
 FROM sessions s
 JOIN users u ON u.id = s.user_id
 WHERE s.token_hash = $1
@@ -75,6 +75,7 @@ type GetLiveSessionRow struct {
 	Role          string
 	Locale        string
 	CreatedAt     time.Time
+	ActiveExam    *string
 }
 
 // Сессия жива, только если не истекли оба срока: простоя и абсолютный.
@@ -90,6 +91,7 @@ func (q *Queries) GetLiveSession(ctx context.Context, tokenHash []byte) (GetLive
 		&i.Role,
 		&i.Locale,
 		&i.CreatedAt,
+		&i.ActiveExam,
 	)
 	return i, err
 }

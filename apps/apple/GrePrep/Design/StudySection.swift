@@ -13,6 +13,9 @@ enum StudySection: String, Hashable, Sendable, CaseIterable {
         case .quant: self = .quant
         case .words: self = .words
         case .essay: self = .essay
+        // Новые разделы пока не приходят на экраны GRE; оформление заменит редизайн.
+        case .reading, .listening, .speaking: self = .verbal
+        case .writing: self = .essay
         }
     }
 

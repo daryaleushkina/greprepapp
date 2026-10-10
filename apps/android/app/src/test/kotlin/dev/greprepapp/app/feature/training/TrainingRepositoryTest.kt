@@ -37,7 +37,13 @@ class TrainingRepositoryTest {
     @get:Rule val folder = TemporaryFolder()
 
     private val request =
-        TrainingRequest(Section.VERBAL, setOf(QuestionType.TEXT_COMPLETION), count = 2, mode = TrainingMode.PRACTICE)
+        TrainingRequest(
+            exam = CURRENT_EXAM,
+            section = Section.VERBAL,
+            questionTypes = setOf(QuestionType.TEXT_COMPLETION),
+            count = 2,
+            mode = TrainingMode.PRACTICE,
+        )
 
     private fun TestScope.graph(): TestGraph =
         TestGraph(this, main.dispatcher, folder.root, token = "token-1").also {
@@ -417,6 +423,7 @@ class TrainingRepositoryTest {
             val g = graph()
             g.trainings.options()
             assertEquals(QuestionType.entries.toList(), g.trainingsApi.optionCalls.single())
+            assertEquals(dev.greprepapp.api.models.Exam.GRE, g.trainingsApi.optionExams.single())
         }
 
     @Test

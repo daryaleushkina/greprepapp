@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
+import { ExamList } from './generated/model/index.zod';
 import { ApiError, configureHttp, http, isApiError, lastSeenRequestId } from './http';
 
 const Thing = z.object({ id: z.string() });
@@ -116,4 +117,9 @@ describe('http', () => {
     );
     await expect(http('/api/today', { schema: Thing })).rejects.toBe(abort);
   });
+});
+
+it('новая строка справочника без обновления договора не читается клиентом', async () => {
+  vi.stubGlobal('fetch', respond(200, '{"exams":[{"id":"sat","sections":["quant"]}]}'));
+  expect((await failure(http('/api/exams', { schema: ExamList }))).kind).toBe('contract');
 });

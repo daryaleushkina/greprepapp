@@ -119,6 +119,11 @@ export const DevSignIn = zod.object({
 export type DevSignIn = zod.input<typeof DevSignIn>;
 export type DevSignInOutput = zod.output<typeof DevSignIn>;
 
+export const ActiveExam = zod.union([zod.literal('gre'),zod.literal('toefl'),zod.literal(null)]).nullable().describe('Новый аккаунт без экзамена; выбор общий для всех устройств')
+
+export type ActiveExam = zod.input<typeof ActiveExam>;
+export type ActiveExamOutput = zod.output<typeof ActiveExam>;
+
 export const LinkedIdentity = zod.object({
   "provider": zod.enum(['telegram', 'apple', 'google']),
   "linkedAt": zod.iso.datetime({"offset":true})
@@ -135,6 +140,7 @@ export const User = zod.object({
   "name": zod.string(),
   "role": zod.enum(['user', 'admin']),
   "locale": zod.enum(['ru', 'en']),
+  "activeExam": zod.union([zod.literal('gre'),zod.literal('toefl'),zod.literal(null)]).nullable().describe('Новый аккаунт без экзамена; выбор общий для всех устройств'),
   "identities": zod.array(zod.object({
   "provider": zod.enum(['telegram', 'apple', 'google']),
   "linkedAt": zod.iso.datetime({"offset":true})
@@ -155,6 +161,7 @@ export const Session = zod.object({
   "name": zod.string(),
   "role": zod.enum(['user', 'admin']),
   "locale": zod.enum(['ru', 'en']),
+  "activeExam": zod.union([zod.literal('gre'),zod.literal('toefl'),zod.literal(null)]).nullable().describe('Новый аккаунт без экзамена; выбор общий для всех устройств'),
   "identities": zod.array(zod.object({
   "provider": zod.enum(['telegram', 'apple', 'google']),
   "linkedAt": zod.iso.datetime({"offset":true})
@@ -165,10 +172,44 @@ export const Session = zod.object({
 export type Session = zod.input<typeof Session>;
 export type SessionOutput = zod.output<typeof Session>;
 
-export const Section = zod.enum(['verbal', 'quant', 'words', 'essay'])
+export const Exam = zod.enum(['gre', 'toefl'])
+
+export type Exam = zod.input<typeof Exam>;
+export type ExamOutput = zod.output<typeof Exam>;
+
+export const ExamChoice = zod.object({
+  "exam": zod.enum(['gre', 'toefl'])
+})
+
+export type ExamChoice = zod.input<typeof ExamChoice>;
+export type ExamChoiceOutput = zod.output<typeof ExamChoice>;
+
+export const Section = zod.enum(['verbal', 'quant', 'words', 'essay', 'reading', 'listening', 'writing', 'speaking'])
 
 export type Section = zod.input<typeof Section>;
 export type SectionOutput = zod.output<typeof Section>;
+
+
+
+export const ExamInfo = zod.object({
+  "id": zod.enum(['gre', 'toefl']),
+  "sections": zod.array(zod.enum(['verbal', 'quant', 'words', 'essay', 'reading', 'listening', 'writing', 'speaking'])).min(1)
+})
+
+export type ExamInfo = zod.input<typeof ExamInfo>;
+export type ExamInfoOutput = zod.output<typeof ExamInfo>;
+
+
+
+export const ExamList = zod.object({
+  "exams": zod.array(zod.object({
+  "id": zod.enum(['gre', 'toefl']),
+  "sections": zod.array(zod.enum(['verbal', 'quant', 'words', 'essay', 'reading', 'listening', 'writing', 'speaking'])).min(1)
+}))
+})
+
+export type ExamList = zod.input<typeof ExamList>;
+export type ExamListOutput = zod.output<typeof ExamList>;
 
 export const StepState = zod.enum(['done', 'current', 'next'])
 
@@ -180,7 +221,7 @@ export const todayStepMinutesMax = 240;
 
 export const TodayStep = zod.object({
   "id": zod.string(),
-  "section": zod.enum(['verbal', 'quant', 'words', 'essay']),
+  "section": zod.enum(['verbal', 'quant', 'words', 'essay', 'reading', 'listening', 'writing', 'speaking']),
   "title": zod.string().describe('На языке интерфейса человека'),
   "minutes": zod.int().min(1).max(todayStepMinutesMax),
   "state": zod.enum(['done', 'current', 'next'])
@@ -198,7 +239,7 @@ export const Today = zod.object({
   "date": zod.iso.date(),
   "steps": zod.array(zod.object({
   "id": zod.string(),
-  "section": zod.enum(['verbal', 'quant', 'words', 'essay']),
+  "section": zod.enum(['verbal', 'quant', 'words', 'essay', 'reading', 'listening', 'writing', 'speaking']),
   "title": zod.string().describe('На языке интерфейса человека'),
   "minutes": zod.int().min(1).max(todayStepsItemMinutesMax),
   "state": zod.enum(['done', 'current', 'next'])
@@ -332,7 +373,7 @@ export const trainingTypeTopicsMax = 100;
 
 
 export const TrainingType = zod.object({
-  "section": zod.enum(['verbal', 'quant', 'words', 'essay']),
+  "section": zod.enum(['verbal', 'quant', 'words', 'essay', 'reading', 'listening', 'writing', 'speaking']),
   "questionType": zod.enum(['text_completion', 'sentence_equivalence', 'quantitative_comparison', 'multiple_choice']).describe('Первый срез тренировок — задания с выбором ответа (решение Даши 06.10.2026): Text Completion (1–3 пропуска), Sentence Equivalence (два ответа из шести), Quantitative Comparison, обычный выбор в математике. Reading Comprehension, ввод числа и несколько верных — следующими срезами.'),
   "paceSeconds": zod.int().min(1).describe('Темп экзамена на вопрос (Verbal — 90 с, Quant — 105 с): время «Проверки» и оценка «~12 мин» на кнопке'),
   "topics": zod.array(zod.object({
@@ -362,7 +403,8 @@ export const trainingRequestCountMax = 50;
 
 
 export const TrainingRequest = zod.object({
-  "section": zod.enum(['verbal', 'quant', 'words', 'essay']),
+  "exam": zod.enum(['gre', 'toefl']),
+  "section": zod.enum(['verbal', 'quant', 'words', 'essay', 'reading', 'listening', 'writing', 'speaking']),
   "questionTypes": zod.array(zod.enum(['text_completion', 'sentence_equivalence', 'quantitative_comparison', 'multiple_choice']).describe('Первый срез тренировок — задания с выбором ответа (решение Даши 06.10.2026): Text Completion (1–3 пропуска), Sentence Equivalence (два ответа из шести), Quantitative Comparison, обычный выбор в математике. Reading Comprehension, ввод числа и несколько верных — следующими срезами.')).min(1).max(trainingRequestQuestionTypesMax).describe('Конструктор даёт один тип; «Проверка на время» — все типы раздела вперемешку (макет R16)'),
   "topicIds": zod.array(zod.string().max(trainingRequestTopicIdsItemMax)).max(trainingRequestTopicIdsMax).optional().describe('Пусто или нет — все темы'),
   "difficulty": zod.enum(['easy', 'medium', 'hard']).optional(),
@@ -387,7 +429,8 @@ export const trainingPresetRequestCountMax = 50;
 export const TrainingPreset = zod.object({
   "kind": zod.string().max(trainingPresetKindMax).describe('Открытый список, не enum: новые виды появятся без обновления приложений, а клиент пропускает незнакомые. Сейчас — last («Как в прошлый раз») и timed («Проверка на время»: все доступные типы раздела, 12 вопросов, как секция экзамена); «Мои ошибки» и «Слабая тема» — с фичей «что повторить».'),
   "request": zod.object({
-  "section": zod.enum(['verbal', 'quant', 'words', 'essay']),
+  "exam": zod.enum(['gre', 'toefl']),
+  "section": zod.enum(['verbal', 'quant', 'words', 'essay', 'reading', 'listening', 'writing', 'speaking']),
   "questionTypes": zod.array(zod.enum(['text_completion', 'sentence_equivalence', 'quantitative_comparison', 'multiple_choice']).describe('Первый срез тренировок — задания с выбором ответа (решение Даши 06.10.2026): Text Completion (1–3 пропуска), Sentence Equivalence (два ответа из шести), Quantitative Comparison, обычный выбор в математике. Reading Comprehension, ввод числа и несколько верных — следующими срезами.')).min(1).max(trainingPresetRequestQuestionTypesMax).describe('Конструктор даёт один тип; «Проверка на время» — все типы раздела вперемешку (макет R16)'),
   "topicIds": zod.array(zod.string().max(trainingPresetRequestTopicIdsItemMax)).max(trainingPresetRequestTopicIdsMax).optional().describe('Пусто или нет — все темы'),
   "difficulty": zod.enum(['easy', 'medium', 'hard']).optional(),
@@ -428,7 +471,7 @@ export const trainingOptionsPresetsMax = 10;
 
 export const TrainingOptions = zod.object({
   "types": zod.array(zod.object({
-  "section": zod.enum(['verbal', 'quant', 'words', 'essay']),
+  "section": zod.enum(['verbal', 'quant', 'words', 'essay', 'reading', 'listening', 'writing', 'speaking']),
   "questionType": zod.enum(['text_completion', 'sentence_equivalence', 'quantitative_comparison', 'multiple_choice']).describe('Первый срез тренировок — задания с выбором ответа (решение Даши 06.10.2026): Text Completion (1–3 пропуска), Sentence Equivalence (два ответа из шести), Quantitative Comparison, обычный выбор в математике. Reading Comprehension, ввод числа и несколько верных — следующими срезами.'),
   "paceSeconds": zod.int().min(1).describe('Темп экзамена на вопрос (Verbal — 90 с, Quant — 105 с): время «Проверки» и оценка «~12 мин» на кнопке'),
   "topics": zod.array(zod.object({
@@ -447,7 +490,8 @@ export const TrainingOptions = zod.object({
   "presets": zod.array(zod.object({
   "kind": zod.string().max(trainingOptionsPresetsItemKindMax).describe('Открытый список, не enum: новые виды появятся без обновления приложений, а клиент пропускает незнакомые. Сейчас — last («Как в прошлый раз») и timed («Проверка на время»: все доступные типы раздела, 12 вопросов, как секция экзамена); «Мои ошибки» и «Слабая тема» — с фичей «что повторить».'),
   "request": zod.object({
-  "section": zod.enum(['verbal', 'quant', 'words', 'essay']),
+  "exam": zod.enum(['gre', 'toefl']),
+  "section": zod.enum(['verbal', 'quant', 'words', 'essay', 'reading', 'listening', 'writing', 'speaking']),
   "questionTypes": zod.array(zod.enum(['text_completion', 'sentence_equivalence', 'quantitative_comparison', 'multiple_choice']).describe('Первый срез тренировок — задания с выбором ответа (решение Даши 06.10.2026): Text Completion (1–3 пропуска), Sentence Equivalence (два ответа из шести), Quantitative Comparison, обычный выбор в математике. Reading Comprehension, ввод числа и несколько верных — следующими срезами.')).min(1).max(trainingOptionsPresetsItemRequestQuestionTypesMax).describe('Конструктор даёт один тип; «Проверка на время» — все типы раздела вперемешку (макет R16)'),
   "topicIds": zod.array(zod.string().max(trainingOptionsPresetsItemRequestTopicIdsItemMax)).max(trainingOptionsPresetsItemRequestTopicIdsMax).optional().describe('Пусто или нет — все темы'),
   "difficulty": zod.enum(['easy', 'medium', 'hard']).optional(),
@@ -561,7 +605,7 @@ export const questionExplanationOptionsMax = 18;
 export const Question = zod.object({
   "id": zod.uuid(),
   "questionType": zod.enum(['text_completion', 'sentence_equivalence', 'quantitative_comparison', 'multiple_choice']).describe('Первый срез тренировок — задания с выбором ответа (решение Даши 06.10.2026): Text Completion (1–3 пропуска), Sentence Equivalence (два ответа из шести), Quantitative Comparison, обычный выбор в математике. Reading Comprehension, ввод числа и несколько верных — следующими срезами.'),
-  "section": zod.enum(['verbal', 'quant', 'words', 'essay']),
+  "section": zod.enum(['verbal', 'quant', 'words', 'essay', 'reading', 'listening', 'writing', 'speaking']),
   "topicId": zod.string().max(questionTopicIdMax),
   "topicTitle": zod.object({
   "ru": zod.string(),
@@ -669,7 +713,7 @@ export const TrainingItem = zod.object({
   "question": zod.object({
   "id": zod.uuid(),
   "questionType": zod.enum(['text_completion', 'sentence_equivalence', 'quantitative_comparison', 'multiple_choice']).describe('Первый срез тренировок — задания с выбором ответа (решение Даши 06.10.2026): Text Completion (1–3 пропуска), Sentence Equivalence (два ответа из шести), Quantitative Comparison, обычный выбор в математике. Reading Comprehension, ввод числа и несколько верных — следующими срезами.'),
-  "section": zod.enum(['verbal', 'quant', 'words', 'essay']),
+  "section": zod.enum(['verbal', 'quant', 'words', 'essay', 'reading', 'listening', 'writing', 'speaking']),
   "topicId": zod.string().max(trainingItemQuestionTopicIdMax),
   "topicTitle": zod.object({
   "ru": zod.string(),
@@ -766,8 +810,9 @@ export const trainingSessionItemsMax = 50;
 
 export const TrainingSession = zod.object({
   "id": zod.uuid(),
+  "exam": zod.enum(['gre', 'toefl']).optional().describe('Необязательное только для чтения сохранённых сессий старого формата; сервер возвращает всегда'),
   "mode": zod.enum(['practice', 'check']).describe('practice — разбор после каждого вопроса, без таймера, вместо пропуска «Не знаю»; check — разбор в конце, таймер темпа экзамена, пропустить и вернуться можно, время вышло — сессия кончилась.'),
-  "section": zod.enum(['verbal', 'quant', 'words', 'essay']),
+  "section": zod.enum(['verbal', 'quant', 'words', 'essay', 'reading', 'listening', 'writing', 'speaking']),
   "questionTypes": zod.array(zod.enum(['text_completion', 'sentence_equivalence', 'quantitative_comparison', 'multiple_choice']).describe('Первый срез тренировок — задания с выбором ответа (решение Даши 06.10.2026): Text Completion (1–3 пропуска), Sentence Equivalence (два ответа из шести), Quantitative Comparison, обычный выбор в математике. Reading Comprehension, ввод числа и несколько верных — следующими срезами.')).min(1).max(trainingSessionQuestionTypesMax),
   "startedAt": zod.iso.datetime({"offset":true}),
   "timeLimitSeconds": zod.int().min(1).optional().describe('Только у «Проверки» — темп секции экзамена'),
@@ -777,7 +822,7 @@ export const TrainingSession = zod.object({
   "question": zod.object({
   "id": zod.uuid(),
   "questionType": zod.enum(['text_completion', 'sentence_equivalence', 'quantitative_comparison', 'multiple_choice']).describe('Первый срез тренировок — задания с выбором ответа (решение Даши 06.10.2026): Text Completion (1–3 пропуска), Sentence Equivalence (два ответа из шести), Quantitative Comparison, обычный выбор в математике. Reading Comprehension, ввод числа и несколько верных — следующими срезами.'),
-  "section": zod.enum(['verbal', 'quant', 'words', 'essay']),
+  "section": zod.enum(['verbal', 'quant', 'words', 'essay', 'reading', 'listening', 'writing', 'speaking']),
   "topicId": zod.string().max(trainingSessionItemsItemQuestionTopicIdMax),
   "topicTitle": zod.object({
   "ru": zod.string(),
@@ -998,10 +1043,18 @@ export const SignInForDevelopmentBody = zod.object({
 export type SignInForDevelopmentBody = zod.input<typeof SignInForDevelopmentBody>;
 export type SignInForDevelopmentBodyOutput = zod.output<typeof SignInForDevelopmentBody>;
 
+export const SetActiveExamBody = zod.object({
+  "exam": zod.enum(['gre', 'toefl'])
+})
+
+export type SetActiveExamBody = zod.input<typeof SetActiveExamBody>;
+export type SetActiveExamBodyOutput = zod.output<typeof SetActiveExamBody>;
+
 export const getTrainingOptionsParamsTypesMax = 20;
 
 
 export const GetTrainingOptionsParams = zod.object({
+  "exam": zod.enum(['gre', 'toefl']),
   "types": zod.array(zod.enum(['text_completion', 'sentence_equivalence', 'quantitative_comparison', 'multiple_choice']).describe('Первый срез тренировок — задания с выбором ответа (решение Даши 06.10.2026): Text Completion (1–3 пропуска), Sentence Equivalence (два ответа из шести), Quantitative Comparison, обычный выбор в математике. Reading Comprehension, ввод числа и несколько верных — следующими срезами.')).min(1).max(getTrainingOptionsParamsTypesMax)
 })
 
@@ -1018,7 +1071,8 @@ export const startTrainingBodyCountMax = 50;
 
 
 export const StartTrainingBody = zod.object({
-  "section": zod.enum(['verbal', 'quant', 'words', 'essay']),
+  "exam": zod.enum(['gre', 'toefl']),
+  "section": zod.enum(['verbal', 'quant', 'words', 'essay', 'reading', 'listening', 'writing', 'speaking']),
   "questionTypes": zod.array(zod.enum(['text_completion', 'sentence_equivalence', 'quantitative_comparison', 'multiple_choice']).describe('Первый срез тренировок — задания с выбором ответа (решение Даши 06.10.2026): Text Completion (1–3 пропуска), Sentence Equivalence (два ответа из шести), Quantitative Comparison, обычный выбор в математике. Reading Comprehension, ввод числа и несколько верных — следующими срезами.')).min(1).max(startTrainingBodyQuestionTypesMax).describe('Конструктор даёт один тип; «Проверка на время» — все типы раздела вперемешку (макет R16)'),
   "topicIds": zod.array(zod.string().max(startTrainingBodyTopicIdsItemMax)).max(startTrainingBodyTopicIdsMax).optional().describe('Пусто или нет — все темы'),
   "difficulty": zod.enum(['easy', 'medium', 'hard']).optional(),

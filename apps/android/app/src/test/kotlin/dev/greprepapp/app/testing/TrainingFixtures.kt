@@ -23,6 +23,7 @@ import dev.greprepapp.api.models.TrainingSession
 import dev.greprepapp.api.models.TrainingSummary
 import dev.greprepapp.api.models.TrainingTopic
 import dev.greprepapp.api.models.TrainingType
+import dev.greprepapp.app.feature.training.CURRENT_EXAM
 import kotlinx.coroutines.CompletableDeferred
 import retrofit2.Response
 
@@ -189,6 +190,7 @@ object Fixtures {
         timeLimitSeconds: Int? = null,
     ): TrainingSession =
         TrainingSession(
+            exam = CURRENT_EXAM,
             id = id,
             mode = mode,
             section = questions.first().section,
@@ -243,6 +245,7 @@ object Fixtures {
             kind = "last",
             request =
                 TrainingRequest(
+                    exam = CURRENT_EXAM,
                     section = Section.QUANT,
                     questionTypes = setOf(QuestionType.QUANTITATIVE_COMPARISON),
                     count = 5,
@@ -255,6 +258,7 @@ object Fixtures {
             kind = "timed",
             request =
                 TrainingRequest(
+                    exam = CURRENT_EXAM,
                     section = Section.VERBAL,
                     questionTypes = setOf(QuestionType.TEXT_COMPLETION, QuestionType.SENTENCE_EQUIVALENCE),
                     count = 12,
@@ -280,13 +284,18 @@ class FakeTrainingsApi : TrainingsApi {
     var answerReply: ((AnswerBatch) -> Reply<Unit>)? = null
 
     val optionCalls = mutableListOf<List<QuestionType>>()
+    val optionExams = mutableListOf<dev.greprepapp.api.models.Exam>()
     val starts = mutableListOf<TrainingRequest>()
     val sentAnswers = mutableListOf<Pair<String, AnswerBatch>>()
     val finishes = mutableListOf<Pair<String, TrainingFinish>>()
     val reports = mutableListOf<Pair<String, QuestionReport>>()
 
-    override suspend fun getTrainingOptions(types: List<QuestionType>): Response<TrainingOptions> {
+    override suspend fun getTrainingOptions(
+        exam: dev.greprepapp.api.models.Exam,
+        types: List<QuestionType>,
+    ): Response<TrainingOptions> {
         optionCalls += types
+        optionExams += exam
         return options.toResponse()
     }
 

@@ -23,6 +23,7 @@
 
 package dev.greprepapp.api.models
 
+import dev.greprepapp.api.models.Exam
 import dev.greprepapp.api.models.QuestionType
 import dev.greprepapp.api.models.Section
 import dev.greprepapp.api.models.TrainingItem
@@ -41,6 +42,7 @@ import kotlinx.serialization.Contextual
  * @param questionTypes 
  * @param startedAt 
  * @param items 
+ * @param exam Необязательное только для чтения сохранённых сессий старого формата; сервер возвращает всегда
  * @param timeLimitSeconds Только у «Проверки» — темп секции экзамена
  * @param finishedAt 
  */
@@ -65,6 +67,10 @@ data class TrainingSession (
 
     @SerialName(value = "items")
     val items: kotlin.collections.List<TrainingItem>,
+
+    /* Необязательное только для чтения сохранённых сессий старого формата; сервер возвращает всегда */
+    @Contextual @SerialName(value = "exam")
+    val exam: Exam? = null,
 
     /* Только у «Проверки» — темп секции экзамена */
     @SerialName(value = "timeLimitSeconds")

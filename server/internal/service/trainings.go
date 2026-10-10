@@ -54,14 +54,18 @@ func (s *Service) GetTrainingOptions(ctx context.Context, params api.GetTraining
 	}
 	qctx, cancel := context.WithTimeout(ctx, dbTimeout)
 	defer cancel()
-	rows, err := s.q.CountApprovedQuestions(qctx)
+	rows, err := s.q.CountApprovedQuestions(qctx, string(params.Exam))
 	if err != nil {
 		return nil, fmt.Errorf("count questions: %w", err)
 	}
-	types := trainingTypes(rows, params.Types)
+	types := trainingTypes(rows, params.Exam, params.Types)
+	availableTypes := make([]api.QuestionType, 0, len(types))
+	for _, t := range types {
+		availableTypes = append(availableTypes, t.QuestionType)
+	}
 
 	presets := []api.TrainingPreset{}
-	last, hasLast, err := s.lastRequest(qctx, p.user.ID)
+	last, hasLast, err := s.lastRequest(qctx, p.user.ID, params.Exam)
 	if errors.Is(err, errUnreadableRequest) {
 		// Старый формат запроса после правки договора не должен закрывать конструктор насовсем: набор «Как в
 		// прошлый раз» пропадает, сбой — в журнал.
@@ -71,11 +75,11 @@ func (s *Service) GetTrainingOptions(ctx context.Context, params api.GetTraining
 		return nil, err
 	}
 	timedSection := api.SectionVerbal
-	if hasLast && supportsAll(params.Types, last.QuestionTypes) {
+	if hasLast && supportsAll(availableTypes, last.QuestionTypes) {
 		presets = append(presets, api.TrainingPreset{Kind: presetLast, Request: last})
 		timedSection = last.Section
 	}
-	if timed, ok := timedPreset(types, timedSection); ok {
+	if timed, ok := timedPreset(types, params.Exam, timedSection); ok {
 		presets = append(presets, timed)
 	}
 	return &api.TrainingOptions{Types: types, Presets: presets, MaxQuestions: training.MaxQuestions}, nil
@@ -91,11 +95,11 @@ func supportsAll(supported, types []api.QuestionType) bool {
 }
 
 // trainingTypes — все поддержанные клиентом типы, даже пустые: конструктор показывает их с пометкой «скоро».
-func trainingTypes(rows []db.CountApprovedQuestionsRow, supported []api.QuestionType) []api.TrainingType {
+func trainingTypes(rows []db.CountApprovedQuestionsRow, exam api.Exam, supported []api.QuestionType) []api.TrainingType {
 	types := make([]api.TrainingType, 0, len(training.Types))
 	index := map[training.Type]int{}
 	for _, t := range training.Types {
-		if !slices.Contains(supported, api.QuestionType(t)) {
+		if training.ExamOf(t) != string(exam) || !slices.Contains(supported, api.QuestionType(t)) {
 			continue
 		}
 		index[t] = len(types)
@@ -109,7 +113,7 @@ func trainingTypes(rows []db.CountApprovedQuestionsRow, supported []api.Question
 	}
 	for _, r := range rows {
 		i, ok := index[training.Type(r.QuestionType)]
-		if !ok {
+		if !ok || types[i].Section != api.Section(r.Section) {
 			continue
 		}
 		topics := types[i].Topics
@@ -131,7 +135,7 @@ func trainingTypes(rows []db.CountApprovedQuestionsRow, supported []api.Question
 }
 
 // timedPreset — «Проверка на время»: все типы раздела, где есть задания, как первая секция экзамена.
-func timedPreset(types []api.TrainingType, section api.Section) (api.TrainingPreset, bool) {
+func timedPreset(types []api.TrainingType, exam api.Exam, section api.Section) (api.TrainingPreset, bool) {
 	var qt []api.QuestionType
 	for _, t := range types {
 		if t.Section == section && len(t.Topics) > 0 {
@@ -142,13 +146,13 @@ func timedPreset(types []api.TrainingType, section api.Section) (api.TrainingPre
 		return api.TrainingPreset{}, false
 	}
 	return api.TrainingPreset{Kind: presetTimed, Request: api.TrainingRequest{
-		Section: section, QuestionTypes: qt, TopicIds: []string{}, Count: training.TimedCount, Mode: api.TrainingModeCheck,
+		Exam: exam, Section: section, QuestionTypes: qt, TopicIds: []string{}, Count: training.TimedCount, Mode: api.TrainingModeCheck,
 	}}, true
 }
 
 // lastRequest — запрос прошлой тренировки для «Как в прошлый раз»; ok=false — тренировок ещё не было.
-func (s *Service) lastRequest(ctx context.Context, userID uuid.UUID) (r api.TrainingRequest, ok bool, err error) {
-	raw, err := s.q.GetLastTrainingRequest(ctx, userID)
+func (s *Service) lastRequest(ctx context.Context, userID uuid.UUID, exam api.Exam) (r api.TrainingRequest, ok bool, err error) {
+	raw, err := s.q.GetLastTrainingRequest(ctx, db.GetLastTrainingRequestParams{UserID: userID, ExamID: string(exam)})
 	if errors.Is(err, pgx.ErrNoRows) {
 		return r, false, nil
 	}
@@ -157,6 +161,9 @@ func (s *Service) lastRequest(ctx context.Context, userID uuid.UUID) (r api.Trai
 	}
 	if err := r.UnmarshalJSON(raw); err != nil {
 		return r, false, fmt.Errorf("%w: %w", errUnreadableRequest, err)
+	}
+	if r.Exam != exam {
+		return r, false, fmt.Errorf("%w: exam mismatch", errUnreadableRequest)
 	}
 	return r, true, nil
 }
@@ -170,16 +177,28 @@ func (s *Service) StartTraining(ctx context.Context, req *api.TrainingRequest) (
 	if err != nil {
 		return nil, err
 	}
-	if req.Section != api.SectionVerbal && req.Section != api.SectionQuant {
-		return nil, apperr.Invalid("trainings exist only for verbal and quant", nil)
-	}
 	types := make([]string, 0, len(req.QuestionTypes))
 	for _, t := range req.QuestionTypes {
-		if string(training.SectionOf(training.Type(t))) != string(req.Section) {
+		if training.ExamOf(training.Type(t)) != string(req.Exam) || string(training.SectionOf(training.Type(t))) != string(req.Section) {
 			return nil, apperr.Invalid(fmt.Sprintf("question type %s is not in section %s", t, req.Section), nil)
 		}
 		types = append(types, string(t))
 	}
+	// Темы — множество. Нормализуем копию запроса, чтобы повтор клиента не превращался в 400 и не
+	// попадал в пресет, а переданный вызывающим кодом запрос оставался неизменным.
+	normalized := *req
+	normalized.TopicIds = make([]string, 0, len(req.TopicIds))
+	seen := make(map[string]struct{}, len(req.TopicIds))
+	for _, id := range req.TopicIds {
+		if _, exists := seen[id]; !exists {
+			seen[id] = struct{}{}
+			normalized.TopicIds = append(normalized.TopicIds, id)
+		}
+	}
+	if req.TopicIds == nil {
+		normalized.TopicIds = nil
+	}
+	req = &normalized
 	request, err := req.MarshalJSON()
 	if err != nil {
 		return nil, fmt.Errorf("encode training request: %w", err)
@@ -199,7 +218,17 @@ func (s *Service) StartTraining(ctx context.Context, req *api.TrainingRequest) (
 	var session *api.TrainingSession
 	err = pgx.BeginFunc(tctx, s.pool, func(tx pgx.Tx) error {
 		q := s.q.WithTx(tx)
+		valid, err := q.TrainingSelectionValid(tctx, db.TrainingSelectionValidParams{
+			ExamID: string(req.Exam), Section: string(req.Section), TopicIds: topicIDs,
+		})
+		if err != nil {
+			return fmt.Errorf("check training selection: %w", err)
+		}
+		if !valid {
+			return apperr.Invalid("section or topics do not belong to exam", nil)
+		}
 		ids, err := q.PickQuestions(tctx, db.PickQuestionsParams{
+			ExamID:  string(req.Exam),
 			Section: string(req.Section), QuestionTypes: types, TopicIds: topicIDs, Difficulty: difficulty,
 			UserID: p.user.ID, MaxCount: req.Count,
 		})
@@ -215,6 +244,7 @@ func (s *Service) StartTraining(ctx context.Context, req *api.TrainingRequest) (
 			limit = &v
 		}
 		tr, err := q.CreateTraining(tctx, db.CreateTrainingParams{
+			ExamID: string(req.Exam),
 			UserID: p.user.ID, Mode: string(req.Mode), Section: string(req.Section), QuestionTypes: types,
 			Request: request, TimeLimitSeconds: limit, StartedAt: s.now(),
 		})
@@ -473,7 +503,8 @@ func sessionOf(tr db.Training, rows []db.ListTrainingItemsRow) (*api.TrainingSes
 		types = append(types, api.QuestionType(t))
 	}
 	out := &api.TrainingSession{
-		ID: tr.ID, Mode: api.TrainingMode(tr.Mode), Section: api.Section(tr.Section), QuestionTypes: types,
+		Exam: api.NewOptExam(api.Exam(tr.ExamID)),
+		ID:   tr.ID, Mode: api.TrainingMode(tr.Mode), Section: api.Section(tr.Section), QuestionTypes: types,
 		StartedAt: tr.StartedAt, Items: items,
 	}
 	if tr.TimeLimitSeconds != nil {

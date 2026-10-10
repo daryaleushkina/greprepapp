@@ -3,7 +3,7 @@
 //     initData, показывает причину и «Повторить».
 //   • TabsLayout — экраны-разделы: в мини-аппе и на узком сайте — стеклянная капсула вкладок снизу; на сайте
 //     600–899 px — строка разделов сверху, шире — боковая панель (решение Даши 06.10.2026, DESIGN.md «Navigation»).
-import { isApiError } from '@greprep/api-client';
+import { isApiError, type Section } from '@greprep/api-client';
 import { Link, Navigate, Outlet, useMatch, useMatchRoute, useRouter, useRouterState } from '@tanstack/react-router';
 import { createContext, use, useEffect, useRef, useState, type ReactNode } from 'react';
 import { returnToSearch } from '../auth/returnTo';
@@ -20,7 +20,7 @@ import { useStoredTraining } from '../training/hooks';
 import glass from '../styles/glass.module.css';
 import styles from './AppLayout.module.css';
 
-export type Glow = 'verbal' | 'quant' | 'words' | 'essay' | 'exam';
+export type Glow = Section | 'exam';
 
 const GlowContext = createContext<(glow: Glow) => void>(() => {});
 

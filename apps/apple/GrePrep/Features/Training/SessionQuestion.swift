@@ -2,6 +2,16 @@ import GPAPI
 import SwiftUI
 
 enum TrainingText {
+    static func sectionLabel(_ section: Components.Schemas.Section) -> String {
+        switch section {
+        case .reading: "Reading"
+        case .listening: "Listening"
+        case .writing: "Writing"
+        case .speaking: "Speaking"
+        case .verbal, .quant, .words, .essay: String(localized: StudySection(section).label)
+        }
+    }
+
     static let blanks = ["(i)", "(ii)", "(iii)"]
 
     static func explanation(_ text: String) -> AttributedString {

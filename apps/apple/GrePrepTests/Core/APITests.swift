@@ -7,6 +7,18 @@ import Testing
 struct APITests {
     let server = StubServer()
 
+    @Test("nullable экзамен аккаунта читается без union-схем", arguments: ["null", "\"gre\"", "\"toefl\""])
+    func activeExam(exam: String) async throws {
+        server.on(
+            "GET /api/me",
+            .json(
+                200,
+                #"{"id":"8f0c6c1e-5a43-4c1a-9b7e-0c4b1f2d3e4f","name":"Fixture","role":"user","locale":"ru","activeExam":\#(exam),"identities":[]}"#
+            ))
+        let user = try await api().me()
+        #expect(user.activeExam?.rawValue == (exam == "null" ? nil : exam.replacingOccurrences(of: "\"", with: "")))
+    }
+
     @Test("жалоба сохраняет код договора и id запроса для сверки с сервером")
     func reportKeepsFailureMetadata() async throws {
         server.on(

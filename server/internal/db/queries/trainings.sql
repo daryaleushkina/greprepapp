@@ -3,12 +3,14 @@
 SELECT t.section, q.question_type, t.id AS topic_id, t.title_ru, t.title_en, q.difficulty, count(*)::integer AS available
 FROM questions q
 JOIN topics t ON t.id = q.topic_id
-WHERE q.status = 'approved'
+WHERE q.status = 'approved' AND t.exam_id = $1
 GROUP BY t.section, q.question_type, t.id, t.title_ru, t.title_en, t.position, q.difficulty
 ORDER BY t.position, t.id;
 
 -- name: GetLastTrainingRequest :one
-SELECT request FROM trainings WHERE user_id = $1 ORDER BY started_at DESC LIMIT 1;
+-- Старый сервер после миграции ещё пишет JSON без exam; источником истины остаётся столбец строки.
+SELECT (request || jsonb_build_object('exam', exam_id))::jsonb AS request
+FROM trainings WHERE user_id = $1 AND exam_id = $2 ORDER BY started_at DESC LIMIT 1;
 
 -- Подбор заданий: только проверенные, сначала те, что человек ещё не видел, внутри — случайно. Виденное —
 -- по тренировкам самого человека (индекс по user_id), а не по всем показам задания всем людям.
@@ -24,6 +26,7 @@ FROM questions q
 JOIN topics t ON t.id = q.topic_id
 LEFT JOIN seen s ON s.question_id = q.id
 WHERE q.status = 'approved'
+  AND t.exam_id = sqlc.arg(exam_id)
   AND t.section = sqlc.arg(section)
   AND q.question_type = ANY (sqlc.arg(question_types)::text[])
   AND (cardinality(sqlc.arg(topic_ids)::text[]) = 0 OR q.topic_id = ANY (sqlc.arg(topic_ids)::text[]))
@@ -32,8 +35,8 @@ ORDER BY s.question_id IS NOT NULL, random()
 LIMIT sqlc.arg(max_count)::integer;
 
 -- name: CreateTraining :one
-INSERT INTO trainings (user_id, mode, section, question_types, request, time_limit_seconds, started_at)
-VALUES ($1, $2, $3, $4, $5, $6, $7)
+INSERT INTO trainings (user_id, mode, section, question_types, request, time_limit_seconds, started_at, exam_id)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 RETURNING *;
 
 -- name: CreateTrainingItems :exec
@@ -96,9 +99,9 @@ INSERT INTO question_reports (user_id, question_id, training_id, kind, text) VAL
 
 -- Набор для разработки (greprep seed-dev) и тестов; в бой контент приходит через админку.
 -- name: UpsertTopic :exec
-INSERT INTO topics (id, section, title_ru, title_en, position) VALUES ($1, $2, $3, $4, $5)
+INSERT INTO topics (id, section, title_ru, title_en, position, exam_id) VALUES ($1, $2, $3, $4, $5, $6)
 ON CONFLICT (id) DO UPDATE SET section = excluded.section, title_ru = excluded.title_ru,
-  title_en = excluded.title_en, position = excluded.position;
+  title_en = excluded.title_en, position = excluded.position, exam_id = excluded.exam_id;
 
 -- name: UpsertQuestion :exec
 INSERT INTO questions (id, question_type, topic_id, difficulty, status, body, answer, explanation)
@@ -109,3 +112,13 @@ ON CONFLICT (id) DO UPDATE SET question_type = excluded.question_type, topic_id 
 
 -- name: GetTopicSection :one
 SELECT section FROM topics WHERE id = $1;
+
+-- Весь выбор проверяется до подбора заданий: чужая или неизвестная тема — 400, а не пустая тренировка.
+-- name: TrainingSelectionValid :one
+SELECT (COALESCE(EXISTS (
+  SELECT 1 FROM exam_sections s WHERE s.exam_id = sqlc.arg(exam_id) AND s.section = sqlc.arg(section)
+) AND (
+  SELECT count(*)::integer FROM topics t
+  WHERE t.id = ANY (sqlc.arg(topic_ids)::text[])
+    AND t.exam_id = sqlc.arg(exam_id) AND t.section = sqlc.arg(section)
+) = cardinality(sqlc.arg(topic_ids)::text[]), false))::boolean AS valid;

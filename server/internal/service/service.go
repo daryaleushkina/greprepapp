@@ -113,7 +113,7 @@ func (s *Service) authenticate(ctx context.Context, op api.OperationName, token 
 			return ctx, fmt.Errorf("touch session: %w", err)
 		}
 	}
-	user := db.User{ID: row.ID, Name: row.Name, Role: row.Role, Locale: row.Locale, CreatedAt: row.CreatedAt}
+	user := db.User{ID: row.ID, Name: row.Name, Role: row.Role, Locale: row.Locale, CreatedAt: row.CreatedAt, ActiveExam: row.ActiveExam}
 	httpx.FromContext(ctx).SetUser(user.ID.String())
 	return context.WithValue(ctx, principalKey{}, principal{user: user, tokenHash: hash}), nil
 }
@@ -362,6 +362,10 @@ func expiredSessionCookie() *http.Cookie {
 }
 
 func (s *Service) apiUser(ctx context.Context, u db.User) (api.User, error) {
+	activeExam := api.NilActiveExam{Null: true}
+	if u.ActiveExam != nil {
+		activeExam.SetTo(api.ActiveExam(*u.ActiveExam))
+	}
 	ids, err := s.q.ListIdentities(ctx, u.ID)
 	if err != nil {
 		return api.User{}, fmt.Errorf("list identities: %w", err)
@@ -376,6 +380,7 @@ func (s *Service) apiUser(ctx context.Context, u db.User) (api.User, error) {
 		Role:       api.Role(u.Role),
 		Locale:     api.Locale(u.Locale),
 		Identities: linked,
+		ActiveExam: activeExam,
 	}, nil
 }
 

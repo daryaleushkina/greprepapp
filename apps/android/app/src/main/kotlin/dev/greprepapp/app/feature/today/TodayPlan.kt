@@ -46,12 +46,14 @@ data class TodayPlan(
     }
 }
 
+// Новые разделы пока не приходят на экраны GRE; оформление заменит редизайн.
 fun Section.toStudySection(): StudySection =
     when (this) {
         Section.VERBAL -> StudySection.Verbal
         Section.QUANT -> StudySection.Quant
         Section.WORDS -> StudySection.Words
-        Section.ESSAY -> StudySection.Essay
+        Section.ESSAY, Section.WRITING -> StudySection.Essay
+        Section.READING, Section.LISTENING, Section.SPEAKING -> StudySection.Verbal
     }
 
 private fun StepState.toState(): TodayPlan.State =

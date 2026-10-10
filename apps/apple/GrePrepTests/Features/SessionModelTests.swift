@@ -1,4 +1,5 @@
 import Foundation
+import GPAPI
 import Observation
 import Testing
 
@@ -110,8 +111,11 @@ struct SessionModelTests {
         #expect(!finishedChanged.changed)
     }
 
-    func model(check: Bool = false, question: Question? = nil) async throws -> (SessionModel, TrainingModel) {
+    func model(check: Bool = false, question: Question? = nil, exam: Components.Schemas.Exam? = .gre) async throws -> (
+        SessionModel, TrainingModel
+    ) {
         var t = TrainingFixture.stored()
+        t.session.exam = exam
         if let question { t.session.items[0].question = question }
         if check {
             t.session.mode = .check
@@ -345,6 +349,19 @@ struct SessionModelTests {
             body["count"] as? Int
                 == TrainingRules.repeatCount(model.screen!.result!.review.reduce(0) { $0 + $1.mistakes }))
         #expect(body["topicIds"] as? [String] == model.screen?.result?.review.map(\.topicId))
+    }
+
+    @Test(
+        "Повтор сохраняет экзамен сессии и поддерживает старый формат",
+        arguments: [Components.Schemas.Exam?.some(.toefl), nil])
+    func repeatPreservesExam(exam: Components.Schemas.Exam?) async throws {
+        let (model, _) = try await model(exam: exam)
+        model.dontKnow()
+        model.end()
+        server.on("POST /api/trainings", .json(409, Fixture.error("no_questions")))
+        _ = await model.repeatMistakes()
+        let body = try #require(server.requests("POST /api/trainings").first).json()
+        #expect(body["exam"] as? String == (exam?.rawValue ?? "gre"))
     }
 
     @Test func repeatPreventsDoubleStartAndDoesNothingWithoutMistakes() async throws {

@@ -56,7 +56,7 @@ export async function presetMatchesForm(page: Page) {
   await expect(page.getByRole('combobox', { name: 'Тип' }).locator('option:checked')).toHaveText('Text Completion · Sentence Equivalence');
   const posted = page.waitForRequest((req) => req.method() === 'POST' && new URL(req.url()).pathname === '/api/trainings');
   await page.getByRole('button', { name: /^Начать ·/ }).click();
-  expect(schemas.TrainingRequest.parse((await posted).postDataJSON())).toMatchObject({ section: 'verbal', count: 12, mode: 'check',
+  expect(schemas.TrainingRequest.parse((await posted).postDataJSON())).toMatchObject({ exam: 'gre', section: 'verbal', count: 12, mode: 'check',
     questionTypes: ['text_completion', 'sentence_equivalence'] });
   await expect(page.getByRole('heading', { name: /Text Completion|Sentence Equivalence/ })).toBeVisible();
 }
@@ -173,7 +173,7 @@ export async function practiceThroughSummary(page: Page) {
   const request = page.waitForRequest((r) => r.method() === 'POST' && new URL(r.url()).pathname === '/api/trainings');
   await page.getByRole('button', { name: /^Повторить ·/ }).click();
   const repeated = schemas.TrainingRequest.parse((await request).postDataJSON());
-  expect(repeated).toMatchObject({ mode: 'practice', section: 'verbal', count: 5 });
+  expect(repeated).toMatchObject({ exam: 'gre', mode: 'practice', section: 'verbal', count: 5 });
   expect(repeated.topicIds?.length).toBeGreaterThan(0);
   await expect(page.getByRole('button', { name: 'Не знаю', exact: true })).toBeVisible();
 }

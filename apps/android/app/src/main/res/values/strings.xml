@@ -4,6 +4,12 @@
 <resources>
     <string name="app_name" translatable="false">GrePrepApp</string>
 
+    <!-- Названия разделов экзамена остаются английскими в обеих локализациях. -->
+    <string name="section_reading" translatable="false">Reading</string>
+    <string name="section_listening" translatable="false">Listening</string>
+    <string name="section_writing" translatable="false">Writing</string>
+    <string name="section_speaking" translatable="false">Speaking</string>
+
     <!-- Вход -->
     <string name="signin_tagline">Подготовка к GRE® с разбором каждой ошибки — по-русски и по-английски.</string>
     <string name="signin_telegram">Войти через Telegram</string>

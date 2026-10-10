@@ -96,11 +96,13 @@ enum TrainingFixture {
         presets: [
             .init(
                 kind: "last",
-                request: .init(section: .verbal, questionTypes: [.textCompletion], count: 10, mode: .practice)),
+                request: .init(
+                    exam: currentExam, section: .verbal, questionTypes: [.textCompletion], count: 10, mode: .practice)),
             .init(
                 kind: "timed",
                 request: .init(
-                    section: .verbal, questionTypes: [.textCompletion, .sentenceEquivalence], count: 12, mode: .check)),
+                    exam: currentExam, section: .verbal, questionTypes: [.textCompletion, .sentenceEquivalence],
+                    count: 12, mode: .check)),
         ],
         maxQuestions: 30)
 

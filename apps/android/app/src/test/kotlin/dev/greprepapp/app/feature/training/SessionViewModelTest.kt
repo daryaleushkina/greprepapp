@@ -1,6 +1,7 @@
 package dev.greprepapp.app.feature.training
 
 import androidx.lifecycle.viewModelScope
+import dev.greprepapp.api.models.Exam
 import dev.greprepapp.api.models.TrainingMode
 import dev.greprepapp.app.feature.training.SessionViewModel.UiState
 import dev.greprepapp.app.testing.Fixtures
@@ -34,10 +35,11 @@ class SessionViewModelTest {
 
     private suspend fun TestScope.open(
         mode: TrainingMode = TrainingMode.PRACTICE,
+        exam: Exam? = Exam.GRE,
         vararg questions: dev.greprepapp.api.models.Question = arrayOf(Fixtures.tc1, Fixtures.se),
     ): SessionViewModel {
         graph = TestGraph(this, main.dispatcher, folder.root, token = "token-1").also { it.settle() }
-        graph.trainingsApi.start = Reply.Ok(Fixtures.session(*questions, mode = mode))
+        graph.trainingsApi.start = Reply.Ok(Fixtures.session(*questions, mode = mode).copy(exam = exam))
         val id = (graph.trainings.start(Fixtures.timedPreset.request) as StartResult.Started).trainingId
         val vm = SessionViewModel(id, graph.trainings, graph.clock, graph.ticker)
         advanceUntilIdle()
@@ -267,6 +269,27 @@ class SessionViewModelTest {
             vm.repeatMistakes()
             advanceUntilIdle()
             assertEquals(StartProblem.Offline, vm.repeat.value.problem)
+        }
+
+    @Test
+    fun repeatPreservesExamAndReadsLegacySession() =
+        runTest(main.dispatcher) {
+            for (exam in listOf(Exam.TOEFL, null)) {
+                val vm = open(exam = exam)
+                vm.dontKnow()
+                advanceUntilIdle()
+                vm.finish()
+                advanceUntilIdle()
+                vm.repeatMistakes()
+                advanceUntilIdle()
+                assertEquals(
+                    exam ?: Exam.GRE,
+                    graph.trainingsApi.starts
+                        .last()
+                        .exam,
+                )
+                vm.viewModelScope.cancel()
+            }
         }
 
     @Test

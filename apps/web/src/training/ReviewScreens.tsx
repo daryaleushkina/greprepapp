@@ -1,3 +1,4 @@
+import { sectionLang } from '../screens/today/summary';
 import { Link, useNavigate, useParams } from '@tanstack/react-router';
 import { useState } from 'react';
 import { BackIcon, CheckIcon, ChevronRightIcon } from '../components/icons';
@@ -35,7 +36,7 @@ function ReviewList({ training }: { training: StoredTraining }) {
   const shown = onlyMistakes ? mistakes : training.session.items;
   return <>
     <TrainingHeading>{training.session.mode === 'check' ? text.review_title_check : text.review_title_practice}</TrainingHeading>
-    <p className={styles.note}>{text.summary_correct_of(result.correct, result.total)} · <span lang="en">{training.session.section === 'quant' ? 'Quant' : 'Verbal'}</span> · {t.today.minutes(TrainingRules.summaryMinutes(result.durationSeconds).minutes)}</p>
+    <p className={styles.note}>{text.summary_correct_of(result.correct, result.total)} · <span lang={sectionLang(training.session.section)}>{t.sections[training.session.section]}</span> · {t.today.minutes(TrainingRules.summaryMinutes(result.durationSeconds).minutes)}</p>
     <div className={`${styles.segments} ${glass.glass} ${styles.reviewFilters}`} role="group" aria-label={text.review_filter}>
       <button aria-pressed={!onlyMistakes} onClick={() => setOnlyMistakes(false)}>{text.review_all(result.total)}</button>
       <button aria-pressed={onlyMistakes} onClick={() => setOnlyMistakes(true)}>{text.review_mistakes(mistakes.length)}</button>

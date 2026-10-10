@@ -9,9 +9,23 @@ import kotlinx.serialization.Serializable
 
 import dev.greprepapp.api.models.ClientError
 import dev.greprepapp.api.models.Error
+import dev.greprepapp.api.models.ExamList
 import dev.greprepapp.api.models.Health
 
 interface PublicApi {
+    /**
+     * GET api/exams
+     * Экзамены и разделы в порядке прохождения
+     * 
+     * Responses:
+     *  - 200: Доступные экзамены
+     *  - 0: Любая ошибка — машинный код, текст для журнала, id запроса
+     *
+     * @return [ExamList]
+     */
+    @GET("api/exams")
+    suspend fun getExams(): Response<ExamList>
+
     /**
      * GET api/health
      * Жив ли сервер и какая сборка (сверка после выкладки)

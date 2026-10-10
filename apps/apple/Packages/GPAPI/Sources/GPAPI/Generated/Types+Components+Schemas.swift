@@ -335,6 +335,8 @@ extension Components {
             public var role: Components.Schemas.Role
             /// - Remark: Generated from `#/components/schemas/User/locale`.
             public var locale: Components.Schemas.Locale
+            /// - Remark: Generated from `#/components/schemas/User/activeExam`.
+            public var activeExam: Components.Schemas.ActiveExam?
             /// - Remark: Generated from `#/components/schemas/User/identities`.
             public var identities: [Components.Schemas.LinkedIdentity]
             /// Creates a new `User`.
@@ -344,18 +346,21 @@ extension Components {
             ///   - name:
             ///   - role:
             ///   - locale:
+            ///   - activeExam:
             ///   - identities:
             public init(
                 id: Swift.String,
                 name: Swift.String,
                 role: Components.Schemas.Role,
                 locale: Components.Schemas.Locale,
+                activeExam: Components.Schemas.ActiveExam? = nil,
                 identities: [Components.Schemas.LinkedIdentity]
             ) {
                 self.id = id
                 self.name = name
                 self.role = role
                 self.locale = locale
+                self.activeExam = activeExam
                 self.identities = identities
             }
             public enum CodingKeys: String, CodingKey {
@@ -363,6 +368,7 @@ extension Components {
                 case name
                 case role
                 case locale
+                case activeExam
                 case identities
             }
         }
@@ -389,12 +395,82 @@ extension Components {
                 case linkedAt
             }
         }
+        /// - Remark: Generated from `#/components/schemas/Exam`.
+        @frozen public enum Exam: String, Codable, Hashable, Sendable, CaseIterable {
+            case gre = "gre"
+            case toefl = "toefl"
+        }
+        /// Новый аккаунт без экзамена; выбор общий для всех устройств
+        ///
+        /// - Remark: Generated from `#/components/schemas/ActiveExam`.
+        @frozen public enum ActiveExam: String, Codable, Hashable, Sendable, CaseIterable {
+            case gre = "gre"
+            case toefl = "toefl"
+            case _empty_ = ""
+        }
+        /// - Remark: Generated from `#/components/schemas/ExamChoice`.
+        public struct ExamChoice: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/ExamChoice/exam`.
+            public var exam: Components.Schemas.Exam
+            /// Creates a new `ExamChoice`.
+            ///
+            /// - Parameters:
+            ///   - exam:
+            public init(exam: Components.Schemas.Exam) {
+                self.exam = exam
+            }
+            public enum CodingKeys: String, CodingKey {
+                case exam
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/ExamInfo`.
+        public struct ExamInfo: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/ExamInfo/id`.
+            public var id: Components.Schemas.Exam
+            /// - Remark: Generated from `#/components/schemas/ExamInfo/sections`.
+            public var sections: [Components.Schemas.Section]
+            /// Creates a new `ExamInfo`.
+            ///
+            /// - Parameters:
+            ///   - id:
+            ///   - sections:
+            public init(
+                id: Components.Schemas.Exam,
+                sections: [Components.Schemas.Section]
+            ) {
+                self.id = id
+                self.sections = sections
+            }
+            public enum CodingKeys: String, CodingKey {
+                case id
+                case sections
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/ExamList`.
+        public struct ExamList: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/ExamList/exams`.
+            public var exams: [Components.Schemas.ExamInfo]
+            /// Creates a new `ExamList`.
+            ///
+            /// - Parameters:
+            ///   - exams:
+            public init(exams: [Components.Schemas.ExamInfo]) {
+                self.exams = exams
+            }
+            public enum CodingKeys: String, CodingKey {
+                case exams
+            }
+        }
         /// - Remark: Generated from `#/components/schemas/Section`.
         @frozen public enum Section: String, Codable, Hashable, Sendable, CaseIterable {
             case verbal = "verbal"
             case quant = "quant"
             case words = "words"
             case essay = "essay"
+            case reading = "reading"
+            case listening = "listening"
+            case writing = "writing"
+            case speaking = "speaking"
         }
         /// - Remark: Generated from `#/components/schemas/StepState`.
         @frozen public enum StepState: String, Codable, Hashable, Sendable, CaseIterable {
@@ -776,6 +852,8 @@ extension Components {
         }
         /// - Remark: Generated from `#/components/schemas/TrainingRequest`.
         public struct TrainingRequest: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/TrainingRequest/exam`.
+            public var exam: Components.Schemas.Exam
             /// - Remark: Generated from `#/components/schemas/TrainingRequest/section`.
             public var section: Components.Schemas.Section
             /// Конструктор даёт один тип; «Проверка на время» — все типы раздела вперемешку (макет R16)
@@ -795,6 +873,7 @@ extension Components {
             /// Creates a new `TrainingRequest`.
             ///
             /// - Parameters:
+            ///   - exam:
             ///   - section:
             ///   - questionTypes: Конструктор даёт один тип; «Проверка на время» — все типы раздела вперемешку (макет R16)
             ///   - topicIds: Пусто или нет — все темы
@@ -802,6 +881,7 @@ extension Components {
             ///   - count:
             ///   - mode:
             public init(
+                exam: Components.Schemas.Exam,
                 section: Components.Schemas.Section,
                 questionTypes: [Components.Schemas.QuestionType],
                 topicIds: [Swift.String]? = nil,
@@ -809,6 +889,7 @@ extension Components {
                 count: Swift.Int,
                 mode: Components.Schemas.TrainingMode
             ) {
+                self.exam = exam
                 self.section = section
                 self.questionTypes = questionTypes
                 self.topicIds = topicIds
@@ -817,6 +898,7 @@ extension Components {
                 self.mode = mode
             }
             public enum CodingKeys: String, CodingKey {
+                case exam
                 case section
                 case questionTypes
                 case topicIds
@@ -1116,6 +1198,10 @@ extension Components {
         public struct TrainingSession: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/TrainingSession/id`.
             public var id: Swift.String
+            /// Необязательное только для чтения сохранённых сессий старого формата; сервер возвращает всегда
+            ///
+            /// - Remark: Generated from `#/components/schemas/TrainingSession/exam`.
+            public var exam: Components.Schemas.Exam?
             /// - Remark: Generated from `#/components/schemas/TrainingSession/mode`.
             public var mode: Components.Schemas.TrainingMode
             /// - Remark: Generated from `#/components/schemas/TrainingSession/section`.
@@ -1136,6 +1222,7 @@ extension Components {
             ///
             /// - Parameters:
             ///   - id:
+            ///   - exam: Необязательное только для чтения сохранённых сессий старого формата; сервер возвращает всегда
             ///   - mode:
             ///   - section:
             ///   - questionTypes:
@@ -1145,6 +1232,7 @@ extension Components {
             ///   - items:
             public init(
                 id: Swift.String,
+                exam: Components.Schemas.Exam? = nil,
                 mode: Components.Schemas.TrainingMode,
                 section: Components.Schemas.Section,
                 questionTypes: [Components.Schemas.QuestionType],
@@ -1154,6 +1242,7 @@ extension Components {
                 items: [Components.Schemas.TrainingItem]
             ) {
                 self.id = id
+                self.exam = exam
                 self.mode = mode
                 self.section = section
                 self.questionTypes = questionTypes
@@ -1164,6 +1253,7 @@ extension Components {
             }
             public enum CodingKeys: String, CodingKey {
                 case id
+                case exam
                 case mode
                 case section
                 case questionTypes

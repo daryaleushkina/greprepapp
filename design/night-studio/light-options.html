@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Светлая тема — варианты</title>
+<!-- Все экраны в направлении «Ночная студия» (решение Даши 10.10.2026). Открывается прямо из файла.
+     Экран регистрируется в screens/<группа>.js через NS.add, его стили — screens/<группа>.css на токенах
+     core.css. Раскладка компьютера — контейнерный запрос по ширине рамки (≥ 900 px), разметка одна. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geologica:wght@200;300;400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;family=Onest:wght@400;500;600&amp;family=Source+Serif+4:ital,opsz,wght@1,8..60,400;1,8..60,500&amp;display=swap">
+<link rel="stylesheet" href="catalog.css">
+<link rel="stylesheet" href="core.css">
+<link rel="stylesheet" href="screens/t.css">
+<link rel="stylesheet" href="screens/r1.css">
+<link rel="stylesheet" href="screens/r2.css">
+<link rel="stylesheet" href="screens/l.css">
+<link rel="stylesheet" href="screens/w.css">
+<link rel="stylesheet" href="screens/x.css">
+<link rel="stylesheet" href="screens/g.css">
+<link rel="stylesheet" href="screens/nav.css">
+<link rel="stylesheet" href="screens/wl.css">
+<script>
+// Реестр экранов и общие куски разметки.
+window.NS = {
+  screens: [],
+  icons: '',
+  add(s) { this.screens.push(s); },
+  icon(id, body) { this.icons += `<symbol id="${id}" viewBox="0 0 24 24">${body}</symbol>`; },
+  // Нижние вкладки (телефон) / боковая панель (компьютер). current: train | words | exam | progress.
+  nav(current, exam = 'GRE') {
+    const item = (key, icon, label) =>
+      `<a class="nav-item" href="#"${key === current ? ' aria-current="page"' : ''}><svg class="ic"><use href="#${icon}"/></svg><span>${label}</span></a>`;
+    return `<nav class="nav" aria-label="Разделы">
+      <button type="button" class="exam-switch" aria-label="Экзамен: ${exam}, сменить"><span class="exam-switch-name">${exam}</span><svg class="ic-sm"><use href="#i-chevron-down"/></svg></button>
+      ${item('train', 'i-train', 'Тренировка')}${item('words', 'i-words', 'Слова')}${item('exam', 'i-exam', 'Экзамен')}${item('progress', 'i-progress', 'Прогресс')}
+    </nav>`;
+  },
+  // Шапка экрана-раздела на телефоне: переключатель экзамена (на компьютере он в боковой панели).
+  top(exam = 'GRE', extra = '') {
+    return `<header class="top"><button type="button" class="exam-switch exam-switch-top" aria-label="Экзамен: ${exam}, сменить"><span class="exam-switch-name">${exam}</span><svg class="ic-sm"><use href="#i-chevron-down"/></svg></button>${extra}</header>`;
+  },
+};
+</script>
+<script src="icons.js"></script>
+<script src="screens/t.js"></script>
+<script src="screens/r1.js"></script>
+<script src="screens/r2.js"></script>
+<script src="screens/l.js"></script>
+<script src="screens/w.js"></script>
+<script src="screens/x.js"></script>
+<script src="screens/g.js"></script>
+<script src="screens/nav.js"></script>
+<script src="screens/wl.js"></script>
+</head>
+<body>
+<header class="cat-head"><div class="cat-title"><h1>Светлая тема — варианты</h1><p>Одни и те же экраны в пяти палитрах. Все проходят контраст AA. Выбранная палитра пойдёт и в приложение, и на главную.</p></div></header>
+<main id="board" class="cat-board"></main>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs id="sprite"></defs></svg>
+<style>.frame.p-now { --bg:#E4E8F0; --surface:#F1F3F8; --surface-2:#D9DFEA; --text:#0E1430; --text-2:#48516F; --text-3:#535C7A;
+  --accent:#005A9F; --focus:#005A9F; --accent-soft:rgb(0 90 159 / 0.1); --nav-bg:#EDF0F5; --glow: 0 10px 28px -8px rgb(0 90 159 / 0.4);
+  --c-verbal:#5A3FD6; --c-verbal-soft:rgb(90 63 214 / 0.11); --c-quant:#00664E; --c-quant-soft:rgb(0 102 78 / 0.11);
+  --c-essay:#844C00; --c-essay-soft:rgb(132 76 0 / 0.11); --c-words:#A12A60; --c-words-soft:rgb(161 42 96 / 0.11);
+  --right:#00664E; --right-soft:rgb(0 102 78 / 0.11); --wrong:#A82F17; --wrong-soft:rgb(168 47 23 / 0.1); --c-exam:#0E1430; }
+.frame.p-tuman { --bg:#D9DFE9; --surface:#E8ECF2; --surface-2:#CCD4E0; --text:#0E1430; --text-2:#3F4866; --text-3:#4A5371;
+  --accent:#00508F; --focus:#00508F; --accent-soft:rgb(0 80 143 / 0.1); --nav-bg:#E2E7EE; --glow: 0 10px 28px -8px rgb(0 80 143 / 0.4);
+  --c-verbal:#4A33B8; --c-verbal-soft:rgb(74 51 184 / 0.11); --c-quant:#005843; --c-quant-soft:rgb(0 88 67 / 0.11);
+  --c-essay:#714100; --c-essay-soft:rgb(113 65 0 / 0.11); --c-words:#8C2453; --c-words-soft:rgb(140 36 83 / 0.11);
+  --right:#005843; --right-soft:rgb(0 88 67 / 0.11); --wrong:#922815; --wrong-soft:rgb(146 40 21 / 0.1); --c-exam:#0E1430; }
+.frame.p-bumaga { --bg:#ECE7DE; --surface:#F6F2EB; --surface-2:#E0D9CD; --text:#1B1A17; --text-2:#4D4A44; --text-3:#5A564E;
+  --accent:#0B4F8A; --focus:#0B4F8A; --accent-soft:rgb(11 79 138 / 0.1); --nav-bg:#F1EDE6; --glow: 0 10px 28px -8px rgb(11 79 138 / 0.4);
+  --c-verbal:#5A3FD6; --c-verbal-soft:rgb(90 63 214 / 0.11); --c-quant:#00664E; --c-quant-soft:rgb(0 102 78 / 0.11);
+  --c-essay:#844C00; --c-essay-soft:rgb(132 76 0 / 0.11); --c-words:#A12A60; --c-words-soft:rgb(161 42 96 / 0.11);
+  --right:#00664E; --right-soft:rgb(0 102 78 / 0.11); --wrong:#A82F17; --wrong-soft:rgb(168 47 23 / 0.1); --c-exam:#1B1A17; }
+.frame.p-lavanda { --bg:#E2E3F1; --surface:#EEEFF8; --surface-2:#D4D6EA; --text:#11132E; --text-2:#454A6E; --text-3:#4F5579;
+  --accent:#3B3FB0; --focus:#3B3FB0; --accent-soft:rgb(59 63 176 / 0.1); --nav-bg:#E8E9F5; --glow: 0 10px 28px -8px rgb(59 63 176 / 0.4);
+  --c-verbal:#5A3FD6; --c-verbal-soft:rgb(90 63 214 / 0.11); --c-quant:#00664E; --c-quant-soft:rgb(0 102 78 / 0.11);
+  --c-essay:#844C00; --c-essay-soft:rgb(132 76 0 / 0.11); --c-words:#A12A60; --c-words-soft:rgb(161 42 96 / 0.11);
+  --right:#00664E; --right-soft:rgb(0 102 78 / 0.11); --wrong:#A82F17; --wrong-soft:rgb(168 47 23 / 0.1); --c-exam:#11132E; }
+.frame.p-sumerki { --bg:#C7CEDA; --surface:#D8DEE8; --surface-2:#B9C2D1; --text:#0B1029; --text-2:#333C58; --text-3:#3A4361;
+  --accent:#003F75; --focus:#003F75; --accent-soft:rgb(0 63 117 / 0.1); --nav-bg:#CFD6E1; --glow: 0 10px 28px -8px rgb(0 63 117 / 0.4);
+  --c-verbal:#3D2A99; --c-verbal-soft:rgb(61 42 153 / 0.11); --c-quant:#004A38; --c-quant-soft:rgb(0 74 56 / 0.11);
+  --c-essay:#5F3700; --c-essay-soft:rgb(95 55 0 / 0.11); --c-words:#761E46; --c-words-soft:rgb(118 30 70 / 0.11);
+  --right:#004A38; --right-soft:rgb(0 74 56 / 0.11); --wrong:#7C2211; --wrong-soft:rgb(124 34 17 / 0.1); --c-exam:#0B1029; }</style>
+<script>
+document.getElementById('sprite').innerHTML = NS.icons;
+const P = [["now", "Сейчас", "Холодный светло-серый (то, что в каталоге сейчас)."], ["tuman", "А · Туман", "На тон глубже и холоднее: серо-голубой фон, карточки без белизны."], ["bumaga", "Б · Бумага", "Тёплая, как хорошая бумага; синий акцент остаётся."], ["lavanda", "В · Лаванда", "Светлый оттенок ночного неба: чуть сиреневый фон, родственный тёмной теме."], ["sumerki", "Г · Сумерки", "Приглушённая, средне-светлая: меньше всего слепит."]];
+const IDS = ['T1', 'R4', 'G1', 'W7'];
+const board = document.getElementById('board');
+for (const [k, name, note] of P) {
+  const sec = document.createElement('section'); sec.className = 'cat-dir';
+  const h = document.createElement('h2'); h.textContent = name;
+  const p = document.createElement('p'); p.textContent = note;
+  const row = document.createElement('div'); row.className = 'cat-row';
+  sec.append(h, p, row);
+  for (const id of IDS) {
+    const s = NS.screens.find(x => x.id === id); if (!s) continue;
+    const f = document.createElement('div'); f.className = `frame device-phone p-${k}`; f.dataset.theme = 'light';
+    f.innerHTML = s.html; row.append(f);
+  }
+  board.append(sec);
+}
+</script>
+</body>
+</html>

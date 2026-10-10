@@ -7,6 +7,18 @@ import (
 	"testing"
 )
 
+func TestExamOf(t *testing.T) {
+	t.Parallel()
+	for _, typ := range Types {
+		if got := ExamOf(typ); got != "gre" {
+			t.Errorf("ExamOf(%s) = %q", typ, got)
+		}
+	}
+	if got := ExamOf(Type("unknown")); got != "" {
+		t.Errorf("unknown type exam = %q", got)
+	}
+}
+
 func opts(ids ...string) Group {
 	g := Group{}
 	for _, id := range ids {

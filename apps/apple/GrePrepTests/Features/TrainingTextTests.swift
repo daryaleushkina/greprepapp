@@ -1,3 +1,4 @@
+import GPAPI
 import SwiftUI
 import Testing
 
@@ -6,6 +7,16 @@ import Testing
 @MainActor
 @Suite("Тексты вопроса и разбора")
 struct TrainingTextTests {
+    @Test(
+        "TOEFL сохраняет названия разделов",
+        arguments: [
+            (Components.Schemas.Section.reading, "Reading"), (.listening, "Listening"), (.writing, "Writing"),
+            (.speaking, "Speaking"),
+        ])
+    func examSectionLabel(section: Components.Schemas.Section, expected: String) {
+        #expect(TrainingText.sectionLabel(section) == expected)
+    }
+
     @Test("Лишние подчёркивания остаются текстом, длинная черта — один пропуск")
     func surplusAndLongBlanksAreLiteral() {
         var t = TrainingFixture.stored()

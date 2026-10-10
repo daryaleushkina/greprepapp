@@ -120,7 +120,7 @@ class TrainingRepository
 
         suspend fun options(): ApiResult<TrainingOptions> {
             val id = currentSession()
-            val result = apiCall { api.getTrainingOptions(SUPPORTED) }
+            val result = apiCall { api.getTrainingOptions(CURRENT_EXAM, SUPPORTED) }
             if (result is ApiResult.Failed && id != null) handle(result.failure, id, "options")
             return result
         }

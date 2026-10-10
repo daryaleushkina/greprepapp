@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ночная студия — все экраны</title>
+<!-- Все экраны в направлении «Ночная студия» (решение Даши 10.10.2026). Открывается прямо из файла.
+     Экран регистрируется в screens/<группа>.js через NS.add, его стили — screens/<группа>.css на токенах
+     core.css. Раскладка компьютера — контейнерный запрос по ширине рамки (≥ 900 px), разметка одна. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geologica:wght@200;300;400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;family=Onest:wght@400;500;600&amp;family=Source+Serif+4:ital,opsz,wght@1,8..60,400;1,8..60,500&amp;display=swap">
+<link rel="stylesheet" href="catalog.css">
+<link rel="stylesheet" href="core.css">
+<link rel="stylesheet" href="screens/t.css">
+<link rel="stylesheet" href="screens/r1.css">
+<link rel="stylesheet" href="screens/r2.css">
+<link rel="stylesheet" href="screens/l.css">
+<link rel="stylesheet" href="screens/w.css">
+<link rel="stylesheet" href="screens/x.css">
+<link rel="stylesheet" href="screens/g.css">
+<link rel="stylesheet" href="screens/nav.css">
+<link rel="stylesheet" href="screens/wl.css">
+<script>
+// Реестр экранов и общие куски разметки.
+window.NS = {
+  screens: [],
+  icons: '',
+  add(s) { this.screens.push(s); },
+  icon(id, body) { this.icons += `<symbol id="${id}" viewBox="0 0 24 24">${body}</symbol>`; },
+  // Нижние вкладки (телефон) / боковая панель (компьютер). current: train | words | exam | progress.
+  nav(current, exam = 'GRE') {
+    const item = (key, icon, label) =>
+      `<a class="nav-item" href="#"${key === current ? ' aria-current="page"' : ''}><svg class="ic"><use href="#${icon}"/></svg><span>${label}</span></a>`;
+    return `<nav class="nav" aria-label="Разделы">
+      <button type="button" class="exam-switch" aria-label="Экзамен: ${exam}, сменить"><span class="exam-switch-name">${exam}</span><svg class="ic-sm"><use href="#i-chevron-down"/></svg></button>
+      ${item('train', 'i-train', 'Тренировка')}${item('words', 'i-words', 'Слова')}${item('exam', 'i-exam', 'Экзамен')}${item('progress', 'i-progress', 'Прогресс')}
+    </nav>`;
+  },
+  // Шапка экрана-раздела на телефоне: переключатель экзамена (на компьютере он в боковой панели).
+  top(exam = 'GRE', extra = '') {
+    return `<header class="top"><button type="button" class="exam-switch exam-switch-top" aria-label="Экзамен: ${exam}, сменить"><span class="exam-switch-name">${exam}</span><svg class="ic-sm"><use href="#i-chevron-down"/></svg></button>${extra}</header>`;
+  },
+};
+</script>
+<script src="icons.js"></script>
+<script src="screens/t.js"></script>
+<script src="screens/r1.js"></script>
+<script src="screens/r2.js"></script>
+<script src="screens/l.js"></script>
+<script src="screens/w.js"></script>
+<script src="screens/x.js"></script>
+<script src="screens/g.js"></script>
+<script src="screens/nav.js"></script>
+<script src="screens/wl.js"></script>
+</head>
+<body>
+
+<header class="cat-head">
+  <div class="cat-title">
+    <h1>Ночная студия · все экраны</h1>
+    <p>Направление выбрано 10.10.2026. Пример — GRE; группа TOEFL — экраны, которых у GRE нет. Варианты ответа нажимаются, RU/EN в разборе переключается.</p>
+  </div>
+  <div class="cat-controls" role="group" aria-label="Что показать">
+    <fieldset class="cat-seg" id="f-group">
+      <legend>Группа</legend>
+      <button type="button" data-group="all" aria-pressed="true">Все</button>
+      <button type="button" data-group="T" aria-pressed="false">Общее</button>
+      <button type="button" data-group="R" aria-pressed="false">Тренировка</button>
+      <button type="button" data-group="L" aria-pressed="false">TOEFL</button>
+      <button type="button" data-group="W" aria-pressed="false">Слова</button>
+      <button type="button" data-group="X" aria-pressed="false">Экзамен и эссе</button>
+      <button type="button" data-group="G" aria-pressed="false">Прогресс и аккаунт</button>
+    </fieldset>
+    <fieldset class="cat-seg" id="f-theme">
+      <legend>Тема</legend>
+      <button type="button" data-theme-pick="both" aria-pressed="true">Обе</button>
+      <button type="button" data-theme-pick="light" aria-pressed="false">Светлая</button>
+      <button type="button" data-theme-pick="dark" aria-pressed="false">Тёмная</button>
+    </fieldset>
+    <fieldset class="cat-seg" id="f-device">
+      <legend>Устройство</legend>
+      <button type="button" data-device="phone" aria-pressed="true">Телефон</button>
+      <button type="button" data-device="desktop" aria-pressed="false">Компьютер</button>
+    </fieldset>
+  </div>
+</header>
+
+<main id="board" class="cat-board"></main>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs id="sprite"></defs></svg>
+
+<script>
+const GROUPS = { T: 'Общее', R: 'Тренировка', L: 'TOEFL', W: 'Слова', X: 'Экзамен и эссе', G: 'Прогресс и аккаунт' };
+const state = { group: 'all', theme: 'both', device: 'phone' };
+// Фильтр можно задать ссылкой: index.html#R — только тренировка. Иначе — память браузера (удобство).
+try { Object.assign(state, JSON.parse(localStorage.getItem('night-studio') || '{}')); } catch (e) { /* по умолчанию */ }
+if (/^#[TRLWXG]$/.test(location.hash)) state.group = location.hash.slice(1);
+
+document.getElementById('sprite').innerHTML = NS.icons;
+
+function syncControls() {
+  const map = { 'f-group': ['group', 'data-group'], 'f-theme': ['theme', 'data-theme-pick'], 'f-device': ['device', 'data-device'] };
+  for (const [id, [key, attr]] of Object.entries(map)) {
+    document.querySelectorAll(`#${id} button`).forEach(b => b.setAttribute('aria-pressed', String(b.getAttribute(attr) === state[key])));
+  }
+}
+
+const num = (id) => parseInt(id.slice(1), 10);
+function render() {
+  const board = document.getElementById('board');
+  board.textContent = '';
+  const themes = state.theme === 'both' ? ['light', 'dark'] : [state.theme];
+  for (const g of Object.keys(GROUPS)) {
+    if (state.group !== 'all' && state.group !== g) continue;
+    const list = NS.screens.filter(s => s.group === g).sort((a, b) => num(a.id) - num(b.id));
+    if (!list.length) continue;
+    const sec = document.createElement('section'); sec.className = 'cat-dir';
+    const h = document.createElement('h2'); h.textContent = GROUPS[g];
+    const row = document.createElement('div'); row.className = 'cat-row';
+    sec.append(h, row);
+    for (const s of list) {
+      const fig = document.createElement('figure'); fig.className = 'cat-screen'; fig.id = s.id;
+      const cap = document.createElement('figcaption'); cap.textContent = `${s.id} · ${s.name}`;
+      const frames = document.createElement('div'); frames.className = 'cat-frames';
+      fig.append(cap, frames);
+      for (const t of themes) {
+        const frame = document.createElement('div');
+        frame.className = `frame device-${state.device}`;
+        frame.dataset.theme = t;
+        frame.innerHTML = s.html;
+        // Профиль (просьба Даши 10.10.2026): низ боковой панели на компьютере, аватар в шапке на телефоне.
+        const onProfile = s.id === 'G2';
+        frame.querySelectorAll('.nav').forEach(nav => {
+          if (nav.querySelector('.nav-profile')) return;
+          nav.insertAdjacentHTML('beforeend', `<a class="nav-profile" href="#"${onProfile ? ' aria-current="page"' : ''}><span class="avatar" aria-hidden="true">А</span><span class="nav-profile-text"><b>Алина</b><small>Профиль</small></span></a>`);
+        });
+        frame.querySelectorAll('.has-nav .top:not(.top-back)').forEach(top => {
+          if (!top.querySelector('.top-avatar')) top.insertAdjacentHTML('beforeend', '<a class="top-avatar" href="#" aria-label="Профиль"><span class="avatar" aria-hidden="true">А</span></a>');
+        });
+        // Обе темы — две копии одной разметки: id и ссылки на них делаем уникальными, иначе подпись
+        // поля в тёмной копии фокусирует поле светлой.
+        frame.querySelectorAll('[id]').forEach(el => { el.id = `${el.id}--${t}`; });
+        frame.querySelectorAll('[for]').forEach(el => el.setAttribute('for', `${el.getAttribute('for')}--${t}`));
+        frame.querySelectorAll('[aria-labelledby],[aria-describedby],[aria-controls]').forEach(el => {
+          for (const a of ['aria-labelledby', 'aria-describedby', 'aria-controls']) {
+            const v = el.getAttribute(a);
+            if (v) el.setAttribute(a, v.split(/\s+/).map(x => `${x}--${t}`).join(' '));
+          }
+        });
+        frames.append(frame);
+      }
+      row.append(fig);
+    }
+    board.append(sec);
+  }
+}
+
+document.addEventListener('click', (e) => {
+  const ctl = e.target.closest('.cat-seg button');
+  if (ctl) {
+    if (ctl.dataset.group) state.group = ctl.dataset.group;
+    if (ctl.dataset.themePick) state.theme = ctl.dataset.themePick;
+    if (ctl.dataset.device) state.device = ctl.dataset.device;
+    try { localStorage.setItem('night-studio', JSON.stringify(state)); } catch (err) { /* необязательно */ }
+    syncControls(); render();
+    return;
+  }
+  // Живые мелочи внутри экранов: выбор варианта (один — radio, несколько — checkbox) и язык разбора.
+  const opt = e.target.closest('.frame .opt');
+  // Заблокированный ответ (вернулась к прошлому вопросу) не меняется.
+  if (opt && (opt.closest('fieldset[disabled]') || opt.classList.contains('qnav-locked'))) return;
+  if (opt) {
+    if (opt.getAttribute('role') === 'checkbox') opt.setAttribute('aria-checked', String(opt.getAttribute('aria-checked') !== 'true'));
+    else opt.closest('.opt-group').querySelectorAll('.opt').forEach(o => o.setAttribute('aria-checked', String(o === opt)));
+    return;
+  }
+  const lang = e.target.closest('.frame [data-lang-set]');
+  if (lang) {
+    const app = lang.closest('.app');
+    app.dataset.lang = lang.dataset.langSet;
+    app.querySelectorAll('[data-lang-set]').forEach(b => b.setAttribute('aria-pressed', String(b === lang)));
+    return;
+  }
+  if (e.target.closest('.frame a')) e.preventDefault();
+});
+
+syncControls();
+render();
+</script>
+</body>
+</html>

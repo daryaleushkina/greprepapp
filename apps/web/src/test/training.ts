@@ -2,7 +2,7 @@ import { schemas, type GivenAnswer, type TrainingOptions, type TrainingSession }
 import { storedTraining } from '../training/model';
 
 export const trainingSession = (over: Partial<TrainingSession> = {}): TrainingSession => schemas.TrainingSession.parse({
-  id: '00000000-0000-4000-8000-000000000100', mode: 'practice', section: 'verbal', questionTypes: ['text_completion'],
+  id: '00000000-0000-4000-8000-000000000100', exam: 'gre', mode: 'practice', section: 'verbal', questionTypes: ['text_completion'],
   startedAt: '2026-10-06T09:00:00Z', items: Array.from({ length: 3 }, (_, position) => ({ position, question: {
     id: `00000000-0000-4000-8000-00000000000${position + 1}`, questionType: 'text_completion', section: 'verbal',
     topicId: 'contrast', topicTitle: { ru: 'Контраст', en: 'Contrast' }, difficulty: 'easy', prompt: 'Fixture ___.',
@@ -16,7 +16,7 @@ export const savedTraining = (id = trainingSession().id, startedAtMillis = Date.
 export const trainingOptions = (over: Partial<TrainingOptions> = {}): TrainingOptions => ({
   types: schemas.QuestionType.options.map((questionType, index) => ({ questionType, section: index < 2 ? 'verbal' : 'quant',
     paceSeconds: index < 2 ? 90 : 105, topics: ['contrast', 'cause'].map((id) => ({ id, title: { ru: id === 'contrast' ? 'Контраст' : 'Причина', en: id }, available: { easy: 3, medium: 2, hard: 1 } })) })),
-  presets: [{ kind: 'timed', request: { section: 'verbal', questionTypes: ['text_completion', 'sentence_equivalence'], count: 12, mode: 'check' } }], maxQuestions: 50, ...over,
+  presets: [{ kind: 'timed', request: { exam: 'gre', section: 'verbal', questionTypes: ['text_completion', 'sentence_equivalence'], count: 12, mode: 'check' } }], maxQuestions: 50, ...over,
 });
 
 export function questionFixture(type: import('@greprep/api-client').QuestionType, blanks = 1): import('@greprep/api-client').Question {

@@ -23,6 +23,16 @@ type ClientError struct {
 	ReceivedAt time.Time
 }
 
+type Exam struct {
+	ID string
+}
+
+type ExamSection struct {
+	ExamID   string
+	Section  string
+	Position int
+}
+
 type Identity struct {
 	Provider  string
 	Subject   string
@@ -70,6 +80,7 @@ type Topic struct {
 	TitleRu  string
 	TitleEn  string
 	Position int
+	ExamID   string
 }
 
 type Training struct {
@@ -83,6 +94,7 @@ type Training struct {
 	StartedAt        time.Time
 	FinishedAt       *time.Time
 	TimedOut         bool
+	ExamID           string
 }
 
 type TrainingItem struct {
@@ -98,9 +110,10 @@ type TrainingItem struct {
 }
 
 type User struct {
-	ID        uuid.UUID
-	Name      string
-	Role      string
-	Locale    string
-	CreatedAt time.Time
+	ID         uuid.UUID
+	Name       string
+	Role       string
+	Locale     string
+	CreatedAt  time.Time
+	ActiveExam *string
 }

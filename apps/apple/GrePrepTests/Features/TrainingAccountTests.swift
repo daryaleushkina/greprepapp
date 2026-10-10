@@ -67,7 +67,12 @@ struct TrainingAccountTests {
         await eventually { app.trainings.trainings[t.id] != nil }
         app.handleUnauthorized()
         try app.didSignIn(.init(token: "new", user: Fixture.user))
-        await eventually { !server.requests("POST /api/client-errors").isEmpty }
+        // Фоновый отчёт другого запроса может прийти раньше отчёта об очищенной очереди.
+        await eventually {
+            server.requests("POST /api/client-errors").contains {
+                String(data: $0.body, encoding: .utf8)?.contains("lost 1 unsent answers") == true
+            }
+        }
         #expect(try store.load { _ in }.isEmpty)
         let messages = try server.requests("POST /api/client-errors").map { try $0.json()["message"] as? String ?? "" }
         #expect(messages.contains { $0.contains("lost 1 unsent answers") })

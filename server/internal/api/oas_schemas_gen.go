@@ -14,6 +14,50 @@ func (s *ErrorStatusCode) Error() string {
 	return fmt.Sprintf("code %d: %+v", s.StatusCode, s.Response)
 }
 
+// Новый аккаунт без экзамена; выбор общий для всех
+// устройств.
+// Ref: #/components/schemas/ActiveExam
+type ActiveExam string
+
+const (
+	ActiveExamGre   ActiveExam = "gre"
+	ActiveExamToefl ActiveExam = "toefl"
+)
+
+// AllValues returns all ActiveExam values.
+func (ActiveExam) AllValues() []ActiveExam {
+	return []ActiveExam{
+		ActiveExamGre,
+		ActiveExamToefl,
+	}
+}
+
+// MarshalText implements encoding.TextMarshaler.
+func (s ActiveExam) MarshalText() ([]byte, error) {
+	switch s {
+	case ActiveExamGre:
+		return []byte(s), nil
+	case ActiveExamToefl:
+		return []byte(s), nil
+	default:
+		return nil, errors.Errorf("invalid value: %q", s)
+	}
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (s *ActiveExam) UnmarshalText(data []byte) error {
+	switch ActiveExam(data) {
+	case ActiveExamGre:
+		*s = ActiveExamGre
+		return nil
+	case ActiveExamToefl:
+		*s = ActiveExamToefl
+		return nil
+	default:
+		return errors.Errorf("invalid value: %q", data)
+	}
+}
+
 // Ref: #/components/schemas/AnswerBatch
 type AnswerBatch struct {
 	Answers []GivenAnswer `json:"answers"`
@@ -549,6 +593,104 @@ func (s *ErrorStatusCode) SetResponse(val Error) {
 	s.Response = val
 }
 
+// Ref: #/components/schemas/Exam
+type Exam string
+
+const (
+	ExamGre   Exam = "gre"
+	ExamToefl Exam = "toefl"
+)
+
+// AllValues returns all Exam values.
+func (Exam) AllValues() []Exam {
+	return []Exam{
+		ExamGre,
+		ExamToefl,
+	}
+}
+
+// MarshalText implements encoding.TextMarshaler.
+func (s Exam) MarshalText() ([]byte, error) {
+	switch s {
+	case ExamGre:
+		return []byte(s), nil
+	case ExamToefl:
+		return []byte(s), nil
+	default:
+		return nil, errors.Errorf("invalid value: %q", s)
+	}
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (s *Exam) UnmarshalText(data []byte) error {
+	switch Exam(data) {
+	case ExamGre:
+		*s = ExamGre
+		return nil
+	case ExamToefl:
+		*s = ExamToefl
+		return nil
+	default:
+		return errors.Errorf("invalid value: %q", data)
+	}
+}
+
+// Ref: #/components/schemas/ExamChoice
+type ExamChoice struct {
+	Exam Exam `json:"exam"`
+}
+
+// GetExam returns the value of Exam.
+func (s *ExamChoice) GetExam() Exam {
+	return s.Exam
+}
+
+// SetExam sets the value of Exam.
+func (s *ExamChoice) SetExam(val Exam) {
+	s.Exam = val
+}
+
+// Ref: #/components/schemas/ExamInfo
+type ExamInfo struct {
+	ID       Exam      `json:"id"`
+	Sections []Section `json:"sections"`
+}
+
+// GetID returns the value of ID.
+func (s *ExamInfo) GetID() Exam {
+	return s.ID
+}
+
+// GetSections returns the value of Sections.
+func (s *ExamInfo) GetSections() []Section {
+	return s.Sections
+}
+
+// SetID sets the value of ID.
+func (s *ExamInfo) SetID(val Exam) {
+	s.ID = val
+}
+
+// SetSections sets the value of Sections.
+func (s *ExamInfo) SetSections(val []Section) {
+	s.Sections = val
+}
+
+// Ref: #/components/schemas/ExamList
+type ExamList struct {
+	Exams []ExamInfo `json:"exams"`
+}
+
+// GetExams returns the value of Exams.
+func (s *ExamList) GetExams() []ExamInfo {
+	return s.Exams
+}
+
+// SetExams sets the value of Exams.
+func (s *ExamList) SetExams(val []ExamInfo) {
+	s.Exams = val
+}
+
 // Разбор пишется заранее (PRODUCT.md, «Разбор ошибок»): почему
 // верен ключ и почему соблазняет и не подходит каждый
 // неверный вариант. Текст простой; слово — выделение
@@ -949,6 +1091,51 @@ func (s *LocalizedText) SetEn(val string) {
 	s.En = val
 }
 
+// NewNilActiveExam returns new NilActiveExam with value set to v.
+func NewNilActiveExam(v ActiveExam) NilActiveExam {
+	return NilActiveExam{
+		Value: v,
+	}
+}
+
+// NilActiveExam is nullable ActiveExam.
+type NilActiveExam struct {
+	Value ActiveExam
+	Null  bool
+}
+
+// SetTo sets value to v.
+func (o *NilActiveExam) SetTo(v ActiveExam) {
+	o.Null = false
+	o.Value = v
+}
+
+// IsNull returns true if value is Null.
+func (o NilActiveExam) IsNull() bool { return o.Null }
+
+// SetToNull sets value to null.
+func (o *NilActiveExam) SetToNull() {
+	o.Null = true
+	var v ActiveExam
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o NilActiveExam) Get() (v ActiveExam, ok bool) {
+	if o.Null {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o NilActiveExam) Or(d ActiveExam) ActiveExam {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
 // NewOptBool returns new OptBool with value set to v.
 func NewOptBool(v bool) OptBool {
 	return OptBool{
@@ -1127,6 +1314,52 @@ func (o OptDifficulty) Get() (v Difficulty, ok bool) {
 
 // Or returns value if set, or given parameter if does not.
 func (o OptDifficulty) Or(d Difficulty) Difficulty {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptExam returns new OptExam with value set to v.
+func NewOptExam(v Exam) OptExam {
+	return OptExam{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptExam is optional Exam.
+type OptExam struct {
+	Value Exam
+	Set   bool
+}
+
+// IsSet returns true if OptExam was set.
+func (o OptExam) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptExam) Reset() {
+	var v Exam
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptExam) SetTo(v Exam) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptExam) Get() (v Exam, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptExam) Or(d Exam) Exam {
 	if v, ok := o.Get(); ok {
 		return v
 	}
@@ -1967,10 +2200,14 @@ func (s *Role) UnmarshalText(data []byte) error {
 type Section string
 
 const (
-	SectionVerbal Section = "verbal"
-	SectionQuant  Section = "quant"
-	SectionWords  Section = "words"
-	SectionEssay  Section = "essay"
+	SectionVerbal    Section = "verbal"
+	SectionQuant     Section = "quant"
+	SectionWords     Section = "words"
+	SectionEssay     Section = "essay"
+	SectionReading   Section = "reading"
+	SectionListening Section = "listening"
+	SectionWriting   Section = "writing"
+	SectionSpeaking  Section = "speaking"
 )
 
 // AllValues returns all Section values.
@@ -1980,6 +2217,10 @@ func (Section) AllValues() []Section {
 		SectionQuant,
 		SectionWords,
 		SectionEssay,
+		SectionReading,
+		SectionListening,
+		SectionWriting,
+		SectionSpeaking,
 	}
 }
 
@@ -1993,6 +2234,14 @@ func (s Section) MarshalText() ([]byte, error) {
 	case SectionWords:
 		return []byte(s), nil
 	case SectionEssay:
+		return []byte(s), nil
+	case SectionReading:
+		return []byte(s), nil
+	case SectionListening:
+		return []byte(s), nil
+	case SectionWriting:
+		return []byte(s), nil
+	case SectionSpeaking:
 		return []byte(s), nil
 	default:
 		return nil, errors.Errorf("invalid value: %q", s)
@@ -2013,6 +2262,18 @@ func (s *Section) UnmarshalText(data []byte) error {
 		return nil
 	case SectionEssay:
 		*s = SectionEssay
+		return nil
+	case SectionReading:
+		*s = SectionReading
+		return nil
+	case SectionListening:
+		*s = SectionListening
+		return nil
+	case SectionWriting:
+		*s = SectionWriting
+		return nil
+	case SectionSpeaking:
+		*s = SectionSpeaking
 		return nil
 	default:
 		return errors.Errorf("invalid value: %q", data)
@@ -2542,6 +2803,7 @@ func (s *TrainingPreset) SetRequest(val TrainingRequest) {
 
 // Ref: #/components/schemas/TrainingRequest
 type TrainingRequest struct {
+	Exam    Exam    `json:"exam"`
 	Section Section `json:"section"`
 	// Конструктор даёт один тип; «Проверка на время» — все
 	// типы раздела вперемешку (макет R16).
@@ -2551,6 +2813,11 @@ type TrainingRequest struct {
 	Difficulty OptDifficulty `json:"difficulty"`
 	Count      int           `json:"count"`
 	Mode       TrainingMode  `json:"mode"`
+}
+
+// GetExam returns the value of Exam.
+func (s *TrainingRequest) GetExam() Exam {
+	return s.Exam
 }
 
 // GetSection returns the value of Section.
@@ -2581,6 +2848,11 @@ func (s *TrainingRequest) GetCount() int {
 // GetMode returns the value of Mode.
 func (s *TrainingRequest) GetMode() TrainingMode {
 	return s.Mode
+}
+
+// SetExam sets the value of Exam.
+func (s *TrainingRequest) SetExam(val Exam) {
+	s.Exam = val
 }
 
 // SetSection sets the value of Section.
@@ -2615,7 +2887,10 @@ func (s *TrainingRequest) SetMode(val TrainingMode) {
 
 // Ref: #/components/schemas/TrainingSession
 type TrainingSession struct {
-	ID            uuid.UUID      `json:"id"`
+	ID uuid.UUID `json:"id"`
+	// Необязательное только для чтения сохранённых сессий
+	// старого формата; сервер возвращает всегда.
+	Exam          OptExam        `json:"exam"`
 	Mode          TrainingMode   `json:"mode"`
 	Section       Section        `json:"section"`
 	QuestionTypes []QuestionType `json:"questionTypes"`
@@ -2629,6 +2904,11 @@ type TrainingSession struct {
 // GetID returns the value of ID.
 func (s *TrainingSession) GetID() uuid.UUID {
 	return s.ID
+}
+
+// GetExam returns the value of Exam.
+func (s *TrainingSession) GetExam() OptExam {
+	return s.Exam
 }
 
 // GetMode returns the value of Mode.
@@ -2669,6 +2949,11 @@ func (s *TrainingSession) GetItems() []TrainingItem {
 // SetID sets the value of ID.
 func (s *TrainingSession) SetID(val uuid.UUID) {
 	s.ID = val
+}
+
+// SetExam sets the value of Exam.
+func (s *TrainingSession) SetExam(val OptExam) {
+	s.Exam = val
 }
 
 // SetMode sets the value of Mode.
@@ -2860,6 +3145,7 @@ type User struct {
 	Name       string           `json:"name"`
 	Role       Role             `json:"role"`
 	Locale     Locale           `json:"locale"`
+	ActiveExam NilActiveExam    `json:"activeExam"`
 	Identities []LinkedIdentity `json:"identities"`
 }
 
@@ -2881,6 +3167,11 @@ func (s *User) GetRole() Role {
 // GetLocale returns the value of Locale.
 func (s *User) GetLocale() Locale {
 	return s.Locale
+}
+
+// GetActiveExam returns the value of ActiveExam.
+func (s *User) GetActiveExam() NilActiveExam {
+	return s.ActiveExam
 }
 
 // GetIdentities returns the value of Identities.
@@ -2906,6 +3197,11 @@ func (s *User) SetRole(val Role) {
 // SetLocale sets the value of Locale.
 func (s *User) SetLocale(val Locale) {
 	s.Locale = val
+}
+
+// SetActiveExam sets the value of ActiveExam.
+func (s *User) SetActiveExam(val NilActiveExam) {
+	s.ActiveExam = val
 }
 
 // SetIdentities sets the value of Identities.

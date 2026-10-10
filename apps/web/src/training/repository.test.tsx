@@ -3,11 +3,12 @@ import { deleteDB } from 'idb';
 import { afterEach, expect, test, vi } from 'vitest';
 import { givenAnswer, savedTraining, trainingOptions, trainingSession } from '../test/training';
 import { TrainingRepository } from './repository';
+import { storedTraining } from './model';
 import { TrainingStore, TrainingStorageBlockedError } from './store';
 
 const opened: { name: string; store: TrainingStore }[] = [];
 const NOW = Date.parse('2026-10-06T09:00:00Z');
-const request = { section: 'verbal', questionTypes: ['text_completion'], count: 3, mode: 'practice' } as const;
+const request = { exam: 'gre', section: 'verbal', questionTypes: ['text_completion'], count: 3, mode: 'practice' } as const;
 const make = (name = `queue-test-${crypto.randomUUID()}`, locks: LockManager | null = navigator.locks) => {
   const report = vi.fn(); const store = new TrainingStore(name, report); opened.push({ name, store });
   const api = { options: vi.fn(async () => trainingOptions()), start: vi.fn(async () => trainingSession()), answers: vi.fn(async () => {}),
@@ -164,7 +165,7 @@ test('новый вход того же человека ждёт очистки
 
 test('опции запрашиваются с четырьмя типами; старт скачивает всё и сохраняет до открытия', async () => {
   const m = make(); await m.repo.signedIn('a'); expect(await m.repo.options()).toEqual(trainingOptions());
-  expect(m.api.options).toHaveBeenCalledWith({ types: ['text_completion', 'sentence_equivalence', 'quantitative_comparison', 'multiple_choice'] }, { signal: undefined });
+  expect(m.api.options).toHaveBeenCalledWith({ exam: 'gre', types: ['text_completion', 'sentence_equivalence', 'quantitative_comparison', 'multiple_choice'] }, { signal: undefined });
   const id = await m.repo.start({ ...request, questionTypes: [...request.questionTypes] });
   expect(await m.repo.get(id)).toEqual(savedTraining(id, NOW));
   expect((await m.repo.active())?.session.id).toBe(id);
@@ -450,4 +451,15 @@ test('старый владелец не восстанавливает и не 
   m.repo.reportDraft(trainingSession().id, 0, { text: 'Synthetic new' });
   m.repo.discardReportDraft(trainingSession().id, 0, owner);
   expect(m.repo.getReportDraft(trainingSession().id, 0)).toEqual({ text: 'Synthetic new' });
+});
+
+test('запись сессии старого формата без exam читается репозиторием', async () => {
+  const m = make(); await m.repo.signedIn('a');
+  const owner = await m.store.currentOwner();
+  if (!owner) throw new Error('fixture owner missing');
+  const session = trainingSession(); delete session.exam;
+  await m.store.put(owner, storedTraining(session, NOW));
+  const loaded = await m.repo.get(session.id);
+  expect(loaded?.session).toEqual(session);
+  expect(loaded?.session).not.toHaveProperty('exam');
 });

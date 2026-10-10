@@ -12,7 +12,7 @@ export function todaySummary(steps: readonly TodayStep[], t: Dict['today']): str
   return `${t.steps(steps.length)} · ${done ? t.minutes(minutes) : t.aboutMinutes(minutes)}`;
 }
 
-/** Цвет и подпись раздела — английские термины GRE остаются английскими и в русском интерфейсе. */
+/** Названия разделов GRE и TOEFL остаются английскими и в русском интерфейсе. */
 export function sectionLang(section: TodayStep['section']): 'en' | undefined {
-  return section === 'verbal' || section === 'quant' ? 'en' : undefined;
+  return section !== 'words' && section !== 'essay' ? 'en' : undefined;
 }

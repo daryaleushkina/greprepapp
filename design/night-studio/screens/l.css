@@ -1,0 +1,166 @@
+/* Группа L — TOEFL: только правила своих экранов, на токенах core.css. */
+
+/* Главная TOEFL: подсветка карточки «Как в прошлый раз» — цветом её раздела, а не Verbal. */
+.frame[data-theme="dark"] .l-home .start-card {
+  background: radial-gradient(120% 90% at 100% 0%, var(--sec-soft), transparent 60%), var(--surface);
+}
+.frame .l-home .start-meta { align-items: baseline; }
+.frame .l-home .start-meta .sec-dot { transform: translateY(-1px); }
+.frame .l-home .week-line b { font: 600 15px/1.4 var(--font-body); letter-spacing: 0; color: var(--text); }
+
+/* ---------- Таймер вместо счётчика (Write an Email) ---------- */
+.frame .l-timer { font-variant-numeric: tabular-nums; }
+
+/* ---------- Complete the Words ---------- */
+.frame .l-ctw { display: flex; flex-direction: column; gap: 14px; }
+.frame .l-ctw-text { font-size: 18px; line-height: 2.15; letter-spacing: -0.005em; }
+.frame .l-word { white-space: nowrap; }
+.frame .l-cells { display: inline-flex; gap: 1px; margin-left: 1px; vertical-align: -3px; }
+.frame .l-cell {
+  width: 12px; height: 26px; padding: 0; border: 0; border-bottom: 1.5px solid var(--text-3);
+  background: transparent; color: var(--accent); font: 500 17px/1 var(--font-body); text-align: center;
+  border-radius: 0; caret-color: var(--accent);
+}
+.frame .l-cell[value]:not([value=""]) { border-bottom-color: var(--accent); }
+.frame .l-cell-current { border-bottom: 2px solid var(--accent); background: var(--accent-soft); border-radius: 4px 4px 0 0; }
+.frame .l-cell:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+.frame .l-ctw-progress { font-size: 14px; color: var(--text-3); }
+.frame .l-ctw-progress b { font-weight: var(--thin); font-size: 20px; color: var(--text); letter-spacing: -0.02em; }
+
+/* ---------- Плеер Listening ---------- */
+.frame .l-player { display: flex; align-items: center; gap: 16px; padding: 18px; border-radius: var(--r-l); background: var(--surface); }
+.frame:not([data-theme="dark"]) .l-player { border: 1px solid var(--line); }
+.frame .l-play {
+  flex: none; display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; border: 0;
+  background: var(--accent); color: var(--on-accent); box-shadow: var(--glow);
+}
+.frame .l-track { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.frame .l-wave { display: flex; align-items: center; gap: 3px; height: 40px; }
+.frame .l-wave span { flex: 1; min-width: 2px; border-radius: 2px; background: var(--line-strong); }
+.frame .l-wave span.on { background: var(--sec); }
+.frame .l-time { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.frame .l-once { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 14px; color: var(--text-3); }
+.frame .l-once .ic-sm { color: var(--sec, var(--accent)); }
+
+/* Тихая отметка «прослушано». */
+.frame .l-heard {
+  display: inline-flex; align-self: flex-start; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px;
+  background: var(--sec-soft); color: var(--text-2); font-size: 14px; font-weight: 500;
+}
+.frame .l-heard .ic-sm { color: var(--sec); }
+.frame .l-talk-title { margin: 16px 0 8px; font-size: 14px; color: var(--text-3); }
+
+/* ---------- Build a Sentence ---------- */
+.frame .l-bubble {
+  display: flex; flex-direction: column; gap: 4px; max-width: 300px; padding: 12px 16px; margin-bottom: 18px;
+  border-radius: 20px 20px 20px 6px; background: var(--surface); font-size: 17px; line-height: 1.45;
+}
+.frame:not([data-theme="dark"]) .l-bubble { border: 1px solid var(--line); }
+.frame .l-bubble-wide { max-width: none; }
+.frame .l-who { font-size: 13px; font-weight: 500; color: var(--text-3); }
+.frame .l-frame { font-size: 20px; line-height: 2.3; }
+.frame .l-slot {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 64px; height: 40px; padding: 0 14px;
+  margin: 0 2px; border-radius: 12px; vertical-align: middle; line-height: 1;
+}
+.frame .l-slot-filled { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.frame .l-slot-empty { min-width: 80px; border: 1.5px dashed var(--accent); background: transparent; }
+.frame .l-tiles-label { font-size: 13px; font-weight: 500; color: var(--text-3); }
+.frame .l-tiles { display: flex; flex-wrap: wrap; gap: 10px; }
+.frame .l-tile {
+  min-height: 48px; padding: 0 20px; border-radius: 14px; border: 1px solid var(--line-strong);
+  background: var(--surface); color: var(--text); font-size: 17px; font-weight: 500;
+}
+.frame[data-theme="dark"] .l-tile { border-color: transparent; background: var(--surface-2); }
+.frame .l-tile-used { border-style: dashed; border-color: var(--line-strong); background: transparent; color: transparent; cursor: default; }
+.frame[data-theme="dark"] .l-tile-used { border-color: var(--line-strong); background: transparent; }
+.frame .l-hint { font-size: 13px; color: var(--text-3); }
+
+/* ---------- Write an Email ---------- */
+.frame .l-email { gap: 16px; }
+.frame .l-task { display: flex; flex-direction: column; gap: 8px; font-size: 14px; line-height: 1.45; color: var(--text-2); }
+.frame .l-points { padding-left: 20px; list-style: disc; display: flex; flex-direction: column; gap: 2px; }
+.frame .l-points li::marker { color: var(--c-writing); }
+.frame .l-compose { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
+.frame .l-to { font-size: 14px; color: var(--text-2); }
+.frame .l-to span { color: var(--text-3); }
+.frame .l-field-label { font-size: 13px; font-weight: 500; color: var(--text-3); }
+.frame .l-textarea {
+  flex: 1; min-height: 120px; resize: none; padding: 14px 16px; border-radius: var(--r-m); border: 1px solid var(--line-strong);
+  background: var(--surface); color: var(--text); font: 400 16px/1.55 var(--font-body);
+}
+.frame[data-theme="dark"] .l-textarea { border-color: transparent; background: var(--surface-2); }
+.frame .l-textarea:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+.frame .l-count { font-size: 13px; color: var(--text-3); }
+.frame .l-count b { font-weight: var(--thin); font-size: 20px; color: var(--text); letter-spacing: -0.02em; }
+
+/* ---------- Speaking ---------- */
+.frame .l-speak { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 14px; }
+.frame .l-context { font-size: 16px; color: var(--text-2); }
+.frame .l-rec-zone { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-align: center; padding-bottom: 40px; }
+.frame .l-rec {
+  display: grid; place-items: center; width: 112px; height: 112px; border-radius: 50%; border: 0;
+  background: var(--accent); color: var(--on-accent);
+  box-shadow: var(--glow), 0 0 0 12px var(--accent-soft), 0 0 0 26px color-mix(in srgb, var(--accent-soft) 45%, transparent);
+}
+.frame .l-rec .ic { width: 40px; height: 40px; }
+.frame .l-rec-title { margin-top: 28px; font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
+.frame .l-rec-sub { max-width: 280px; font-size: 14px; color: var(--text-3); }
+.frame .l-rec-sub b { font-weight: 600; color: var(--text-2); }
+
+.frame .l-live { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; color: var(--wrong); }
+.frame .l-live-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--wrong); box-shadow: 0 0 0 4px var(--wrong-soft); }
+.frame .l-countdown { display: flex; align-items: baseline; gap: 8px; font-variant-numeric: tabular-nums; }
+.frame .l-countdown span { font-weight: var(--thin); font-size: 72px; line-height: 1; letter-spacing: -0.04em; }
+.frame .l-countdown small { font-size: 15px; color: var(--text-3); }
+.frame .l-meter { display: flex; align-items: center; justify-content: center; gap: 4px; width: 100%; max-width: 280px; height: 56px; }
+.frame .l-meter span { flex: 1; border-radius: 3px; background: var(--accent); opacity: 0.85; }
+@media (prefers-reduced-motion: no-preference) {
+  .frame .l-live-dot { animation: l-pulse 1.6s cubic-bezier(0.2, 0.8, 0.2, 1) infinite; }
+}
+@keyframes l-pulse { 50% { box-shadow: 0 0 0 7px var(--wrong-soft); } }
+
+/* ---------- Оценка Speaking ---------- */
+.frame .l-result { gap: 18px; }
+.frame .l-score { display: flex; flex-direction: column; gap: 10px; }
+.frame .l-score-num { display: flex; align-items: baseline; gap: 10px; }
+.frame .l-score-num span { font-weight: var(--thin); font-size: 80px; line-height: 0.95; letter-spacing: -0.045em; color: var(--text); }
+.frame .l-score-num small { font-size: 18px; color: var(--text-3); }
+.frame .l-score-note { font-size: 14px; color: var(--text-3); }
+.frame .l-said { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; padding: 14px 16px; border-radius: var(--r-m); background: var(--surface); font-size: 15px; line-height: 1.55; }
+.frame[data-theme="dark"] .l-said { background: var(--surface-2); }
+.frame .l-said-label { font-size: 13px; font-weight: 500; color: var(--text-3); }
+.frame .l-mark { background: var(--sec-soft); color: var(--sec); font-weight: 600; padding: 0 3px; border-radius: 4px; }
+.frame .l-advice { display: flex; flex-direction: column; gap: 12px; }
+.frame .l-tips { margin: 0; padding: 0; list-style: none; counter-reset: tip; display: flex; flex-direction: column; gap: 10px; }
+.frame .l-tips li { padding: 12px 14px; border-radius: var(--r-m); background: var(--surface); font-size: 15px; line-height: 1.5; }
+.frame[data-theme="dark"] .l-tips li { background: var(--surface-2); }
+.frame .l-tips b { font-weight: 600; }
+.frame .l-left { font-size: 14px; color: var(--text-3); }
+.frame .l-left b { color: var(--text); font-weight: 600; }
+.frame [data-screen="l-score"] .bottom-bar .btn { white-space: nowrap; }
+.frame [data-screen="l-score"] .bottom-bar .btn-ghost { padding-inline: 18px; }
+
+/* =================== Компьютер =================== */
+@container (min-width: 900px) {
+  .frame .l-ctw { max-width: 760px; padding-top: 24px; }
+  .frame .l-ctw-text { font-size: 22px; line-height: 2.2; }
+  .frame .l-cell { width: 14px; height: 30px; font-size: 20px; }
+  .frame .l-word { white-space: nowrap; }
+
+  .frame .l-frame { font-size: 24px; }
+  .frame .l-bubble { max-width: 420px; font-size: 19px; }
+
+  .frame .l-email { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); }
+  .frame .l-task { max-height: none; font-size: 17px; }
+  .frame .l-textarea { min-height: 360px; font-size: 18px; }
+
+  .frame .l-speak { align-items: center; padding-top: 24px; }
+  .frame .l-context, .frame .l-bubble-wide { max-width: 640px; text-align: center; }
+  .frame .l-bubble-wide { text-align: left; }
+  .frame .l-heard { align-self: center; }
+  .frame .l-countdown span { font-size: 96px; }
+
+  .frame .l-result { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .frame .l-score-num span { font-size: 112px; }
+}

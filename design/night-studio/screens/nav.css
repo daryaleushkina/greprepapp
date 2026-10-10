@@ -1,0 +1,22 @@
+/* Переходы по вопросам: полоса номеров и стрелки. */
+.qnav { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; flex-shrink: 0; padding: 2px; }
+.qnav::-webkit-scrollbar { display: none; }
+.qnav-cell { flex: none; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 12px; font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.qnav-right { background: var(--right-soft); color: var(--right); }
+.qnav-wrong { background: var(--wrong-soft); color: var(--wrong); }
+.qnav-cell[aria-current="step"] { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
+.qnav-bar .qnav-step { flex: none; min-width: 84px; }
+.qnav-bar .btn-primary { flex: 1; }
+.qnav-pager { display: inline-flex; align-items: center; gap: 0; }
+.qnav-arrow { width: 36px; height: 36px; margin: 0; color: var(--text-2); }
+.qnav-past { display: flex; align-items: center; gap: 8px; padding: 10px 12px; margin-bottom: 14px; border-radius: var(--r-m); background: var(--right-soft); color: var(--right); font-size: 14px; }
+.qnav-past span { color: var(--text); }
+.qnav-locked { cursor: default; opacity: 0.72; }
+.frame .opt.qnav-locked-on { opacity: 1; background: var(--right-soft); border-color: var(--right); box-shadow: inset 0 0 0 1px var(--right); }
+.frame .opt.qnav-locked-on[aria-checked="true"] .oval { border-color: var(--right); }
+.frame .opt.qnav-locked-on[aria-checked="true"] .oval::after { content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--right); }
+@container (min-width: 900px) {
+  .qnav { flex-wrap: wrap; overflow: visible; }
+  .qnav-bar { justify-content: space-between; }
+  .qnav-bar .btn-primary { flex: none; }
+}

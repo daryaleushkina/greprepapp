@@ -26,6 +26,10 @@
 | `better-ui`, `better-layout`, `better-typography`, `better-colors`, `better-accessibility`, `better-writing` | отделка по темам: радиусы и зоны нажатия, раскладка, шрифт, цвет и контраст, доступность, тексты |
 | `better-interface`             | все `better-*` одним проходом                                         |
 | `interface-review`             | подробный разбор изменения в интерфейсе, только ручной вызов; Claude запускает его перед пушем правки интерфейса |
+| `ru-text`, `ru-check`, `ru-score` | тексты продукта на русском: инфостиль, тексты интерфейса, типографика, признаки нейросетевого текста; `ru-check` — полная вычитка без правки, `ru-score` — оценка 0–10 (talkstream/ru-text, MIT) |
+| `humanizer-ru`                 | аудит русского текста на следы машинного: находит и объясняет, переписывает только по просьбе (vladimir-human/humanizer-ru, MIT) |
+| `humanizer`                    | то же для английского, по Wikipedia «Signs of AI writing» (blader/humanizer, MIT) |
+| `copywriting`, `copy-editing`  | тексты лендинга и продающих страниц: структура, призывы, правка в семь проходов (coreyhaines31/marketingskills, MIT) |
 
 Вместе с `impeccable` перенесены его агенты — `.claude/agents/impeccable-*`.
 Какой скилл к чему — `AGENTS.md`, «Скиллы»; что Claude подключает при правке
@@ -72,6 +76,12 @@
 - **Чужие скиллы правлены руками** — обновление из источника или
   установщиком сотрёт правки, их придётся повторить (решения Даши 08.10.2026:
   ничего про React Native и Flutter, `variant` влит в `prototype`):
+  - `ru-text` (10.10.2026) — типографика только в текстах продукта, не в `.md`, коде и чате (иначе
+    неразрывные пробелы U+00A0 расползаются по документам); вложенные кавычки — «ёлочки», не „лапки“;
+    папка `agents/` (Gemini, OpenAI) не скопирована;
+  - `humanizer-ru` — из репозитория взяты только `SKILL.md`, `references/`, `knowledge/`: без CLI, `src/`,
+    тестов и `eval/`; ссылки скилла на них — на исходный репозиторий;
+  - `humanizer` — только `SKILL.md`; `copywriting`, `copy-editing` — без `evals/`. Лицензии — `LICENSES/`.
   - `ui-ux-pro-max` — удалены стеки `react-native` и `flutter` (данные и
     `scripts/core.py`, `validate_data.py`, `search.py`), четыре иконки под
     `phosphor-react-native`, библиотеки React Native в мобильных стилях

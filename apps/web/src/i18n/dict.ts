@@ -1,6 +1,7 @@
 // Тексты интерфейса на двух языках. Те же строки, что в приложении Apple (apps/apple, Localizable.xcstrings):
 // у человека один продукт на всех платформах. Термины GRE (Verbal, Quant) — по-английски и в русском интерфейсе,
 // как на экзамене. Кавычки в русском — только «ёлочки».
+import type { Section } from '@greprep/api-client';
 import type { Locale } from './locale';
 
 type Plural = (n: number) => string;
@@ -207,7 +208,7 @@ export interface Dict {
   training: TrainingDict;
   back: string;
   tabs: { today: string; words: string; exam: string; progress: string; settings: string; sections: string };
-  sections: { verbal: string; quant: string; words: string; essay: string };
+  sections: Record<Section, string>;
   today: {
     title: string;
     plan: string;
@@ -262,7 +263,7 @@ const dictRu: Dict = {
   training: { ...trainingRu, questionsCount: ru({ one: "#\u00a0вопрос", few: "#\u00a0вопроса", many: "#\u00a0вопросов", other: "#\u00a0вопроса" }) },
   back: 'Назад',
   tabs: { today: 'Сегодня', words: 'Слова', exam: 'Экзамен', progress: 'Прогресс', settings: 'Настройки', sections: 'Разделы' },
-  sections: { verbal: 'Verbal', quant: 'Quant', words: 'Слова', essay: 'Эссе' },
+  sections: { reading: 'Reading', listening: 'Listening', writing: 'Writing', speaking: 'Speaking', verbal: 'Verbal', quant: 'Quant', words: 'Слова', essay: 'Эссе' },
   today: {
     title: 'Сегодня',
     plan: 'План на сегодня',
@@ -340,7 +341,7 @@ const dictEn: Dict = {
   training: { ...trainingEn, questionsCount: en("#\u00a0question", "#\u00a0questions") },
   back: 'Back',
   tabs: { today: 'Today', words: 'Words', exam: 'Exam', progress: 'Progress', settings: 'Settings', sections: 'Sections' },
-  sections: { verbal: 'Verbal', quant: 'Quant', words: 'Words', essay: 'Essay' },
+  sections: { reading: 'Reading', listening: 'Listening', writing: 'Writing', speaking: 'Speaking', verbal: 'Verbal', quant: 'Quant', words: 'Words', essay: 'Essay' },
   today: {
     title: 'Today',
     plan: 'Today’s plan',

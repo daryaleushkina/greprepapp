@@ -267,7 +267,7 @@
       "name": "timeout_keeps_dont_know_and_wrong",
       "startedAtMillis": 1791277200000,
       "session": {
-        "id": "00000000-0000-4000-8000-000000000101", "mode": "check", "section": "verbal", "questionTypes": ["text_completion"], "startedAt": "2026-10-06T09:00:00Z", "timeLimitSeconds": 450,
+        "id": "00000000-0000-4000-8000-000000000101", "exam": "gre", "mode": "check", "section": "verbal", "questionTypes": ["text_completion"], "startedAt": "2026-10-06T09:00:00Z", "timeLimitSeconds": 450,
         "items": [
           {"position": 0, "question": {
             "id": "00000000-0000-4000-8000-000000000020", "questionType": "text_completion", "section": "verbal", "topicId": "contrast", "topicTitle": {"ru": "Контраст", "en": "Contrast"}, "difficulty": "easy", "prompt": "Fixture ___.",
@@ -306,7 +306,7 @@
       "name": "perfect_has_no_review",
       "startedAtMillis": 1791277200000,
       "session": {
-        "id": "00000000-0000-4000-8000-000000000102", "mode": "practice", "section": "verbal", "questionTypes": ["text_completion"], "startedAt": "2026-10-06T09:00:00Z",
+        "id": "00000000-0000-4000-8000-000000000102", "exam": "gre", "mode": "practice", "section": "verbal", "questionTypes": ["text_completion"], "startedAt": "2026-10-06T09:00:00Z",
         "items": [{"position": 0, "question": {
           "id": "00000000-0000-4000-8000-000000000001", "questionType": "text_completion", "section": "verbal", "topicId": "contrast", "topicTitle": {"ru": "Контраст", "en": "Contrast"}, "difficulty": "easy", "prompt": "Fixture ___.",
           "groups": [{"options": [{"id": "A", "text": "A"}, {"id": "B", "text": "B"}, {"id": "C", "text": "C"}, {"id": "D", "text": "D"}, {"id": "E", "text": "E"}]}], "selectCount": 1, "answer": ["A"],
@@ -320,7 +320,7 @@
       "name": "practice_timeout_still_reviews_unanswered",
       "startedAtMillis": 1791277200000,
       "session": {
-        "id": "00000000-0000-4000-8000-000000000104", "mode": "practice", "section": "verbal", "questionTypes": ["text_completion"], "startedAt": "2026-10-06T09:00:00Z",
+        "id": "00000000-0000-4000-8000-000000000104", "exam": "gre", "mode": "practice", "section": "verbal", "questionTypes": ["text_completion"], "startedAt": "2026-10-06T09:00:00Z",
         "items": [{"position": 0, "question": {
           "id": "00000000-0000-4000-8000-000000000001", "questionType": "text_completion", "section": "verbal", "topicId": "contrast", "topicTitle": {"ru": "Контраст", "en": "Contrast"}, "difficulty": "easy", "prompt": "Fixture ___.",
           "groups": [{"options": [{"id": "A", "text": "A"}, {"id": "B", "text": "B"}, {"id": "C", "text": "C"}, {"id": "D", "text": "D"}, {"id": "E", "text": "E"}]}], "selectCount": 1, "answer": ["A"],
@@ -334,7 +334,7 @@
       "name": "mixed_types_partial_answers_are_mistakes",
       "startedAtMillis": 1791277200000,
       "session": {
-        "id": "00000000-0000-4000-8000-000000000105", "mode": "practice", "section": "verbal", "questionTypes": ["text_completion", "sentence_equivalence", "quantitative_comparison", "multiple_choice"], "startedAt": "2026-10-06T09:00:00Z",
+        "id": "00000000-0000-4000-8000-000000000105", "exam": "gre", "mode": "practice", "section": "verbal", "questionTypes": ["text_completion", "sentence_equivalence", "quantitative_comparison", "multiple_choice"], "startedAt": "2026-10-06T09:00:00Z",
         "items": [
           {"position": 0, "question": {
             "id": "00000000-0000-4000-8000-000000000001", "questionType": "text_completion", "section": "verbal", "topicId": "contrast", "topicTitle": {"ru": "Контраст", "en": "Contrast"}, "difficulty": "easy", "prompt": "Fixture ___.",
@@ -374,7 +374,7 @@
       "name": "explicit_empty_answer_is_unanswered",
       "startedAtMillis": 1791277200000,
       "session": {
-        "id": "00000000-0000-4000-8000-000000000103", "mode": "practice", "section": "verbal", "questionTypes": ["text_completion"], "startedAt": "2026-10-06T09:00:00Z",
+        "id": "00000000-0000-4000-8000-000000000103", "exam": "gre", "mode": "practice", "section": "verbal", "questionTypes": ["text_completion"], "startedAt": "2026-10-06T09:00:00Z",
         "items": [{"position": 0, "question": {
           "id": "00000000-0000-4000-8000-000000000001", "questionType": "text_completion", "section": "verbal", "topicId": "contrast", "topicTitle": {"ru": "Контраст", "en": "Contrast"}, "difficulty": "easy", "prompt": "Fixture ___.",
           "groups": [{"options": [{"id": "A", "text": "A"}, {"id": "B", "text": "B"}, {"id": "C", "text": "C"}, {"id": "D", "text": "D"}, {"id": "E", "text": "E"}]}], "selectCount": 1, "answer": ["A"],
@@ -518,7 +518,7 @@
       "name": "practice_without_finish",
       "startedAtMillis": 1791277200000, "nowMillis": 1791277260000, "durationSeconds": 0,
       "session": {
-        "id": "00000000-0000-4000-8000-000000000100", "mode": "practice", "section": "verbal", "questionTypes": ["text_completion"], "startedAt": "2026-10-06T09:00:00Z",
+        "id": "00000000-0000-4000-8000-000000000100", "exam": "gre", "mode": "practice", "section": "verbal", "questionTypes": ["text_completion"], "startedAt": "2026-10-06T09:00:00Z",
         "items": [{"position": 0, "question": {
           "id": "00000000-0000-4000-8000-000000000001", "questionType": "text_completion", "section": "verbal", "topicId": "contrast", "topicTitle": {"ru": "Контраст", "en": "Contrast"}, "difficulty": "easy", "prompt": "Fixture ___.",
           "groups": [{"options": [{"id": "A", "text": "A"}, {"id": "B", "text": "B"}, {"id": "C", "text": "C"}, {"id": "D", "text": "D"}, {"id": "E", "text": "E"}]}], "selectCount": 1, "answer": ["A"],
@@ -531,7 +531,7 @@
       "startedAtMillis": 1791277200000, "nowMillis": 1791277890000, "durationSeconds": 690,
       "finish": {"finishedAt": "2026-10-06T09:11:30Z", "timedOut": false},
       "session": {
-        "id": "00000000-0000-4000-8000-000000000100", "mode": "practice", "section": "verbal", "questionTypes": ["text_completion"], "startedAt": "2026-10-06T09:00:00Z",
+        "id": "00000000-0000-4000-8000-000000000100", "exam": "gre", "mode": "practice", "section": "verbal", "questionTypes": ["text_completion"], "startedAt": "2026-10-06T09:00:00Z",
         "items": [{"position": 0, "question": {
           "id": "00000000-0000-4000-8000-000000000001", "questionType": "text_completion", "section": "verbal", "topicId": "contrast", "topicTitle": {"ru": "Контраст", "en": "Contrast"}, "difficulty": "easy", "prompt": "Fixture ___.",
           "groups": [{"options": [{"id": "A", "text": "A"}, {"id": "B", "text": "B"}, {"id": "C", "text": "C"}, {"id": "D", "text": "D"}, {"id": "E", "text": "E"}]}], "selectCount": 1, "answer": ["A"],
@@ -543,7 +543,7 @@
       "name": "check_at_start",
       "startedAtMillis": 1791277200000, "nowMillis": 1791277200000, "remainingSeconds": 90, "durationSeconds": 0,
       "session": {
-        "id": "00000000-0000-4000-8000-000000000100", "mode": "check", "section": "verbal", "questionTypes": ["text_completion"], "startedAt": "2026-10-06T09:00:00Z", "timeLimitSeconds": 90,
+        "id": "00000000-0000-4000-8000-000000000100", "exam": "gre", "mode": "check", "section": "verbal", "questionTypes": ["text_completion"], "startedAt": "2026-10-06T09:00:00Z", "timeLimitSeconds": 90,
         "items": [{"position": 0, "question": {
           "id": "00000000-0000-4000-8000-000000000001", "questionType": "text_completion", "section": "verbal", "topicId": "contrast", "topicTitle": {"ru": "Контраст", "en": "Contrast"}, "difficulty": "easy", "prompt": "Fixture ___.",
           "groups": [{"options": [{"id": "A", "text": "A"}, {"id": "B", "text": "B"}, {"id": "C", "text": "C"}, {"id": "D", "text": "D"}, {"id": "E", "text": "E"}]}], "selectCount": 1, "answer": ["A"],
@@ -555,7 +555,7 @@
       "name": "check_decreases_in_whole_seconds",
       "startedAtMillis": 1791277200000, "nowMillis": 1791277261500, "remainingSeconds": 29, "durationSeconds": 0,
       "session": {
-        "id": "00000000-0000-4000-8000-000000000100", "mode": "check", "section": "verbal", "questionTypes": ["text_completion"], "startedAt": "2026-10-06T09:00:00Z", "timeLimitSeconds": 90,
+        "id": "00000000-0000-4000-8000-000000000100", "exam": "gre", "mode": "check", "section": "verbal", "questionTypes": ["text_completion"], "startedAt": "2026-10-06T09:00:00Z", "timeLimitSeconds": 90,
         "items": [{"position": 0, "question": {
           "id": "00000000-0000-4000-8000-000000000001", "questionType": "text_completion", "section": "verbal", "topicId": "contrast", "topicTitle": {"ru": "Контраст", "en": "Contrast"}, "difficulty": "easy", "prompt": "Fixture ___.",
           "groups": [{"options": [{"id": "A", "text": "A"}, {"id": "B", "text": "B"}, {"id": "C", "text": "C"}, {"id": "D", "text": "D"}, {"id": "E", "text": "E"}]}], "selectCount": 1, "answer": ["A"],
@@ -568,7 +568,7 @@
       "startedAtMillis": 1791277200000, "nowMillis": 1791280800000, "remainingSeconds": 0, "durationSeconds": 90,
       "finish": {"finishedAt": "2026-10-06T10:00:00Z", "timedOut": true},
       "session": {
-        "id": "00000000-0000-4000-8000-000000000100", "mode": "check", "section": "verbal", "questionTypes": ["text_completion"], "startedAt": "2026-10-06T09:00:00Z", "timeLimitSeconds": 90,
+        "id": "00000000-0000-4000-8000-000000000100", "exam": "gre", "mode": "check", "section": "verbal", "questionTypes": ["text_completion"], "startedAt": "2026-10-06T09:00:00Z", "timeLimitSeconds": 90,
         "items": [{"position": 0, "question": {
           "id": "00000000-0000-4000-8000-000000000001", "questionType": "text_completion", "section": "verbal", "topicId": "contrast", "topicTitle": {"ru": "Контраст", "en": "Contrast"}, "difficulty": "easy", "prompt": "Fixture ___.",
           "groups": [{"options": [{"id": "A", "text": "A"}, {"id": "B", "text": "B"}, {"id": "C", "text": "C"}, {"id": "D", "text": "D"}, {"id": "E", "text": "E"}]}], "selectCount": 1, "answer": ["A"],
@@ -581,7 +581,7 @@
       "startedAtMillis": 1791277200000, "nowMillis": 1791277290000, "remainingSeconds": 0, "durationSeconds": 90,
       "finish": {"finishedAt": "2026-10-06T09:01:30Z", "timedOut": true},
       "session": {
-        "id": "00000000-0000-4000-8000-000000000100", "mode": "check", "section": "verbal", "questionTypes": ["text_completion"], "startedAt": "2026-10-06T09:00:00Z", "timeLimitSeconds": 90,
+        "id": "00000000-0000-4000-8000-000000000100", "exam": "gre", "mode": "check", "section": "verbal", "questionTypes": ["text_completion"], "startedAt": "2026-10-06T09:00:00Z", "timeLimitSeconds": 90,
         "items": [{"position": 0, "question": {
           "id": "00000000-0000-4000-8000-000000000001", "questionType": "text_completion", "section": "verbal", "topicId": "contrast", "topicTitle": {"ru": "Контраст", "en": "Contrast"}, "difficulty": "easy", "prompt": "Fixture ___.",
           "groups": [{"options": [{"id": "A", "text": "A"}, {"id": "B", "text": "B"}, {"id": "C", "text": "C"}, {"id": "D", "text": "D"}, {"id": "E", "text": "E"}]}], "selectCount": 1, "answer": ["A"],
@@ -594,7 +594,7 @@
       "startedAtMillis": 1791277200000, "nowMillis": 1791277200000, "remainingSeconds": 90, "durationSeconds": 0,
       "finish": {"finishedAt": "2026-10-06T08:00:00Z", "timedOut": false},
       "session": {
-        "id": "00000000-0000-4000-8000-000000000100", "mode": "check", "section": "verbal", "questionTypes": ["text_completion"], "startedAt": "2026-10-06T09:00:00Z", "timeLimitSeconds": 90,
+        "id": "00000000-0000-4000-8000-000000000100", "exam": "gre", "mode": "check", "section": "verbal", "questionTypes": ["text_completion"], "startedAt": "2026-10-06T09:00:00Z", "timeLimitSeconds": 90,
         "items": [{"position": 0, "question": {
           "id": "00000000-0000-4000-8000-000000000001", "questionType": "text_completion", "section": "verbal", "topicId": "contrast", "topicTitle": {"ru": "Контраст", "en": "Contrast"}, "difficulty": "easy", "prompt": "Fixture ___.",
           "groups": [{"options": [{"id": "A", "text": "A"}, {"id": "B", "text": "B"}, {"id": "C", "text": "C"}, {"id": "D", "text": "D"}, {"id": "E", "text": "E"}]}], "selectCount": 1, "answer": ["A"],
@@ -607,7 +607,7 @@
       "startedAtMillis": 1791277200000, "nowMillis": 1791280800000, "durationSeconds": 3600,
       "finish": {"finishedAt": "2026-10-06T10:00:00Z", "timedOut": false},
       "session": {
-        "id": "00000000-0000-4000-8000-000000000100", "mode": "check", "section": "verbal", "questionTypes": ["text_completion"], "startedAt": "2026-10-06T09:00:00Z",
+        "id": "00000000-0000-4000-8000-000000000100", "exam": "gre", "mode": "check", "section": "verbal", "questionTypes": ["text_completion"], "startedAt": "2026-10-06T09:00:00Z",
         "items": [{"position": 0, "question": {
           "id": "00000000-0000-4000-8000-000000000001", "questionType": "text_completion", "section": "verbal", "topicId": "contrast", "topicTitle": {"ru": "Контраст", "en": "Contrast"}, "difficulty": "easy", "prompt": "Fixture ___.",
           "groups": [{"options": [{"id": "A", "text": "A"}, {"id": "B", "text": "B"}, {"id": "C", "text": "C"}, {"id": "D", "text": "D"}, {"id": "E", "text": "E"}]}], "selectCount": 1, "answer": ["A"],
@@ -620,7 +620,7 @@
       "startedAtMillis": 1791277200000, "nowMillis": 1791277261500, "remainingSeconds": 29, "durationSeconds": 61,
       "finish": {"finishedAt": "2026-10-06T09:01:01.500Z", "timedOut": false},
       "session": {
-        "id": "00000000-0000-4000-8000-000000000100", "mode": "check", "section": "verbal", "questionTypes": ["text_completion"], "startedAt": "2026-10-06T09:00:00Z", "timeLimitSeconds": 90,
+        "id": "00000000-0000-4000-8000-000000000100", "exam": "gre", "mode": "check", "section": "verbal", "questionTypes": ["text_completion"], "startedAt": "2026-10-06T09:00:00Z", "timeLimitSeconds": 90,
         "items": [{"position": 0, "question": {
           "id": "00000000-0000-4000-8000-000000000001", "questionType": "text_completion", "section": "verbal", "topicId": "contrast", "topicTitle": {"ru": "Контраст", "en": "Contrast"}, "difficulty": "easy", "prompt": "Fixture ___.",
           "groups": [{"options": [{"id": "A", "text": "A"}, {"id": "B", "text": "B"}, {"id": "C", "text": "C"}, {"id": "D", "text": "D"}, {"id": "E", "text": "E"}]}], "selectCount": 1, "answer": ["A"],

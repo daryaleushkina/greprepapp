@@ -22,6 +22,18 @@ class ApiCallTest {
     private val server = MockWebServer()
     private lateinit var api: GrePrepApi
 
+    @Test
+    fun activeExamReadsNullAndKnownValues() =
+        runTest {
+            for (exam in listOf("null", "\"gre\"", "\"toefl\"")) {
+                server.enqueue(
+                    json(200, """{"id":"fixture","name":"Fixture","role":"user","locale":"ru","activeExam":$exam,"identities":[]}"""),
+                )
+                val result = apiCall { api.account.getMe() } as ApiResult.Ok
+                assertEquals(if (exam == "null") null else exam.trim('"'), result.value.activeExam?.value)
+            }
+        }
+
     @Before
     fun setUp() {
         server.start()

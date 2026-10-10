@@ -181,7 +181,7 @@ enum Fixture {
 
     static func session(token: String = "token-1", name: String = "Даша") -> String {
         #"""
-        {"token":"\#(token)","expiresAt":"2026-11-05T00:00:00Z","user":{"id":"8f0c6c1e-5a43-4c1a-9b7e-0c4b1f2d3e4f","name":"\#(name)","role":"user","locale":"ru","identities":[]}}
+        {"token":"\#(token)","expiresAt":"2026-11-05T00:00:00Z","user":{"id":"8f0c6c1e-5a43-4c1a-9b7e-0c4b1f2d3e4f","name":"\#(name)","role":"user","locale":"ru","activeExam":null,"identities":[]}}
         """#
     }
 
@@ -199,7 +199,7 @@ enum Fixture {
         try! JSONDecoder().decode(
             UserDTO.self,
             from: Data(
-                #"{"id":"8f0c6c1e-5a43-4c1a-9b7e-0c4b1f2d3e4f","name":"x","role":"user","locale":"ru","identities":[]}"#
+                #"{"id":"8f0c6c1e-5a43-4c1a-9b7e-0c4b1f2d3e4f","name":"x","role":"user","locale":"ru","activeExam":null,"identities":[]}"#
                     .utf8))
     }
 }

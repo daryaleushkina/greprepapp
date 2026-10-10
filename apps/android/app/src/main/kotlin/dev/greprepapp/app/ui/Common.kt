@@ -1,5 +1,6 @@
 package dev.greprepapp.app.ui
 
+import android.content.res.Resources
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,6 +22,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
+import dev.greprepapp.api.models.Section
 import dev.greprepapp.app.R
 import dev.greprepapp.design.Gp
 import dev.greprepapp.design.GpPrimaryButton
@@ -40,6 +42,24 @@ fun StudySection.label(): String =
             StudySection.Essay -> R.string.section_essay
         },
     )
+
+private fun Section.labelResource(): Int =
+    when (this) {
+        Section.VERBAL -> R.string.section_verbal
+        Section.QUANT -> R.string.section_quant
+        Section.WORDS -> R.string.section_words
+        Section.ESSAY -> R.string.section_essay
+        Section.READING -> R.string.section_reading
+        Section.LISTENING -> R.string.section_listening
+        Section.WRITING -> R.string.section_writing
+        Section.SPEAKING -> R.string.section_speaking
+    }
+
+fun Section.label(resources: Resources): String = resources.getString(labelResource())
+
+@Composable
+@ReadOnlyComposable
+fun Section.label(): String = stringResource(labelResource())
 
 /** Тихая строка со значком: «Нет сети — план обновится сам…», «Чтобы начать, нужна сеть…». */
 @Composable

@@ -8,6 +8,7 @@ import Vision
 @testable import GrePrep
 
 #if os(iOS)
+    import UIKit
 #endif
 
 #if os(macOS)
@@ -837,8 +838,27 @@ struct ScreenSnapshotTests {
             for device in devices where device == current {
                 let config = device == .phone ? Self.phone : Self.pad
                 for style in themes.map({ $0 == .dark ? UIUserInterfaceStyle.dark : .light }) {
-                    // Смена traits тоже анимирует системные элементы. Снимок сравнивает их конечный вид.
+                    // Системное стекло панели получает тему от окна, а не только от traits контроллера.
+                    // Своё окно на каждый кадр не наследует материал и переходы предыдущего снимка.
                     UIView.performWithoutAnimation {
+                        guard
+                            let host = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene })
+                                .flatMap(\.windows).first(where: \.isKeyWindow),
+                            let scene = host.windowScene
+                        else {
+                            Issue.record("Нет окна приложения для снимка")
+                            return
+                        }
+                        let window = UIWindow(windowScene: scene)
+                        window.frame = host.frame
+                        window.overrideUserInterfaceStyle = style
+                        window.rootViewController = UIViewController()
+                        window.makeKeyAndVisible()
+                        defer {
+                            window.isHidden = true
+                            window.rootViewController = nil
+                            host.makeKeyAndVisible()
+                        }
                         assertSnapshot(
                             of: view,
                             as: .image(
@@ -863,6 +883,9 @@ struct ScreenSnapshotTests {
                 let controller = NSHostingController(rootView: view)
                 controller.view.frame = CGRect(x: 0, y: 0, width: 1100, height: 760)
                 controller.view.appearance = NSAppearance(named: dark ? .darkAqua : .aqua)
+                // AppKit откладывает высоту многострочного поля до раскладки. Иначе после очистки длинного
+                // текста cacheDisplay может снять ещё прежнюю высоту и сдвинуть сообщение об ошибке.
+                controller.view.layoutSubtreeIfNeeded()
                 assertSnapshot(
                     of: controller,
                     as: .image(

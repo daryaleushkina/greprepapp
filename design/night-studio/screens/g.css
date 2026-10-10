@@ -1,0 +1,172 @@
+/* Группа G — «Прогресс и аккаунт». Только правила своих экранов, на токенах core.css. */
+
+.g-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.g-chev { color: var(--text-3); flex: none; }
+/* В прокручиваемой колонке дети не сжимаются: иначе блок с overflow (фильтр, списки) схлопывается до нуля. */
+:is(.g-stats-main, .g-settings, .g-pay, .g-sub, .g-history, .g-item) > * { flex-shrink: 0; }
+
+/* Заголовок раздела с шестерёнкой справа. */
+.g-title-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.g-gear { margin: 0 -10px 0 0; color: var(--text-2); }
+
+/* ---------- G1 Прогресс ---------- */
+.g-stats, .g-col { display: flex; flex-direction: column; gap: 14px; }
+.g-stats { padding-bottom: 8px; }
+.g-score .score-note { margin-top: -2px; }
+.g-sec-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.g-sec { display: flex; flex-direction: column; gap: 2px; }
+.g-sec-name { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--text-2); }
+.g-sec-num { font: var(--thin) 36px/1.05 var(--font-display); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.g-delta { font-size: 13px; font-weight: 500; color: var(--right); }
+
+.g-trend { margin: 2px 0 4px; }
+.g-trend svg { display: block; width: 100%; height: auto; overflow: visible; }
+.g-grid line { stroke: var(--line); stroke-width: 1; }
+.g-axis text { fill: var(--text-3); font: 500 10px var(--font-body); font-variant-numeric: tabular-nums; }
+.g-axis text:nth-child(-n+4) { text-anchor: end; }
+.g-line { fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.g-line-verbal { stroke: var(--c-verbal); }
+.g-line-quant { stroke: var(--c-quant); }
+.g-end { stroke: var(--surface); stroke-width: 2.5; }
+.g-end-verbal { fill: var(--c-verbal); }
+.g-end-quant { fill: var(--c-quant); }
+
+.g-weak { display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: var(--r-m); background: var(--surface-2); }
+.g-weak p { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; font-size: 15px; }
+.g-weak span { font-size: 13px; color: var(--text-2); }
+.g-weak-btn { flex: none; min-height: 44px; padding: 0 16px; font-size: 14px; background: var(--accent); color: var(--on-accent); box-shadow: none; }
+
+.g-all { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; font-weight: 600; font-size: 15px; color: var(--accent); }
+
+/* ---------- G2 Настройки ---------- */
+.g-settings { gap: 16px; }
+.g-list { display: flex; flex-direction: column; border-radius: var(--r-l); background: var(--surface); overflow: hidden; }
+.g-list > li + li { border-top: 1px solid var(--line); }
+.g-row { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 10px 16px; }
+.g-row-ic { color: var(--text-2); }
+.g-row-label { flex: 1; min-width: 0; font-weight: 500; }
+.g-row-value { color: var(--text-2); font-size: 15px; }
+.g-row-stack { justify-content: space-between; }
+.g-row-stack .g-row-label { flex: none; }
+.g-seg { flex: none; }
+.g-seg button { min-height: 36px; padding: 0 14px; font-size: 14px; }
+.g-legal { display: flex; flex-direction: column; gap: 8px; padding: 4px 4px 12px; }
+.g-legal p { font-size: 13px; line-height: 1.5; color: var(--text-3); }
+.g-version { font-variant-numeric: tabular-nums; }
+
+/* ---------- G3 Подписка ---------- */
+.g-pay { padding-bottom: 24px; }
+.g-pay-body { display: flex; flex-direction: column; gap: 26px; }
+.g-pay-head { display: flex; flex-direction: column; gap: 10px; }
+.g-benefits { display: flex; flex-direction: column; gap: 16px; }
+.g-benefits li { display: flex; gap: 14px; align-items: flex-start; }
+.g-benefits .ic { color: var(--accent); margin-top: 1px; }
+.g-benefits span { display: flex; flex-direction: column; gap: 2px; }
+.g-benefits small { color: var(--text-2); font-size: 14px; }
+.g-price { display: flex; flex-direction: column; gap: 6px; padding: 18px; border-radius: var(--r-l); background: var(--surface); }
+.g-price-main { font-size: 18px; }
+.g-price-beta { font-size: 14px; font-weight: 600; color: var(--right); }
+.g-pay-cta { display: flex; flex-direction: column; gap: 12px; }
+.g-fine { font-size: 13px; line-height: 1.5; color: var(--text-3); }
+.g-fine a { color: var(--text-2); text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---------- G4 Подписка активна ---------- */
+.g-sub { gap: 16px; }
+.g-sub-card { display: flex; flex-direction: column; gap: 12px; padding: 18px; border-radius: var(--r-l); background: var(--surface); }
+.g-sub-status { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 600; }
+.g-ok { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--right-soft); color: var(--right); }
+.g-facts { display: flex; flex-direction: column; gap: 8px; }
+.g-facts div { display: flex; justify-content: space-between; gap: 12px; font-size: 15px; }
+.g-facts dt { color: var(--text-2); }
+.g-quota { color: var(--text-2); }
+.g-quota-num { font: var(--thin) 40px/1 var(--font-display); color: var(--text); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; margin-right: 4px; }
+.g-quota-bar { height: 6px; border-radius: 3px; background: var(--c-essay-soft); overflow: hidden; }
+.g-quota-bar span { display: block; height: 100%; border-radius: inherit; background: var(--c-essay); }
+.g-quiet { align-self: flex-start; display: inline-flex; align-items: center; min-height: 44px; font-size: 14px; color: var(--text-3); text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---------- G5 Доступ закончился ---------- */
+.g-ended-body { display: flex; flex-direction: column; gap: 16px; padding-top: 32px; }
+.g-saved { display: flex; flex-direction: column; gap: 12px; padding: 18px; border-radius: var(--r-l); background: var(--surface); }
+.g-saved li { display: flex; align-items: center; gap: 10px; }
+.g-saved .ic-sm { color: var(--right); }
+
+/* ---------- G6 Пусто ---------- */
+.g-empty-card { display: flex; flex-direction: column; gap: 14px; padding: 22px; border-radius: var(--r-l); background: var(--surface); }
+.g-empty-card p { color: var(--text-2); }
+.g-ghost { display: flex; flex-direction: column; gap: 10px; padding: 6px 0 4px; }
+.g-ghost li { display: grid; grid-template-columns: 1fr 72px 40px; gap: 10px; align-items: center; font-size: 14px; color: var(--text-3); }
+.g-ghost-bar { height: 6px; border-radius: 3px; background: var(--surface-2); }
+.g-ghost-val { text-align: right; }
+
+/* ---------- G7 История ---------- */
+.g-history { gap: 18px; }
+.g-filter { align-self: flex-start; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.g-filter button { min-height: 36px; padding: 0 13px; white-space: nowrap; }
+.g-day { display: flex; flex-direction: column; gap: 4px; }
+.g-day-title { font-size: 14px; font-weight: 600; color: var(--text-3); }
+.g-day .hist { padding: 2px 16px; border-radius: var(--r-l); background: var(--surface); }
+.g-day .hist > li + li { border-top: 1px solid var(--line); }
+.g-hist-link { color: inherit; }
+.g-day .hist-row + .hist-row { border-top: 0; }
+
+/* ---------- G8 Тренировка из истории ---------- */
+.g-item-grid { display: flex; flex-direction: column; gap: 22px; padding-bottom: 12px; }
+.g-item-head { display: flex; flex-direction: column; gap: 10px; }
+.g-item-meta { display: flex; align-items: center; gap: 8px; color: var(--text-2); font-size: 14px; }
+.g-item-score { display: flex; align-items: baseline; gap: 10px; margin-top: 6px; }
+.g-item-num { font: var(--thin) 64px/1 var(--font-display); letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+.g-item-of { color: var(--text-2); font-size: 17px; }
+.g-dots { display: flex; gap: 6px; padding: 0; margin: 0; list-style: none; }
+.g-dots li { flex: 1; height: 6px; border-radius: 3px; }
+.g-dot-r { background: var(--right); }
+.g-dot-w { background: var(--wrong); }
+.g-topics { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; padding: 16px; border-radius: var(--r-l); background: var(--surface); }
+.g-topic { display: flex; justify-content: space-between; gap: 12px; font-size: 15px; }
+.g-topic b { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.g-item-cta { margin-top: 4px; }
+.g-qs { display: flex; flex-direction: column; gap: 8px; }
+.g-q-list { list-style: none; display: flex; flex-direction: column; padding: 2px 16px; margin: 0; border-radius: var(--r-l); background: var(--surface); }
+.g-q-list > li + li { border-top: 1px solid var(--line); }
+.g-q { display: flex; align-items: center; gap: 12px; min-height: 52px; }
+.g-q-num { width: 22px; font-variant-numeric: tabular-nums; color: var(--text-3); font-size: 14px; }
+.g-q-mark { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; flex: none; }
+.g-q-right { background: var(--right-soft); color: var(--right); }
+.g-q-wrong { background: var(--wrong-soft); color: var(--wrong); }
+.g-q-topic { flex: 1; min-width: 0; font-size: 15px; }
+
+/* =================== Компьютер =================== */
+@container (min-width: 900px) {
+  .g-title-row .h1 { font-size: 40px; }
+  .g-stats { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+  .g-sec-num { font-size: 44px; }
+
+  .g-settings, .g-sub { max-width: 640px; }
+
+  .g-pay { align-items: center; }
+  .g-pay-body { max-width: 520px; width: 100%; }
+  .g-pay .top { align-self: stretch; }
+
+  .g-ended { align-items: center; justify-content: center; gap: 24px; }
+  .g-ended .top { position: absolute; top: 28px; left: 64px; }
+  .g-ended-body { padding-top: 0; }
+  .g-ended-cta { margin-top: 0; padding-top: 0; }
+  .g-ended-cta .btn-wide { width: auto; min-width: 280px; }
+  .g-ended-body, .g-ended-cta { max-width: 520px; width: 100%; }
+  .g-ended-cta { border-top: 0; justify-content: flex-start; }
+  .g-ended .top { align-self: stretch; }
+
+  .g-empty-card { max-width: 560px; }
+  .g-empty-card .btn-wide { width: auto; align-self: flex-start; min-width: 260px; }
+
+  .g-history { max-width: 760px; }
+
+  .g-item-grid { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr); gap: 40px; align-items: start; }
+  .g-item-cta { width: auto; align-self: flex-start; min-width: 280px; }
+  .g-item-num { font-size: 80px; }
+}
+
+.g-profile { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: var(--r-l); background: var(--surface); }
+.g-avatar { width: 52px; height: 52px; font-size: 20px; }
+.g-profile-text { display: flex; flex-direction: column; gap: 2px; }
+.g-profile-text b { font-weight: 600; font-size: 17px; }
+.g-profile-text small { font-size: 14px; color: var(--text-2); }

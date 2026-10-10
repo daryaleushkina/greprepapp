@@ -14,6 +14,7 @@ const SECTION_ICON: Readonly<Record<TodayStep['section'], ComponentType>> = {
   quant: QuantIcon,
   words: WordsIcon,
   essay: EssayIcon,
+  reading: VerbalIcon, listening: VerbalIcon, writing: EssayIcon, speaking: VerbalIcon,
 };
 
 interface Props {
