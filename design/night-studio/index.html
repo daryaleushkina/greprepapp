@@ -129,6 +129,15 @@ function render() {
         frame.className = `frame device-${state.device}`;
         frame.dataset.theme = t;
         frame.innerHTML = s.html;
+        // Профиль (просьба Даши 10.10.2026): низ боковой панели на компьютере, аватар в шапке на телефоне.
+        const onProfile = s.id === 'G2';
+        frame.querySelectorAll('.nav').forEach(nav => {
+          if (nav.querySelector('.nav-profile')) return;
+          nav.insertAdjacentHTML('beforeend', `<a class="nav-profile" href="#"${onProfile ? ' aria-current="page"' : ''}><span class="avatar" aria-hidden="true">А</span><span class="nav-profile-text"><b>Алина</b><small>Профиль</small></span></a>`);
+        });
+        frame.querySelectorAll('.has-nav .top:not(.top-back)').forEach(top => {
+          if (!top.querySelector('.top-avatar')) top.insertAdjacentHTML('beforeend', '<a class="top-avatar" href="#" aria-label="Профиль"><span class="avatar" aria-hidden="true">А</span></a>');
+        });
         // Обе темы — две копии одной разметки: id и ссылки на них делаем уникальными, иначе подпись
         // поля в тёмной копии фокусирует поле светлой.
         frame.querySelectorAll('[id]').forEach(el => { el.id = `${el.id}--${t}`; });

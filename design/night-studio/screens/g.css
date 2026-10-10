@@ -164,3 +164,9 @@
   .g-item-cta { width: auto; align-self: flex-start; min-width: 280px; }
   .g-item-num { font-size: 80px; }
 }
+
+.g-profile { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: var(--r-l); background: var(--surface); }
+.g-avatar { width: 52px; height: 52px; font-size: 20px; }
+.g-profile-text { display: flex; flex-direction: column; gap: 2px; }
+.g-profile-text b { font-weight: 600; font-size: 17px; }
+.g-profile-text small { font-size: 14px; color: var(--text-2); }

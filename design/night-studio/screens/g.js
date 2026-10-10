@@ -102,12 +102,12 @@ NS.add({ id: 'G1', group: 'G', name: 'Прогресс', html: `
 ` });
 
 // Строка настроек: подпись слева, значение или управление справа.
-NS.add({ id: 'G2', group: 'G', name: 'Настройки', html: `
+NS.add({ id: 'G2', group: 'G', name: 'Профиль и настройки', html: `
 <div class="app has-nav" data-screen="settings">
-  ${NS.nav('progress')}
+  ${NS.nav('profile')}
   <div class="main scroll g-settings">
-    ${gBack('Прогресс')}
-    <h1 class="h1">Настройки</h1>
+    <h1 class="h1">Профиль</h1>
+    <div class="g-profile"><span class="avatar g-avatar" aria-hidden="true">А</span><span class="g-profile-text"><b>Алина Карпова</b><small>Вход через Telegram · @alina_k</small></span></div>
     <ul class="g-list" role="list">
       <li><a href="#" class="g-row"><span class="g-row-label">Экзамен</span><span class="g-row-value">GRE</span><svg class="ic-sm g-chev"><use href="#i-chevron-right"/></svg></a></li>
     </ul>
