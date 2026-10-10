@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Главная — раунд 3</title>
+<title>Главная — выбранный вариант</title>
 <!-- Раунд 2 главной (10.10.2026): переделка с нуля после «дёшево, нейрослоп». Каждый вариант — телефон и
      компьютер рядом, живые страницы во фреймах. Тема переключается здесь для всех сразу: варианты читают
      её из localStorage 'landing-theme'. Раунд 1 — round1/. -->
@@ -27,15 +27,15 @@ section > p { margin: 4px 0 16px; color: var(--muted); max-width: 80ch; }
 .dev { display: grid; gap: 6px; }
 .dev span { font-size: 12px; color: var(--muted); }
 .phone { width: 390px; height: 844px; border: 0; border-radius: 32px; background: #000; box-shadow: 0 10px 30px rgb(0 0 0 / 0.18); }
-.desk-wrap { width: 1008px; height: 630px; overflow: hidden; border-radius: 14px; box-shadow: 0 10px 30px rgb(0 0 0 / 0.18); }
-.desk { width: 1440px; height: 900px; border: 0; transform: scale(0.7); transform-origin: 0 0; }
+.desk-wrap { width: 1152px; height: 720px; overflow: hidden; border-radius: 14px; box-shadow: 0 10px 30px rgb(0 0 0 / 0.18); }
+.desk { width: 1440px; height: 900px; border: 0; transform: scale(0.8); transform-origin: 0 0; }
 @media (max-width: 1500px) { .desk-wrap { width: 720px; height: 450px; } .desk { transform: scale(0.5); } }
 @media (max-width: 760px) { main, header { padding-inline: 16px; } .desk-wrap { width: 100%; height: auto; aspect-ratio: 16 / 10; } .desk { transform: scale(0.24); } .phone { width: 100%; max-width: 390px; } }
 </style>
 </head>
 <body>
 <header>
-  <div><h1>Главная · раунд 3</h1><p>Телефон и компьютер рядом, страницы живые. Прошлые раунды — <a href="round1/index.html">1</a>, <a href="round2/index.html">2</a>.</p></div>
+  <div><h1>Главная · «Продукт на телефоне»</h1><p>Телефон и компьютер рядом, страницы живые. Другие варианты третьего раунда — <a href="r3-1.html">1</a>, <a href="r3-2.html">2</a>, <a href="r3-3.html">3</a>; прошлые раунды — <a href="round1/index.html">1</a>, <a href="round2/index.html">2</a>.</p></div>
   <div class="seg" role="group" aria-label="Тема всех вариантов">
     <button type="button" data-t="dark">Тёмная</button>
     <button type="button" data-t="light">Светлая</button>
@@ -43,24 +43,8 @@ section > p { margin: 4px 0 16px; color: var(--muted); max-width: 80ch; }
 </header>
 <main>
   <section>
-    <h2><a href="r3-1.html">1 · Репетитор в окне</a></h2>
-    <p>Окно открывается от тонкой линии, внутри на глазах разбирается ошибка. Слева — «без репетитора» и четыре экзамена.</p>
-    <div class="pair"><div class="dev"><span>Телефон, 390</span><iframe class="phone" src="r3-1.html" title="1 — телефон"></iframe></div><div class="dev"><span>Компьютер, 1440</span><div class="desk-wrap"><iframe class="desk" src="r3-1.html" title="1 — компьютер"></iframe></div></div></div>
-  </section>
-  <section>
-    <h2><a href="r3-2.html">2 · Ночной кадр 2.0</a></h2>
-    <p>Названия экзаменов проявляются, от линии поднимается свет, по центру — заголовок и вход. Ниже четыре кадра продукта.</p>
-    <div class="pair"><div class="dev"><span>Телефон, 390</span><iframe class="phone" src="r3-2.html" title="2 — телефон"></iframe></div><div class="dev"><span>Компьютер, 1440</span><div class="desk-wrap"><iframe class="desk" src="r3-2.html" title="2 — компьютер"></iframe></div></div></div>
-  </section>
-  <section>
-    <h2><a href="r3-3.html">3 · Четыре экзамена крупно</a></h2>
-    <p>GRE, TOEFL, SAT, GMAT огромной тонкой гарнитурой собираются по буквам, под каждым — его шкала. Ниже вырезки продукта.</p>
-    <div class="pair"><div class="dev"><span>Телефон, 390</span><iframe class="phone" src="r3-3.html" title="3 — телефон"></iframe></div><div class="dev"><span>Компьютер, 1440</span><div class="desk-wrap"><iframe class="desk" src="r3-3.html" title="3 — компьютер"></iframe></div></div></div>
-  </section>
-  <section>
-    <h2><a href="r3-4.html">4 · Продукт на телефоне</a></h2>
-    <p>Телефон поднимается из темноты и сам листает экраны приложения; по прокрутке экраны меняются под секции.</p>
-    <div class="pair"><div class="dev"><span>Телефон, 390</span><iframe class="phone" src="r3-4.html" title="4 — телефон"></iframe></div><div class="dev"><span>Компьютер, 1440</span><div class="desk-wrap"><iframe class="desk" src="r3-4.html" title="4 — компьютер"></iframe></div></div></div>
+    <h2><a href="r3-4.html">Продукт на телефоне</a></h2>
+    <div class="pair"><div class="dev"><span>Телефон, 390</span><iframe class="phone" src="r3-4.html" title="Телефон"></iframe></div><div class="dev"><span>Компьютер, 1440</span><div class="desk-wrap"><iframe class="desk" src="r3-4.html" title="Компьютер"></iframe></div></div></div>
   </section>
 </main>
 <script>
