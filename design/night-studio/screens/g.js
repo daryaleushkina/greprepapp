@@ -154,7 +154,6 @@ NS.add({ id: 'G3', group: 'G', name: 'Оформить подписку', html: 
       </ul>
       <div class="g-price">
         <p class="g-price-main"><b>7 дней бесплатно</b>, затем [ЦЕНА] в месяц</p>
-        <p class="g-price-beta">Бета-пользователям — скидка</p>
       </div>
       <div class="g-pay-cta">
         <button type="button" class="btn btn-primary btn-wide">Попробовать 7 дней</button>

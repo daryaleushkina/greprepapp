@@ -233,7 +233,7 @@ NS.add({ id: 'X7', group: 'X', name: 'Пробник — результат', ht
         <ul class="x-tally" role="list">
           <li class="sec-verbal"><span class="sec-dot"></span><span class="x-tally-name">Verbal</span><span class="x-tally-val"><b class="x-num">19</b> из 27 верно</span></li>
           <li class="sec-quant"><span class="sec-dot"></span><span class="x-tally-name">Quant</span><span class="x-tally-val"><b class="x-num">21</b> из 27 верно</span></li>
-          <li class="sec-essay"><span class="sec-dot"></span><span class="x-tally-name">Эссе</span><span class="x-tally-val"><b class="x-num">4.0</b> — примерно, ±1 · бета</span></li>
+          <li class="sec-essay"><span class="sec-dot"></span><span class="x-tally-name">Эссе</span><span class="x-tally-val"><b class="x-num">4.0</b> — примерно, ±1</span></li>
         </ul>
         <a href="#" class="x-quiet-link">Официальный пробник POWERPREP</a>
       </section>
@@ -310,7 +310,7 @@ NS.add({ id: 'X10', group: 'X', name: 'Эссе — оценка', html: `
     <div class="x-score-page scroll">
       <section class="x-essay-grade sec-essay">
         <p class="x-grade"><span class="x-grade-num">4.0</span><span class="x-grade-of">из 6</span></p>
-        <p class="x-note">Оценка примерная: её ставит модель, точность ±1, бета.</p>
+        <p class="x-note">Оценка примерная: её ставит модель, точность ±1.</p>
       </section>
       <section class="x-improve">
         <h1 class="h2">Что улучшить</h1>
